@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/mitchellh/mapstructure"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient"
 )
 
@@ -25,20 +27,21 @@ func NewStorageVolumeResource() resource.Resource {
 // StorageVolumeResource defines the resource implementation.
 type StorageVolumeResource struct {
 	client *restclient.RestClient
+	config Config
 }
 
 // StorageVolumeResourceModel describes the resource data model.
 type StorageVolumeResourceModel struct {
-	Name       types.String   `tfsdk:"name"`
-	Vserver    types.String   `tfsdk:"vserver"`
-	Aggregates []types.String `tfsdk:"aggregates"`
-	Size       types.Number   `tfsdk:"size"`
-	ID         types.String   `tfsdk:"id"`
+	CxProfileName types.String   `tfsdk:"cx_profile_name"`
+	Name          types.String   `tfsdk:"name"`
+	Vserver       types.String   `tfsdk:"vserver"`
+	Aggregates    []types.String `tfsdk:"aggregates"`
+	UUID          types.String   `tfsdk:"uuid"`
 }
 
 // Metadata returns the resource type name.
 func (r *StorageVolumeResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_volume"
+	resp.TypeName = req.ProviderTypeName + "_storage_volume_resource"
 }
 
 // GetSchema defines the schema for the resource.
@@ -48,6 +51,11 @@ func (r *StorageVolumeResource) GetSchema(ctx context.Context) (tfsdk.Schema, di
 		MarkdownDescription: "Volume resource",
 
 		Attributes: map[string]tfsdk.Attribute{
+			"cx_profile_name": {
+				MarkdownDescription: "Connection profile name",
+				Type:                types.StringType,
+				Required:            true,
+			},
 			"name": {
 				MarkdownDescription: "The name of the volume to manage",
 				Required:            true,
@@ -65,12 +73,7 @@ func (r *StorageVolumeResource) GetSchema(ctx context.Context) (tfsdk.Schema, di
 					ElemType: types.StringType,
 				},
 			},
-			"size": {
-				MarkdownDescription: "Physical Size of the volume in bytes",
-				Optional:            true,
-				Type:                types.NumberType,
-			},
-			"id": {
+			"uuid": {
 				Computed:            true,
 				MarkdownDescription: "Volume identifier",
 				PlanModifiers: tfsdk.AttributePlanModifiers{
@@ -85,31 +88,21 @@ func (r *StorageVolumeResource) GetSchema(ctx context.Context) (tfsdk.Schema, di
 // Configure adds the provider configured client to the resource.
 func (r *StorageVolumeResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
-	// if req.ProviderData == nil {
-	// 	return
-	// }
-
-	// TODO: get credentials from connection_profiles, using req.ProviderData
-	client, err := restclient.NewClient(ctx, restclient.ConnectionProfile{Hostname: "10.193.78.222", Username: "admin", Password: "netapp1!"})
-	if err != nil {
-		msg := fmt.Sprintf("error creating REST client: %s", err)
-		tflog.Error(ctx, msg)
-		resp.Diagnostics.AddError("unable to create REST client", msg)
+	if req.ProviderData == nil {
 		return
 	}
 
-	// client, ok := req.ProviderData.(*http.Client)
+	config, ok := req.ProviderData.(Config)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected  Resource Configure Type",
+			fmt.Sprintf("Expected Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+	}
+	r.config = config
+	// we need to defer setting the client until we can read the connection profile name
+	r.client = nil
 
-	// if !ok {
-	// 	resp.Diagnostics.AddError(
-	// 		"Unexpected Resource Configure Type",
-	// 		fmt.Sprintf("Expected *http.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-	// 	)
-
-	// 	return
-	// }
-
-	r.client = client
 }
 
 // Create creates the resource and sets the initial Terraform state.
@@ -119,24 +112,45 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
+	var request interfaces.StorageVolumeResourceModel
+
+	aggregates := []interfaces.Aggregate{}
+	for _, v := range data.Aggregates {
+		aggr := interfaces.Aggregate{}
+		aggr.Name = v.ValueString()
+		aggregates = append(aggregates, aggr)
+	}
+	err := mapstructure.Decode(aggregates, &request.Aggregates)
+	if err != nil {
+		msg := fmt.Sprintf("error decode data - error: %s", err)
+		tflog.Error(ctx, msg)
+		// TODO: diags.Error is not reporting anything here.  Works in the caller.
+		resp.Diagnostics.AddError("error creating storage/volumes", msg)
+		return
+	}
+	request.Name = data.Name.ValueString()
+	request.SVM.Name = data.Vserver.ValueString()
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// httpResp, err := d.client.Do(httpReq)
-	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create volume, got error: %s", err))
-	//     return
-	// }
+	client, err := r.config.NewClient(ctx, resp.Diagnostics, data.CxProfileName.ValueString())
+	if err != nil {
+		// error reporting done inside NewClient
+		return
+	}
 
-	// For the purposes of this example code, hardcoding a response value to
-	// save into the Terraform state.
-	data.ID = types.StringValue("id")
+	volume, err := interfaces.CreateStorageVolume(ctx, resp.Diagnostics, *client, request)
+	if err != nil {
+		msg := fmt.Sprintf("error creating storage/volumes: %s", err)
+		tflog.Error(ctx, msg)
+		resp.Diagnostics.AddError("error creating storage/volumes", msg)
+		return
+	}
 
-	// Write logs using the tflog package
-	// Documentation: https://terraform.io/plugin/log
+	data.UUID = types.StringValue(volume.UUID)
+
 	tflog.Trace(ctx, "created a resource")
 
 	// Save data into Terraform state
@@ -154,13 +168,25 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// httpResp, err := d.client.Do(httpReq)
-	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read volume, got error: %s", err))
-	//     return
-	// }
+	client, err := r.config.NewClient(ctx, resp.Diagnostics, data.CxProfileName.ValueString())
+	if err != nil {
+		// error reporting done inside NewClient
+		return
+	}
+
+	if data.UUID.IsNull() {
+		msg := fmt.Sprintf("UUID is null")
+		tflog.Error(ctx, msg)
+		return
+	}
+
+	_, err = interfaces.GetStorageVolume(ctx, resp.Diagnostics, *client, data.UUID.ValueString())
+	if err != nil {
+		msg := fmt.Sprintf("error reading storage/volumes: %s", err)
+		tflog.Error(ctx, msg)
+		resp.Diagnostics.AddError("error reading storage/volumes", msg)
+		return
+	}
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -177,14 +203,6 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// httpResp, err := d.client.Do(httpReq)
-	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update volume, got error: %s", err))
-	//     return
-	// }
-
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -200,13 +218,26 @@ func (r *StorageVolumeResource) Delete(ctx context.Context, req resource.DeleteR
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// httpResp, err := d.client.Do(httpReq)
-	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete volume, got error: %s", err))
-	//     return
-	// }
+	client, err := r.config.NewClient(ctx, resp.Diagnostics, data.CxProfileName.ValueString())
+	if err != nil {
+		// error reporting done inside NewClient
+		return
+	}
+
+	if data.UUID.IsNull() {
+		msg := fmt.Sprintf("UUID is null")
+		tflog.Error(ctx, msg)
+		return
+	}
+
+	err = interfaces.DeleteStorageVolume(ctx, resp.Diagnostics, *client, data.UUID.ValueString())
+	if err != nil {
+		msg := fmt.Sprintf("error deleting storage/volumes: %s", err)
+		tflog.Error(ctx, msg)
+		resp.Diagnostics.AddError("error deleting storage/volumes", msg)
+		return
+	}
+
 }
 
 // ImportState imports a resource using ID from terraform import command by calling the Read method.

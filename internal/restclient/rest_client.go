@@ -101,6 +101,7 @@ func (c *RestClient) callAPIMethod(method string, baseURL string, query *RestQue
 		Body:   body,
 		Query:  values,
 	})
+
 	// TODO: error handling for HTTTP status code >=300
 	// TODO: handle async calls (job in response)
 	return c.unmarshalResponse(statusCode, response, httpClientErr)
@@ -145,7 +146,7 @@ func (c *RestClient) NewQuery() *RestQuery {
 	return query
 }
 
-// RestQuery is a wrapper around urlValues, and supports a Fields method ina ddition to Set, Add.
+// RestQuery is a wrapper around urlValues, and supports a Fields method in addition to Set, Add.
 type RestQuery struct {
 	url.Values
 }

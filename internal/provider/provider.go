@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
 // Ensure ONTAPProvider satisfies various provider interfaces.
@@ -38,6 +39,8 @@ type ConnectionProfileModel struct {
 // ONTAPProviderModel describes the provider data model.
 type ONTAPProviderModel struct {
 	Endpoint           types.String             `tfsdk:"endpoint"`
+	WaitForCompletion  types.Bool               `tfsdk:"wait_for_completion"`
+	WaitUntil          types.Int64              `tfsdk:"wait_until"`
 	ConnectionProfiles []ConnectionProfileModel `tfsdk:"connection_profiles"`
 }
 
@@ -45,6 +48,7 @@ type ONTAPProviderModel struct {
 func (p *ONTAPProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
 	resp.TypeName = "netapp-ontap"
 	resp.Version = p.version
+
 }
 
 // GetSchema defines the schema for provider-level configuration.
@@ -55,6 +59,18 @@ func (p *ONTAPProvider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagn
 				MarkdownDescription: "Example provider attribute",
 				Optional:            true,
 				Type:                types.StringType,
+			},
+			"wait_for_completion": {
+				MarkdownDescription: "Wait for completion if job is async.",
+				Optional:            true,
+				Type:                types.BoolType,
+				PlanModifiers:       tfsdk.AttributePlanModifiers{utils.BoolDefault(true)},
+			},
+			"wait_until": {
+				MarkdownDescription: "Time in minutes to wait for completion",
+				Optional:            true,
+				Type:                types.Int64Type,
+				PlanModifiers:       tfsdk.AttributePlanModifiers{utils.Int64Default(30)},
 			},
 			"connection_profiles": {
 				MarkdownDescription: "Define connection and credentials",
@@ -136,6 +152,8 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewExampleResource,
+		NewStorageVolumeResource,
+		NewSvmResource,
 	}
 }
 
@@ -144,6 +162,7 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 	return []func() datasource.DataSource{
 		NewClusterDataSource,
 		NewExampleDataSource,
+		NewStorageVolumeSnapshotDataSource,
 	}
 }
 
