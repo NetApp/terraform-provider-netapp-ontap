@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient"
 )
 
 var _ resource.Resource = &SvmResource{}
@@ -19,14 +18,16 @@ var _ resource.ResourceWithImportState = &SvmResource{}
 
 // NewSvmResource is a helper function to simplify the provider implementation.
 func NewSvmResource() resource.Resource {
-	return &SvmResource{name: "svm_resource"}
+	return &SvmResource{
+		config: resourceOrDataSourceConfig{
+			name: "svm_resource",
+		},
+	}
 }
 
 // SvmResource defines the resource implementation.
 type SvmResource struct {
-	client *restclient.RestClient
-	config Config
-	name   string
+	config resourceOrDataSourceConfig
 }
 
 // SvmResourceModel describes the resource data model.
@@ -38,7 +39,7 @@ type SvmResourceModel struct {
 
 // Metadata returns the resource type name.
 func (r *SvmResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + r.name
+	resp.TypeName = req.ProviderTypeName + "_" + r.config.name
 }
 
 // GetSchema defines the schema for the resource.
@@ -83,9 +84,7 @@ func (r *SvmResource) Configure(ctx context.Context, req resource.ConfigureReque
 			fmt.Sprintf("Expected Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 	}
-	r.config = config
-	// we need to defer setting the client until we can read the connection profile name
-	r.client = nil
+	r.config.providerConfig = config
 }
 
 // Create the resource and sets the initial Terraform state.
@@ -100,7 +99,7 @@ func (r *SvmResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	var request interfaces.SvmResourceModel
 	request.Name = data.Name.ValueString()
-	client, err := r.getClient(ctx, resp.Diagnostics, data.CxProfileName)
+	client, err := getRestClient(ctx, resp.Diagnostics, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -136,7 +135,7 @@ func (r *SvmResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		return
 	}
 
-	client, err := r.getClient(ctx, resp.Diagnostics, data.CxProfileName)
+	client, err := getRestClient(ctx, resp.Diagnostics, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -184,7 +183,7 @@ func (r *SvmResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 		return
 	}
 	// TODO: Uncomment when the DeleteSvm is ready
-	client, err := r.getClient(ctx, resp.Diagnostics, data.CxProfileName)
+	client, err := getRestClient(ctx, resp.Diagnostics, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -201,16 +200,4 @@ func (r *SvmResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 // ImportState imports a resource using ID from terraform import command by calling the Read method.
 func (r *SvmResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-}
-
-// getClient will use existing client r.client or create one if it's not set
-func (r *SvmResource) getClient(ctx context.Context, diags diag.Diagnostics, cxProfileName types.String) (*restclient.RestClient, error) {
-	if r.client == nil {
-		client, err := r.config.NewClient(ctx, diags, cxProfileName.ValueString(), r.name)
-		if err != nil {
-			return nil, err
-		}
-		r.client = client
-	}
-	return r.client, nil
 }

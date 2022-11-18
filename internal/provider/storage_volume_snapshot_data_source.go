@@ -18,14 +18,15 @@ var _ datasource.DataSource = &StorageVolumeSnapshotDataSource{}
 // NewStorageVolumeSnapshotDataSource is a helper function to simplify the provider implementation.
 func NewStorageVolumeSnapshotDataSource() datasource.DataSource {
 	return &StorageVolumeSnapshotDataSource{
-		name: "storage_volume_snapshot",
+		config: resourceOrDataSourceConfig{
+			name: "storage_volume_snapshot_data_source",
+		},
 	}
 }
 
 // StorageVolumeSnapshotDataSource defines the data source implementation.
 type StorageVolumeSnapshotDataSource struct {
-	config Config
-	name   string
+	config resourceOrDataSourceConfig
 }
 
 // StorageVolumeSnapshotDataSourceModel describes the data source data model.
@@ -44,7 +45,7 @@ type StorageVolumeSnapshotDataSourceModel struct {
 
 // Metadata returns the data source type name.
 func (d *StorageVolumeSnapshotDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + d.name
+	resp.TypeName = req.ProviderTypeName + "_" + d.config.name
 }
 
 // GetSchema defines the schema for the data source.
@@ -116,7 +117,7 @@ func (d *StorageVolumeSnapshotDataSource) Read(ctx context.Context, req datasour
 	}
 
 	// we need to defer setting the client until we can read the connection profile name
-	client, err := d.config.NewClient(ctx, resp.Diagnostics, data.CxProfileName.ValueString(), d.name)
+	client, err := getRestClient(ctx, resp.Diagnostics, d.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -166,7 +167,7 @@ func (d *StorageVolumeSnapshotDataSource) Configure(ctx context.Context, req dat
 			fmt.Sprintf("Expected Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 	}
-	d.config = config
+	d.config.providerConfig = config
 }
 
 // PrintError messages for empty required variables for Read Response

@@ -18,14 +18,15 @@ var _ datasource.DataSource = &ClusterDataSource{}
 // NewClusterDataSource is a helper function to simplify the provider implementation.
 func NewClusterDataSource() datasource.DataSource {
 	return &ClusterDataSource{
-		name: "cluster",
+		config: resourceOrDataSourceConfig{
+			name: "cluster_data_source",
+		},
 	}
 }
 
 // ClusterDataSource defines the data source implementation.
 type ClusterDataSource struct {
-	config Config
-	name   string
+	config resourceOrDataSourceConfig
 }
 
 // ClusterDataSourceModel describes the data source data model.
@@ -50,7 +51,7 @@ type versionModel struct {
 
 // Metadata returns the data source type name.
 func (d *ClusterDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + d.name
+	resp.TypeName = req.ProviderTypeName + "_" + d.config.name
 }
 
 // GetSchema defines the schema for the data source.
@@ -115,7 +116,7 @@ func (d *ClusterDataSource) Configure(ctx context.Context, req datasource.Config
 			fmt.Sprintf("Expected Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 	}
-	d.config = config
+	d.config.providerConfig = config
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -130,7 +131,7 @@ func (d *ClusterDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	}
 
 	// we need to defer setting the client until we can read the connection profile name
-	client, err := d.config.NewClient(ctx, resp.Diagnostics, data.CxProfileName.ValueString(), d.name)
+	client, err := getRestClient(ctx, resp.Diagnostics, d.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
