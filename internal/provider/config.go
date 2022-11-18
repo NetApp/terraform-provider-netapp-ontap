@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -25,6 +26,7 @@ type ConnectionProfile struct {
 // Config is created by the provide configure method
 type Config struct {
 	ConnectionProfiles map[string]ConnectionProfile
+	Version            string
 }
 
 // GetConnectionProfile retrieves a connection profile based on name
@@ -45,11 +47,11 @@ func (c *Config) GetConnectionProfile(name string) (*ConnectionProfile, error) {
 	if profile, ok := c.ConnectionProfiles[name]; ok {
 		return &profile, nil
 	}
-	return nil, fmt.Errorf("connection profile wiuth name %s is not defined", name)
+	return nil, fmt.Errorf("connection profile with name %s is not defined", name)
 }
 
 // NewClient creates a RestClient based on the connection profile identified by cxProfileName
-func (c *Config) NewClient(ctx context.Context, diags diag.Diagnostics, cxProfileName string) (*restclient.RestClient, error) {
+func (c *Config) NewClient(ctx context.Context, diags diag.Diagnostics, cxProfileName string, resName string) (*restclient.RestClient, error) {
 	connectionProfile, err := c.GetConnectionProfile(cxProfileName)
 	if err != nil {
 		tflog.Error(ctx, err.Error())
@@ -64,9 +66,8 @@ func (c *Config) NewClient(ctx context.Context, diags diag.Diagnostics, cxProfil
 		diags.AddError("unable to create REST client", msg)
 		return nil, err
 	}
-
-	// TODO: get credentials from connection_profiles, using req.ProviderData
-	client, err := restclient.NewClient(ctx, profile)
+	// the tag resource_name/version will be used for telemetry
+	client, err := restclient.NewClient(ctx, profile, strings.Join([]string{resName, c.Version}, "/"))
 	if err != nil {
 		msg := fmt.Sprintf("error creating REST client: %s", err)
 		tflog.Error(ctx, msg)

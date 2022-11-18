@@ -14,14 +14,14 @@ provider "netapp-ontap" {
   connection_profiles = [
     {
       name = "cluster1"
-      hostname = "10.193.78.219"
+      hostname = "********219"
       username = var.username
       password = var.password
       validate_certs = var.validate_certs
     },
     {
       name = "cluster2"
-      hostname = "10.193.78.222"
+      hostname = "********222"
       username = var.username
       password = var.password
       validate_certs = var.validate_certs

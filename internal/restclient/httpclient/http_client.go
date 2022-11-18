@@ -16,6 +16,7 @@ type HTTPClient struct {
 	cxProfile  HTTPProfile
 	ctx        context.Context
 	httpClient http.Client
+	tag        string
 }
 
 // HTTPProfile defines the connection attributes to build the base URL and authentication header
@@ -69,10 +70,11 @@ func (c *HTTPClient) Do(baseURL string, req *Request) (int, []byte, error) {
 }
 
 // NewClient creates a new HTTP client
-func NewClient(ctx context.Context, cxProfile HTTPProfile) HTTPClient {
+func NewClient(ctx context.Context, cxProfile HTTPProfile, tag string) HTTPClient {
 	client := HTTPClient{
 		cxProfile: cxProfile,
 		ctx:       ctx,
+		tag:       tag,
 	}
 	client.httpClient = client.create()
 	return client

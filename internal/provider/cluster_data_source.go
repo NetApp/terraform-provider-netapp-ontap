@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -18,13 +17,15 @@ var _ datasource.DataSource = &ClusterDataSource{}
 
 // NewClusterDataSource is a helper function to simplify the provider implementation.
 func NewClusterDataSource() datasource.DataSource {
-	return &ClusterDataSource{}
+	return &ClusterDataSource{
+		name: "cluster",
+	}
 }
 
 // ClusterDataSource defines the data source implementation.
 type ClusterDataSource struct {
-	client *restclient.RestClient
 	config Config
+	name   string
 }
 
 // ClusterDataSourceModel describes the data source data model.
@@ -49,7 +50,7 @@ type versionModel struct {
 
 // Metadata returns the data source type name.
 func (d *ClusterDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_cluster"
+	resp.TypeName = req.ProviderTypeName + "_" + d.name
 }
 
 // GetSchema defines the schema for the data source.
@@ -115,8 +116,6 @@ func (d *ClusterDataSource) Configure(ctx context.Context, req datasource.Config
 		)
 	}
 	d.config = config
-	// we need to defer setting the client until we can read the connection profile name
-	d.client = nil
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -130,7 +129,8 @@ func (d *ClusterDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		return
 	}
 
-	client, err := d.config.NewClient(ctx, resp.Diagnostics, data.CxProfileName.ValueString())
+	// we need to defer setting the client until we can read the connection profile name
+	client, err := d.config.NewClient(ctx, resp.Diagnostics, data.CxProfileName.ValueString(), d.name)
 	if err != nil {
 		// error reporting done inside NewClient
 		return

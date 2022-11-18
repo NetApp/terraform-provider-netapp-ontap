@@ -21,13 +21,16 @@ var _ resource.ResourceWithImportState = &StorageVolumeResource{}
 
 // NewStorageVolumeResource is a helper function to simplify the provider implementation.
 func NewStorageVolumeResource() resource.Resource {
-	return &StorageVolumeResource{}
+	return &StorageVolumeResource{
+		name: "storage_volume_resource",
+	}
 }
 
 // StorageVolumeResource defines the resource implementation.
 type StorageVolumeResource struct {
 	client *restclient.RestClient
 	config Config
+	name   string
 }
 
 // StorageVolumeResourceModel describes the resource data model.
@@ -41,7 +44,7 @@ type StorageVolumeResourceModel struct {
 
 // Metadata returns the resource type name.
 func (r *StorageVolumeResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_storage_volume_resource"
+	resp.TypeName = req.ProviderTypeName + "_" + r.name
 }
 
 // GetSchema defines the schema for the resource.
@@ -100,9 +103,6 @@ func (r *StorageVolumeResource) Configure(ctx context.Context, req resource.Conf
 		)
 	}
 	r.config = config
-	// we need to defer setting the client until we can read the connection profile name
-	r.client = nil
-
 }
 
 // Create creates the resource and sets the initial Terraform state.
@@ -135,7 +135,7 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	client, err := r.config.NewClient(ctx, resp.Diagnostics, data.CxProfileName.ValueString())
+	client, err := r.getClient(ctx, resp.Diagnostics, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -168,14 +168,14 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	client, err := r.config.NewClient(ctx, resp.Diagnostics, data.CxProfileName.ValueString())
+	client, err := r.getClient(ctx, resp.Diagnostics, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
 	}
 
 	if data.UUID.IsNull() {
-		msg := fmt.Sprintf("UUID is null")
+		msg := "UUID is null"
 		tflog.Error(ctx, msg)
 		return
 	}
@@ -218,14 +218,14 @@ func (r *StorageVolumeResource) Delete(ctx context.Context, req resource.DeleteR
 		return
 	}
 
-	client, err := r.config.NewClient(ctx, resp.Diagnostics, data.CxProfileName.ValueString())
+	client, err := r.getClient(ctx, resp.Diagnostics, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
 	}
 
 	if data.UUID.IsNull() {
-		msg := fmt.Sprintf("UUID is null")
+		msg := "UUID is null"
 		tflog.Error(ctx, msg)
 		return
 	}
@@ -243,4 +243,16 @@ func (r *StorageVolumeResource) Delete(ctx context.Context, req resource.DeleteR
 // ImportState imports a resource using ID from terraform import command by calling the Read method.
 func (r *StorageVolumeResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+// getClient will use existing client r.client or create one if it's not set
+func (r *StorageVolumeResource) getClient(ctx context.Context, diags diag.Diagnostics, cxProfileName types.String) (*restclient.RestClient, error) {
+	if r.client == nil {
+		client, err := r.config.NewClient(ctx, diags, cxProfileName.ValueString(), r.name)
+		if err != nil {
+			return nil, err
+		}
+		r.client = client
+	}
+	return r.client, nil
 }

@@ -32,13 +32,14 @@ type RestClient struct {
 	requestSlots          chan int
 	mode                  string
 	responses             []MockResponse
+	tag                   string
 }
 
 // CallCreateMethod returns response from POST results.  An error is reported if an error is received.
-func (c *RestClient) CallCreateMethod(baseURL string, query *RestQuery, body map[string]interface{}) (int, RestResponse, error) {
-	statusCode, response, err := c.callAPIMethod("POST", baseURL, query, body)
+func (r *RestClient) CallCreateMethod(baseURL string, query *RestQuery, body map[string]interface{}) (int, RestResponse, error) {
+	statusCode, response, err := r.callAPIMethod("POST", baseURL, query, body)
 	if err != nil {
-		tflog.Debug(c.ctx, fmt.Sprintf("CallCreateMethod request failed %#v", statusCode))
+		tflog.Debug(r.ctx, fmt.Sprintf("CallCreateMethod request failed %#v", statusCode))
 		return statusCode, RestResponse{}, err
 	}
 
@@ -47,10 +48,10 @@ func (c *RestClient) CallCreateMethod(baseURL string, query *RestQuery, body map
 }
 
 // CallDeleteMethod returns response from DELETE results.  An error is reported if an error is received.
-func (c *RestClient) CallDeleteMethod(baseURL string, query *RestQuery, body map[string]interface{}) (int, RestResponse, error) {
-	statusCode, response, err := c.callAPIMethod("DELETE", baseURL, query, body)
+func (r *RestClient) CallDeleteMethod(baseURL string, query *RestQuery, body map[string]interface{}) (int, RestResponse, error) {
+	statusCode, response, err := r.callAPIMethod("DELETE", baseURL, query, body)
 	if err != nil {
-		tflog.Debug(c.ctx, fmt.Sprintf("CallDeleteMethod request failed %#v", statusCode))
+		tflog.Debug(r.ctx, fmt.Sprintf("CallDeleteMethod request failed %#v", statusCode))
 		return statusCode, RestResponse{}, err
 	}
 
@@ -59,14 +60,14 @@ func (c *RestClient) CallDeleteMethod(baseURL string, query *RestQuery, body map
 }
 
 // GetNilOrOneRecord returns nil if no record is found or a single record.  An error is reported if multiple records are received.
-func (c *RestClient) GetNilOrOneRecord(baseURL string, query *RestQuery, body map[string]interface{}) (int, map[string]interface{}, error) {
-	statusCode, response, err := c.callAPIMethod("GET", baseURL, query, body)
+func (r *RestClient) GetNilOrOneRecord(baseURL string, query *RestQuery, body map[string]interface{}) (int, map[string]interface{}, error) {
+	statusCode, response, err := r.callAPIMethod("GET", baseURL, query, body)
 	if err != nil {
 		return statusCode, nil, err
 	}
 	if response.NumRecords > 1 {
 		msg := fmt.Sprintf("received 2 or more records when only one is expected - statusCode %d, err=%#v, response=%#v", statusCode, err, response)
-		tflog.Error(c.ctx, msg)
+		tflog.Error(r.ctx, msg)
 		return statusCode, nil, errors.New(msg)
 	}
 	if response.NumRecords == 1 {
@@ -76,8 +77,8 @@ func (c *RestClient) GetNilOrOneRecord(baseURL string, query *RestQuery, body ma
 }
 
 // GetZeroOrMoreRecords returns a list of records.
-func (c *RestClient) GetZeroOrMoreRecords(baseURL string, query *RestQuery, body map[string]interface{}) (int, []map[string]interface{}, error) {
-	statusCode, response, err := c.callAPIMethod("GET", baseURL, query, body)
+func (r *RestClient) GetZeroOrMoreRecords(baseURL string, query *RestQuery, body map[string]interface{}) (int, []map[string]interface{}, error) {
+	statusCode, response, err := r.callAPIMethod("GET", baseURL, query, body)
 	if err != nil {
 		return statusCode, nil, err
 	}
@@ -85,18 +86,18 @@ func (c *RestClient) GetZeroOrMoreRecords(baseURL string, query *RestQuery, body
 }
 
 // callAPIMethod can be used to make a request to any REST API method, receiving response as bytes
-func (c *RestClient) callAPIMethod(method string, baseURL string, query *RestQuery, body map[string]interface{}) (int, RestResponse, error) {
-	if c.mode == "mock" {
-		return c.mockCallAPIMethod(method, baseURL, query, body)
+func (r *RestClient) callAPIMethod(method string, baseURL string, query *RestQuery, body map[string]interface{}) (int, RestResponse, error) {
+	if r.mode == "mock" {
+		return r.mockCallAPIMethod(method, baseURL, query, body)
 	}
-	c.waitForAvailableSlot()
-	defer c.releaseSlot()
+	r.waitForAvailableSlot()
+	defer r.releaseSlot()
 
 	values := url.Values{}
 	if query != nil {
 		values = query.Values
 	}
-	statusCode, response, httpClientErr := c.httpClient.Do(baseURL, &httpclient.Request{
+	statusCode, response, httpClientErr := r.httpClient.Do(baseURL, &httpclient.Request{
 		Method: method,
 		Body:   body,
 		Query:  values,
@@ -104,11 +105,11 @@ func (c *RestClient) callAPIMethod(method string, baseURL string, query *RestQue
 
 	// TODO: error handling for HTTTP status code >=300
 	// TODO: handle async calls (job in response)
-	return c.unmarshalResponse(statusCode, response, httpClientErr)
+	return r.unmarshalResponse(statusCode, response, httpClientErr)
 }
 
 // NewClient creates a new REST client and a supporting HTTP client
-func NewClient(ctx context.Context, cxProfile ConnectionProfile) (*RestClient, error) {
+func NewClient(ctx context.Context, cxProfile ConnectionProfile, tag string) (*RestClient, error) {
 	var httpProfile httpclient.HTTPProfile
 	err := mapstructure.Decode(cxProfile, &httpProfile)
 	if err != nil {
@@ -123,24 +124,25 @@ func NewClient(ctx context.Context, cxProfile ConnectionProfile) (*RestClient, e
 	client := RestClient{
 		connectionProfile:     cxProfile,
 		ctx:                   ctx,
-		httpClient:            httpclient.NewClient(ctx, httpProfile),
+		httpClient:            httpclient.NewClient(ctx, httpProfile, tag),
 		maxConcurrentRequests: maxConcurrentRequests,
 		mode:                  "prod",
 		requestSlots:          make(chan int, maxConcurrentRequests),
+		tag:                   tag,
 	}
 	return &client, nil
 }
 
-func (c *RestClient) waitForAvailableSlot() {
-	c.requestSlots <- 1
+func (r *RestClient) waitForAvailableSlot() {
+	r.requestSlots <- 1
 }
 
-func (c *RestClient) releaseSlot() {
-	<-c.requestSlots
+func (r *RestClient) releaseSlot() {
+	<-r.requestSlots
 }
 
 // NewQuery is used to provide query parameters.  Set and Add functions are inherited from url.Values
-func (c *RestClient) NewQuery() *RestQuery {
+func (r *RestClient) NewQuery() *RestQuery {
 	query := new(RestQuery)
 	query.Values = url.Values{}
 	return query
@@ -154,4 +156,15 @@ type RestQuery struct {
 // Fields adds a list of fields to query
 func (q *RestQuery) Fields(fields []string) {
 	q.Set("fields", strings.Join(fields, ","))
+}
+
+// Equals is a test function for Unit Testing
+func (r *RestClient) Equals(r2 *RestClient) (ok bool, firstDiff string) {
+	if r.connectionProfile != r2.connectionProfile {
+		return false, fmt.Sprintf("expected %#v, got %#v", r.connectionProfile, r2.connectionProfile)
+	}
+	if r.tag != r2.tag {
+		return false, fmt.Sprintf("expected %#v, got %#v", r.tag, r2.tag)
+	}
+	return true, ""
 }

@@ -41,7 +41,8 @@ func (r *Request) BuildHTTPReq(c *HTTPClient, baseURL string) (*http.Request, er
 
 	req.Header.Set("Content-Type", "application/json")
 	req.SetBasicAuth(c.cxProfile.Username, c.cxProfile.Password)
-	// TODO: add telemetry
+	// telemetry header
+	req.Header.Set("X-Dot-Client-App", c.tag)
 	// TODO: low pty: add support for form data (require to create a file)
 
 	return req, err

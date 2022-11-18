@@ -100,7 +100,7 @@ func (r *SvmResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	var request interfaces.SvmResourceModel
 	request.Name = data.Name.ValueString()
-	client, err := r.config.NewClient(ctx, resp.Diagnostics, data.CxProfileName.ValueString())
+	client, err := r.getClient(ctx, resp.Diagnostics, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -136,7 +136,7 @@ func (r *SvmResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		return
 	}
 
-	client, err := r.config.NewClient(ctx, resp.Diagnostics, data.CxProfileName.ValueString())
+	client, err := r.getClient(ctx, resp.Diagnostics, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -184,7 +184,7 @@ func (r *SvmResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 		return
 	}
 	// TODO: Uncomment when the DeleteSvm is ready
-	client, err := r.config.NewClient(ctx, resp.Diagnostics, data.CxProfileName.ValueString())
+	client, err := r.getClient(ctx, resp.Diagnostics, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -201,4 +201,16 @@ func (r *SvmResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 // ImportState imports a resource using ID from terraform import command by calling the Read method.
 func (r *SvmResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+// getClient will use existing client r.client or create one if it's not set
+func (r *SvmResource) getClient(ctx context.Context, diags diag.Diagnostics, cxProfileName types.String) (*restclient.RestClient, error) {
+	if r.client == nil {
+		client, err := r.config.NewClient(ctx, diags, cxProfileName.ValueString(), r.name)
+		if err != nil {
+			return nil, err
+		}
+		r.client = client
+	}
+	return r.client, nil
 }

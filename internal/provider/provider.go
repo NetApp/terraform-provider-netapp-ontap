@@ -143,6 +143,7 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 
 	config := Config{
 		ConnectionProfiles: connectionProfiles,
+		Version:            p.version,
 	}
 	resp.DataSourceData = config
 	resp.ResourceData = config

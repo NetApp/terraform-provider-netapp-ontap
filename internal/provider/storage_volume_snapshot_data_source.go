@@ -3,13 +3,13 @@ package provider
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -17,13 +17,15 @@ var _ datasource.DataSource = &StorageVolumeSnapshotDataSource{}
 
 // NewStorageVolumeSnapshotDataSource is a helper function to simplify the provider implementation.
 func NewStorageVolumeSnapshotDataSource() datasource.DataSource {
-	return &StorageVolumeSnapshotDataSource{}
+	return &StorageVolumeSnapshotDataSource{
+		name: "storage_volume_snapshot",
+	}
 }
 
 // StorageVolumeSnapshotDataSource defines the data source implementation.
 type StorageVolumeSnapshotDataSource struct {
-	client *restclient.RestClient
 	config Config
+	name   string
 }
 
 // StorageVolumeSnapshotDataSourceModel describes the data source data model.
@@ -42,7 +44,7 @@ type StorageVolumeSnapshotDataSourceModel struct {
 
 // Metadata returns the data source type name.
 func (d *StorageVolumeSnapshotDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_storage_volume_snapshot"
+	resp.TypeName = req.ProviderTypeName + "_" + d.name
 }
 
 // GetSchema defines the schema for the data source.
@@ -113,7 +115,8 @@ func (d *StorageVolumeSnapshotDataSource) Read(ctx context.Context, req datasour
 		return
 	}
 
-	client, err := d.config.NewClient(ctx, resp.Diagnostics, data.CxProfileName.ValueString())
+	// we need to defer setting the client until we can read the connection profile name
+	client, err := d.config.NewClient(ctx, resp.Diagnostics, data.CxProfileName.ValueString(), d.name)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -131,7 +134,7 @@ func (d *StorageVolumeSnapshotDataSource) Read(ctx context.Context, req datasour
 
 	snapshot, err := interfaces.GetStorageVolumeSnapshots(ctx, resp.Diagnostics, *client, data.Name.ValueString(), data.VolumeUUID.ValueString())
 	if err != nil {
-		PrintError(ctx, resp.Diagnostics, "error reading storage/volumes/snapshots: %s, err")
+		PrintError(ctx, resp.Diagnostics, fmt.Sprintf("error reading storage/volumes/snapshots: %s", err))
 		return
 	}
 	data.CreateTime = types.StringValue(snapshot.CreateTime)
@@ -164,13 +167,10 @@ func (d *StorageVolumeSnapshotDataSource) Configure(ctx context.Context, req dat
 		)
 	}
 	d.config = config
-	// we need to defer setting the client until we can read the connection profile name
-	d.client = nil
 }
 
 // PrintError messages for empty required variables for Read Response
 func PrintError(ctx context.Context, diags diag.Diagnostics, message string) {
-	msg := fmt.Sprintf(message)
-	tflog.Error(ctx, msg)
-	diags.AddError(message, msg)
+	tflog.Error(ctx, message)
+	diags.AddError(message, message)
 }
