@@ -37,6 +37,11 @@ type RestClient struct {
 
 // CallCreateMethod returns response from POST results.  An error is reported if an error is received.
 func (r *RestClient) CallCreateMethod(baseURL string, query *RestQuery, body map[string]interface{}) (int, RestResponse, error) {
+	if query == nil {
+		query = r.NewQuery()
+	}
+	// TODO: make this a connection paramter ?
+	query.Set("return_timeout", "60")
 	statusCode, response, err := r.callAPIMethod("POST", baseURL, query, body)
 	if err != nil {
 		tflog.Debug(r.ctx, fmt.Sprintf("CallCreateMethod request failed %#v", statusCode))
@@ -49,6 +54,11 @@ func (r *RestClient) CallCreateMethod(baseURL string, query *RestQuery, body map
 
 // CallDeleteMethod returns response from DELETE results.  An error is reported if an error is received.
 func (r *RestClient) CallDeleteMethod(baseURL string, query *RestQuery, body map[string]interface{}) (int, RestResponse, error) {
+	if query == nil {
+		query = r.NewQuery()
+	}
+	// TODO: make this a connection paramter ?
+	query.Set("return_timeout", "60")
 	statusCode, response, err := r.callAPIMethod("DELETE", baseURL, query, body)
 	if err != nil {
 		tflog.Debug(r.ctx, fmt.Sprintf("CallDeleteMethod request failed %#v", statusCode))

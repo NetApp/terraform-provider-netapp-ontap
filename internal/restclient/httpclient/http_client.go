@@ -85,5 +85,5 @@ func (c HTTPClient) create() http.Client {
 	if !c.cxProfile.ValidateCerts {
 		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	}
-	return http.Client{Timeout: 10 * time.Second}
+	return http.Client{Timeout: 120 * time.Second}
 }
