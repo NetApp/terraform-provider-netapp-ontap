@@ -124,18 +124,18 @@ func (d *StorageVolumeSnapshotDataSource) Read(ctx context.Context, req datasour
 	}
 
 	if data.Name.IsNull() {
-		PrintError(ctx, resp.Diagnostics, "Snapshot name is null")
+		PrintError(ctx, &resp.Diagnostics, "Snapshot name is null")
 		return
 	}
 	// TODO change to volume name
 	if data.VolumeUUID.IsNull() {
-		PrintError(ctx, resp.Diagnostics, "Volume UUID is null")
+		PrintError(ctx, &resp.Diagnostics, "Volume UUID is null")
 		return
 	}
 
 	snapshot, err := interfaces.GetStorageVolumeSnapshots(ctx, resp.Diagnostics, *client, data.Name.ValueString(), data.VolumeUUID.ValueString())
 	if err != nil {
-		PrintError(ctx, resp.Diagnostics, fmt.Sprintf("error reading storage/volumes/snapshots: %s", err))
+		PrintError(ctx, &resp.Diagnostics, fmt.Sprintf("error reading storage/volumes/snapshots: %s", err))
 		return
 	}
 	data.CreateTime = types.StringValue(snapshot.CreateTime)
@@ -171,7 +171,7 @@ func (d *StorageVolumeSnapshotDataSource) Configure(ctx context.Context, req dat
 }
 
 // PrintError messages for empty required variables for Read Response
-func PrintError(ctx context.Context, diags diag.Diagnostics, message string) {
+func PrintError(ctx context.Context, diags *diag.Diagnostics, message string) {
 	tflog.Error(ctx, message)
-	diags.AddError(message, message)
+	diags.AddError("read snapshot error", message)
 }
