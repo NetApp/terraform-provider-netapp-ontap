@@ -1,14 +1,12 @@
 package provider
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 	"golang.org/x/exp/maps"
 )
 
@@ -51,28 +49,22 @@ func (c *Config) GetConnectionProfile(name string) (*ConnectionProfile, error) {
 }
 
 // NewClient creates a RestClient based on the connection profile identified by cxProfileName
-func (c *Config) NewClient(ctx context.Context, diags diag.Diagnostics, cxProfileName string, resName string) (*restclient.RestClient, error) {
+func (c *Config) NewClient(errorHandler *utils.ErrorHandler, cxProfileName string, resName string) (*restclient.RestClient, error) {
 	connectionProfile, err := c.GetConnectionProfile(cxProfileName)
 	if err != nil {
-		tflog.Error(ctx, err.Error())
-		diags.AddError("failed to set connection profile", err.Error())
-		return nil, err
+		return nil, errorHandler.MakeAndReportError("failed to set connection profile", err.Error())
 	}
 	var profile restclient.ConnectionProfile
 	err = mapstructure.Decode(connectionProfile, &profile)
 	if err != nil {
-		msg := fmt.Sprintf("decode error on ConnectionProfile %#v to restclient.ConnectionProfile", connectionProfile)
-		tflog.Error(ctx, msg)
-		diags.AddError("unable to create REST client", msg)
-		return nil, err
+		return nil, errorHandler.MakeAndReportError("unable to create REST client",
+			fmt.Sprintf("decode error on ConnectionProfile %#v to restclient.ConnectionProfile", connectionProfile))
 	}
 	// the tag resource_name/version will be used for telemetry
-	client, err := restclient.NewClient(ctx, profile, strings.Join([]string{resName, c.Version}, "/"))
+	client, err := restclient.NewClient(errorHandler.Ctx, profile, strings.Join([]string{resName, c.Version}, "/"))
 	if err != nil {
-		msg := fmt.Sprintf("error creating REST client: %s", err)
-		tflog.Error(ctx, msg)
-		diags.AddError("unable to create REST client", msg)
-		return nil, err
+		return nil, errorHandler.MakeAndReportError("unable to create REST client",
+			fmt.Sprintf("error creating REST client: %s", err))
 	}
 	return client, err
 }

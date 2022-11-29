@@ -1,13 +1,12 @@
 package interfaces
 
 import (
-	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
 // ClusterGetDataModelONTAP describes the GET record data model using go types for mapping.
@@ -32,61 +31,49 @@ type mgmtInterface struct {
 
 // ClusterNodeGetDataModelONTAP describes the GET record data model using go types for mapping.
 type ClusterNodeGetDataModelONTAP struct {
-	// ConfigurableAttribute types.String `json:"configurable_attribute"`
-	// ID                    types.String `json:"id"`
 	Name                 string
 	ManagementInterfaces []mgmtInterface `mapstructure:"management_interfaces"`
 	// Version versionModelONTAP
 }
 
 // GetCluster to get cluster info
-func GetCluster(ctx context.Context, diags diag.Diagnostics, r restclient.RestClient) (*ClusterGetDataModelONTAP, error) {
+func GetCluster(errorHandler *utils.ErrorHandler, r restclient.RestClient) (*ClusterGetDataModelONTAP, error) {
 	statusCode, response, err := r.GetNilOrOneRecord("cluster", nil, nil)
 	if err == nil && response == nil {
 		err = fmt.Errorf("no response for GET cluster")
 	}
 	if err != nil {
-		tflog.Error(ctx, fmt.Sprintf("Read cluster data - error: %s", err))
-		// TODO: diags.Error is not reporting anything here.  Works in the caller.
-		diags.AddError(err.Error(), fmt.Sprintf("statusCode %d, error %s", statusCode, err))
-		return nil, err
+		return nil, errorHandler.MakeAndReportError("error reading cluster info", fmt.Sprintf("error on GET cluster: %s, statusCode %d", err, statusCode))
 	}
 
 	var dataONTAP ClusterGetDataModelONTAP
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
-		tflog.Error(ctx, fmt.Sprintf("Read cluster data - decode error: %s, data: %#v", err, response))
-		diags.AddError("failed to unmarshall response from GET cluster - UDATA", fmt.Sprintf("statusCode %d, response %#v", statusCode, response))
-		return nil, err
+		return nil, errorHandler.MakeAndReportError("failed to decode response from GET cluster", fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
-	tflog.Debug(ctx, fmt.Sprintf("Read cluster data source - udata: %#v", dataONTAP))
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read cluster data source: %#v", dataONTAP))
 	return &dataONTAP, nil
 }
 
 // GetClusterNodes to get cluster nodes info
-func GetClusterNodes(ctx context.Context, diags diag.Diagnostics, r restclient.RestClient) ([]ClusterNodeGetDataModelONTAP, error) {
+func GetClusterNodes(errorHandler *utils.ErrorHandler, r restclient.RestClient) ([]ClusterNodeGetDataModelONTAP, error) {
 
 	query := r.NewQuery()
 	query.Fields([]string{"management_interfaces", "name"})
 
 	statusCode, records, err := r.GetZeroOrMoreRecords("cluster/nodes", query, nil)
 	if err != nil {
-		tflog.Error(ctx, fmt.Sprintf("Read cluster nodes data - error: %s", err))
-		diags.AddError(err.Error(), fmt.Sprintf("statusCode %d, result %#v", statusCode, records))
-		return nil, err
+		return nil, errorHandler.MakeAndReportError("error reading cluster nodes info", fmt.Sprintf("error on GET cluster/nodes: %s", err))
 	}
-	tflog.Debug(ctx, fmt.Sprintf("Read cluster data source NODES - records: %#v", records))
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read cluster data source NODES - records: %#v", records))
 
 	var dataONTAP ClusterNodeGetDataModelONTAP
 	nodes := []ClusterNodeGetDataModelONTAP{}
 	for _, record := range records {
 		if err := mapstructure.Decode(record, &dataONTAP); err != nil {
-			tflog.Error(ctx, fmt.Sprintf("Read cluster node data - decode error: %s", err))
-			// TODO: diags.Error is not reporting anything here.  Works in the caller.
-			diags.AddError("failed to unmarshall response from GET cluster - UDATA", fmt.Sprintf("statusCode %d, result %#v", statusCode, records))
-			return nil, err
+			return nil, errorHandler.MakeAndReportError("error decoding cluster nodes info", fmt.Sprintf("error: %s, statusCode %d, record %#v", err, statusCode, record))
 		}
 		nodes = append(nodes, dataONTAP)
 	}
-	tflog.Debug(ctx, fmt.Sprintf("Read cluster data source NODES - udata: %#v", nodes))
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read cluster data source NODES: %#v", nodes))
 	return nodes, nil
 }

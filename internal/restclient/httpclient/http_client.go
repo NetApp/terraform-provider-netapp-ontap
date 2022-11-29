@@ -48,7 +48,7 @@ func (c *HTTPClient) Do(baseURL string, req *Request) (int, []byte, error) {
 		statusCode = httpRes.StatusCode
 	}
 	if err != nil {
-		tflog.Error(c.ctx, fmt.Sprintf("HTTP request failed: %s, statusCode: %d", err, statusCode))
+		tflog.Error(c.ctx, fmt.Sprintf("HTTP request failed: %s, statusCode: %d, err raw:%#v", err, statusCode, err))
 		return statusCode, nil, err
 	}
 

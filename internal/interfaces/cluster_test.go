@@ -10,10 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
 func TestGetCluster(t *testing.T) {
 
+	errorHandler := utils.NewErrorHandler(context.Background(), &diag.Diagnostics{})
 	record := ClusterGetDataModelONTAP{
 		Name: "cluster1",
 		Version: versionModelONTAP{
@@ -73,7 +75,7 @@ func TestGetCluster(t *testing.T) {
 			if err != nil {
 				panic(err)
 			}
-			got, err := GetCluster(context.Background(), diag.Diagnostics{}, *r)
+			got, err := GetCluster(errorHandler, *r)
 			if err != nil {
 				fmt.Printf("err: %s\n", err)
 			}
@@ -90,6 +92,7 @@ func TestGetCluster(t *testing.T) {
 
 func TestGetClusterNodes(t *testing.T) {
 
+	errorHandler := utils.NewErrorHandler(context.Background(), &diag.Diagnostics{})
 	record := ClusterNodeGetDataModelONTAP{
 		Name: "cluster1-01",
 		ManagementInterfaces: []mgmtInterface{
@@ -155,7 +158,7 @@ func TestGetClusterNodes(t *testing.T) {
 			if err != nil {
 				panic(err)
 			}
-			got, err := GetClusterNodes(context.Background(), diag.Diagnostics{}, *r)
+			got, err := GetClusterNodes(errorHandler, *r)
 			if err != nil {
 				fmt.Printf("err: %s\n", err)
 			}

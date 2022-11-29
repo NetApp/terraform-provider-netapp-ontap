@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -130,18 +131,17 @@ func (d *ClusterDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		return
 	}
 
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
-	client, err := getRestClient(ctx, resp.Diagnostics, d.config, data.CxProfileName)
+	client, err := getRestClient(errorHandler, d.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
 	}
 
-	cluster, err := interfaces.GetCluster(ctx, resp.Diagnostics, *client)
+	cluster, err := interfaces.GetCluster(errorHandler, *client)
 	if err != nil {
-		msg := fmt.Sprintf("error reading cluster: %s", err)
-		tflog.Error(ctx, msg)
-		resp.Diagnostics.AddError("error reading cluster", msg)
+		// error reporting done inside GetCluster
 		return
 	}
 
@@ -150,11 +150,8 @@ func (d *ClusterDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		Full: types.StringValue(cluster.Version.Full),
 	}
 
-	nodes, err := interfaces.GetClusterNodes(ctx, resp.Diagnostics, *client)
+	nodes, err := interfaces.GetClusterNodes(errorHandler, *client)
 	if err != nil {
-		msg := fmt.Sprintf("error reading cluster nodes: %s", err)
-		tflog.Error(ctx, msg)
-		resp.Diagnostics.AddError("error reading cluster nodes", msg)
 		return
 	}
 

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -104,7 +105,8 @@ func (r *StorageVolumeSnapshotResource) Create(ctx context.Context, req resource
 		return
 	}
 
-	client, err := getRestClient(ctx, resp.Diagnostics, r.config, data.CxProfileName)
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
+	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -112,11 +114,8 @@ func (r *StorageVolumeSnapshotResource) Create(ctx context.Context, req resource
 
 	request.Name = data.Name.ValueString()
 
-	snapshot, err := interfaces.CreateStorageVolumeSnapshot(ctx, resp.Diagnostics, *client, request, data.VolumeUUID.ValueString())
+	snapshot, err := interfaces.CreateStorageVolumeSnapshot(errorHandler, *client, request, data.VolumeUUID.ValueString())
 	if err != nil {
-		msg := fmt.Sprintf("error creating storage/volumes/snapshot: %s", err)
-		tflog.Error(ctx, msg)
-		resp.Diagnostics.AddError("error creating storage/volumes/snapshot", msg)
 		return
 	}
 	// TODO: add async calls or add wait condition for create
@@ -137,15 +136,13 @@ func (r *StorageVolumeSnapshotResource) Read(ctx context.Context, req resource.R
 		return
 	}
 
-	client, err := getRestClient(ctx, resp.Diagnostics, r.config, data.CxProfileName)
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
+	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		return
 	}
-	snapshot, err := interfaces.GetStorageVolumeSnapshots(ctx, resp.Diagnostics, *client, data.Name.ValueString(), data.VolumeUUID.ValueString())
+	snapshot, err := interfaces.GetStorageVolumeSnapshots(errorHandler, *client, data.Name.ValueString(), data.VolumeUUID.ValueString())
 	if err != nil {
-		msg := fmt.Sprintf("error reading storage/volumes/snapshots: %s", err)
-		tflog.Error(ctx, msg)
-		resp.Diagnostics.AddError("error reading storage/volumes/snapshots", msg)
 		return
 	}
 	data.Name = types.StringValue(snapshot.Name)
@@ -185,16 +182,14 @@ func (r *StorageVolumeSnapshotResource) Delete(ctx context.Context, req resource
 		return
 	}
 
-	client, err := getRestClient(ctx, resp.Diagnostics, r.config, data.CxProfileName)
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
+	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
 	}
-	_, err = interfaces.DeleteStorageVolumeSnapshot(ctx, resp.Diagnostics, *client, data.VolumeUUID.ValueString(), data.UUID.ValueString())
+	_, err = interfaces.DeleteStorageVolumeSnapshot(errorHandler, *client, data.VolumeUUID.ValueString(), data.UUID.ValueString())
 	if err != nil {
-		msg := fmt.Sprintf("error deleting storage/volumes/snapshots: %s", err)
-		tflog.Error(ctx, msg)
-		resp.Diagnostics.AddError("error deleting storage/volumes/snapshots", msg)
 		return
 	}
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -116,26 +117,26 @@ func (d *StorageVolumeSnapshotDataSource) Read(ctx context.Context, req datasour
 		return
 	}
 
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
-	client, err := getRestClient(ctx, resp.Diagnostics, d.config, data.CxProfileName)
+	client, err := getRestClient(errorHandler, d.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
 	}
 
 	if data.Name.IsNull() {
-		PrintError(ctx, &resp.Diagnostics, "Snapshot name is null")
+		errorHandler.MakeAndReportError("error reading snapshot", "Snapshot name is null")
 		return
 	}
 	// TODO change to volume name
 	if data.VolumeUUID.IsNull() {
-		PrintError(ctx, &resp.Diagnostics, "Volume UUID is null")
+		errorHandler.MakeAndReportError("error reading snapshot", "Volume UUID is null")
 		return
 	}
 
-	snapshot, err := interfaces.GetStorageVolumeSnapshots(ctx, resp.Diagnostics, *client, data.Name.ValueString(), data.VolumeUUID.ValueString())
+	snapshot, err := interfaces.GetStorageVolumeSnapshots(errorHandler, *client, data.Name.ValueString(), data.VolumeUUID.ValueString())
 	if err != nil {
-		PrintError(ctx, &resp.Diagnostics, fmt.Sprintf("error reading storage/volumes/snapshots: %s", err))
 		return
 	}
 	data.CreateTime = types.StringValue(snapshot.CreateTime)
@@ -168,10 +169,4 @@ func (d *StorageVolumeSnapshotDataSource) Configure(ctx context.Context, req dat
 		)
 	}
 	d.config.providerConfig = config
-}
-
-// PrintError messages for empty required variables for Read Response
-func PrintError(ctx context.Context, diags *diag.Diagnostics, message string) {
-	tflog.Error(ctx, message)
-	diags.AddError("read snapshot error", message)
 }

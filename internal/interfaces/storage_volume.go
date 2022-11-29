@@ -1,13 +1,12 @@
 package interfaces
 
 import (
-	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
 // StorageVolumeGetDataModelONTAP describes the GET record data model using go types for mapping.
@@ -36,64 +35,46 @@ type Vserver struct {
 }
 
 // GetStorageVolume to get volume info by uuid
-func GetStorageVolume(ctx context.Context, diags diag.Diagnostics, r restclient.RestClient, uuid string) (*StorageVolumeGetDataModelONTAP, error) {
+func GetStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) (*StorageVolumeGetDataModelONTAP, error) {
 	statusCode, response, err := r.GetNilOrOneRecord("storage/volumes/"+uuid, nil, nil)
 	if err != nil {
-		tflog.Error(ctx, fmt.Sprintf("Read volume data - error: %s", err))
-		// TODO: diags.Error is not reporting anything here.  Works in the caller.
-		diags.AddError(err.Error(), fmt.Sprintf("statusCode %d, error %s", statusCode, err))
-		return nil, err
+		return nil, errorHandler.MakeAndReportError("error reading volume info", fmt.Sprintf("error on GET storage/volumes: %s", err))
 	}
 
 	var dataONTAP *StorageVolumeGetDataModelONTAP
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
-		tflog.Error(ctx, fmt.Sprintf("Read volume data - decode error: %s, data: %#v", err, response))
-		diags.AddError("failed to unmarshall response from GET storage/volume/ - UDATA", fmt.Sprintf("statusCode %d, response %#v", statusCode, response))
-		return nil, err
+		return nil, errorHandler.MakeAndReportError("error decoding volume info", fmt.Sprintf("error on decode storage/volumes: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
-	tflog.Debug(ctx, fmt.Sprintf("Read volume source - udata: %#v", dataONTAP))
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read volume source - udata: %#v", dataONTAP))
 	return dataONTAP, nil
-
 }
 
 // CreateStorageVolume to create volume
-func CreateStorageVolume(ctx context.Context, diags diag.Diagnostics, r restclient.RestClient, data StorageVolumeResourceModel) (*StorageVolumeGetDataModelONTAP, error) {
-	var volumeData map[string]interface{}
-	if err := mapstructure.Decode(data, &volumeData); err != nil {
-		tflog.Error(ctx, fmt.Sprintf("Create volume - encode error: %s, data: %#v", err, data))
-		return nil, err
+func CreateStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClient, data StorageVolumeResourceModel) (*StorageVolumeGetDataModelONTAP, error) {
+	var body map[string]interface{}
+	if err := mapstructure.Decode(data, &body); err != nil {
+		return nil, errorHandler.MakeAndReportError("error encoding volume body", fmt.Sprintf("error on encoding storage/volumes body: %s, body: %#v", err, data))
 	}
 	query := r.NewQuery()
 	query.Add("return_records", "true")
-	statusCode, response, err := r.CallCreateMethod("storage/volumes", query, volumeData)
+	statusCode, response, err := r.CallCreateMethod("storage/volumes", query, body)
 	if err != nil {
-		tflog.Error(ctx, fmt.Sprintf("Create volume - error: %s", err))
-		// TODO: diags.Error is not reporting anything here.  Works in the caller.
-		diags.AddError(err.Error(), fmt.Sprintf("statusCode %d, error %s", statusCode, err))
-		return nil, err
+		return nil, errorHandler.MakeAndReportError("error creating volume", fmt.Sprintf("error on POST storage/volumes: %s, statusCode %d", err, statusCode))
 	}
 
 	var dataONTAP StorageVolumeGetDataModelONTAP
 	if err := mapstructure.Decode(response.Records[0], &dataONTAP); err != nil {
-		tflog.Error(ctx, fmt.Sprintf("Create volume - decode error: %s, data: %#v", err, response))
-		diags.AddError("failed to unmarshall response from POST storage/volume/ - UDATA", fmt.Sprintf("statusCode %d, response %#v", statusCode, response))
-		return nil, err
+		return nil, errorHandler.MakeAndReportError("error decoding volume info", fmt.Sprintf("error on decode storage/volumes info: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
-	tflog.Debug(ctx, fmt.Sprintf("Create volume source - udata: %#v", dataONTAP))
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Create volume source - udata: %#v", dataONTAP))
 	return &dataONTAP, nil
-
 }
 
 // DeleteStorageVolume to delete volume
-func DeleteStorageVolume(ctx context.Context, diags diag.Diagnostics, r restclient.RestClient, uuid string) error {
+func DeleteStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) error {
 	statusCode, _, err := r.CallDeleteMethod("storage/volumes/"+uuid, nil, nil)
 	if err != nil {
-		tflog.Error(ctx, fmt.Sprintf("Delete volume - error: %s", err))
-		// TODO: diags.Error is not reporting anything here.  Works in the caller.
-		diags.AddError(err.Error(), fmt.Sprintf("statusCode %d, error %s", statusCode, err))
-		return err
+		return errorHandler.MakeAndReportError("error deleting volume", fmt.Sprintf("error on DELETE storage/volumes: %s, statusCode %d", err, statusCode))
 	}
-
 	return nil
-
 }

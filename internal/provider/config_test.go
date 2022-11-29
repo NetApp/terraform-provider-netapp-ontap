@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
 func TestConfig_GetConnectionProfile(t *testing.T) {
@@ -68,6 +69,7 @@ func TestConfig_NewClient(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
+	errorHandler := utils.NewErrorHandler(context.Background(), &diag.Diagnostics{})
 
 	tests := []struct {
 		name          string
@@ -86,7 +88,7 @@ func TestConfig_NewClient(t *testing.T) {
 				ConnectionProfiles: tt.fields.ConnectionProfiles,
 				Version:            tt.fields.Version,
 			}
-			got, err := c.NewClient(context.Background(), diag.Diagnostics{}, tt.cxProfileName, tt.resName)
+			got, err := c.NewClient(errorHandler, tt.cxProfileName, tt.resName)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Config.NewClient() error = %v, wantErr %v", err, tt.wantErr)
 				return

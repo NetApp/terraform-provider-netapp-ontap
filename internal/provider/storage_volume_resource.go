@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -112,6 +113,7 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	var request interfaces.StorageVolumeResourceModel
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 
 	aggregates := []interfaces.Aggregate{}
 	for _, v := range data.Aggregates {
@@ -121,10 +123,7 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	}
 	err := mapstructure.Decode(aggregates, &request.Aggregates)
 	if err != nil {
-		msg := fmt.Sprintf("error decode data - error: %s", err)
-		tflog.Error(ctx, msg)
-		// TODO: diags.Error is not reporting anything here.  Works in the caller.
-		resp.Diagnostics.AddError("error creating storage/volumes", msg)
+		errorHandler.MakeAndReportError("error creating volume", fmt.Sprintf("error on encoding aggregates info: %s, aggregates %#v", err, aggregates))
 		return
 	}
 	request.Name = data.Name.ValueString()
@@ -134,17 +133,14 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	client, err := getRestClient(ctx, resp.Diagnostics, r.config, data.CxProfileName)
+	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
 	}
 
-	volume, err := interfaces.CreateStorageVolume(ctx, resp.Diagnostics, *client, request)
+	volume, err := interfaces.CreateStorageVolume(errorHandler, *client, request)
 	if err != nil {
-		msg := fmt.Sprintf("error creating storage/volumes: %s", err)
-		tflog.Error(ctx, msg)
-		resp.Diagnostics.AddError("error creating storage/volumes", msg)
 		return
 	}
 
@@ -167,23 +163,20 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	client, err := getRestClient(ctx, resp.Diagnostics, r.config, data.CxProfileName)
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
+	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
 	}
 
 	if data.UUID.IsNull() {
-		msg := "UUID is null"
-		tflog.Error(ctx, msg)
+		errorHandler.MakeAndReportError("UUID is null", "VOlume UUID is null")
 		return
 	}
 
-	_, err = interfaces.GetStorageVolume(ctx, resp.Diagnostics, *client, data.UUID.ValueString())
+	_, err = interfaces.GetStorageVolume(errorHandler, *client, data.UUID.ValueString())
 	if err != nil {
-		msg := fmt.Sprintf("error reading storage/volumes: %s", err)
-		tflog.Error(ctx, msg)
-		resp.Diagnostics.AddError("error reading storage/volumes", msg)
 		return
 	}
 
@@ -217,24 +210,20 @@ func (r *StorageVolumeResource) Delete(ctx context.Context, req resource.DeleteR
 		return
 	}
 
-	// client, err := r.getClient(ctx, resp.Diagnostics, data.CxProfileName)
-	client, err := getRestClient(ctx, resp.Diagnostics, r.config, data.CxProfileName)
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
+	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
 	}
 
 	if data.UUID.IsNull() {
-		msg := "UUID is null"
-		tflog.Error(ctx, msg)
+		errorHandler.MakeAndReportError("UUID is null", "VOlume UUID is null")
 		return
 	}
 
-	err = interfaces.DeleteStorageVolume(ctx, resp.Diagnostics, *client, data.UUID.ValueString())
+	err = interfaces.DeleteStorageVolume(errorHandler, *client, data.UUID.ValueString())
 	if err != nil {
-		msg := fmt.Sprintf("error deleting storage/volumes: %s", err)
-		tflog.Error(ctx, msg)
-		resp.Diagnostics.AddError("error deleting storage/volumes", msg)
 		return
 	}
 

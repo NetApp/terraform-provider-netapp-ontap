@@ -47,7 +47,7 @@ func (c *RestClient) unmarshalResponse(statusCode int, responseJSON []byte, http
 	// We don't know which fields are present or not, and fields may not be in a record, so just use interface{}
 	var dataMap map[string]interface{}
 	if err := json.Unmarshal(responseJSON, &dataMap); err != nil {
-		tflog.Error(c.ctx, fmt.Sprintf("unable to unmarshall response, this may be expected when statusCode %d >= 300, unmarshall error=%#v", statusCode, err))
+		tflog.Error(c.ctx, fmt.Sprintf("unable to unmarshall response, this may be expected when statusCode %d >= 300, unmarshall error=%s, response=%#v", statusCode, err, responseJSON))
 		emptyResponse.ErrorType = "bad_response_decode_json"
 		return statusCode, emptyResponse, err
 	}
@@ -65,7 +65,7 @@ func (c *RestClient) unmarshalResponse(statusCode int, responseJSON []byte, http
 	var rawResponse restStagedResponse
 	var metadata mapstructure.Metadata
 	if err := mapstructure.DecodeMetadata(dataMap, &rawResponse, &metadata); err != nil {
-		tflog.Error(c.ctx, fmt.Sprintf("unable to format raw response, this may be expected when statusCode %d >= 300, unmarshall error=%#v", statusCode, err))
+		tflog.Error(c.ctx, fmt.Sprintf("unable to format raw response, this may be expected when statusCode %d >= 300, unmarshall error=%s, response=%#v", statusCode, err, dataMap))
 		emptyResponse.ErrorType = "bad_response_decode_interface"
 		return statusCode, emptyResponse, err
 	}
@@ -81,7 +81,7 @@ func (c *RestClient) unmarshalResponse(statusCode int, responseJSON []byte, http
 
 	var finalResponse RestResponse
 	if err := mapstructure.DecodeMetadata(rawResponse, &finalResponse, &metadata); err != nil {
-		tflog.Error(c.ctx, fmt.Sprintf("unable to format final response - statusCode %d, http err=%#v, decode error=%#v", statusCode, httpClientErr, err))
+		tflog.Error(c.ctx, fmt.Sprintf("unable to format final response - statusCode %d, http err=%#v, decode error=%s, response=%#v", statusCode, httpClientErr, err, rawResponse))
 		emptyResponse.ErrorType = "bad_response_decode_raw"
 		return statusCode, emptyResponse, err
 	}
@@ -103,7 +103,7 @@ func (c *RestClient) checkRestErrors(statusCode int, response RestResponse) (Res
 		response.ErrorType = "statuscode_error"
 	}
 	if err != nil {
-		tflog.Error(c.ctx, fmt.Sprintf("%s", err))
+		tflog.Error(c.ctx, fmt.Sprintf("checkRestError: %s, statusCode %d, response: %#v", err, statusCode, response))
 	}
 	return response, err
 }

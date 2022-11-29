@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
 var _ resource.Resource = &SvmResource{}
@@ -99,16 +100,15 @@ func (r *SvmResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	var request interfaces.SvmResourceModel
 	request.Name = data.Name.ValueString()
-	client, err := getRestClient(ctx, resp.Diagnostics, r.config, data.CxProfileName)
+
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
+	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
 	}
-	svm, err := interfaces.CreateSvm(ctx, resp.Diagnostics, *client, request)
+	svm, err := interfaces.CreateSvm(errorHandler, *client, request)
 	if err != nil {
-		msg := fmt.Sprintf("error creating svm/svms: %s", err)
-		tflog.Error(ctx, msg)
-		resp.Diagnostics.AddError("error creating svm", msg)
 		return
 	}
 	data.UUID = types.StringValue(svm.UUID)
@@ -129,22 +129,19 @@ func (r *SvmResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		return
 	}
 
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	if data.UUID.IsNull() {
-		msg := "UUID is null"
-		tflog.Error(ctx, msg)
+		errorHandler.MakeAndReportError("UUID is null", "vserver UUID is null")
 		return
 	}
 
-	client, err := getRestClient(ctx, resp.Diagnostics, r.config, data.CxProfileName)
+	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
 	}
-	_, err = interfaces.GetSvm(ctx, resp.Diagnostics, *client, data.UUID.ValueString())
+	_, err = interfaces.GetSvm(errorHandler, *client, data.UUID.ValueString())
 	if err != nil {
-		msg := fmt.Sprintf("error reading svm/svms: %s", err)
-		tflog.Error(ctx, msg)
-		resp.Diagnostics.AddError("error getting svm", msg)
 		return
 	}
 
@@ -177,22 +174,20 @@ func (r *SvmResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	if data.UUID.IsNull() {
-		msg := "UUID is null"
-		tflog.Error(ctx, msg)
+		errorHandler.MakeAndReportError("UUID is null", "vserver UUID is null")
 		return
 	}
-	// TODO: Uncomment when the DeleteSvm is ready
-	client, err := getRestClient(ctx, resp.Diagnostics, r.config, data.CxProfileName)
+
+	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
 	}
-	err = interfaces.DeleteSvm(ctx, resp.Diagnostics, *client, data.UUID.ValueString())
+	err = interfaces.DeleteSvm(errorHandler, *client, data.UUID.ValueString())
 	if err != nil {
-		msg := fmt.Sprintf("error deleting svm/svms: %s", err)
-		tflog.Error(ctx, msg)
-		resp.Diagnostics.AddError("error deleting svm", msg)
 		return
 	}
 }

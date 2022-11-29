@@ -147,6 +147,7 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 	}
 	resp.DataSourceData = config
 	resp.ResourceData = config
+
 }
 
 // Resources defines the provider's resources.

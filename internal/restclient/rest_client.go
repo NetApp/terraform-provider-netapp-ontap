@@ -123,8 +123,9 @@ func NewClient(ctx context.Context, cxProfile ConnectionProfile, tag string) (*R
 	var httpProfile httpclient.HTTPProfile
 	err := mapstructure.Decode(cxProfile, &httpProfile)
 	if err != nil {
-		tflog.Error(ctx, fmt.Sprintf("decode error on ConnectionProfile %#v to HTTPProfile", cxProfile))
-		return nil, fmt.Errorf("decode error on ConnectionProfile %#v to HTTPProfile", cxProfile)
+		msg := fmt.Sprintf("decode error on ConnectionProfile %#v to HTTPProfile", cxProfile)
+		tflog.Error(ctx, msg)
+		return nil, errors.New(msg)
 	}
 	httpProfile.APIRoot = "api"
 	maxConcurrentRequests := cxProfile.MaxConcurrentRequests
