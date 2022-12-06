@@ -4,138 +4,94 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// StringDefaultModifier is a plan modifier that sets a default value for a
-// types.StringType attribute when it is not configured. The attribute must be
-// marked as Optional and Computed. When setting the state during the resource
-// Create, Read, or Update methods, this default value must also be included or
-// the Terraform CLI will generate an error.
-type StringDefaultModifier struct {
-	Default string
+// defaultValueAttributePlanModifier specifies a default value (attr.Value) for an attribute.
+type defaultValueAttributePlanModifier struct {
+	DefaultValue attr.Value
 }
 
-// Description returns a plain text description of the validator's behavior, suitable for a practitioner to understand its impact.
-func (m StringDefaultModifier) Description(ctx context.Context) string {
-	return fmt.Sprintf("If value is not configured, defaults to %s", m.Default)
+// DefaultValue is an helper to instantiate a defaultValueAttributePlanModifier.
+func DefaultValue(v attr.Value) tfsdk.AttributePlanModifier {
+	return &defaultValueAttributePlanModifier{v}
 }
 
-// MarkdownDescription returns a markdown formatted description of the validator's behavior, suitable for a practitioner to understand its impact.
-func (m StringDefaultModifier) MarkdownDescription(ctx context.Context) string {
-	return fmt.Sprintf("If value is not configured, defaults to `%s`", m.Default)
+var _ tfsdk.AttributePlanModifier = (*defaultValueAttributePlanModifier)(nil)
+
+func (apm *defaultValueAttributePlanModifier) Description(ctx context.Context) string {
+	return apm.MarkdownDescription(ctx)
 }
 
-// Modify runs the logic of the plan modifier.
-// Access to the configuration, plan, and state is available in `req`, while
-// `resp` contains fields for updating the planned value, triggering resource
-// replacement, and returning diagnostics.
-func (m StringDefaultModifier) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
-	// If the value is unknown or known, do not set default value.
-	if !req.AttributePlan.IsNull() {
+func (apm *defaultValueAttributePlanModifier) MarkdownDescription(ctx context.Context) string {
+	return fmt.Sprintf("Sets the default value %q (%s) if the attribute is not set", apm.DefaultValue, apm.DefaultValue.Type(ctx))
+}
+
+func (apm *defaultValueAttributePlanModifier) Modify(_ context.Context, req tfsdk.ModifyAttributePlanRequest, res *tfsdk.ModifyAttributePlanResponse) {
+	// If the attribute configuration is not null, we are done here
+	if !req.AttributeConfig.IsNull() {
 		return
 	}
 
-	// types.String must be the attr.Value produced by the attr.Type in the schema for this attribute
-	// for generic plan modifiers, use
-	// https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ConvertValue
-	// to convert into a known type.
-	var str types.String
-	diags := tfsdk.ValueAs(ctx, req.AttributePlan, &str)
-	resp.Diagnostics.Append(diags...)
-	if diags.HasError() {
+	// If the attribute plan is "known" and "not null", then a previous plan modifier in the sequence
+	// has already been applied, and we don't want to interfere.
+	if !req.AttributePlan.IsUnknown() && !req.AttributePlan.IsNull() {
 		return
 	}
 
-	resp.AttributePlan = types.StringValue(m.Default)
+	res.AttributePlan = apm.DefaultValue
 }
 
-// StringDefault is a wrapper to call the plan modifier.
-func StringDefault(defaultValue string) StringDefaultModifier {
-	return StringDefaultModifier{
-		Default: defaultValue,
-	}
+// readyForRenewalAttributePlanModifier determines whether the certificate is ready for renewal.
+type readyForRenewalAttributePlanModifier struct {
 }
 
-// BoolDefaultModifier structure
-type BoolDefaultModifier struct {
-	Default bool
+// ReadyForRenewal is an helper to instantiate a defaultValueAttributePlanModifier.
+func ReadyForRenewal() tfsdk.AttributePlanModifier {
+	return &readyForRenewalAttributePlanModifier{}
 }
 
-// Description returns a plain text description of the validator's behavior, suitable for a practitioner to understand its impact.
-func (m BoolDefaultModifier) Description(ctx context.Context) string {
-	return fmt.Sprintf("If value is not configured, defaults to %t", m.Default)
+var _ tfsdk.AttributePlanModifier = (*readyForRenewalAttributePlanModifier)(nil)
+
+func (apm *readyForRenewalAttributePlanModifier) Description(ctx context.Context) string {
+	return apm.MarkdownDescription(ctx)
 }
 
-// MarkdownDescription returns a markdown formatted description of the validator's behavior, suitable for a practitioner to understand its impact.
-func (m BoolDefaultModifier) MarkdownDescription(ctx context.Context) string {
-	return fmt.Sprintf("If value is not configured, defaults to `%t`", m.Default)
+func (apm *readyForRenewalAttributePlanModifier) MarkdownDescription(ctx context.Context) string {
+	return "Sets the value of ready_for_renewal depending on value of validity_period_hours and early_renewal_hours"
 }
 
-// Modify runs the logic of the plan modifier.
-// Access to the configuration, plan, and state is available in `req`, while
-// `resp` contains fields for updating the planned value, triggering resource
-// replacement, and returning diagnostics.
-func (m BoolDefaultModifier) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
-	// If the value is unknown or known, do not set default value.
-	if !req.AttributePlan.IsNull() {
-		return
-	}
-	var b types.Bool
-	diags := tfsdk.ValueAs(ctx, req.AttributePlan, &b)
-	resp.Diagnostics.Append(diags...)
-	if diags.HasError() {
+func (apm *readyForRenewalAttributePlanModifier) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, res *tfsdk.ModifyAttributePlanResponse) {
+	var validityPeriodHours types.Int64
+
+	res.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("validity_period_hours"), &validityPeriodHours)...)
+	if res.Diagnostics.HasError() {
 		return
 	}
 
-	resp.AttributePlan = types.BoolValue(m.Default)
-}
+	if validityPeriodHours.ValueInt64() == 0 {
+		res.AttributePlan = types.BoolValue(true)
 
-// BoolDefault is a wrapper to call the plan modifier.
-func BoolDefault(defaultValue bool) BoolDefaultModifier {
-	return BoolDefaultModifier{
-		Default: defaultValue,
-	}
-}
-
-// IntDefaultModifier struct
-type IntDefaultModifier struct {
-	Default int64
-}
-
-// Description returns a plain text description of the validator's behavior, suitable for a practitioner to understand its impact.
-func (m IntDefaultModifier) Description(ctx context.Context) string {
-	return fmt.Sprintf("If value is not configured, defaults to %d", m.Default)
-}
-
-// MarkdownDescription returns a markdown formatted description of the validator's behavior, suitable for a practitioner to understand its impact.
-func (m IntDefaultModifier) MarkdownDescription(ctx context.Context) string {
-	return fmt.Sprintf("If value is not configured, defaults to `%d`", m.Default)
-}
-
-// Modify runs the logic of the plan modifier.
-// Access to the configuration, plan, and state is available in `req`, while
-// `resp` contains fields for updating the planned value, triggering resource
-// replacement, and returning diagnostics.
-func (m IntDefaultModifier) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
-	// If the value is unknown or known, do not set default value.
-	if !req.AttributePlan.IsNull() {
-		return
-	}
-	var i types.Int64
-	diags := tfsdk.ValueAs(ctx, req.AttributePlan, &i)
-	resp.Diagnostics.Append(diags...)
-	if diags.HasError() {
 		return
 	}
 
-	resp.AttributePlan = types.Int64Value(m.Default)
-}
+	var earlyRenewalHours types.Int64
 
-// Int64Default is a wrapper to call the plan modifier.
-func Int64Default(defaultValue int64) IntDefaultModifier {
-	return IntDefaultModifier{
-		Default: defaultValue,
+	res.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("early_renewal_hours"), &earlyRenewalHours)...)
+	if res.Diagnostics.HasError() {
+		return
+	}
+
+	if earlyRenewalHours.IsNull() || earlyRenewalHours.IsUnknown() {
+		return
+	}
+
+	if earlyRenewalHours.ValueInt64() >= validityPeriodHours.ValueInt64() {
+		res.AttributePlan = types.BoolValue(true)
+
+		return
 	}
 }
