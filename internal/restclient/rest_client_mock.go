@@ -22,7 +22,7 @@ func NewMockedRestClient(responses []MockResponse) (*RestClient, error) {
 		Username: "",
 		Password: "",
 	}
-	restclient, err := NewClient(context.Background(), cxProfile, "resource/version")
+	restclient, err := NewClient(context.Background(), cxProfile, "resource/version", 600)
 	if err != nil {
 		panic(err)
 	}

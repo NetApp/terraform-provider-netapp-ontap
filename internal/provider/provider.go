@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
 // Ensure ONTAPProvider satisfies various provider interfaces.
@@ -38,10 +37,9 @@ type ConnectionProfileModel struct {
 
 // ONTAPProviderModel describes the provider data model.
 type ONTAPProviderModel struct {
-	Endpoint           types.String             `tfsdk:"endpoint"`
-	WaitForCompletion  types.Bool               `tfsdk:"wait_for_completion"`
-	WaitUntil          types.Int64              `tfsdk:"wait_until"`
-	ConnectionProfiles []ConnectionProfileModel `tfsdk:"connection_profiles"`
+	Endpoint             types.String             `tfsdk:"endpoint"`
+	JobCompletionTimeOut types.Int64              `tfsdk:"job_completion_timeout"`
+	ConnectionProfiles   []ConnectionProfileModel `tfsdk:"connection_profiles"`
 }
 
 // Metadata defines the provider type name for inclusion in each data source and resource type name
@@ -60,17 +58,10 @@ func (p *ONTAPProvider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagn
 				Optional:            true,
 				Type:                types.StringType,
 			},
-			"wait_for_completion": {
-				MarkdownDescription: "Wait for completion if job is async.",
-				Optional:            true,
-				Type:                types.BoolType,
-				PlanModifiers:       tfsdk.AttributePlanModifiers{utils.BoolDefault(true)},
-			},
-			"wait_until": {
-				MarkdownDescription: "Time in minutes to wait for completion",
+			"job_completion_timeout": {
+				MarkdownDescription: "Time in seconds to wait for completion. Default to 600 seconds",
 				Optional:            true,
 				Type:                types.Int64Type,
-				PlanModifiers:       tfsdk.AttributePlanModifiers{utils.Int64Default(30)},
 			},
 			"connection_profiles": {
 				MarkdownDescription: "Define connection and credentials",
@@ -140,10 +131,14 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 			MaxConcurrentRequests: 0,
 		}
 	}
-
+	jobCompletionTimeOut := data.JobCompletionTimeOut.ValueInt64()
+	if data.JobCompletionTimeOut.IsNull() {
+		jobCompletionTimeOut = 600
+	}
 	config := Config{
-		ConnectionProfiles: connectionProfiles,
-		Version:            p.version,
+		ConnectionProfiles:   connectionProfiles,
+		JobCompletionTimeOut: int(jobCompletionTimeOut),
+		Version:              p.version,
 	}
 	resp.DataSourceData = config
 	resp.ResourceData = config

@@ -23,8 +23,9 @@ type ConnectionProfile struct {
 
 // Config is created by the provide configure method
 type Config struct {
-	ConnectionProfiles map[string]ConnectionProfile
-	Version            string
+	ConnectionProfiles   map[string]ConnectionProfile
+	Version              string
+	JobCompletionTimeOut int
 }
 
 // GetConnectionProfile retrieves a connection profile based on name
@@ -61,7 +62,8 @@ func (c *Config) NewClient(errorHandler *utils.ErrorHandler, cxProfileName strin
 			fmt.Sprintf("decode error on ConnectionProfile %#v to restclient.ConnectionProfile", connectionProfile))
 	}
 	// the tag resource_name/version will be used for telemetry
-	client, err := restclient.NewClient(errorHandler.Ctx, profile, strings.Join([]string{resName, c.Version}, "/"))
+
+	client, err := restclient.NewClient(errorHandler.Ctx, profile, strings.Join([]string{resName, c.Version}, "/"), c.JobCompletionTimeOut)
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError("unable to create REST client",
 			fmt.Sprintf("error creating REST client: %s", err))

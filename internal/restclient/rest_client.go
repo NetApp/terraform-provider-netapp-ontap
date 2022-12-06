@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mitchellh/mapstructure"
@@ -32,6 +33,7 @@ type RestClient struct {
 	requestSlots          chan int
 	mode                  string
 	responses             []MockResponse
+	jobCompletionTimeOut  int
 	tag                   string
 }
 
@@ -48,7 +50,19 @@ func (r *RestClient) CallCreateMethod(baseURL string, query *RestQuery, body map
 		return statusCode, RestResponse{}, err
 	}
 
-	// TODO: handle waitOnCompletion
+	if response.Job != nil {
+		statusCode, _, err = r.Wait(response.Job["uuid"].(string))
+		if err != nil {
+			return statusCode, RestResponse{}, err
+		}
+	} else if response.Jobs != nil {
+		for _, v := range response.Jobs {
+			statusCode, _, err = r.Wait(v["uuid"].(string))
+			if err != nil {
+				return statusCode, RestResponse{}, err
+			}
+		}
+	}
 	return statusCode, response, err
 }
 
@@ -119,7 +133,7 @@ func (r *RestClient) callAPIMethod(method string, baseURL string, query *RestQue
 }
 
 // NewClient creates a new REST client and a supporting HTTP client
-func NewClient(ctx context.Context, cxProfile ConnectionProfile, tag string) (*RestClient, error) {
+func NewClient(ctx context.Context, cxProfile ConnectionProfile, tag string, jobCompletionTimeOut int) (*RestClient, error) {
 	var httpProfile httpclient.HTTPProfile
 	err := mapstructure.Decode(cxProfile, &httpProfile)
 	if err != nil {
@@ -139,6 +153,7 @@ func NewClient(ctx context.Context, cxProfile ConnectionProfile, tag string) (*R
 		maxConcurrentRequests: maxConcurrentRequests,
 		mode:                  "prod",
 		requestSlots:          make(chan int, maxConcurrentRequests),
+		jobCompletionTimeOut:  jobCompletionTimeOut,
 		tag:                   tag,
 	}
 	return &client, nil
@@ -167,6 +182,54 @@ type RestQuery struct {
 // Fields adds a list of fields to query
 func (q *RestQuery) Fields(fields []string) {
 	q.Set("fields", strings.Join(fields, ","))
+}
+
+// Wait waits for job to finish.
+func (r *RestClient) Wait(uuid string) (int, RestResponse, error) {
+	timeRemaining := r.jobCompletionTimeOut
+	errorRetries := 3
+	for timeRemaining > 0 {
+		statusCode, response, err := r.GetNilOrOneRecord("cluster/jobs/"+uuid, nil, nil)
+		if err != nil {
+			if errorRetries <= 0 {
+				return statusCode, RestResponse{}, err
+			}
+			time.Sleep(10 * time.Second)
+			errorRetries--
+			continue
+		}
+		var job Job
+		if err := mapstructure.Decode(response, &job); err != nil {
+			tflog.Error(r.ctx, fmt.Sprintf("Read job data - decode error: %s, data: %#v", err, response))
+			return statusCode, RestResponse{}, err
+		}
+		if job.State == "queued" || job.State == "running" || job.State == "paused" {
+			timeRemaining = timeRemaining - 10
+		} else if job.State == "success" {
+			return statusCode, RestResponse{}, nil
+		} else {
+			if job.Error.Code != "" {
+				errorMessage := fmt.Errorf("fail to get job status. Error code: %s. Message: %s, Target: %s", job.Error.Code, job.Error.Message, job.Error.Target)
+				return statusCode, RestResponse{}, errorMessage
+			}
+			return statusCode, RestResponse{}, fmt.Errorf("fail to get job status. Unknown error")
+		}
+		time.Sleep(10 * time.Second)
+	}
+	// TODO: clean up the resources in creation when errors out.
+	return 0, RestResponse{}, fmt.Errorf("fail to wait for job to finish. Exit now")
+}
+
+// Job is ONTAP API job data structure
+type Job struct {
+	State string
+	Error jobError
+}
+
+type jobError struct {
+	Message string `tfsdk:"state"`
+	Code    string `tfsdk:"code"`
+	Target  string `tfsdk:"target"`
 }
 
 // Equals is a test function for Unit Testing

@@ -23,6 +23,8 @@ type RestResponse struct {
 	StatusCode int
 	HTTPError  string
 	ErrorType  string
+	Job        map[string]interface{}
+	Jobs       []map[string]interface{}
 }
 
 // unmarshalResponse converts the REST response into a structure with a list of 0 or more records.
@@ -59,6 +61,8 @@ func (c *RestClient) unmarshalResponse(statusCode int, responseJSON []byte, http
 		NumRecords int `mapstructure:"num_records"`
 		Records    []map[string]interface{}
 		Error      RestError
+		Job        map[string]interface{}
+		Jobs       []map[string]interface{}
 		Other      map[string]interface{} `mapstructure:",remain"`
 	}
 
