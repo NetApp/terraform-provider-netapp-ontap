@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
@@ -43,33 +44,30 @@ func (r *SvmResource) Metadata(ctx context.Context, req resource.MetadataRequest
 	resp.TypeName = req.ProviderTypeName + "_" + r.config.name
 }
 
-// GetSchema defines the schema for the resource.
-func (r *SvmResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
+// Schema defines the schema for the resource.
+func (r *SvmResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
 		// This description is used by the documentation generator and the language server.
 		MarkdownDescription: "Svm resource",
 
-		Attributes: map[string]tfsdk.Attribute{
-			"cx_profile_name": {
+		Attributes: map[string]schema.Attribute{
+			"cx_profile_name": schema.StringAttribute{
 				MarkdownDescription: "Connection profile name",
-				Type:                types.StringType,
 				Required:            true,
 			},
-			"name": {
+			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the svm to manage",
 				Required:            true,
-				Type:                types.StringType,
 			},
-			"uuid": {
+			"uuid": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Vserver identifier",
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
-				Type: types.StringType,
 			},
 		},
-	}, nil
+	}
 }
 
 // Configure adds the provider configured client to the resource.

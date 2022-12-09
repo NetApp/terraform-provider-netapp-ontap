@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mitchellh/mapstructure"
@@ -47,45 +48,39 @@ func (r *StorageVolumeResource) Metadata(ctx context.Context, req resource.Metad
 	resp.TypeName = req.ProviderTypeName + "_" + r.config.name
 }
 
-// GetSchema defines the schema for the resource.
-func (r *StorageVolumeResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
+// Schema defines the schema for the resource.
+func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
 		// This description is used by the documentation generator and the language server.
 		MarkdownDescription: "Volume resource",
 
-		Attributes: map[string]tfsdk.Attribute{
-			"cx_profile_name": {
+		Attributes: map[string]schema.Attribute{
+			"cx_profile_name": schema.StringAttribute{
 				MarkdownDescription: "Connection profile name",
-				Type:                types.StringType,
 				Required:            true,
 			},
-			"name": {
+			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the volume to manage",
 				Required:            true,
-				Type:                types.StringType,
 			},
-			"vserver": {
+			"vserver": schema.StringAttribute{
 				MarkdownDescription: "Name of the vserver to use",
 				Required:            true,
-				Type:                types.StringType,
 			},
-			"aggregates": {
-				MarkdownDescription: "List of aggregates in which to create the volume",
+			"aggregates": schema.ListAttribute{
+				ElementType:         types.StringType,
 				Required:            true,
-				Type: types.SetType{
-					ElemType: types.StringType,
-				},
+				MarkdownDescription: "List of aggregates in which to create the volume",
 			},
-			"uuid": {
+			"uuid": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Volume identifier",
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
-				Type: types.StringType,
 			},
 		},
-	}, nil
+	}
 }
 
 // Configure adds the provider configured client to the resource.
