@@ -5,8 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
@@ -49,61 +48,52 @@ func (d *StorageVolumeSnapshotDataSource) Metadata(ctx context.Context, req data
 	resp.TypeName = req.ProviderTypeName + "_" + d.config.name
 }
 
-// GetSchema defines the schema for the data source.
-func (d *StorageVolumeSnapshotDataSource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
+// Schema defines the schema for the data source.
+func (d *StorageVolumeSnapshotDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = schema.Schema{
 		// This description is used by the documentation generator and the language server.
 		MarkdownDescription: "Storage Volume Snapshot data source",
 
-		Attributes: map[string]tfsdk.Attribute{
-			"cx_profile_name": {
+		Attributes: map[string]schema.Attribute{
+			"cx_profile_name": schema.StringAttribute{
 				MarkdownDescription: "Connection profile name",
-				Type:                types.StringType,
 				Required:            true,
 			},
-			"name": {
+			"name": schema.StringAttribute{
 				MarkdownDescription: "Snapshot name",
-				Type:                types.StringType,
 				Required:            true,
 			},
 			// TODO: replace UUID with Volume Name, and vserver name
-			"volume_uuid": {
+			"volume_uuid": schema.StringAttribute{
 				MarkdownDescription: "Volume UUID",
-				Type:                types.StringType,
 				Required:            true,
 			},
-			"volume_name": {
+			"volume_name": schema.StringAttribute{
 				MarkdownDescription: "Volume Name",
-				Type:                types.StringType,
 				Computed:            true,
 			},
-			"create_time": {
+			"create_time": schema.StringAttribute{
 				MarkdownDescription: "Create time",
-				Type:                types.StringType,
 				Computed:            true,
 			},
-			"expiry_time": {
+			"expiry_time": schema.StringAttribute{
 				MarkdownDescription: "Expiry time",
-				Type:                types.StringType,
 				Computed:            true,
 			},
-			"state": {
+			"state": schema.StringAttribute{
 				MarkdownDescription: "State",
-				Type:                types.StringType,
 				Computed:            true,
 			},
-			"size": {
+			"size": schema.Float64Attribute{
 				MarkdownDescription: "Size",
-				Type:                types.Float64Type,
 				Computed:            true,
 			},
-			"comment": {
+			"comment": schema.StringAttribute{
 				MarkdownDescription: "Comment",
-				Type:                types.StringType,
 				Computed:            true,
 			},
 		},
-	}, nil
+	}
 }
 
 // Read refreshes the Terraform state with the latest data.

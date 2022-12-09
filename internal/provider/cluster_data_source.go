@@ -5,8 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
@@ -55,53 +54,49 @@ func (d *ClusterDataSource) Metadata(ctx context.Context, req datasource.Metadat
 	resp.TypeName = req.ProviderTypeName + "_" + d.config.name
 }
 
-// GetSchema defines the schema for the data source.
-func (d *ClusterDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
+// Schema defines the schema for the data source.
+func (d *ClusterDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = schema.Schema{
 		// This description is used by the documentation generator and the language server.
 		MarkdownDescription: "Cluster data source",
 
-		Attributes: map[string]tfsdk.Attribute{
-			"cx_profile_name": {
+		Attributes: map[string]schema.Attribute{
+			"cx_profile_name": schema.StringAttribute{
 				MarkdownDescription: "Connection profile name",
-				Type:                types.StringType,
 				Required:            true,
 			},
-			"name": {
+			"name": schema.StringAttribute{
+				Computed:            true,
 				MarkdownDescription: "Cluster name",
-				Type:                types.StringType,
-				Computed:            true,
 			},
-			"version": {
+			"version": schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"full": schema.StringAttribute{
+						MarkdownDescription: "ONTAP software version",
+						Computed:            true,
+					},
+				},
+				Computed:            true,
 				MarkdownDescription: "ONTAP software version",
-				Computed:            true,
-				Optional:            true,
-				Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-					"full": {
-						Type:     types.StringType,
-						Computed: true,
-					},
-				}),
 			},
-			"nodes": {
-				MarkdownDescription: "Cluster Nodes",
+			"nodes": schema.ListNestedAttribute{
 				Computed:            true,
-				Optional:            true,
-				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-					"name": {
-						Type:     types.StringType,
-						Computed: true,
-					},
-					"management_ip_addresses": {
-						Type: types.ListType{
-							ElemType: types.StringType,
+				MarkdownDescription: "Cluster Nodes",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"name": schema.StringAttribute{
+							Computed: true,
 						},
-						Computed: true,
+						"management_ip_addresses": schema.ListAttribute{
+							ElementType:         types.StringType,
+							Computed:            true,
+							MarkdownDescription: "",
+						},
 					},
-				}),
+				},
 			},
 		},
-	}, nil
+	}
 }
 
 // Configure adds the provider configured client to the data source.

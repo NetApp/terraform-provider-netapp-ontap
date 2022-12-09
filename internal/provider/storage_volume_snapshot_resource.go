@@ -4,10 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
@@ -45,36 +44,32 @@ func (r *StorageVolumeSnapshotResource) Metadata(ctx context.Context, req resour
 	resp.TypeName = req.ProviderTypeName + "_" + r.config.name
 }
 
-// GetSchema defines the schema for the resource.
-func (r *StorageVolumeSnapshotResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
+// Schema defines the schema for the resource.
+func (r *StorageVolumeSnapshotResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
 		// This description is used by the documentation generator and the language server.
 		MarkdownDescription: "Storage Volume Snapshot resource",
 
-		Attributes: map[string]tfsdk.Attribute{
-			"cx_profile_name": {
+		Attributes: map[string]schema.Attribute{
+			"cx_profile_name": schema.StringAttribute{
 				MarkdownDescription: "Connection profile name",
-				Type:                types.StringType,
 				Required:            true,
 			},
-			"name": {
+			"name": schema.StringAttribute{
 				MarkdownDescription: "Snapshot name",
-				Type:                types.StringType,
 				Required:            true,
 			},
 			// TODO: replace UUID with Volume Name, and vserver name
-			"volume_uuid": {
+			"volume_uuid": schema.StringAttribute{
 				MarkdownDescription: "Volume UUID",
-				Type:                types.StringType,
 				Required:            true,
 			},
-			"uuid": {
+			"uuid": schema.StringAttribute{
 				MarkdownDescription: "Snapshot UUID",
-				Type:                types.StringType,
 				Computed:            true,
 			},
 		},
-	}, nil
+	}
 }
 
 // Configure adds the provider configured client to the data source.

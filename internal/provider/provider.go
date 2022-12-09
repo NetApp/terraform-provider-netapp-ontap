@@ -5,10 +5,9 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -49,55 +48,49 @@ func (p *ONTAPProvider) Metadata(ctx context.Context, req provider.MetadataReque
 
 }
 
-// GetSchema defines the schema for provider-level configuration.
-func (p *ONTAPProvider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"endpoint": {
+// Schema defines the schema for provider-level configuration.
+func (p *ONTAPProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"endpoint": schema.StringAttribute{
 				MarkdownDescription: "Example provider attribute",
 				Optional:            true,
-				Type:                types.StringType,
 			},
-			"job_completion_timeout": {
+			"job_completion_timeout": schema.Int64Attribute{
 				MarkdownDescription: "Time in seconds to wait for completion. Default to 600 seconds",
 				Optional:            true,
-				Type:                types.Int64Type,
 			},
-			"connection_profiles": {
+			"connection_profiles": schema.ListNestedAttribute{
 				MarkdownDescription: "Define connection and credentials",
 				Required:            true,
-				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-					"name": {
-						MarkdownDescription: "Profile name",
-						Required:            true,
-						Type:                types.StringType,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"name": schema.StringAttribute{
+							MarkdownDescription: "Profile name",
+							Required:            true,
+						},
+						"hostname": schema.StringAttribute{
+							MarkdownDescription: "ONTAP management interface IP address or name",
+							Required:            true,
+						},
+						"username": schema.StringAttribute{
+							MarkdownDescription: "ONTAP management user name (cluster or vserver)",
+							Required:            true,
+						},
+						"password": schema.StringAttribute{
+							MarkdownDescription: "ONTAP management password for username",
+							Required:            true,
+							Sensitive:           true,
+						},
+						"validate_certs": schema.BoolAttribute{
+							MarkdownDescription: "Whether to enforce SSL certificate validation, defaults to true",
+							Optional:            true,
+						},
 					},
-					"hostname": {
-						MarkdownDescription: "ONTAP management interface IP address or name",
-						Required:            true,
-						Type:                types.StringType,
-					},
-					"username": {
-						MarkdownDescription: "ONTAP management user name (cluster or vserver)",
-						Required:            true,
-						Type:                types.StringType,
-					},
-					"password": {
-						MarkdownDescription: "ONTAP management password for username",
-						Required:            true,
-						Type:                types.StringType,
-						Sensitive:           true,
-					},
-					"validate_certs": {
-						MarkdownDescription: "Whether to enforce SSL certificate validation, defaults to true",
-						Type:                types.BoolType,
-						Attributes:          nil,
-						Optional:            true,
-					},
-				}),
+				},
 			},
 		},
-	}, nil
+	}
 }
 
 // Configure shared clients for data source and resource implementations.
