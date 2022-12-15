@@ -153,6 +153,8 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 	return []func() datasource.DataSource{
 		NewClusterDataSource,
 		NewExampleDataSource,
+		NewIPInterfaceDataSource,
+		NewIPInterfacesDataSource,
 		NewStorageVolumeSnapshotDataSource,
 	}
 }

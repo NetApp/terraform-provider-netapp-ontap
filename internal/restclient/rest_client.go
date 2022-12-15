@@ -184,6 +184,17 @@ func (q *RestQuery) Fields(fields []string) {
 	q.Set("fields", strings.Join(fields, ","))
 }
 
+// SetValues adds a set of key, value
+func (q *RestQuery) SetValues(keyValues map[string]interface{}) {
+	for k, v := range keyValues {
+		// TODO: add some type validation
+		value := fmt.Sprintf("%v", v)
+		if value != "" {
+			q.Set(k, value)
+		}
+	}
+}
+
 // Wait waits for job to finish.
 func (r *RestClient) Wait(uuid string) (int, RestResponse, error) {
 	timeRemaining := r.jobCompletionTimeOut
