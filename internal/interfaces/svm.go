@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mitchellh/mapstructure"
@@ -17,7 +18,24 @@ type SvmGetDataModelONTAP struct {
 
 // SvmResourceModel describes the resource data model.
 type SvmResourceModel struct {
-	Name string `mapstructure:"name"`
+	Name           string              `mapstructure:"name"`
+	Ipspace        Ipspace             `mapstructure:"ipspace"`
+	SnapshotPolicy SnapshotPolicy      `mapstructure:"snapshot_policy"`
+	SubType        string              `mapstructure:"subtype,omitempty"`
+	Comment        string              `mapstructure:"comment,omitempty"`
+	Language       string              `mapstructure:"language,omitempty"`
+	MaxVolumes     string              `mapstructure:"max_volumes,omitempty"`
+	Aggregates     []map[string]string `mapstructure:"aggregates,omitempty"`
+}
+
+// Ipspace describes the resource data model.
+type Ipspace struct {
+	Name string `mapstructure:"name,omitempty"`
+}
+
+// SnapshotPolicy describes the resource data model.
+type SnapshotPolicy struct {
+	Name string `mapstructure:"name,omitempty"`
 }
 
 // GetSvm to get svm info by uuid
@@ -66,6 +84,24 @@ func DeleteSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid s
 	if err != nil {
 		return errorHandler.MakeAndReportError("error deleting vserver", fmt.Sprintf("error on DELETE %s: %s, statusCode %d", api, err, statusCode))
 
+	}
+	return nil
+}
+
+// ValidateIntORString to validate int or string
+func ValidateIntORString(errorHandler *utils.ErrorHandler, value string, astring string) error {
+	if value == "" || value == astring {
+		return nil
+	}
+
+	intValue, err := strconv.Atoi(value)
+	if err != nil {
+		return errorHandler.MakeAndReportError("falied to validate", fmt.Sprintf("Error: expecting int value or '%s', got: %s", astring, value))
+	}
+
+	stringValue := strconv.Itoa(intValue)
+	if stringValue != value {
+		return errorHandler.MakeAndReportError("falied to validate", fmt.Sprintf("Error: expecting int value or '%s', got: %s", astring, value))
 	}
 	return nil
 }
