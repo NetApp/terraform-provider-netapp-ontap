@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
@@ -34,9 +35,16 @@ type SvmResource struct {
 
 // SvmResourceModel describes the resource data model.
 type SvmResourceModel struct {
-	CxProfileName types.String `tfsdk:"cx_profile_name"`
-	Name          types.String `tfsdk:"name"`
-	UUID          types.String `tfsdk:"uuid"`
+	CxProfileName  types.String   `tfsdk:"cx_profile_name"`
+	Name           types.String   `tfsdk:"name"`
+	UUID           types.String   `tfsdk:"uuid"`
+	Ipspace        types.String   `tfsdk:"ipspace"`
+	SnapshotPolicy types.String   `tfsdk:"snapshot_policy"`
+	SubType        types.String   `tfsdk:"subtype"`
+	Comment        types.String   `tfsdk:"comment"`
+	Language       types.String   `tfsdk:"language"`
+	Aggregates     []types.String `tfsdk:"aggregates"`
+	MaxVolumes     types.String   `tfsdk:"max_volumes"`
 }
 
 // Metadata returns the resource type name.
@@ -66,6 +74,35 @@ func (r *SvmResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
+			"ipspace": schema.StringAttribute{
+				MarkdownDescription: "The name of the ipspace to manage",
+				Optional:            true,
+			},
+			"snapshot_policy": schema.StringAttribute{
+				MarkdownDescription: "The name of the snapshot policy to manage",
+				Optional:            true,
+			},
+			"subtype": schema.StringAttribute{
+				MarkdownDescription: "The subtype for vserver to be created",
+				Optional:            true,
+			},
+			"comment": schema.StringAttribute{
+				MarkdownDescription: "Comment for vserver to be created",
+				Optional:            true,
+			},
+			"language": schema.StringAttribute{
+				MarkdownDescription: "Language to use for vserver",
+				Optional:            true,
+			},
+			"aggregates": schema.ListAttribute{
+				ElementType:         types.StringType,
+				MarkdownDescription: "Aggregates to be assigned use for vserver",
+				Optional:            true,
+			},
+			"max_volumes": schema.StringAttribute{
+				MarkdownDescription: "Maximum number of volumes that can be created on the vserver. Expects an integer or unlimited",
+				Optional:            true,
+			},
 		},
 	}
 }
@@ -89,6 +126,7 @@ func (r *SvmResource) Configure(ctx context.Context, req resource.ConfigureReque
 // Create the resource and sets the initial Terraform state.
 func (r *SvmResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data *SvmResourceModel
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -98,8 +136,50 @@ func (r *SvmResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	var request interfaces.SvmResourceModel
 	request.Name = data.Name.ValueString()
+	if !data.Ipspace.IsNull() {
+		request.Ipspace.Name = data.Ipspace.ValueString()
+	}
 
-	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
+	if !data.SnapshotPolicy.IsNull() {
+		request.SnapshotPolicy.Name = data.SnapshotPolicy.ValueString()
+	}
+
+	if !data.SubType.IsNull() {
+		request.SubType = data.SubType.ValueString()
+	}
+
+	if !data.Comment.IsNull() {
+		request.Comment = data.Comment.ValueString()
+	}
+
+	if !data.Language.IsNull() {
+		request.Language = data.Language.ValueString()
+	}
+
+	if !data.MaxVolumes.IsNull() {
+		err := interfaces.ValidateIntORString(errorHandler, data.MaxVolumes.ValueString(), "unlimited")
+		if err != nil {
+			return
+		}
+		request.MaxVolumes = data.MaxVolumes.ValueString()
+	}
+
+	if len(data.Aggregates) != 0 {
+		aggregates := []interfaces.Aggregate{}
+		for _, v := range data.Aggregates {
+			aggr := interfaces.Aggregate{}
+			aggr.Name = v.ValueString()
+			aggregates = append(aggregates, aggr)
+		}
+		err := mapstructure.Decode(aggregates, &request.Aggregates)
+		if err != nil {
+			errorHandler.MakeAndReportError("error creating vserver", fmt.Sprintf("error on encoding aggregates info: %s, aggregates %#v", err, aggregates))
+			return
+		}
+
+	}
+
+	errorHandler = utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
