@@ -11,48 +11,53 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
-// Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &StorageVolumeResource{}
-var _ resource.ResourceWithImportState = &StorageVolumeResource{}
+// TODO:
+// copy this file to match you resource (should match internal/provider/tag_prefix_resource.go)
+// replace GoPrefix with the name of the resource, following go conventions, eg IPInterface
+// replace tag_prefix with the name of the resource, for logging purposes, eg ip_interface
+// make sure to create internal/interfaces/tag_prefix.go too)
+// delete these 5 lines
 
-// NewStorageVolumeResource is a helper function to simplify the provider implementation.
-func NewStorageVolumeResource() resource.Resource {
-	return &StorageVolumeResource{
+// Ensure provider defined types fully satisfy framework interfaces
+var _ resource.Resource = &GoPrefixResource{}
+var _ resource.ResourceWithImportState = &GoPrefixResource{}
+
+// NewGoPrefixResource is a helper function to simplify the provider implementation.
+func NewGoPrefixResource() resource.Resource {
+	return &GoPrefixResource{
 		config: resourceOrDataSourceConfig{
-			name: "storage_volume_resource",
+			name: "tag_prefix_resource",
 		},
 	}
 }
 
-// StorageVolumeResource defines the resource implementation.
-type StorageVolumeResource struct {
+// GoPrefixResource defines the resource implementation.
+type GoPrefixResource struct {
 	config resourceOrDataSourceConfig
 }
 
-// StorageVolumeResourceModel describes the resource data model.
-type StorageVolumeResourceModel struct {
-	CxProfileName types.String   `tfsdk:"cx_profile_name"`
-	Name          types.String   `tfsdk:"name"`
-	Vserver       types.String   `tfsdk:"vserver"`
-	Aggregates    []types.String `tfsdk:"aggregates"`
-	UUID          types.String   `tfsdk:"uuid"`
+// GoPrefixResourceModel describes the resource data model.
+type GoPrefixResourceModel struct {
+	CxProfileName types.String `tfsdk:"cx_profile_name"`
+	Name          types.String `tfsdk:"name"`
+	SVMName       types.String `tfsdk:"svm_name"` // if needed or relevant
+	UUID          types.String `tfsdk:"uuid"`
 }
 
 // Metadata returns the resource type name.
-func (r *StorageVolumeResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *GoPrefixResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + r.config.name
 }
 
 // Schema defines the schema for the resource.
-func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *GoPrefixResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		// This description is used by the documentation generator and the language server.
-		MarkdownDescription: "Volume resource",
+		MarkdownDescription: "GoPrefix resource",
 
 		Attributes: map[string]schema.Attribute{
 			"cx_profile_name": schema.StringAttribute{
@@ -60,21 +65,16 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 				Required:            true,
 			},
 			"name": schema.StringAttribute{
-				MarkdownDescription: "The name of the volume to manage",
+				MarkdownDescription: "GoPrefix name",
 				Required:            true,
 			},
-			"vserver": schema.StringAttribute{
-				MarkdownDescription: "Name of the vserver to use",
-				Required:            true,
-			},
-			"aggregates": schema.ListAttribute{
-				ElementType:         types.StringType,
-				Required:            true,
-				MarkdownDescription: "List of aggregates in which to create the volume",
+			"svm_name": schema.StringAttribute{
+				MarkdownDescription: "GoPrefix vserver name",
+				Optional:            true,
 			},
 			"uuid": schema.StringAttribute{
+				MarkdownDescription: "GoPrefix UUID",
 				Computed:            true,
-				MarkdownDescription: "Volume identifier",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -84,12 +84,11 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 }
 
 // Configure adds the provider configured client to the resource.
-func (r *StorageVolumeResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *GoPrefixResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
 	}
-
 	config, ok := req.ProviderData.(Config)
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -101,8 +100,8 @@ func (r *StorageVolumeResource) Configure(ctx context.Context, req resource.Conf
 }
 
 // Read refreshes the Terraform state with the latest data.
-func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *StorageVolumeResourceModel
+func (r *GoPrefixResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data GoPrefixResourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -112,66 +111,58 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 	}
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
+	// we need to defer setting the client until we can read the connection profile name
 	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
 	}
 
-	if data.UUID.IsNull() {
-		errorHandler.MakeAndReportError("UUID is null", "Volume UUID is null")
-		return
-	}
-
-	_, err = interfaces.GetStorageVolume(errorHandler, *client, data.UUID.ValueString())
+	restInfo, err := interfaces.GetGoPrefix(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString())
 	if err != nil {
+		// error reporting done inside GetGoPrefix
 		return
 	}
 
-	// Save updated data into Terraform state
+	data.Name = types.StringValue(restInfo.Name)
+
+	// Write logs using the tflog package
+	// Documentation: https://terraform.io/plugin/log
+	tflog.Debug(ctx, fmt.Sprintf("read a resource: %#v", data))
+
+	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-// Create creates the resource and sets the initial Terraform state.
-func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *StorageVolumeResourceModel
+// Create a resource and retrieve UUID
+func (r *GoPrefixResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *GoPrefixResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-	var request interfaces.StorageVolumeResourceModel
+	var body interfaces.GoPrefixResourceBodyDataModelONTAP
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-
-	aggregates := []interfaces.Aggregate{}
-	for _, v := range data.Aggregates {
-		aggr := interfaces.Aggregate{}
-		aggr.Name = v.ValueString()
-		aggregates = append(aggregates, aggr)
-	}
-	err := mapstructure.Decode(aggregates, &request.Aggregates)
-	if err != nil {
-		errorHandler.MakeAndReportError("error creating volume", fmt.Sprintf("error on encoding aggregates info: %s, aggregates %#v", err, aggregates))
-		return
-	}
-	request.Name = data.Name.ValueString()
-	request.SVM.Name = data.Vserver.ValueString()
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	body.Name = data.Name.ValueString()
+	// body.SVM.Name = data.SVMName.ValueString()
+
 	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
 	}
 
-	volume, err := interfaces.CreateStorageVolume(errorHandler, *client, request)
+	resource, err := interfaces.CreateGoPrefix(errorHandler, *client, body)
 	if err != nil {
 		return
 	}
 
-	data.UUID = types.StringValue(volume.UUID)
+	data.UUID = types.StringValue(resource.UUID)
 
 	tflog.Trace(ctx, "created a resource")
 
@@ -180,8 +171,8 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
-func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *StorageVolumeResourceModel
+func (r *GoPrefixResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data *GoPrefixResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -195,8 +186,8 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
-func (r *StorageVolumeResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *StorageVolumeResourceModel
+func (r *GoPrefixResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *GoPrefixResourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -213,11 +204,11 @@ func (r *StorageVolumeResource) Delete(ctx context.Context, req resource.DeleteR
 	}
 
 	if data.UUID.IsNull() {
-		errorHandler.MakeAndReportError("UUID is null", "VOlume UUID is null")
+		errorHandler.MakeAndReportError("UUID is null", "tag_prefix UUID is null")
 		return
 	}
 
-	err = interfaces.DeleteStorageVolume(errorHandler, *client, data.UUID.ValueString())
+	err = interfaces.DeleteGoPrefix(errorHandler, *client, data.UUID.ValueString())
 	if err != nil {
 		return
 	}
@@ -225,6 +216,6 @@ func (r *StorageVolumeResource) Delete(ctx context.Context, req resource.DeleteR
 }
 
 // ImportState imports a resource using ID from terraform import command by calling the Read method.
-func (r *StorageVolumeResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *GoPrefixResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
