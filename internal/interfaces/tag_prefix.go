@@ -18,7 +18,14 @@ import (
 
 // GoPrefixGetDataModelONTAP describes the GET record data model using go types for mapping.
 type GoPrefixGetDataModelONTAP struct {
-	Name string
+	Name string `mapstructure:"name"`
+	UUID string `mapstructure:"uuid"`
+}
+
+// GoPrefixResourceBodyDataModelONTAP describes the body data model using go types for mapping.
+type GoPrefixResourceBodyDataModelONTAP struct {
+	Name string  `mapstructure:"name"`
+	SVM  Vserver `mapstructure:"svm"`
 }
 
 // GetGoPrefix to get tag_prefix info
@@ -81,4 +88,36 @@ func GetGoAllPrefix(errorHandler *utils.ErrorHandler, r restclient.RestClient, f
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read tag_prefix data source: %#v", dataONTAP))
 	return dataONTAP, nil
+}
+
+// CreateGoPrefix to create tag_prefix
+func CreateGoPrefix(errorHandler *utils.ErrorHandler, r restclient.RestClient, body GoPrefixResourceBodyDataModelONTAP) (*GoPrefixGetDataModelONTAP, error) {
+	api := "api_url"
+	var bodyMap map[string]interface{}
+	if err := mapstructure.Decode(body, &bodyMap); err != nil {
+		return nil, errorHandler.MakeAndReportError("error encoding tag_prefix body", fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body))
+	}
+	query := r.NewQuery()
+	query.Add("return_records", "true")
+	statusCode, response, err := r.CallCreateMethod(api, query, bodyMap)
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error creating tag_prefix", fmt.Sprintf("error on POST %s: %s, statusCode %d", api, err, statusCode))
+	}
+
+	var dataONTAP GoPrefixGetDataModelONTAP
+	if err := mapstructure.Decode(response.Records[0], &dataONTAP); err != nil {
+		return nil, errorHandler.MakeAndReportError("error decoding tag_prefix info", fmt.Sprintf("error on decode storage/tag_prefixs info: %s, statusCode %d, response %#v", err, statusCode, response))
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Create tag_prefix source - udata: %#v", dataONTAP))
+	return &dataONTAP, nil
+}
+
+// DeleteGoPrefix to delete tag_prefix
+func DeleteGoPrefix(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) error {
+	api := "api_url"
+	statusCode, _, err := r.CallDeleteMethod(api+"/"+uuid, nil, nil)
+	if err != nil {
+		return errorHandler.MakeAndReportError("error deleting tag_prefix", fmt.Sprintf("error on DELETE %s: %s, statusCode %d", api, err, statusCode))
+	}
+	return nil
 }
