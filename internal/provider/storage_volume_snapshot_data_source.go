@@ -33,14 +33,15 @@ type StorageVolumeSnapshotDataSource struct {
 type StorageVolumeSnapshotDataSourceModel struct {
 	CxProfileName types.String `tfsdk:"cx_profile_name"`
 	// Snapshot Variables
-	CreateTime types.String  `tfsdk:"create_time"`
-	Comment    types.String  `tfsdk:"comment"`
-	ExpiryTime types.String  `tfsdk:"expiry_time"`
-	Name       types.String  `tfsdk:"name"`
-	Size       types.Float64 `tfsdk:"size"`
-	State      types.String  `tfsdk:"state"`
-	VolumeUUID types.String  `tfsdk:"volume_uuid"`
-	VolumeName types.String  `tfsdk:"volume_name"`
+	CreateTime      types.String  `tfsdk:"create_time"`
+	Comment         types.String  `tfsdk:"comment"`
+	ExpiryTime      types.String  `tfsdk:"expiry_time"`
+	Name            types.String  `tfsdk:"name"`
+	Size            types.Float64 `tfsdk:"size"`
+	SnapmirrorLabel types.String  `tfsdk:"snapmirror_label"`
+	State           types.String  `tfsdk:"state"`
+	VolumeUUID      types.String  `tfsdk:"volume_uuid"`
+	VolumeName      types.String  `tfsdk:"volume_name"`
 }
 
 // Metadata returns the data source type name.
@@ -92,6 +93,10 @@ func (d *StorageVolumeSnapshotDataSource) Schema(ctx context.Context, req dataso
 				MarkdownDescription: "Comment",
 				Computed:            true,
 			},
+			"snapmirror_label": schema.StringAttribute{
+				MarkdownDescription: "Snapmirror Label",
+				Computed:            true,
+			},
 		},
 	}
 }
@@ -134,6 +139,7 @@ func (d *StorageVolumeSnapshotDataSource) Read(ctx context.Context, req datasour
 	data.ExpiryTime = types.StringValue(snapshot.ExpiryTime)
 	data.Name = types.StringValue(snapshot.Name)
 	data.Size = types.Float64Value(snapshot.Size)
+	data.SnapmirrorLabel = types.StringValue(snapshot.SnapmirrorLabel)
 	data.State = types.StringValue(snapshot.State)
 	data.VolumeUUID = types.StringValue(snapshot.Volume.UUID)
 	data.VolumeName = types.StringValue(snapshot.Volume.Name)
