@@ -42,11 +42,40 @@ func (r *RestClient) CallCreateMethod(baseURL string, query *RestQuery, body map
 	if query == nil {
 		query = r.NewQuery()
 	}
-	// TODO: make this a connection paramter ?
+	// TODO: make this a connection parameter ?
 	query.Set("return_timeout", "60")
 	statusCode, response, err := r.callAPIMethod("POST", baseURL, query, body)
 	if err != nil {
 		tflog.Debug(r.ctx, fmt.Sprintf("CallCreateMethod request failed %#v", statusCode))
+		return statusCode, RestResponse{}, err
+	}
+
+	if response.Job != nil {
+		statusCode, _, err = r.Wait(response.Job["uuid"].(string))
+		if err != nil {
+			return statusCode, RestResponse{}, err
+		}
+	} else if response.Jobs != nil {
+		for _, v := range response.Jobs {
+			statusCode, _, err = r.Wait(v["uuid"].(string))
+			if err != nil {
+				return statusCode, RestResponse{}, err
+			}
+		}
+	}
+	return statusCode, response, err
+}
+
+// CallUpdateMethod returns response from PATCH results.  An error is reported if an error is received.
+func (r *RestClient) CallUpdateMethod(baseURL string, query *RestQuery, body map[string]interface{}) (int, RestResponse, error) {
+	if query == nil {
+		query = r.NewQuery()
+	}
+	// TODO: make this a connection parameter ?
+	query.Set("return_timeout", "60")
+	statusCode, response, err := r.callAPIMethod("PATCH", baseURL, query, body)
+	if err != nil {
+		tflog.Debug(r.ctx, fmt.Sprintf("CallUpdateMethod request failed %#v", statusCode))
 		return statusCode, RestResponse{}, err
 	}
 
@@ -71,7 +100,7 @@ func (r *RestClient) CallDeleteMethod(baseURL string, query *RestQuery, body map
 	if query == nil {
 		query = r.NewQuery()
 	}
-	// TODO: make this a connection paramter ?
+	// TODO: make this a connection parameter ?
 	query.Set("return_timeout", "60")
 	statusCode, response, err := r.callAPIMethod("DELETE", baseURL, query, body)
 	if err != nil {
