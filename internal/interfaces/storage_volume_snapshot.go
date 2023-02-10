@@ -16,12 +16,13 @@ type StorageVolumeSnapshotGetDataModelONTAP struct {
 		UUID string
 		Name string
 	}
-	CreateTime string `mapstructure:"create_time"`
-	ExpiryTime string `mapstructure:"expiry_time"`
-	State      string
-	Size       float64
-	Comment    string
-	UUID       string
+	CreateTime      string `mapstructure:"create_time"`
+	ExpiryTime      string `mapstructure:"expiry_time"`
+	State           string
+	Size            float64
+	Comment         string
+	UUID            string
+	SnapmirrorLabel string
 }
 
 // StorageVolumeSnapshotResourceModel describes the resource data model.
@@ -33,7 +34,7 @@ type StorageVolumeSnapshotResourceModel struct {
 func GetStorageVolumeSnapshots(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, uuid string) (*StorageVolumeSnapshotGetDataModelONTAP, error) {
 	query := r.NewQuery()
 	query.Add("name", name)
-	query.Fields([]string{"name", "create_time", "expiry_time", "state", "size", "comment", "volume", "volume.uuid"})
+	query.Fields([]string{"name", "create_time", "expiry_time", "state", "size", "comment", "volume", "volume.uuid", "snapmirror_label"})
 	api := "storage/volumes/" + uuid + "/snapshots"
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err != nil {
