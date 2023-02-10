@@ -16,6 +16,12 @@ type SvmGetDataModelONTAP struct {
 	UUID string
 }
 
+// SvmDataModelONTAP describes the svm info required by other API's request.
+type SvmDataModelONTAP struct {
+	Name string `mapstructure:"name"`
+	UUID string `mapstructure:"uuid"`
+}
+
 // SvmResourceModel describes the resource data model.
 type SvmResourceModel struct {
 	Name           string              `mapstructure:"name"`
@@ -48,6 +54,23 @@ func GetSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid stri
 	var dataONTAP *SvmGetDataModelONTAP
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError("failed to decode response from GET svm", fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read vserver info: %#v", dataONTAP))
+	return dataONTAP, nil
+}
+
+// GetSvmByName to get svm info by name
+func GetSvmByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string) (*SvmGetDataModelONTAP, error) {
+	query := r.NewQuery()
+	query.Add("name", name)
+	statusCode, response, err := r.GetNilOrOneRecord("svm/svms", query, nil)
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading vserver info", fmt.Sprintf("error on GET svm/svms: %s, statusCode %d", err, statusCode))
+	}
+
+	var dataONTAP *SvmGetDataModelONTAP
+	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
+		return nil, errorHandler.MakeAndReportError("failed to decode response from GET svm by name", fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read vserver info: %#v", dataONTAP))
 	return dataONTAP, nil
