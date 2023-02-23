@@ -24,3 +24,13 @@ func getRestClient(errorHandler *utils.ErrorHandler, config resourceOrDataSource
 	}
 	return config.client, nil
 }
+
+// func flattenTypesInt64List(clist []int64) interface{} {
+func flattenTypesInt64List(clist []int64) []types.Int64 {
+	cronUnits := make([]types.Int64, len(clist))
+	for index, record := range clist {
+		cronUnits[index] = types.Int64Value(record)
+	}
+
+	return cronUnits
+}
