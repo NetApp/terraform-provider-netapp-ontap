@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mitchellh/mapstructure"
@@ -19,9 +20,23 @@ type StorageVolumeGetDataModelONTAP struct {
 
 // StorageVolumeResourceModel describes the resource data model.
 type StorageVolumeResourceModel struct {
-	Name       string              `mapstructure:"name"`
-	SVM        Vserver             `mapstructure:"svm"`
-	Aggregates []map[string]string `mapstructure:"aggregates"`
+	Name           string              `mapstructure:"name"`
+	SVM            Vserver             `mapstructure:"svm"`
+	Space          Space               `mapstructure:"space"`
+	State          string              `mapstructure:"state,omitempty"`
+	Type           string              `mapstructure:"type,omitempty"`
+	Comment        string              `mapstructure:"comment,omitempty"`
+	SpaceGuarantee Guarantee           `mapstructure:"guarantee,omitempty"`
+	NAS            NAS                 `mapstructure:"nas,omitempty"`
+	QOS            QOS                 `mapstructure:"qos,omitempty"`
+	Encryption     Encryption          `mapstructure:"encryption,omitempty"`
+	Efficiency     Efficiency          `mapstructure:"efficiency,omitempty"`
+	SnapshotPolicy SnapshotPolicy      `mapstructure:"snapshot_policy,omitempty"`
+	TieringPolicy  TieringPolicy       `mapstructure:"tiering,omitempty"`
+	Snaplock       Snaplock            `mapstructure:"snaplock,omitempty"`
+	Analytics      Analytics           `mapstructure:"analytics,omitempty"`
+	Language       string              `mapstructure:"language,omitempty"`
+	Aggregates     []map[string]string `mapstructure:"aggregates"`
 }
 
 // Aggregate describes the resource data model.
@@ -29,9 +44,107 @@ type Aggregate struct {
 	Name string `mapstructure:"name"`
 }
 
+// Analytics describes the resource data model.
+type Analytics struct {
+	State string `mapstructure:"state,omitempty"`
+}
+
+// Space describes the resource data model.
+type Space struct {
+	Size         int          `mapstructure:"size"`
+	Snapshot     Snapshot     `mapstructure:"snapshot,omitempty"`
+	LogicalSpace LogicalSpace `mapstructure:"logical_space,omitempty"`
+}
+
+// LogicalSpace describes the resource data model.
+type LogicalSpace struct {
+	Enforcement bool `mapstructure:"enforcement,omitempty"`
+	Reporting   bool `mapstructure:"reporting,omitempty"`
+}
+
+// Efficiency describes the resource data model.
+type Efficiency struct {
+	Policy      Policy `mapstructure:"policy,omitempty"`
+	Compression string `mapstructure:"compression,omitempty"`
+}
+
+// Snaplock describes the resource data model.
+type Snaplock struct {
+	Type string `mapstructure:"type,omitempty"`
+}
+
+// Policy describes the resource data model.
+type Policy struct {
+	Name string `mapstructure:"name,omitempty"`
+}
+
+// TieringPolicy describes the resource data model.
+type TieringPolicy struct {
+	Policy         string `mapstructure:"policy,omitempty"`
+	MinCoolingDays int    `mapstructure:"min_cooling_days,omitempty"`
+}
+
+// Snapshot describes the resource data model.
+type Snapshot struct {
+	ReservePercent int `mapstructure:"reserve_percent,omitempty"`
+}
+
+// Guarantee describes the resource data model.
+type Guarantee struct {
+	Type string `mapstructure:"type,omitempty"`
+}
+
+// QOS describes the resource data model.
+type QOS struct {
+	Policy Policy `mapstructure:"policy,omitempty"`
+}
+
+// NAS describes the resource data model.
+type NAS struct {
+	ExportPolicy    ExportPolicy `mapstructure:"export_policy,omitempty"`
+	JunctionPath    string       `mapstructure:"path,omitempty"`
+	SecurityStyle   string       `mapstructure:"security_style,omitempty"`
+	UnixPermissions string       `mapstructure:"unix_permissions,omitempty"`
+	GroupID         int          `mapstructure:"gid,omitempty"`
+	UserID          int          `mapstructure:"uid,omitempty"`
+}
+
+// Encryption describes the resource data model.
+type Encryption struct {
+	Enabled bool `mapstructure:"enabled,omitempty"`
+}
+
+// ExportPolicy describes the resource data model.
+type ExportPolicy struct {
+	Name string `mapstructure:"name,omitempty"`
+}
+
 // Vserver describes the resource data model.
 type Vserver struct {
 	Name string `mapstructure:"name"`
+}
+
+// POW2BYTEMAP coverts size based on size unit.
+var POW2BYTEMAP = map[string]int{
+	// Here, 1 kb = 1024
+	"bytes": 1,
+	"b":     1,
+	"k":     1024,
+	"m":     int(math.Pow(1024, 2)),
+	"g":     int(math.Pow(1024, 3)),
+	"t":     int(math.Pow(1024, 4)),
+	"p":     int(math.Pow(1024, 5)),
+	"e":     int(math.Pow(1024, 6)),
+	"z":     int(math.Pow(1024, 7)),
+	"y":     int(math.Pow(1024, 8)),
+	"kb":    1024,
+	"mb":    int(math.Pow(1024, 2)),
+	"gb":    int(math.Pow(1024, 3)),
+	"tb":    int(math.Pow(1024, 4)),
+	"pb":    int(math.Pow(1024, 5)),
+	"eb":    int(math.Pow(1024, 6)),
+	"zb":    int(math.Pow(1024, 7)),
+	"yb":    int(math.Pow(1024, 8)),
 }
 
 // GetStorageVolume to get volume info by uuid
@@ -77,4 +190,29 @@ func DeleteStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClie
 		return errorHandler.MakeAndReportError("error deleting volume", fmt.Sprintf("error on DELETE storage/volumes: %s, statusCode %d", err, statusCode))
 	}
 	return nil
+}
+
+// BoolToOnline converts bool to online or offline
+func BoolToOnline(value bool) string {
+	if value {
+		return "online"
+	}
+	return "offline"
+}
+
+// GetCompression gets values to compression and inlineCompression parameters
+func GetCompression(compression bool, inlineCompression bool) string {
+	if compression && inlineCompression {
+		return "both"
+	}
+	if compression {
+		return "background"
+	}
+	if inlineCompression {
+		return "inline"
+	}
+	if !compression && !inlineCompression {
+		return "none"
+	}
+	return ""
 }
