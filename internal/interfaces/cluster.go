@@ -18,7 +18,10 @@ type ClusterGetDataModelONTAP struct {
 }
 
 type versionModelONTAP struct {
-	Full string
+	Full       string
+	Generation int
+	Major      int
+	Minor      int
 }
 
 type ipAddress struct {
