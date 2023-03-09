@@ -46,7 +46,7 @@ type CronScheduleModel struct {
 	Hours    []types.Int64 `tfsdk:"hours"`
 	Days     []types.Int64 `tfsdk:"days"`
 	Weekdays []types.Int64 `tfsdk:"weekdays"`
-	Months   []types.Int64 `tfsdk:"momths"`
+	Months   []types.Int64 `tfsdk:"months"`
 }
 
 // Metadata returns the data source type name.
@@ -99,9 +99,9 @@ func (d *ClusterScheduleDataSource) Schema(ctx context.Context, req datasource.S
 						MarkdownDescription: "List of cluster schedule weekdays",
 						Computed:            true,
 					},
-					"momths": schema.ListAttribute{
+					"months": schema.ListAttribute{
 						ElementType:         types.Int64Type,
-						MarkdownDescription: "List of cluster schedule momths",
+						MarkdownDescription: "List of cluster schedule months",
 						Computed:            true,
 					},
 				},
