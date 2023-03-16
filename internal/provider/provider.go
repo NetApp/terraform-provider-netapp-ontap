@@ -160,6 +160,7 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		NewExampleDataSource,
 		NewIPInterfaceDataSource,
 		NewIPInterfacesDataSource,
+		NewProtocolsNfsServiceDataSource,
 		NewStorageVolumeSnapshotDataSource,
 	}
 }
