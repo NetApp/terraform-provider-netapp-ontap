@@ -44,13 +44,13 @@ func GetClusterSchedule(errorHandler *utils.ErrorHandler, r restclient.RestClien
 
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err != nil {
-		return nil, errorHandler.MakeAndReportError("error reading schedlue info",
+		return nil, errorHandler.MakeAndReportError("error reading schedule info",
 			fmt.Sprintf("error on GET %s: %s, statuscode: %d", api, err, statusCode))
 	}
 
 	if response == nil {
 		tflog.Debug(errorHandler.Ctx, fmt.Sprintf("schedule %s not found", name))
-		return nil, nil
+		return nil, errorHandler.MakeAndReportError("error reading schedlue info", fmt.Sprintf("schedule %s not found", name))
 	}
 
 	var dataONTAP ClusterScheduleGetDataModelONTAP

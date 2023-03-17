@@ -29,6 +29,12 @@ func TestRestClient_unmarshalResponse(t *testing.T) {
 			{"option": "value"},
 		},
 		StatusCode: 200}
+	responseOthers := RestResponse{
+		NumRecords: 1,
+		Records: []map[string]interface{}{
+			{"_link": "somelink", "option": "value"},
+		},
+		StatusCode: 200}
 	restError := RestError{"123", "", ""}
 	responseRestError := RestResponse{
 		NumRecords: 0,
@@ -49,7 +55,7 @@ func TestRestClient_unmarshalResponse(t *testing.T) {
 	}{
 		Error: restError,
 	}
-	responseOther := map[string]interface{}{"option": "value"}
+	responseOther := map[string]interface{}{"_link": "somelink", "option": "value"}
 
 	rawEmpty := interface{}(nil)
 	emptyJSON, err := json.Marshal(rawEmpty)
@@ -91,7 +97,7 @@ func TestRestClient_unmarshalResponse(t *testing.T) {
 		{name: "error_mismatch_json", args: args{statusCode: 200, responseJSON: badJSON}, want: 200, want1: RestResponse{ErrorType: "bad_response_decode_interface", Records: []map[string]interface{}{}, StatusCode: 200}, wantErr: true},
 		{name: "error_http_error", args: args{httpClientErr: genericError}, want: 0, want1: RestResponse{HTTPError: genericError.Error(), ErrorType: "http", Records: []map[string]interface{}{}}, wantErr: true},
 		{name: "json_unmarshalled", args: args{statusCode: 200, responseJSON: responseJSON}, want: 200, want1: response, wantErr: false},
-		{name: "json_unmarshalled_other", args: args{statusCode: 200, responseJSON: responseJSONOther}, want: 200, want1: response, wantErr: false},
+		{name: "json_unmarshalled_other", args: args{statusCode: 200, responseJSON: responseJSONOther}, want: 200, want1: responseOthers, wantErr: false},
 		{name: "rest_error", args: args{statusCode: 400, responseJSON: responseJSONRestError}, want: 400, want1: responseRestError, wantErr: true},
 		{name: "status_code_error_1", args: args{statusCode: 400, responseJSON: responseJSONRestError}, want: 400, want1: responseRestError, wantErr: true},
 		{name: "status_code_error_2", args: args{statusCode: 400, responseJSON: emptyJSON}, want: 400, want1: responseStatusCodeError, wantErr: true},
