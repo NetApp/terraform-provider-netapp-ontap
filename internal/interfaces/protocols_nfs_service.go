@@ -107,3 +107,32 @@ func GetProtocolsNfsService(errorHandler *utils.ErrorHandler, r restclient.RestC
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read protcols_nfs_service data source: %#v", dataONTAP))
 	return &dataONTAP, nil
 }
+
+// CreateProtocolsNfsService Create a NFS Service
+func CreateProtocolsNfsService(errorHandler *utils.ErrorHandler, r restclient.RestClient, data ProtocolsNfsServiceGetDataModelONTAP, svnName string) (*ProtocolsNfsServiceGetDataModelONTAP, error) {
+	var body map[string]interface{}
+	if err := mapstructure.Decode(data, &body); err != nil {
+		return nil, errorHandler.MakeAndReportError("error encoding NFS Service body", fmt.Sprintf("error on encoding protocols/nfs/services body: %s, body: %#v", err, data))
+	}
+	query := r.NewQuery()
+	query.Add("return_records", "true")
+	statusCode, response, err := r.CallCreateMethod("protocols/nfs/services", query, body)
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error creating NFS services", fmt.Sprintf("error on POST protocols/nfs/services: %s, statusCode %d", err, statusCode))
+	}
+	var dataONTAP ProtocolsNfsServiceGetDataModelONTAP
+	if err := mapstructure.Decode(response.Records[0], &dataONTAP); err != nil {
+		return nil, errorHandler.MakeAndReportError("error decoding NFS Services info", fmt.Sprintf("error on decode protocols/nfs/services info: %s, statusCode %d, response %#v", err, statusCode, response))
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Create volume source - udata: %#v", dataONTAP))
+	return &dataONTAP, nil
+}
+
+// DeleteProtocolsNfsService Deletes a NFS Service
+func DeleteProtocolsNfsService(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) error {
+	statusCode, _, err := r.CallDeleteMethod("protocols/nfs/services"+uuid, nil, nil)
+	if err != nil {
+		return errorHandler.MakeAndReportError("error deleting NFS Service", fmt.Sprintf("error on DELETE protocols/nfs/services: %s, statusCode %d", err, statusCode))
+	}
+	return nil
+}
