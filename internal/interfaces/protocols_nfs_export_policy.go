@@ -59,6 +59,30 @@ func GetExportPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClient, 
 	return dataONTAP, nil
 }
 
+// GetExportPolicies to get export policy by name
+func GetExportPolicies(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter interface{}) (*ExportPolicyGetDataModelONTAP, error) {
+	query := r.NewQuery()
+	query.Fields([]string{"name"})
+	if filter != nil {
+		var filterMap map[string]interface{}
+		if err := mapstructure.Decode(filter, &filterMap); err != nil {
+			return nil, errorHandler.MakeAndReportError("error encoding ip_interface filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
+		}
+		query.SetValues(filterMap)
+	}
+	statusCode, response, err := r.GetNilOrOneRecord("protocols/nfs/export-policies", query, nil)
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading export policy info", fmt.Sprintf("error on GET protocols/nfs/export-policies: %s", err))
+	}
+
+	var dataONTAP *ExportPolicyGetDataModelONTAP
+	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
+		return nil, errorHandler.MakeAndReportError("error decoding export policy info", fmt.Sprintf("error on decode protocols/nfs/export-policies: %s, statusCode %d, response %#v", err, statusCode, response))
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read export policy source - udata: %#v", dataONTAP))
+	return dataONTAP, nil
+}
+
 // DeleteExportPolicy to delete export policy
 func DeleteExportPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClient, id string) error {
 	statusCode, _, err := r.CallDeleteMethod("protocols/nfs/export-policies/"+id, nil, nil)

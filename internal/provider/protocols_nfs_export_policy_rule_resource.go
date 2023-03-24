@@ -3,11 +3,13 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
@@ -49,6 +51,7 @@ type ExportPolicyRuleResourceModel struct {
 	AllowSuid           types.Bool     `tfsdk:"allow_suid"`
 	ClientsMatch        []types.String `tfsdk:"clients_match"`
 	Index               types.Int64    `tfsdk:"index"`
+	ExportPolicyName    types.String   `tfsdk:"export_policy_name"`
 }
 
 // Metadata returns the resource type name.
@@ -72,8 +75,15 @@ func (r *ExportPolicyRuleResource) Schema(ctx context.Context, req resource.Sche
 				Required:            true,
 			},
 			"export_policy_id": schema.StringAttribute{
-				Required:            true,
+				Computed:            true,
 				MarkdownDescription: "Export policy identifier",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"export_policy_name": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "Export policy name",
 			},
 			"ro_rule": schema.ListAttribute{
 				Optional:            true,
@@ -242,11 +252,18 @@ func (r *ExportPolicyRuleResource) Create(ctx context.Context, req resource.Crea
 		request.NtfsUnixSecurity = data.NtfsUnixSecurity.ValueString()
 	}
 
-	exportPolicyRule, err := interfaces.CreateExportPolicyRule(errorHandler, *client, request, data.ExportPolicyID.ValueString())
+	filter := map[string]string{"name": data.ExportPolicyName.ValueString()}
+	exportPolicy, err := interfaces.GetExportPolicies(errorHandler, *client, &filter)
+	if err != nil {
+		return
+	}
+
+	exportPolicyRule, err := interfaces.CreateExportPolicyRule(errorHandler, *client, request, strconv.Itoa(exportPolicy.ID))
 	if err != nil {
 		return
 	}
 	data.Index = types.Int64Value(exportPolicyRule.Index)
+	data.ExportPolicyID = types.StringValue(strconv.Itoa(exportPolicy.ID))
 
 	tflog.Trace(ctx, "created a resource")
 
@@ -272,7 +289,19 @@ func (r *ExportPolicyRuleResource) Read(ctx context.Context, req resource.ReadRe
 		return
 	}
 
-	restInfo, err := interfaces.GetExportPolicyRule(errorHandler, *client, data.ExportPolicyID.ValueString(), data.Index.ValueInt64())
+	var exportPolicyID string
+	if data.ExportPolicyID.IsNull() {
+		filter := map[string]string{"name": data.ExportPolicyName.ValueString()}
+		exportPolicy, err := interfaces.GetExportPolicies(errorHandler, *client, &filter)
+		if err != nil {
+			return
+		}
+		exportPolicyID = strconv.Itoa(exportPolicy.ID)
+	} else {
+		exportPolicyID = data.ExportPolicyID.ValueString()
+	}
+
+	restInfo, err := interfaces.GetExportPolicyRule(errorHandler, *client, exportPolicyID, data.Index.ValueInt64())
 	if err != nil {
 		return
 	}
@@ -339,6 +368,18 @@ func (r *ExportPolicyRuleResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
+	var exportPolicyID string
+	if data.ExportPolicyID.IsNull() {
+		filter := map[string]string{"name": data.ExportPolicyName.ValueString()}
+		exportPolicy, err := interfaces.GetExportPolicies(errorHandler, *client, &filter)
+		if err != nil {
+			return
+		}
+		exportPolicyID = strconv.Itoa(exportPolicy.ID)
+	} else {
+		exportPolicyID = data.ExportPolicyID.ValueString()
+	}
+
 	var request interfaces.ExportpolicyRuleResourceModel
 
 	var roRule, rwRule, protocols, superuser []string
@@ -379,7 +420,7 @@ func (r *ExportPolicyRuleResource) Update(ctx context.Context, req resource.Upda
 		request.NtfsUnixSecurity = data.NtfsUnixSecurity.ValueString()
 	}
 
-	_, err = interfaces.UpdateExportPolicyRule(errorHandler, *client, request, data.ExportPolicyID.ValueString(), data.Index.ValueInt64())
+	_, err = interfaces.UpdateExportPolicyRule(errorHandler, *client, request, exportPolicyID, data.Index.ValueInt64())
 	if err != nil {
 		return
 	}
@@ -409,7 +450,19 @@ func (r *ExportPolicyRuleResource) Delete(ctx context.Context, req resource.Dele
 		return
 	}
 
-	err = interfaces.DeleteExportPolicyRule(errorHandler, *client, data.ExportPolicyID.ValueString(), data.Index.ValueInt64())
+	var exportPolicyID string
+	if data.ExportPolicyID.IsNull() {
+		filter := map[string]string{"name": data.ExportPolicyName.ValueString()}
+		exportPolicy, err := interfaces.GetExportPolicies(errorHandler, *client, &filter)
+		if err != nil {
+			return
+		}
+		exportPolicyID = strconv.Itoa(exportPolicy.ID)
+	} else {
+		exportPolicyID = data.ExportPolicyID.ValueString()
+	}
+
+	err = interfaces.DeleteExportPolicyRule(errorHandler, *client, exportPolicyID, data.Index.ValueInt64())
 	if err != nil {
 		return
 	}
