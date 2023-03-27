@@ -19,7 +19,7 @@ var _ datasource.DataSource = &IPInterfaceDataSource{}
 func NewIPInterfaceDataSource() datasource.DataSource {
 	return &IPInterfaceDataSource{
 		config: resourceOrDataSourceConfig{
-			name: "ip_interface_data_source",
+			name: "networking_ip_interface_data_source",
 		},
 	}
 }

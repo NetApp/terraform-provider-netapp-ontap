@@ -30,7 +30,7 @@ var _ resource.ResourceWithImportState = &IPInterfaceResource{}
 func NewIPInterfaceResource() resource.Resource {
 	return &IPInterfaceResource{
 		config: resourceOrDataSourceConfig{
-			name: "ip_interface_resource",
+			name: "networking_ip_interface_resource",
 		},
 	}
 }
