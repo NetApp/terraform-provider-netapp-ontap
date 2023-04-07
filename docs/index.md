@@ -37,9 +37,9 @@ provider "netapp-ontap" {
     {
       name = "cluster2"
       hostname = "10.193.78.222"
-      username = var.username
-      password = var.password
-      validate_certs = var.validate_certs
+      username = "admin"
+      password = "netapp1!"
+      validate_certs = false
     },
     {
       name = "cluster3"
