@@ -68,6 +68,7 @@ type StorageVolumeResourceModel struct {
 	Analytics               types.String   `tfsdk:"analytics"`
 	Aggregates              []types.String `tfsdk:"aggregates"`
 	UUID                    types.String   `tfsdk:"uuid"`
+	ID                      types.String   `tfsdk:"id"`
 }
 
 // Metadata returns the resource type name.
@@ -214,6 +215,9 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
+			"id": schema.StringAttribute{
+				Computed: true,
+			},
 		},
 	}
 }
@@ -257,6 +261,7 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 		errorHandler.MakeAndReportError("UUID is null", "Volume UUID is null")
 		return
 	}
+	data.ID = types.StringValue("example-id")
 
 	_, err = interfaces.GetStorageVolume(errorHandler, *client, data.UUID.ValueString())
 	if err != nil {
@@ -414,6 +419,7 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	}
 
 	data.UUID = types.StringValue(volume.UUID)
+	data.ID = types.StringValue("example-id")
 
 	tflog.Trace(ctx, "created a resource")
 
