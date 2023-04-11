@@ -14,7 +14,8 @@ import (
 
 // Ensure ONTAPProvider satisfies various provider interfaces.
 var _ provider.Provider = &ONTAPProvider{}
-var _ provider.ProviderWithMetadata = &ONTAPProvider{}
+
+//var _ provider.ProviderWithMetadata = &ONTAPProvider{}
 
 // ONTAPProvider defines the provider implementation.
 type ONTAPProvider struct {
