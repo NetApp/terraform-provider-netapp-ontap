@@ -12,10 +12,25 @@ import (
 
 // StorageVolumeGetDataModelONTAP describes the GET record data model using go types for mapping.
 type StorageVolumeGetDataModelONTAP struct {
-	Name       string
-	Vserver    string
-	Aggregates []Aggregate
-	UUID       string
+	Name                 string
+	SVM                  Vserver
+	Aggregates           []Aggregate
+	UUID                 string
+	Space                Space
+	State                string
+	Type                 string
+	NAS                  NASData
+	SpaceGuarantee       Guarantee `mapstructure:"guarantee"`
+	PercentSnapshotSpace Snaplock  `mapstructure:"snaplock"`
+	Encryption           Encryption
+	Efficiency           Efficiency
+	SnapshotPolicy       SnapshotPolicy `mapstructure:"snapshot_policy,omitempty"`
+	Language             string
+	QOS                  QOS
+	TieringPolicy        TieringPolicy `mapstructure:"tiering,omitempty"`
+	Comment              string
+	Snaplock             Snaplock
+	Analytics            Analytics
 }
 
 // StorageVolumeResourceModel describes the resource data model.
@@ -109,6 +124,16 @@ type NAS struct {
 	UserID          int          `mapstructure:"uid,omitempty"`
 }
 
+// NASData describes the data source model.
+type NASData struct {
+	ExportPolicy    ExportPolicy `mapstructure:"export_policy,omitempty"`
+	JunctionPath    string       `mapstructure:"path,omitempty"`
+	SecurityStyle   string       `mapstructure:"security_style,omitempty"`
+	UnixPermissions int          `mapstructure:"unix_permissions,omitempty"`
+	GroupID         int          `mapstructure:"gid,omitempty"`
+	UserID          int          `mapstructure:"uid,omitempty"`
+}
+
 // Encryption describes the resource data model.
 type Encryption struct {
 	Enabled bool `mapstructure:"enabled,omitempty"`
@@ -162,6 +187,31 @@ func GetStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClient,
 	return dataONTAP, nil
 }
 
+// GetStorageVolumeByName to get volume info by name
+func GetStorageVolumeByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string) (*StorageVolumeGetDataModelONTAP, error) {
+	query := r.NewQuery()
+	query.Add("name", name)
+	query.Add("return_records", "true")
+	query.Fields([]string{"name", "svm.name", "aggregates", "space.size", "state", "type", "nas.export_policy.name", "nas.path", "guarantee.type", "space.snapshot.reserve_percent",
+		"nas.security_style", "encryption.enabled", "efficiency.policy.name", "nas.unix_permissions", "nas.gid", "nas.uid", "snapshot_policy.name", "language", "qos.policy.name",
+		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state"})
+	statusCode, response, err := r.GetNilOrOneRecord("storage/volumes", query, nil)
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading volume info by name", fmt.Sprintf("error on GET storage/volumes: %s", err))
+	}
+
+	if response == nil {
+		return nil, errorHandler.MakeAndReportError("no volume found", fmt.Sprintf("no volume found by name %s", name))
+	}
+
+	var dataONTAP *StorageVolumeGetDataModelONTAP
+	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
+		return nil, errorHandler.MakeAndReportError("error decoding volume info by name", fmt.Sprintf("error on decode storage/volumes: %s, statusCode %d, response %#v", err, statusCode, response))
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read volume source - udata: %#v", dataONTAP))
+	return dataONTAP, nil
+}
+
 // CreateStorageVolume to create volume
 func CreateStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClient, data StorageVolumeResourceModel) (*StorageVolumeGetDataModelONTAP, error) {
 	var body map[string]interface{}
@@ -200,6 +250,17 @@ func BoolToOnline(value bool) string {
 	return "offline"
 }
 
+// OnlineToBool converts online or offline to bool value
+func OnlineToBool(value string) bool {
+	var boolValue bool
+	if value == "online" {
+		boolValue = true
+	} else if value == "offline" {
+		boolValue = false
+	}
+	return boolValue
+}
+
 // GetCompression gets values to compression and inlineCompression parameters
 func GetCompression(compression bool, inlineCompression bool) string {
 	if compression && inlineCompression {
@@ -215,4 +276,34 @@ func GetCompression(compression bool, inlineCompression bool) string {
 		return "none"
 	}
 	return ""
+}
+
+// ByteFormat converts bytes to respective byte size
+func ByteFormat(value int64) (int64, string) {
+	var number int64
+	var unit string
+	if value >= int64(math.Pow(1024, 6)) {
+		number = value / int64(math.Pow(1024, 6))
+		unit = "eb"
+	} else if value >= int64(math.Pow(1024, 5)) {
+		number = value / int64(math.Pow(1024, 5))
+		unit = "pb"
+	} else if value >= int64(math.Pow(1024, 4)) {
+		number = value / int64(math.Pow(1024, 4))
+		unit = "tb"
+	} else if value >= int64(math.Pow(1024, 3)) {
+		number = value / int64(math.Pow(1024, 3))
+		unit = "gb"
+	} else if value >= int64(math.Pow(1024, 2)) {
+		number = value / int64(math.Pow(1024, 2))
+		unit = "mb"
+	} else if value >= 1024 {
+		number = value / 1024
+		unit = "kb"
+	} else {
+		number = value
+		unit = "bytes"
+	}
+
+	return number, unit
 }
