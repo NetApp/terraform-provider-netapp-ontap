@@ -379,6 +379,10 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 		request.TieringPolicy.Policy = data.TieringPolicy.ValueString()
 	}
 
+	if !data.Comment.IsNull() {
+		request.Comment = data.Comment.ValueString()
+	}
+
 	if !data.Compression.IsNull() || !data.InlineCompression.IsNull() {
 		request.Efficiency.Compression = interfaces.GetCompression(data.Compression.ValueBool(), data.InlineCompression.ValueBool())
 	}
@@ -461,7 +465,7 @@ func (r *StorageVolumeResource) Delete(ctx context.Context, req resource.DeleteR
 	}
 
 	if data.UUID.IsNull() {
-		errorHandler.MakeAndReportError("UUID is null", "VOlume UUID is null")
+		errorHandler.MakeAndReportError("UUID is null", "Volume UUID is null")
 		return
 	}
 
