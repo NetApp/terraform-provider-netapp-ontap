@@ -172,6 +172,32 @@ var POW2BYTEMAP = map[string]int{
 	"yb":    int(math.Pow(1024, 8)),
 }
 
+// GetUUIDVolumeByName get a volumes UUID by volume name
+func GetUUIDVolumeByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmUUID string, name string) (*NameDataModel, error) {
+	query := r.NewQuery()
+	query.Add("name", name)
+	query.Add("svm.uuid", svmUUID)
+	query.Fields([]string{"name", "uuid"})
+	api := "storage/volumes/"
+	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading volume info",
+			fmt.Sprintf("error on GET %s: %s, statuscode: %d", api, err, statusCode))
+	}
+
+	if response == nil {
+		tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Volume %s not found", name))
+		return nil, nil
+	}
+	var dataONTAP NameDataModel
+	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
+		return nil, errorHandler.MakeAndReportError("error decoding volume info",
+			fmt.Sprintf("statusCode %d, response %#v", statusCode, response))
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read storage/volumes data source: %#v", dataONTAP))
+	return &dataONTAP, nil
+}
+
 // GetStorageVolume to get volume info by uuid
 func GetStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) (*StorageVolumeGetDataModelONTAP, error) {
 	statusCode, response, err := r.GetNilOrOneRecord("storage/volumes/"+uuid, nil, nil)

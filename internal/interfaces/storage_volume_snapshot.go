@@ -22,20 +22,23 @@ type StorageVolumeSnapshotGetDataModelONTAP struct {
 	Size            float64
 	Comment         string
 	UUID            string
-	SnapmirrorLabel string
+	SnapmirrorLabel string `mapstructure:"snaplock_label"`
 }
 
 // StorageVolumeSnapshotResourceModel describes the resource data model.
 type StorageVolumeSnapshotResourceModel struct {
-	Name string `mapstructure:"name"`
+	Name            string `mapstructure:"name"`
+	ExpiryTime      string `mapstructure:"expiry_time,omitempty"`
+	Comment         string `mapstructure:"comment,omitempty"`
+	SnapmirrorLabel string `mapstructure:"snaplock_label,omitempty"`
 }
 
-// GetStorageVolumeSnapshots to get a single snapshot info
-func GetStorageVolumeSnapshots(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, uuid string) (*StorageVolumeSnapshotGetDataModelONTAP, error) {
+// GetUUIDStorageVolumeSnapshotsByName get a snapshot UUID based off name
+func GetUUIDStorageVolumeSnapshotsByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, volumeUUID string) (*NameDataModel, error) {
 	query := r.NewQuery()
 	query.Add("name", name)
-	query.Fields([]string{"name", "create_time", "expiry_time", "state", "size", "comment", "volume", "volume.uuid", "snapmirror_label"})
-	api := "storage/volumes/" + uuid + "/snapshots"
+	query.Fields([]string{"name", "uuid"})
+	api := "storage/volumes/" + volumeUUID + "/snapshots"
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError("error reading snapshot info",
@@ -43,7 +46,32 @@ func GetStorageVolumeSnapshots(errorHandler *utils.ErrorHandler, r restclient.Re
 	}
 
 	if response == nil {
-		tflog.Debug(errorHandler.Ctx, fmt.Sprintf("snapshot %s not found for volume UUID %s", name, uuid))
+		tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Snapshot %s not found", name))
+		return nil, nil
+	}
+	var dataONTAP NameDataModel
+	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
+		return nil, errorHandler.MakeAndReportError("error decoding snapshot info",
+			fmt.Sprintf("statusCode %d, response %#v", statusCode, response))
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read storage/volumes data source: %#v", dataONTAP))
+	return &dataONTAP, nil
+}
+
+// GetStorageVolumeSnapshots to get a single snapshot info
+func GetStorageVolumeSnapshots(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, volumeUUID string) (*StorageVolumeSnapshotGetDataModelONTAP, error) {
+	query := r.NewQuery()
+	query.Add("name", name)
+	query.Fields([]string{"name", "create_time", "expiry_time", "state", "size", "comment", "volume", "volume.uuid", "snapmirror_label"})
+	api := "storage/volumes/" + volumeUUID + "/snapshots"
+	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading snapshot info",
+			fmt.Sprintf("error on GET %s: %s, statuscode: %d", api, err, statusCode))
+	}
+
+	if response == nil {
+		tflog.Debug(errorHandler.Ctx, fmt.Sprintf("snapshot %s not found for volume UUID %s", name, volumeUUID))
 		return nil, nil
 	}
 
@@ -57,7 +85,7 @@ func GetStorageVolumeSnapshots(errorHandler *utils.ErrorHandler, r restclient.Re
 }
 
 // CreateStorageVolumeSnapshot to create a snapshot
-func CreateStorageVolumeSnapshot(errorHandler *utils.ErrorHandler, r restclient.RestClient, data StorageVolumeSnapshotResourceModel, uuid string) (*StorageVolumeSnapshotGetDataModelONTAP, error) {
+func CreateStorageVolumeSnapshot(errorHandler *utils.ErrorHandler, r restclient.RestClient, data StorageVolumeSnapshotResourceModel, volumeUUID string) (*StorageVolumeSnapshotGetDataModelONTAP, error) {
 	var body map[string]interface{}
 	if err := mapstructure.Decode(data, &body); err != nil {
 		return nil, errorHandler.MakeAndReportError("error encoding snapshot body",
@@ -65,7 +93,7 @@ func CreateStorageVolumeSnapshot(errorHandler *utils.ErrorHandler, r restclient.
 	}
 	query := r.NewQuery()
 	query.Add("return_records", "true")
-	api := "storage/volumes/" + uuid + "/snapshots"
+	api := "storage/volumes/" + volumeUUID + "/snapshots"
 	statusCode, response, err := r.CallCreateMethod(api, query, body)
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError("error creating snapshot",
