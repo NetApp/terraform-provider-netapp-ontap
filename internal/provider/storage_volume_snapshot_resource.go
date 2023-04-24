@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -33,10 +32,14 @@ type StorageVolumeSnapshotResource struct {
 
 // StorageVolumeSnapshotResourceModel describes the resource data model.
 type StorageVolumeSnapshotResourceModel struct {
-	CxProfileName types.String `tfsdk:"cx_profile_name"`
-	Name          types.String `tfsdk:"name"`
-	VolumeUUID    types.String `tfsdk:"volume_uuid"`
-	UUID          types.String `tfsdk:"uuid"`
+	CxProfileName   types.String      `tfsdk:"cx_profile_name"`
+	Name            types.String      `tfsdk:"name"`
+	Volume          NameResourceModel `tfsdk:"volume"`
+	SVM             NameResourceModel `tfsdk:"svm"`
+	ExpiryTime      types.String      `tfsdk:"expiry_time"`
+	Comment         types.String      `tfsdk:"comment"`
+	SnapmirrorLabel types.String      `tfsdk:"snaplock_label"`
+	ID              types.String      `tfsdk:"id"`
 }
 
 // Metadata returns the resource type name.
@@ -59,14 +62,40 @@ func (r *StorageVolumeSnapshotResource) Schema(ctx context.Context, req resource
 				MarkdownDescription: "Snapshot name",
 				Required:            true,
 			},
-			// TODO: replace UUID with Volume Name, and vserver name
-			"volume_uuid": schema.StringAttribute{
-				MarkdownDescription: "Volume UUID",
+			"volume": schema.SingleNestedAttribute{
+				MarkdownDescription: "Volume the snapshot is on",
 				Required:            true,
+				Attributes: map[string]schema.Attribute{
+					"name": schema.StringAttribute{
+						MarkdownDescription: "Volume Name",
+						Required:            true,
+					},
+				},
 			},
-			"uuid": schema.StringAttribute{
-				MarkdownDescription: "Snapshot UUID",
-				Computed:            true,
+			"svm": schema.SingleNestedAttribute{
+				MarkdownDescription: "svm the snapshot is on",
+				Required:            true,
+				Attributes: map[string]schema.Attribute{
+					"name": schema.StringAttribute{
+						MarkdownDescription: "svm Name",
+						Required:            true,
+					},
+				},
+			},
+			"expiry_time": schema.StringAttribute{
+				MarkdownDescription: "Snapshot copies with an expiry time set are not allowed to be deleted until the retetion time is reached",
+				Optional:            true,
+			},
+			"comment": schema.StringAttribute{
+				MarkdownDescription: "Comment",
+				Optional:            true,
+			},
+			"snaplock_label": schema.StringAttribute{
+				MarkdownDescription: "Label for SnapMirror Operations",
+				Optional:            true,
+			},
+			"id": schema.StringAttribute{
+				Computed: true,
 			},
 		},
 	}
@@ -107,14 +136,26 @@ func (r *StorageVolumeSnapshotResource) Create(ctx context.Context, req resource
 		return
 	}
 
-	request.Name = data.Name.ValueString()
+	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.SVM.Name.ValueString())
+	if err != nil {
+		return
+	}
+	volume, err := interfaces.GetUUIDVolumeByName(errorHandler, *client, svm.UUID, data.Volume.Name.ValueString())
+	if err != nil {
+		return
+	}
 
-	snapshot, err := interfaces.CreateStorageVolumeSnapshot(errorHandler, *client, request, data.VolumeUUID.ValueString())
+	request.Name = data.Name.ValueString()
+	request.ExpiryTime = data.ExpiryTime.ValueString()
+	request.Comment = data.Comment.ValueString()
+	request.SnapmirrorLabel = data.SnapmirrorLabel.ValueString()
+	data.ID = data.Name
+
+	_, err = interfaces.CreateStorageVolumeSnapshot(errorHandler, *client, request, volume.UUID)
 	if err != nil {
 		return
 	}
 	// TODO: add async calls or add wait condition for create
-	data.UUID = types.StringValue(snapshot.UUID)
 
 	tflog.Trace(ctx, "created a resource")
 	// Save data into Terraform state
@@ -136,13 +177,20 @@ func (r *StorageVolumeSnapshotResource) Read(ctx context.Context, req resource.R
 	if err != nil {
 		return
 	}
-	snapshot, err := interfaces.GetStorageVolumeSnapshots(errorHandler, *client, data.Name.ValueString(), data.VolumeUUID.ValueString())
+	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.SVM.Name.ValueString())
+	if err != nil {
+		return
+	}
+	volume, err := interfaces.GetUUIDVolumeByName(errorHandler, *client, svm.UUID, data.Volume.Name.ValueString())
+	if err != nil {
+		return
+	}
+	snapshot, err := interfaces.GetStorageVolumeSnapshots(errorHandler, *client, data.Name.ValueString(), volume.UUID)
 	if err != nil {
 		return
 	}
 	data.Name = types.StringValue(snapshot.Name)
-	data.VolumeUUID = types.StringValue(snapshot.Volume.UUID)
-	data.UUID = types.StringValue(snapshot.UUID)
+	data.ID = types.StringValue(snapshot.Name)
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
@@ -183,7 +231,19 @@ func (r *StorageVolumeSnapshotResource) Delete(ctx context.Context, req resource
 		// error reporting done inside NewClient
 		return
 	}
-	_, err = interfaces.DeleteStorageVolumeSnapshot(errorHandler, *client, data.VolumeUUID.ValueString(), data.UUID.ValueString())
+	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.SVM.Name.ValueString())
+	if err != nil {
+		return
+	}
+	volume, err := interfaces.GetUUIDVolumeByName(errorHandler, *client, svm.UUID, data.Volume.Name.ValueString())
+	if err != nil {
+		return
+	}
+	snapshot, err := interfaces.GetUUIDStorageVolumeSnapshotsByName(errorHandler, *client, data.Name.ValueString(), volume.UUID)
+	if err != nil {
+		return
+	}
+	_, err = interfaces.DeleteStorageVolumeSnapshot(errorHandler, *client, volume.UUID, snapshot.UUID)
 	if err != nil {
 		return
 	}
