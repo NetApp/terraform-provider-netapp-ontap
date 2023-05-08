@@ -45,6 +45,7 @@ type SvmResourceModel struct {
 	Language       types.String   `tfsdk:"language"`
 	Aggregates     []types.String `tfsdk:"aggregates"`
 	MaxVolumes     types.String   `tfsdk:"max_volumes"`
+	ID             types.String   `tfsdk:"id"`
 }
 
 // Metadata returns the resource type name.
@@ -102,6 +103,9 @@ func (r *SvmResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 			"max_volumes": schema.StringAttribute{
 				MarkdownDescription: "Maximum number of volumes that can be created on the vserver. Expects an integer or unlimited",
 				Optional:            true,
+			},
+			"id": schema.StringAttribute{
+				Computed: true,
 			},
 		},
 	}
@@ -190,6 +194,7 @@ func (r *SvmResource) Create(ctx context.Context, req resource.CreateRequest, re
 		return
 	}
 	data.UUID = types.StringValue(svm.UUID)
+	data.ID = types.StringValue(svm.UUID)
 	tflog.Trace(ctx, "created a resource")
 
 	// Save data into Terraform state
