@@ -350,11 +350,6 @@ func (d *ProtocolsNfsServiceDataSource) Read(ctx context.Context, req datasource
 		NtfsUnixSecurity:       types.StringValue(restInfo.Security.NtfsUnixSecurity),
 		RpcsecContextIdel:      types.Int64Value(restInfo.Security.RpcsecContextIdel),
 	}
-	var ptypes []types.String
-	for _, v := range restInfo.Security.PermittedEncrptionTypes {
-		ptypes = append(ptypes, types.StringValue(v))
-	}
-	data.Security.PermittedEncrptionTypes = ptypes
 
 	data.ShowmountEnabled = types.BoolValue(restInfo.ShowmountEnabled)
 	data.Transport = &TransportDataSourceModel{
