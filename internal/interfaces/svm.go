@@ -18,8 +18,8 @@ type SvmGetDataModelONTAP struct {
 
 // SvmDataModelONTAP describes the svm info required by other API's request.
 type SvmDataModelONTAP struct {
-	Name string `mapstructure:"name"`
-	UUID string `mapstructure:"uuid"`
+	Name string `mapstructure:"name,omitempty"`
+	UUID string `mapstructure:"uuid,omitempty"`
 }
 
 // SvmResourceModel describes the resource data model.

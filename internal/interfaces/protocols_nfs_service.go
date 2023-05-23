@@ -10,14 +10,15 @@ import (
 
 // ProtocolsNfsServiceGetDataModelONTAP describes the GET record data model using go types for mapping.
 type ProtocolsNfsServiceGetDataModelONTAP struct {
-	Enabled          bool      `mapstructure:"enabled"`
-	Protocol         Protocol  `mapstructure:"protocol"`
-	Root             Root      `mapstructure:"root"`
-	Security         Security  `mapstructure:"security"`
-	ShowmountEnabled bool      `mapstructure:"showmount_enabled"`
-	Transport        Transport `mapstructure:"transport"`
-	VstorageEnabled  bool      `mapstructure:"vstorage_enabled"`
-	Windows          Windows   `mapstructure:"windows"`
+	Enabled          bool              `mapstructure:"enabled"`
+	Protocol         Protocol          `mapstructure:"protocol"`
+	Root             Root              `mapstructure:"root"`
+	Security         Security          `mapstructure:"security"`
+	ShowmountEnabled bool              `mapstructure:"showmount_enabled"`
+	Transport        Transport         `mapstructure:"transport"`
+	VstorageEnabled  bool              `mapstructure:"vstorage_enabled"`
+	Windows          Windows           `mapstructure:"windows"`
+	SVM              SvmDataModelONTAP `mapstructure:"svm"`
 }
 
 // Protocol describes the GET record data model using go types for mapping.
@@ -56,7 +57,7 @@ type Security struct {
 	ChownMode               string   `mapstructure:"chown_mode"`
 	NtACLDisplayPermission  bool     `mapstructure:"nt_acl_display_permission"`
 	NtfsUnixSecurity        string   `mapstructure:"ntfs_unix_security"`
-	PermittedEncrptionTypes []string `mapstructure:"permitted_encryption_types"`
+	PermittedEncrptionTypes []string `mapstructure:"permitted_encryption_types,omitempty"`
 	RpcsecContextIdel       int64    `mapstructure:"rpcsec_context_idle"`
 }
 
@@ -109,7 +110,7 @@ func GetProtocolsNfsService(errorHandler *utils.ErrorHandler, r restclient.RestC
 }
 
 // CreateProtocolsNfsService Create a NFS Service
-func CreateProtocolsNfsService(errorHandler *utils.ErrorHandler, r restclient.RestClient, data ProtocolsNfsServiceGetDataModelONTAP, svnName string) (*ProtocolsNfsServiceGetDataModelONTAP, error) {
+func CreateProtocolsNfsService(errorHandler *utils.ErrorHandler, r restclient.RestClient, data ProtocolsNfsServiceGetDataModelONTAP, svnUUID string) (*ProtocolsNfsServiceGetDataModelONTAP, error) {
 	var body map[string]interface{}
 	if err := mapstructure.Decode(data, &body); err != nil {
 		return nil, errorHandler.MakeAndReportError("error encoding NFS Service body", fmt.Sprintf("error on encoding protocols/nfs/services body: %s, body: %#v", err, data))
@@ -130,9 +131,24 @@ func CreateProtocolsNfsService(errorHandler *utils.ErrorHandler, r restclient.Re
 
 // DeleteProtocolsNfsService Deletes a NFS Service
 func DeleteProtocolsNfsService(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) error {
-	statusCode, _, err := r.CallDeleteMethod("protocols/nfs/services"+uuid, nil, nil)
+	statusCode, _, err := r.CallDeleteMethod("protocols/nfs/services/"+uuid, nil, nil)
 	if err != nil {
 		return errorHandler.MakeAndReportError("error deleting NFS Service", fmt.Sprintf("error on DELETE protocols/nfs/services: %s, statusCode %d", err, statusCode))
+	}
+	return nil
+}
+
+// UpdateProtocolsNfsService Update a NFS service
+func UpdateProtocolsNfsService(errorHandler *utils.ErrorHandler, r restclient.RestClient, request ProtocolsNfsServiceGetDataModelONTAP, uuid string) error {
+	var body map[string]interface{}
+	if err := mapstructure.Decode(request, &body); err != nil {
+		return errorHandler.MakeAndReportError("error encoding NFS Services body", fmt.Sprintf("error on encoding NFS Services body: %s, body: %#v", err, request))
+	}
+	query := r.NewQuery()
+	query.Add("return_records", "true")
+	statusCode, _, err := r.CallUpdateMethod("protocols/nfs/services/"+uuid, query, body)
+	if err != nil {
+		return errorHandler.MakeAndReportError("error modifying NFS Service", fmt.Sprintf("error on PATCH rotocols/nfs/services/s: %s, statusCode %d", err, statusCode))
 	}
 	return nil
 }
