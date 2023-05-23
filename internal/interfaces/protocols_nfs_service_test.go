@@ -12,7 +12,7 @@ import (
 	"testing"
 )
 
-var record = ProtocolsNfsServiceGetDataModelONTAP{
+var nfsServiceRecord = ProtocolsNfsServiceGetDataModelONTAP{
 	Enabled: true,
 	Protocol: Protocol{
 		V3Enabled:  true,
@@ -86,7 +86,7 @@ func TestGetProtocolsNfsService(t *testing.T) {
 	errorHandler := utils.NewErrorHandler(context.Background(), &diag.Diagnostics{})
 	badRecord := struct{ Enabled int }{123}
 	var recordInterface map[string]any
-	err := mapstructure.Decode(record, &recordInterface)
+	err := mapstructure.Decode(nfsServiceRecord, &recordInterface)
 	if err != nil {
 		panic(err)
 	}
@@ -133,7 +133,7 @@ func TestGetProtocolsNfsService(t *testing.T) {
 		maj     int
 	}{
 		{name: "test_no_records_1", responses: responses["test_no_records_1"], want: nil, wantErr: true, gen: 9, maj: 11},
-		{name: "test_one_record_1", responses: responses["test_one_record_1"], want: &record, wantErr: false, gen: 9, maj: 11},
+		{name: "test_one_record_1", responses: responses["test_one_record_1"], want: &nfsServiceRecord, wantErr: false, gen: 9, maj: 11},
 		{name: "test_one_910_record_1", responses: responses["test_one_910_record_1"], want: &record910, wantErr: false, gen: 9, maj: 10},
 		{name: "test_two_records_error", responses: responses["test_two_records_error"], want: nil, wantErr: true, gen: 9, maj: 11},
 		{name: "test_error_3", responses: responses["test_error_3"], want: nil, wantErr: true, gen: 9, maj: 11},
@@ -163,7 +163,7 @@ func TestCreateProtocolsNfsService(t *testing.T) {
 	errorHandler := utils.NewErrorHandler(context.Background(), &diag.Diagnostics{})
 	badRecord := struct{ Enabled int }{123}
 	var recordInterface map[string]any
-	err := mapstructure.Decode(record, &recordInterface)
+	err := mapstructure.Decode(nfsServiceRecord, &recordInterface)
 	if err != nil {
 		panic(err)
 	}
@@ -203,7 +203,7 @@ func TestCreateProtocolsNfsService(t *testing.T) {
 		want    *ProtocolsNfsServiceGetDataModelONTAP
 		wantErr bool
 	}{
-		{name: "test_one_record_1", responses: responses["test_one_record_1"], want: &record, wantErr: false},
+		{name: "test_one_record_1", responses: responses["test_one_record_1"], want: &nfsServiceRecord, wantErr: false},
 		{name: "test_one_910_record_1", responses: responses["test_one_910_record_1"], want: &record910, wantErr: false},
 		{name: "test_two_records_error", responses: responses["test_two_records_error"], want: nil, wantErr: true},
 		{name: "test_error_3", responses: responses["test_error_3"], want: nil, wantErr: true},
@@ -214,7 +214,7 @@ func TestCreateProtocolsNfsService(t *testing.T) {
 			if err != nil {
 				panic(err)
 			}
-			got, err := CreateProtocolsNfsService(errorHandler, *r, record, "svmname")
+			got, err := CreateProtocolsNfsService(errorHandler, *r, nfsServiceRecord, "svmname")
 			if err != nil {
 				fmt.Printf("err: %s\n", err)
 			}
@@ -233,7 +233,7 @@ func TestDeleteProtocolsNfsService(t *testing.T) {
 	errorHandler := utils.NewErrorHandler(context.Background(), &diag.Diagnostics{})
 	badRecord := struct{ Enabled int }{123}
 	var recordInterface map[string]any
-	err := mapstructure.Decode(record, &recordInterface)
+	err := mapstructure.Decode(nfsServiceRecord, &recordInterface)
 	if err != nil {
 		panic(err)
 	}
@@ -259,7 +259,7 @@ func TestDeleteProtocolsNfsService(t *testing.T) {
 		want    *ProtocolsNfsServiceGetDataModelONTAP
 		wantErr bool
 	}{
-		{name: "test_delete", responses: responses["test_delete"], want: &record, wantErr: false},
+		{name: "test_delete", responses: responses["test_delete"], want: &nfsServiceRecord, wantErr: false},
 		{name: "test_error_2", responses: responses["test_error_2"], want: nil, wantErr: true},
 	}
 	for _, tt := range tests {

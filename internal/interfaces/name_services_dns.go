@@ -24,13 +24,9 @@ type NameServicesDNSGetDataModelONTAP struct {
 }
 
 // GetNameServicesDNS to get name_services_dns info
-func GetNameServicesDNS(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmName string, scope string) (*NameServicesDNSGetDataModelONTAP, error) {
+func GetNameServicesDNS(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmName string) (*NameServicesDNSGetDataModelONTAP, error) {
 	api := "name-services/dns"
 	query := r.NewQuery()
-	if scope != "cluster" {
-		query.Set("svm.name", svmName)
-	}
-	query.Set("scope", scope)
 	query.Fields([]string{"domains", "servers"})
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
@@ -47,4 +43,34 @@ func GetNameServicesDNS(errorHandler *utils.ErrorHandler, r restclient.RestClien
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read name_services_dns data source: %#v", dataONTAP))
 	return &dataONTAP, nil
+}
+
+// CreateNameServicesDNS Create a new DNS service
+func CreateNameServicesDNS(errorHandler *utils.ErrorHandler, r restclient.RestClient, data NameServicesDNSGetDataModelONTAP) (*NameServicesDNSGetDataModelONTAP, error) {
+	var body map[string]interface{}
+	if err := mapstructure.Decode(data, &body); err != nil {
+		return nil, errorHandler.MakeAndReportError("error encoding DNS body", fmt.Sprintf("error on encoding name-services/dns body: %s, body: %#v", err, data))
+	}
+	query := r.NewQuery()
+	query.Add("return_records", "true")
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("carchi8py body is : %#v", body))
+	statusCode, response, err := r.CallCreateMethod("name-services/dns", query, body)
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error creating DNS", fmt.Sprintf("error on POST name-services/dns: %s, statusCode %d", err, statusCode))
+	}
+	var dataONTAP NameServicesDNSGetDataModelONTAP
+	if err := mapstructure.Decode(response.Records[0], &dataONTAP); err != nil {
+		return nil, errorHandler.MakeAndReportError("error decoding DNS info", fmt.Sprintf("error on decode name-services/dns info: %s, statusCode %d, response %#v", err, statusCode, response))
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Create volume source - udata: %#v", dataONTAP))
+	return &dataONTAP, nil
+}
+
+// DeleteNameServicesDNS deletes a DNS
+func DeleteNameServicesDNS(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) error {
+	statusCode, _, err := r.CallDeleteMethod("name-services/dns"+uuid, nil, nil)
+	if err != nil {
+		return errorHandler.MakeAndReportError("error deleting DNS", fmt.Sprintf("error on DELETE name-services/dns: %s, statusCode %d", err, statusCode))
+	}
+	return nil
 }
