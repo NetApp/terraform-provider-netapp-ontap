@@ -148,6 +148,7 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		NewExportPolicyRuleResource,
 		NewIPInterfaceResource,
 		NewIPRouteResource,
+		NewNameServicesDNSResource,
 		NewProtocolsNfsServiceResource,
 		NewSnapshotPolicyResource,
 		NewStorageVolumeResource,

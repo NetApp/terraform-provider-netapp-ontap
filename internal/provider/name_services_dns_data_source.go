@@ -32,6 +32,7 @@ type NameServicesDNSDataSource struct {
 type NameServicesDNSDataSourceModel struct {
 	CxProfileName types.String   `tfsdk:"cx_profile_name"`
 	SVMName       types.String   `tfsdk:"svm_name"`
+	SVMUUID       types.String   `tfsdk:"svm_uuid"`
 	Domains       []types.String `tfsdk:"dns_domains"`
 	NameServers   []types.String `tfsdk:"name_servers"`
 }
@@ -59,7 +60,11 @@ func (d *NameServicesDNSDataSource) Schema(ctx context.Context, req datasource.S
 			},
 			"svm_name": schema.StringAttribute{
 				MarkdownDescription: "IPInterface vserver name",
-				Optional:            true,
+				Required:            true,
+			},
+			"svm_uuid": schema.StringAttribute{
+				MarkdownDescription: "UUID of Vserver",
+				Computed:            true,
 			},
 			"dns_domains": schema.ListAttribute{
 				ElementType:         types.StringType,
@@ -109,20 +114,16 @@ func (d *NameServicesDNSDataSource) Read(ctx context.Context, req datasource.Rea
 		// error reporting done inside NewClient
 		return
 	}
-	var scope string
-	if data.SVMName.IsNull() {
-		scope = "cluster"
-	} else {
-		scope = "svm"
-	}
 
-	restInfo, err := interfaces.GetNameServicesDNS(errorHandler, *client, data.SVMName.ValueString(), scope)
+	restInfo, err := interfaces.GetNameServicesDNS(errorHandler, *client, data.SVMName.ValueString())
 	if err != nil {
 		// error reporting done inside GetNameServicesDNS
 		return
 	}
 
+	tflog.Debug(ctx, fmt.Sprintf("read a data source rest: %#v", restInfo))
 	data.SVMName = types.StringValue(restInfo.SVM.Name)
+	data.SVMUUID = types.StringValue(restInfo.SVM.UUID)
 	var servers []types.String
 	for _, v := range restInfo.Servers {
 		servers = append(data.NameServers, types.StringValue(v))
