@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
@@ -112,6 +114,11 @@ func (r *ClusterScheduleResource) Schema(ctx context.Context, req resource.Schem
 			"interval": schema.StringAttribute{
 				MarkdownDescription: "Cluster schedule interval",
 				Optional:            true,
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(path.Expressions{
+						path.MatchRoot("cron"),
+					}...),
+				},
 			},
 		},
 	}
@@ -234,8 +241,45 @@ func (r *ClusterScheduleResource) Update(ctx context.Context, req resource.Updat
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	if err != nil {
+		return
+	}
+
+	var request interfaces.ClusterScheduleResourceBodyDataModelONTAP
+	if !data.Interval.IsNull() {
+		request.Interval = data.Interval.ValueString()
+	} else {
+		var minutes, hours, days, months, weekdays []int64
+		for _, v := range data.Cron.Minutes {
+			minutes = append(minutes, v.ValueInt64())
+		}
+		for _, v := range data.Cron.Hours {
+			hours = append(hours, v.ValueInt64())
+		}
+		for _, v := range data.Cron.Weekdays {
+			weekdays = append(weekdays, v.ValueInt64())
+		}
+		for _, v := range data.Cron.Days {
+			days = append(days, v.ValueInt64())
+		}
+		for _, v := range data.Cron.Months {
+			months = append(months, v.ValueInt64())
+		}
+		request.Cron.Minutes = minutes
+		request.Cron.Hours = hours
+		request.Cron.Weekdays = weekdays
+		request.Cron.Days = days
+		request.Cron.Months = months
+	}
+
+	err = interfaces.UpdateClusterSchedule(errorHandler, *client, request, data.UUID.ValueString())
+	if err != nil {
 		return
 	}
 
