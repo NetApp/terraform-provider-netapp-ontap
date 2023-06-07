@@ -30,7 +30,8 @@ type CronSchedule struct {
 
 // ClusterScheduleResourceBodyDataModelONTAP describes the body data model using go types for mapping.
 type ClusterScheduleResourceBodyDataModelONTAP struct {
-	Name     string       `mapstructure:"name"`
+	// 'name' is not allowed in the API body for the update. Set omitempty to keep the flexibility.
+	Name     string       `mapstructure:"name,omitempty"`
 	Cron     CronSchedule `mapstructure:"cron,omitempty"`
 	Interval string       `mapstructure:"interval,omitempty"`
 }
@@ -82,6 +83,23 @@ func CreateClusterSchedule(errorHandler *utils.ErrorHandler, r restclient.RestCl
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Create cluster_schedule source - udata: %#v", dataONTAP))
 	return &dataONTAP, nil
+}
+
+// UpdateClusterSchedule to update a job schedule
+func UpdateClusterSchedule(errorHandler *utils.ErrorHandler, r restclient.RestClient, data ClusterScheduleResourceBodyDataModelONTAP, id string) error {
+	var body map[string]interface{}
+	if err := mapstructure.Decode(data, &body); err != nil {
+		return errorHandler.MakeAndReportError("error encoding clustser schedule body", fmt.Sprintf("error on encoding cluster schedule body: %s, body: %#v", err, data))
+	}
+
+	query := r.NewQuery()
+	query.Add("return_records", "true")
+	statusCode, _, err := r.CallUpdateMethod("cluster/schedules/"+id, query, body)
+	if err != nil {
+		return errorHandler.MakeAndReportError("error updating cluster schedule", fmt.Sprintf("error on POST cluster/schedules: %s, statusCode %d", err, statusCode))
+	}
+	return nil
+
 }
 
 // DeleteClusterSchedule to delete job schedule
