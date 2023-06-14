@@ -14,19 +14,19 @@ func TestAccStorageVolumeSnapshotResource(t *testing.T) {
 			{
 				Config: testAccStorageVolumeSnapshotResourceConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "volume.name", "terraformTest4"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "volume.name", "carchi_test_root"),
 				),
 			},
 			{
 				Config: testAccStorageVolumeSnapshotResourceConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "name", "test"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "name", "snaptest"),
 				),
 			},
 			{
 				Config: testAccStorageVolumeSnapshotResourceConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "svm.name", "ansibleSVM"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "svm.name", "carchi-test"),
 				),
 			},
 		},
@@ -37,8 +37,8 @@ const testAccStorageVolumeSnapshotResourceConfig = `
 provider "netapp-ontap" {
  connection_profiles = [
     {
-      name = "cluster2"
-      hostname = "10.193.78.222"
+      name = "cluster4"
+      hostname = "10.193.180.108"
       username = "admin"
       password = "netapp1!"
       validate_certs = false
@@ -47,12 +47,12 @@ provider "netapp-ontap" {
 }
 
 resource "netapp-ontap_storage_volume_snapshot_resource" "example" {
-  cx_profile_name = "cluster2"
-  name = "test"
+  cx_profile_name = "cluster4"
+  name = "snaptest"
   volume = {
-    name = "terraformTest4"
+    name = "carchi_test_root"
   }
   svm = {
-    name = "ansibleSVM"
+    name = "carchi-test"
   }
 }`
