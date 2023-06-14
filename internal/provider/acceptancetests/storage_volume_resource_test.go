@@ -31,8 +31,8 @@ const testAccStorageVolumeResourceConfig = `
 provider "netapp-ontap" {
  connection_profiles = [
     {
-      name = "cluster2"
-      hostname = "10.193.78.222"
+      name = "cluster4"
+      hostname = "10.193.180.108"
       username = "admin"
       password = "netapp1!"
       validate_certs = false
@@ -41,10 +41,10 @@ provider "netapp-ontap" {
 }
 
 resource "netapp-ontap_storage_volume_resource" "example" {
-  cx_profile_name = "cluster2"
+  cx_profile_name = "cluster4"
   name = "terraformTest4"
-  vserver = "ansibleSVM"
-  aggregates = ["aggr1"]
+  vserver = "carchi-test"
+  aggregates = ["aggr2"]
   size = 20
   size_unit = "mb"
 }`

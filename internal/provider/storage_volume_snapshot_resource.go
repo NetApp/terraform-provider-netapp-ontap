@@ -140,8 +140,16 @@ func (r *StorageVolumeSnapshotResource) Create(ctx context.Context, req resource
 	if err != nil {
 		return
 	}
+	if svm == nil {
+		errorHandler.MakeAndReportError("No svm found", fmt.Sprintf("svm %s not found.", data.SVM.Name))
+		return
+	}
 	volume, err := interfaces.GetUUIDVolumeByName(errorHandler, *client, svm.UUID, data.Volume.Name.ValueString())
 	if err != nil {
+		return
+	}
+	if volume == nil {
+		errorHandler.MakeAndReportError("No volume found", fmt.Sprintf("volume %s not found.", data.Volume.Name))
 		return
 	}
 
