@@ -483,10 +483,18 @@ func (r *ProtocolsNfsServiceResource) Read(ctx context.Context, req resource.Rea
 		// error reporting done inside GetCluster
 		return
 	}
+	if cluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", fmt.Sprintf("Cluster not found."))
+		return
+	}
 
 	restInfo, err := interfaces.GetProtocolsNfsService(errorHandler, *client, data.SVMName.ValueString(), cluster.Version)
 	if err != nil {
 		// error reporting done inside GetProtocolsNfsService
+		return
+	}
+	if restInfo == nil {
+		errorHandler.MakeAndReportError("No NFS service found", fmt.Sprintf("NFS service not found."))
 		return
 	}
 
@@ -561,6 +569,10 @@ func (r *ProtocolsNfsServiceResource) Create(ctx context.Context, req resource.C
 		return
 	}
 	cluster, err := interfaces.GetCluster(errorHandler, *client)
+	if cluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", fmt.Sprintf("Cluster not found."))
+		return
+	}
 	if err != nil {
 		// error reporting done inside GetCluster
 		return
@@ -693,6 +705,10 @@ func (r *ProtocolsNfsServiceResource) Create(ctx context.Context, req resource.C
 		// error reporting done inside NewClient
 		return
 	}
+	if svm == nil {
+		errorHandler.MakeAndReportError("No svm found", fmt.Sprintf("svm %s not found.", data.SVMName.ValueString()))
+		return
+	}
 
 	_, err = interfaces.CreateProtocolsNfsService(errorHandler, *client, body, svm.UUID)
 	if err != nil {
@@ -727,9 +743,17 @@ func (r *ProtocolsNfsServiceResource) Update(ctx context.Context, req resource.U
 		// error reporting done inside NewClient
 		return
 	}
+	if svm == nil {
+		errorHandler.MakeAndReportError("No svm found", fmt.Sprintf("svm %s not found.", data.SVMName.ValueString()))
+		return
+	}
 	cluster, err := interfaces.GetCluster(errorHandler, *client)
 	if err != nil {
 		// error reporting done inside GetCluster
+		return
+	}
+	if cluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", fmt.Sprintf("Cluster not found."))
 		return
 	}
 	clusterVersion := strconv.Itoa(cluster.Version.Generation) + "." + strconv.Itoa(cluster.Version.Major)
@@ -881,6 +905,10 @@ func (r *ProtocolsNfsServiceResource) Delete(ctx context.Context, req resource.D
 	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.SVMName.ValueString())
 	if err != nil {
 		// error reporting done inside NewClient
+		return
+	}
+	if svm == nil {
+		errorHandler.MakeAndReportError("No svm found", fmt.Sprintf("svm %s not found.", data.SVMName.ValueString()))
 		return
 	}
 	err = interfaces.DeleteProtocolsNfsService(errorHandler, *client, svm.UUID)

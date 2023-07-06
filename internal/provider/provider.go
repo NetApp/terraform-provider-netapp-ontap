@@ -172,6 +172,7 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		NewProtocolsNfsServiceDataSource,
 		NewStorageVolumeSnapshotDataSource,
 		NewStorageVolumeDataSource,
+		NewExportPolicyDataSource,
 	}
 }
 

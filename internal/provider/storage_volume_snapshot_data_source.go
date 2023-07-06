@@ -134,6 +134,10 @@ func (d *StorageVolumeSnapshotDataSource) Read(ctx context.Context, req datasour
 	if err != nil {
 		return
 	}
+	if snapshot == nil {
+		errorHandler.MakeAndReportError("No snapshot found", fmt.Sprintf("snapshot %s not found.", data.Name.ValueString()))
+		return
+	}
 	data.CreateTime = types.StringValue(snapshot.CreateTime)
 	data.Comment = types.StringValue(snapshot.Comment)
 	data.ExpiryTime = types.StringValue(snapshot.ExpiryTime)

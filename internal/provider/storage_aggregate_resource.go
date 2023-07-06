@@ -312,6 +312,10 @@ func (r *AggregateResource) Read(ctx context.Context, req resource.ReadRequest, 
 	if err != nil {
 		return
 	}
+	if aggregate == nil {
+		errorHandler.MakeAndReportError("No aggregate found", fmt.Sprintf("aggregate %s not found.", data.Name.ValueString()))
+		return
+	}
 	data.DiskCount = types.Int64Value(aggregate.BlockStorage.Primary.DiskCount)
 	data.DiskClass = types.StringValue(aggregate.BlockStorage.Primary.DiskClass)
 	data.RaidType = types.StringValue(aggregate.BlockStorage.Primary.RaidType)

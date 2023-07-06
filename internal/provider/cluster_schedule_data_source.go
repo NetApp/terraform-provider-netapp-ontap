@@ -158,6 +158,10 @@ func (d *ClusterScheduleDataSource) Read(ctx context.Context, req datasource.Rea
 		// error reporting done inside GetClusterSchedule
 		return
 	}
+	if restInfo == nil {
+		errorHandler.MakeAndReportError("No Cluster Schedule found", fmt.Sprintf("Cluster Schedule %s not found.", data.Name.ValueString()))
+		return
+	}
 	data.Name = types.StringValue(restInfo.Name)
 	data.UUID = types.StringValue(restInfo.UUID)
 	data.Type = types.StringValue(restInfo.Type)

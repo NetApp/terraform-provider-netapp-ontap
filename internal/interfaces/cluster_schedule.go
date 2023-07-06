@@ -51,7 +51,7 @@ func GetClusterSchedule(errorHandler *utils.ErrorHandler, r restclient.RestClien
 
 	if response == nil {
 		tflog.Debug(errorHandler.Ctx, fmt.Sprintf("schedule %s not found", name))
-		return nil, errorHandler.MakeAndReportError("error reading schedlue info", fmt.Sprintf("schedule %s not found", name))
+		return nil, errorHandler.MakeAndReportError("error reading schedule info", fmt.Sprintf("schedule %s not found", name))
 	}
 
 	var dataONTAP ClusterScheduleGetDataModelONTAP

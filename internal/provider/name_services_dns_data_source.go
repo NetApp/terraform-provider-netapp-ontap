@@ -120,6 +120,10 @@ func (d *NameServicesDNSDataSource) Read(ctx context.Context, req datasource.Rea
 		// error reporting done inside GetNameServicesDNS
 		return
 	}
+	if restInfo == nil {
+		errorHandler.MakeAndReportError("No DNS found", fmt.Sprintf("NO DNS on svm %s found.", data.SVMName.ValueString()))
+		return
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("read a data source rest: %#v", restInfo))
 	data.SVMName = types.StringValue(restInfo.SVM.Name)

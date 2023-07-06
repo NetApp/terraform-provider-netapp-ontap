@@ -12,10 +12,11 @@ import (
 // SnapshotPolicyGetDataModelONTAP describes the GET record data model using go types for mapping.
 type SnapshotPolicyGetDataModelONTAP struct {
 	Name    string     `mapstructure:"name"`
-	UUID    string     `mapstructure:"uuid"`
+	SVM     Vserver    `mapstructure:"svm"`
+	UUID    string     `mapstructure:"uuid,omitempty"`
 	Copies  []CopyType `mapstructure:"copies"`
 	Comment string     `mapstructure:"comment,omitempty"`
-	Enabled bool       `mapstructure:"enabled,omitempty"`
+	Enabled bool       `mapstructure:"enabled"`
 }
 
 // SnapshotPolicyResourceBodyDataModelONTAP describes the body data model using go types for mapping.
@@ -25,6 +26,12 @@ type SnapshotPolicyResourceBodyDataModelONTAP struct {
 	Copies  []map[string]interface{} `mapstructure:"copies"`
 	Comment string                   `mapstructure:"comment,omitempty"`
 	Enabled bool                     `mapstructure:"enabled"`
+}
+
+// SnapshotPolicyResourceUpdateRequestONTAP describe the PATCH body data model using go types for mapping
+type SnapshotPolicyResourceUpdateRequestONTAP struct {
+	Comment string `mapstructure:"comment,omitempty"`
+	Enabled bool   `mapstructure:"enabled,omitempty"`
 }
 
 // CopyType describes the copy resouce data model
@@ -42,12 +49,12 @@ type Schedule struct {
 }
 
 // GetSnapshotPolicy to get storage_snapshot_policy info
-func GetSnapshotPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, id string) (*SnapshotPolicyGetDataModelONTAP, error) {
+func GetSnapshotPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClient, id string) (*SnapshotPolicyGetDataModelONTAP, error) {
 	api := "storage/snapshot-policies"
 	query := r.NewQuery()
-	query.Set("name", name)
+	query.Set("uuid", id)
 	query.Fields([]string{"name", "svm.name", "copies", "scope", "enabled"})
-	statusCode, response, err := r.GetNilOrOneRecord(api+"/"+id, query, nil)
+	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
 		err = fmt.Errorf("no response for GET %s", api)
 	}
@@ -127,6 +134,21 @@ func DeleteSnapshotPolicy(errorHandler *utils.ErrorHandler, r restclient.RestCli
 	statusCode, _, err := r.CallDeleteMethod(api+"/"+uuid, nil, nil)
 	if err != nil {
 		return errorHandler.MakeAndReportError("error deleting storage_snapshot_policy", fmt.Sprintf("error on DELETE %s: %s, statusCode %d", api, err, statusCode))
+	}
+	return nil
+}
+
+// UpdateSnapshotPolicy to update a Snapshot copy policy
+func UpdateSnapshotPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClient, data SnapshotPolicyResourceUpdateRequestONTAP, id string) error {
+	api := "storage/snapshot-policies"
+	var body map[string]interface{}
+	if err := mapstructure.Decode(data, &body); err != nil {
+		return errorHandler.MakeAndReportError("error encoding snapshot policy body", fmt.Sprintf("error on encoding snapshot policy body: %s, body: %#v", err, data))
+	}
+
+	statusCode, _, err := r.CallUpdateMethod(api+"/"+id, nil, body)
+	if err != nil {
+		return errorHandler.MakeAndReportError("error updating snapshot policy", fmt.Sprintf("error on PATCH storage/snapshot-policies: %s, statusCode %d", err, statusCode))
 	}
 	return nil
 }

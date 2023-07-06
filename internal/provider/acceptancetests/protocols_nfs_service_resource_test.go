@@ -1,7 +1,10 @@
 package acceptancetests
 
 import (
+	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"os"
+	"regexp"
 	"testing"
 )
 
@@ -10,25 +13,49 @@ func TestAccNfsServiceResource(t *testing.T) {
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Read testing
+			// Test error
 			{
-				Config: testAccNfsServiceResourceConfig,
+				Config:      testAccNfsServiceResourceConfig("non-existant", "false"),
+				ExpectError: regexp.MustCompile("svm non-existant not found."),
+			},
+			// Create and read
+			{
+				Config: testAccNfsServiceResourceConfig("carchi-test", "false"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service_resource.example", "svm_name", "carchi-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service_resource.example", "protocol.v3_enabled", "false"),
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service_resource.example", "protocol.v40_enabled", "true"),
+				),
+			},
+			// update and read
+			{
+				Config: testAccNfsServiceResourceConfig("carchi-test", "true"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service_resource.example", "svm_name", "carchi-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service_resource.example", "protocol.v3_enabled", "true"),
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service_resource.example", "protocol.v40_enabled", "true"),
 				),
 			},
 		},
 	})
 }
 
-const testAccNfsServiceResourceConfig = `
+func testAccNfsServiceResourceConfig(svnName, enableV3 string) string {
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
+	admin := os.Getenv("TF_ACC_NETAPP_USER")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
+	if host == "" || admin == "" || password == "" {
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		os.Exit(1)
+	}
+	return fmt.Sprintf(`
 provider "netapp-ontap" {
  connection_profiles = [
     {
       name = "cluster4"
-      hostname = "10.193.180.108"
-      username = "admin"
-      password = "netapp1!"
+      hostname = "%s"
+      username = "%s"
+      password = "%s"
       validate_certs = false
     },
   ]
@@ -37,13 +64,14 @@ provider "netapp-ontap" {
 resource "netapp-ontap_protocols_nfs_service_resource" "example" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
-  svm_name = "carchi-test"
+  svm_name = "%s"
   enabled = true
   protocol = {
-    v3_enabled = false
+    v3_enabled = "%s"
     v40_enabled = true
     v40_features = {
       acl_enabled = true
     }
   }
-}`
+}`, host, admin, password, svnName, enableV3)
+}

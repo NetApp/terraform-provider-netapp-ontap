@@ -139,6 +139,10 @@ func (d *ClusterDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		// error reporting done inside GetCluster
 		return
 	}
+	if cluster == nil {
+		errorHandler.MakeAndReportError("Cluster Not found", fmt.Sprintf("cluster %s not found.", data.Name))
+		return
+	}
 
 	data.Name = types.StringValue(cluster.Name)
 	data.Version = &versionModel{
@@ -147,6 +151,10 @@ func (d *ClusterDataSource) Read(ctx context.Context, req datasource.ReadRequest
 
 	nodes, err := interfaces.GetClusterNodes(errorHandler, *client)
 	if err != nil {
+		return
+	}
+	if nodes == nil {
+		errorHandler.MakeAndReportError("Cluster Nodes Not found", fmt.Sprintf("cluster nodes not found."))
 		return
 	}
 

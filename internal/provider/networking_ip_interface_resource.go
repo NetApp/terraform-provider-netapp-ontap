@@ -60,6 +60,7 @@ type IPInterfaceResourceModel struct {
 	IP            *IPInterfaceResourceIP       `tfsdk:"ip"`
 	Location      *IPInterfaceResourceLocation `tfsdk:"location"`
 	UUID          types.String                 `tfsdk:"uuid"`
+	ID            types.String                 `tfsdk:"id"`
 }
 
 // Metadata returns the resource type name.
@@ -122,6 +123,9 @@ func (r *IPInterfaceResource) Schema(ctx context.Context, req resource.SchemaReq
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
+			"id": schema.StringAttribute{
+				Computed: true,
+			},
 		},
 	}
 }
@@ -166,8 +170,13 @@ func (r *IPInterfaceResource) Read(ctx context.Context, req resource.ReadRequest
 		// error reporting done inside GetIPInterface
 		return
 	}
+	if restInfo == nil {
+		errorHandler.MakeAndReportError("No Interface found", fmt.Sprintf("NO interface, %s found.", data.Name.ValueString()))
+		return
+	}
 
 	data.Name = types.StringValue(restInfo.Name)
+	data.ID = types.StringValue(restInfo.UUID)
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
@@ -215,6 +224,7 @@ func (r *IPInterfaceResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	data.UUID = types.StringValue(resource.UUID)
+	data.ID = types.StringValue(resource.UUID)
 
 	tflog.Trace(ctx, fmt.Sprintf("created a resource, UUID=%s", data.UUID))
 

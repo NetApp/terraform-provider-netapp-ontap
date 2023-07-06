@@ -131,15 +131,23 @@ func (d *IPRouteDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		return
 	}
 
-    cluster, err := interfaces.GetCluster(errorHandler, *client)
+	cluster, err := interfaces.GetCluster(errorHandler, *client)
 	if err != nil {
 		// error reporting done inside GetCluster
+		return
+	}
+	if cluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", fmt.Sprintf("No Cluster found"))
 		return
 	}
 
 	restInfo, err := interfaces.GetIPRoute(errorHandler, *client, data.Destination.Address.ValueString(), data.SVMName.ValueString(), cluster.Version)
 	if err != nil {
 		// error reporting done inside GetNetRoute
+		return
+	}
+	if restInfo == nil {
+		errorHandler.MakeAndReportError("No IP Route found", fmt.Sprintf("No IP Route %s found", data.Destination.Address.ValueString()))
 		return
 	}
 
