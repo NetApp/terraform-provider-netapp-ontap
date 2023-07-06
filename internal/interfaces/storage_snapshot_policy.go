@@ -129,9 +129,9 @@ func CreateSnapshotPolicy(errorHandler *utils.ErrorHandler, r restclient.RestCli
 }
 
 // DeleteSnapshotPolicy to delete storage_snapshot_policy
-func DeleteSnapshotPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) error {
+func DeleteSnapshotPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClient, id string) error {
 	api := "storage/snapshot-policies"
-	statusCode, _, err := r.CallDeleteMethod(api+"/"+uuid, nil, nil)
+	statusCode, _, err := r.CallDeleteMethod(api+"/"+id, nil, nil)
 	if err != nil {
 		return errorHandler.MakeAndReportError("error deleting storage_snapshot_policy", fmt.Sprintf("error on DELETE %s: %s, statusCode %d", api, err, statusCode))
 	}
