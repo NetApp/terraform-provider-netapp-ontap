@@ -65,7 +65,7 @@ type SnapshotPolicyResourceModel struct {
 	CxProfileName types.String        `tfsdk:"cx_profile_name"`
 	Name          types.String        `tfsdk:"name"`
 	SVMName       types.String        `tfsdk:"svm_name"` // if needed or relevant
-	UUID          types.String        `tfsdk:"uuid"`
+	ID            types.String        `tfsdk:"id"`
 	Copies        []CopyResourceModel `tfsdk:"copies"`
 	Comment       types.String        `tfsdk:"comment"`
 	Enabled       types.Bool          `tfsdk:"enabled"`
@@ -149,8 +149,8 @@ func (r *SnapshotPolicyResource) Schema(ctx context.Context, req resource.Schema
 				MarkdownDescription: "SnapshotPolicy vserver name",
 				Optional:            true,
 			},
-			"uuid": schema.StringAttribute{
-				MarkdownDescription: "SnapshotPolicy UUID",
+			"id": schema.StringAttribute{
+				MarkdownDescription: "SnapshotPolicy ID",
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
@@ -195,7 +195,7 @@ func (r *SnapshotPolicyResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	restInfo, err := interfaces.GetSnapshotPolicy(errorHandler, *client, data.UUID.ValueString())
+	restInfo, err := interfaces.GetSnapshotPolicy(errorHandler, *client, data.ID.ValueString())
 	if err != nil {
 		// error reporting done inside GetSnapshotPolicy
 		return
@@ -206,6 +206,7 @@ func (r *SnapshotPolicyResource) Read(ctx context.Context, req resource.ReadRequ
 	}
 
 	data.Name = types.StringValue(restInfo.Name)
+	data.ID = types.StringValue(restInfo.UUID)
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
@@ -215,7 +216,7 @@ func (r *SnapshotPolicyResource) Read(ctx context.Context, req resource.ReadRequ
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-// Create a resource and retrieve UUID
+// Create a resource and retrieve ID
 func (r *SnapshotPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data *SnapshotPolicyResourceModel
 
@@ -272,8 +273,7 @@ func (r *SnapshotPolicyResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	data.UUID = types.StringValue(resource.UUID)
-	// data.ID = data.UUID
+	data.ID = types.StringValue(resource.UUID)
 	tflog.Trace(ctx, "created a resource")
 
 	// Save data into Terraform state
@@ -301,8 +301,8 @@ func (r *SnapshotPolicyResource) Update(ctx context.Context, req resource.Update
 		return
 	}
 
-	if data.UUID.IsNull() {
-		errorHandler.MakeAndReportError("UUID is null", "storage_snapshot_policy UUID is null")
+	if data.ID.IsNull() {
+		errorHandler.MakeAndReportError("ID is null", "storage_snapshot_policy ID is null")
 		return
 	}
 
@@ -314,7 +314,7 @@ func (r *SnapshotPolicyResource) Update(ctx context.Context, req resource.Update
 		body.Enabled = data.Enabled.ValueBool()
 	}
 
-	err = interfaces.UpdateSnapshotPolicy(errorHandler, *client, body, data.UUID.ValueString())
+	err = interfaces.UpdateSnapshotPolicy(errorHandler, *client, body, data.ID.ValueString())
 	if err != nil {
 		return
 	}
@@ -340,12 +340,12 @@ func (r *SnapshotPolicyResource) Delete(ctx context.Context, req resource.Delete
 		return
 	}
 
-	if data.UUID.IsNull() {
-		errorHandler.MakeAndReportError("UUID is null", "storage_snapshot_policy UUID is null")
+	if data.ID.IsNull() {
+		errorHandler.MakeAndReportError("ID is null", "storage_snapshot_policy ID is null")
 		return
 	}
 
-	err = interfaces.DeleteSnapshotPolicy(errorHandler, *client, data.UUID.ValueString())
+	err = interfaces.DeleteSnapshotPolicy(errorHandler, *client, data.ID.ValueString())
 	if err != nil {
 		return
 	}
