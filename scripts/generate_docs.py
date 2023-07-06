@@ -36,6 +36,7 @@ CATAGORYS = {
     'snaplock': [],
     'snapmirror': [],
     'storage': [
+        "storage_snapshot_policy_resource.md",
         "storage_volume_snapshot_data_source.md",
         "storage_volume_resource.md",
         "storage_volume_data_source.md",
@@ -47,7 +48,7 @@ CATAGORYS = {
 
 def main():
     print("===== Generating docs =====")
-    # generate_doc()
+    generate_doc()
     remove_example()
     print("===== Adding Catagories =====")
     add_catagories()
