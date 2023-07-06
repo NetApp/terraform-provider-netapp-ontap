@@ -191,6 +191,10 @@ func (d *ExportPolicyRuleDataSource) Read(ctx context.Context, req datasource.Re
 	if err != nil {
 		return
 	}
+	if restInfo == nil {
+		errorHandler.MakeAndReportError("error reading export policy rule", "rule not found")
+		return
+	}
 	var roRule, rwRule, protocols, superuser, clientsMatch []types.String
 	for _, e := range restInfo.RoRule {
 		roRule = append(roRule, types.StringValue(e))

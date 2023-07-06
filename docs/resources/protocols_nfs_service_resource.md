@@ -11,7 +11,7 @@ Create/Modify/Delete an NFS Configuration of a SVM.
 
 ## Example Usage
 
-```terrafrom
+```terraform
 # Create a new NFS service that is enabled with NFSv3 disabled, NFSv4 enabled, with ACL enabled. 
 resource "netapp-ontap_protocols_nfs_service_resource" "protocols_nfs_service" {
   # required to know which system to interface with

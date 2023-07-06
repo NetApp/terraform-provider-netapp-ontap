@@ -6,9 +6,24 @@ description: |-
   Svm resource
 ---
 
-# netapp-ontap_svm_resource (Resource)
+# Resource SVM
 
-Svm resource
+Create/Modify/Delete a SVM 
+## Example Usage
+
+This creates a new SVM called tfsvm4. In IPspace terafromIpspace_newname, which can have up to 200 volumes which will be cased on aggr2
+```terraform
+resource "netapp-ontap_svm_resource" "example" {
+  cx_profile_name = "cluster4"
+  name = "tfsvm4"
+  ipspace = "terafromIpspace_newname"
+  comment = "test"
+  snapshot_policy = "default-1weekly"
+  language = "en_us.utf_8"
+  aggregates = ["aggr2"]
+  max_volumes = "200"
+}`
+```
 
 
 

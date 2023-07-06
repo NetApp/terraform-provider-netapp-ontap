@@ -136,9 +136,17 @@ func (r *IPRouteResource) Read(ctx context.Context, req resource.ReadRequest, re
 		// error reporting done inside GetCluster
 		return
 	}
+	if cluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", fmt.Sprintf("No Cluster found"))
+		return
+	}
 	restInfo, err := interfaces.GetIPRoute(errorHandler, *client, data.Destination.Address.ValueString(), data.SVMName.ValueString(), cluster.Version)
 	if err != nil {
 		// error reporting done inside GetIPInterface
+		return
+	}
+	if restInfo == nil {
+		errorHandler.MakeAndReportError("No IP Route found", fmt.Sprintf("No IP Route %s found", data.Destination.Address.ValueString()))
 		return
 	}
 

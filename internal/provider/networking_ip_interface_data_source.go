@@ -116,6 +116,10 @@ func (d *IPInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 		// error reporting done inside GetIPInterface
 		return
 	}
+	if restInfo == nil {
+		errorHandler.MakeAndReportError("No Interface found", fmt.Sprintf("NO interface, %s found.", data.Name.ValueString()))
+		return
+	}
 
 	data.Name = types.StringValue(restInfo.Name)
 	data.Scope = types.StringValue(restInfo.Scope)

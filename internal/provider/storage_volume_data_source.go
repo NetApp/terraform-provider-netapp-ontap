@@ -230,6 +230,10 @@ func (d *StorageVolumeDataSource) Read(ctx context.Context, req datasource.ReadR
 	if err != nil {
 		return
 	}
+	if volume == nil {
+		errorHandler.MakeAndReportError("No volume found", fmt.Sprintf("Volume %s not found.", data.Name))
+		return
+	}
 	data.Name = types.StringValue(volume.Name)
 	data.UUID = types.StringValue(volume.UUID)
 	data.Vserver = types.StringValue(volume.SVM.Name)

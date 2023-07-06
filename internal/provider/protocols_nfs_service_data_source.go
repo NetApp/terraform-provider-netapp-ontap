@@ -316,10 +316,18 @@ func (d *ProtocolsNfsServiceDataSource) Read(ctx context.Context, req datasource
 		// error reporting done inside GetCluster
 		return
 	}
+	if cluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", fmt.Sprintf("cluster not found"))
+		return
+	}
 
 	restInfo, err := interfaces.GetProtocolsNfsService(errorHandler, *client, data.SVMName.ValueString(), cluster.Version)
 	if err != nil {
 		// error reporting done inside GetProtocolsNfsService
+		return
+	}
+	if restInfo == nil {
+		errorHandler.MakeAndReportError("No NFS service found", fmt.Sprintf("NFS service not found"))
 		return
 	}
 	data.Enabled = types.BoolValue(restInfo.Enabled)

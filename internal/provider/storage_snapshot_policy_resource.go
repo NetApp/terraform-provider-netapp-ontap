@@ -9,6 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -91,33 +94,41 @@ func (r *SnapshotPolicyResource) Schema(ctx context.Context, req resource.Schema
 			"copies": schema.ListNestedAttribute{
 				MarkdownDescription: "Snapshot copy",
 				Required:            true,
+				PlanModifiers:       []planmodifier.List{listplanmodifier.RequiresReplace()},
 				NestedObject: schema.NestedAttributeObject{
+					PlanModifiers: []planmodifier.Object{objectplanmodifier.RequiresReplace()},
 					Attributes: map[string]schema.Attribute{
 						"count": schema.Int64Attribute{
 							MarkdownDescription: "The number of Snapshot copies to maintain for this schedule",
 							Required:            true,
+							PlanModifiers:       []planmodifier.Int64{int64planmodifier.RequiresReplace()},
 						},
 						"schedule": schema.SingleNestedAttribute{
 							MarkdownDescription: "Schedule at which Snapshot copies are captured on the volume",
 							Required:            true,
+							PlanModifiers:       []planmodifier.Object{objectplanmodifier.RequiresReplace()},
 							Attributes: map[string]schema.Attribute{
 								"name": schema.StringAttribute{
 									MarkdownDescription: "Some common schedules already defined in the system are hourly, daily, weekly, at 15 minute intervals, and at 5 minute intervals. Snapshot copy policies with custom schedules can be referenced",
 									Required:            true,
+									PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
 								},
 							},
 						},
 						"retention_period": schema.StringAttribute{
 							MarkdownDescription: "The retention period of Snapshot copies for this schedule",
 							Optional:            true,
+							PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
 						},
 						"snapmirror_label": schema.StringAttribute{
 							MarkdownDescription: "Label for SnapMirror operations",
 							Optional:            true,
+							PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
 						},
 						"prefix": schema.StringAttribute{
 							MarkdownDescription: "The prefix to use while creating Snapshot copies at regular intervals",
 							Optional:            true,
+							PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
 						},
 					},
 				},
@@ -131,7 +142,8 @@ func (r *SnapshotPolicyResource) Schema(ctx context.Context, req resource.Schema
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(true),
-				PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
+				// not suport update, so force recreate if changes
+				PlanModifiers: []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 			},
 			"svm_name": schema.StringAttribute{
 				MarkdownDescription: "SnapshotPolicy vserver name",
@@ -183,9 +195,13 @@ func (r *SnapshotPolicyResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	restInfo, err := interfaces.GetSnapshotPolicy(errorHandler, *client, data.Name.ValueString(), data.UUID.ValueString())
+	restInfo, err := interfaces.GetSnapshotPolicy(errorHandler, *client, data.UUID.ValueString())
 	if err != nil {
 		// error reporting done inside GetSnapshotPolicy
+		return
+	}
+	if restInfo == nil {
+		errorHandler.MakeAndReportError("No snapshot policy found", fmt.Sprintf("snapshot policy  %s not found.", data.Name.ValueString()))
 		return
 	}
 
@@ -267,14 +283,41 @@ func (r *SnapshotPolicyResource) Create(ctx context.Context, req resource.Create
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *SnapshotPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data *SnapshotPolicyResourceModel
+	var state *SnapshotPolicyResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	// Read Terraform state data in to the model
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
+	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	if err != nil {
+		// error reporting done inside NewClient
+		return
+	}
+
+	if data.UUID.IsNull() {
+		errorHandler.MakeAndReportError("UUID is null", "storage_snapshot_policy UUID is null")
+		return
+	}
+
+	var body interfaces.SnapshotPolicyResourceUpdateRequestONTAP
+	if !data.Comment.Equal(state.Comment) {
+		body.Comment = data.Comment.ValueString()
+	}
+	if !data.Enabled.Equal(state.Enabled) {
+		body.Enabled = data.Enabled.ValueBool()
+	}
+
+	err = interfaces.UpdateSnapshotPolicy(errorHandler, *client, body, data.UUID.ValueString())
+	if err != nil {
+		return
+	}
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

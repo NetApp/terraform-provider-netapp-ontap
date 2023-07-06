@@ -257,6 +257,10 @@ func (r *ExportPolicyRuleResource) Create(ctx context.Context, req resource.Crea
 	if err != nil {
 		return
 	}
+	if exportPolicy == nil {
+		errorHandler.MakeAndReportError("No export policy found", fmt.Sprintf("export policy %s not found.", data.ExportPolicyName.ValueString()))
+		return
+	}
 
 	exportPolicyRule, err := interfaces.CreateExportPolicyRule(errorHandler, *client, request, strconv.Itoa(exportPolicy.ID))
 	if err != nil {
@@ -302,6 +306,10 @@ func (r *ExportPolicyRuleResource) Read(ctx context.Context, req resource.ReadRe
 	}
 
 	restInfo, err := interfaces.GetExportPolicyRule(errorHandler, *client, exportPolicyID, data.Index.ValueInt64())
+	if restInfo == nil {
+		errorHandler.MakeAndReportError("No export policy rule found", fmt.Sprintf("export policy rule %s not found.", data.Index.String()))
+		return
+	}
 	if err != nil {
 		return
 	}

@@ -126,6 +126,10 @@ func (r *NameServicesDNSResource) Read(ctx context.Context, req resource.ReadReq
 		// error reporting done inside GetNameServicesDNS
 		return
 	}
+	if restInfo == nil {
+		errorHandler.MakeAndReportError("No DNS found", fmt.Sprintf("NO DNS on svm %s found.", data.SVMName.ValueString()))
+		return
+	}
 
 	data.SVMName = types.StringValue(restInfo.SVM.Name)
 	data.SVMUUID = types.StringValue(restInfo.SVM.UUID)

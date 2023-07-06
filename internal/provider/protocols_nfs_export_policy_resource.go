@@ -119,6 +119,10 @@ func (r *ExportPolicyResource) Create(ctx context.Context, req resource.CreateRe
 	if err != nil {
 		return
 	}
+	if svm == nil {
+		errorHandler.MakeAndReportError("No svm found", fmt.Sprintf("svm %s not found.", data.Vserver.ValueString()))
+		return
+	}
 	request.Svm.Name = data.Vserver.ValueString()
 	request.Svm.UUID = svm.UUID
 
