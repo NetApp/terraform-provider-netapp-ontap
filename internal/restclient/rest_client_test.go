@@ -9,7 +9,7 @@ func TestRestClient_GetNilOrOneRecord(t *testing.T) {
 	type args struct {
 		baseURL string
 		query   *RestQuery
-		body    map[string]interface{}
+		body    map[string]any
 	}
 	record := map[string]any{
 		"option": "value",
@@ -39,7 +39,7 @@ func TestRestClient_GetNilOrOneRecord(t *testing.T) {
 		responses []MockResponse
 		args      args
 		want      int
-		want1     map[string]interface{}
+		want1     map[string]any
 		wantErr   bool
 	}{
 		{name: "test_no_records_1", responses: responses["test_no_records_1"], args: args{baseURL: "cluster"}, want: 200, want1: nil, wantErr: false},

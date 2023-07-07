@@ -21,7 +21,7 @@ func TestRequest_BuildURL(t *testing.T) {
 	query.Add("fields", "f1,f2")
 	type fields struct {
 		Method string
-		Body   map[string]interface{}
+		Body   map[string]any
 		Query  url.Values
 	}
 	type args struct {
@@ -73,14 +73,14 @@ func TestRequest_BuildHTTPReq(t *testing.T) {
 	testURLQ := "https://host/api/cluster?fields=f1%2Cf2"
 	body := make(map[string]any)
 	body["fields"] = "f1,f2"
-	marshalErrorBody := map[string]interface{}{
+	marshalErrorBody := map[string]any{
 		"foo": make(chan int),
 	}
 	query := url.Values{}
 	query.Add("fields", "f1,f2")
 	type fields struct {
 		Method string
-		Body   map[string]interface{}
+		Body   map[string]any
 		Query  url.Values
 	}
 	type wants struct {
