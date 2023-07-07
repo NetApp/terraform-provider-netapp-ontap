@@ -24,7 +24,7 @@ func TestHTTPClient_Do(t *testing.T) {
 	}
 	request := Request{
 		Method: "GET",
-		Body:   map[string]interface{}{},
+		Body:   map[string]any{},
 		Query:  map[string][]string{},
 	}
 	tests := []struct {

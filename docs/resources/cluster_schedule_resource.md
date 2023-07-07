@@ -50,7 +50,7 @@ resource "netapp-ontap_cluster_schedule_resource" "cs_example2" {
 
 ### Read-Only
 
-- `uuid` (String) Cluster/Job schedule identifier
+- `id` (String) Cluster/Job schedule identifier
 
 <a id="nestedatt--cron"></a>
 ### Nested Schema for `cron`

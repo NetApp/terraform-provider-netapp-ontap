@@ -4,12 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
-	"reflect"
-	"testing"
 )
 
 var dnsRecord = NameServicesDNSGetDataModelONTAP{

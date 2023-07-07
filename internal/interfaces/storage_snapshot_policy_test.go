@@ -80,10 +80,10 @@ var basicSnapshotPolicyBody = SnapshotPolicyResourceBodyDataModelONTAP{
 	SVM: Vserver{
 		Name: "string",
 	},
-	Copies: []map[string]interface{}{
+	Copies: []map[string]any{
 		{
 			"count": 1,
-			"schedule": map[string]interface{}{
+			"schedule": map[string]any{
 				"name": "Daily",
 			},
 		},
@@ -96,16 +96,16 @@ var twoSnapshotPolicyCopiesBody = SnapshotPolicyResourceBodyDataModelONTAP{
 	SVM: Vserver{
 		Name: "string",
 	},
-	Copies: []map[string]interface{}{
+	Copies: []map[string]any{
 		{
 			"count": 1,
-			"schedule": map[string]interface{}{
+			"schedule": map[string]any{
 				"name": "Weekly",
 			},
 		},
 		{
 			"count": 3,
-			"schedule": map[string]interface{}{
+			"schedule": map[string]any{
 				"name": "Monthly",
 			},
 		},
@@ -118,10 +118,10 @@ var notEnabledSnapshotPolicyBody = SnapshotPolicyResourceBodyDataModelONTAP{
 	SVM: Vserver{
 		Name: "string",
 	},
-	Copies: []map[string]interface{}{
+	Copies: []map[string]any{
 		{
 			"count": 1,
-			"schedule": map[string]interface{}{
+			"schedule": map[string]any{
 				"name": "Horly",
 			},
 		},
@@ -132,33 +132,33 @@ var notEnabledSnapshotPolicyBody = SnapshotPolicyResourceBodyDataModelONTAP{
 func TestGetSnapshotPolicy(t *testing.T) {
 	errorHandler := utils.NewErrorHandler(context.Background(), &diag.Diagnostics{})
 
-	var basicRecordInterface map[string]interface{}
+	var basicRecordInterface map[string]any
 	err := mapstructure.Decode(basicSnapshotPolicyRecord, &basicRecordInterface)
 	if err != nil {
 		panic(err)
 	}
-	var twoCopiesRecordInterface map[string]interface{}
+	var twoCopiesRecordInterface map[string]any
 	err = mapstructure.Decode(twoSnapshotPolicyCopiesRecord, &twoCopiesRecordInterface)
 	if err != nil {
 		panic(err)
 	}
-	var notEnabledRecordInterface map[string]interface{}
+	var notEnabledRecordInterface map[string]any
 	err = mapstructure.Decode(notEnabledSnapshotPolicyRecord, &notEnabledRecordInterface)
 	if err != nil {
 		panic(err)
 	}
-	var badRecordInterface map[string]interface{}
+	var badRecordInterface map[string]any
 	err = mapstructure.Decode(badSnapshotPolicyRecord, &badRecordInterface)
 	if err != nil {
 		panic(err)
 	}
-	noRecords := restclient.RestResponse{NumRecords: 0, Records: []map[string]interface{}{}}
-	oneRecord := restclient.RestResponse{NumRecords: 1, Records: []map[string]interface{}{basicRecordInterface}}
-	oneTwoCopiesRecord := restclient.RestResponse{NumRecords: 1, Records: []map[string]interface{}{twoCopiesRecordInterface}}
-	oneNotEnabledRecord := restclient.RestResponse{NumRecords: 1, Records: []map[string]interface{}{notEnabledRecordInterface}}
-	twoRecords := restclient.RestResponse{NumRecords: 2, Records: []map[string]interface{}{basicRecordInterface, basicRecordInterface}}
+	noRecords := restclient.RestResponse{NumRecords: 0, Records: []map[string]any{}}
+	oneRecord := restclient.RestResponse{NumRecords: 1, Records: []map[string]any{basicRecordInterface}}
+	oneTwoCopiesRecord := restclient.RestResponse{NumRecords: 1, Records: []map[string]any{twoCopiesRecordInterface}}
+	oneNotEnabledRecord := restclient.RestResponse{NumRecords: 1, Records: []map[string]any{notEnabledRecordInterface}}
+	twoRecords := restclient.RestResponse{NumRecords: 2, Records: []map[string]any{basicRecordInterface, basicRecordInterface}}
 	genericError := errors.New("generic error for UT")
-	decodeError := restclient.RestResponse{NumRecords: 1, Records: []map[string]interface{}{badRecordInterface}}
+	decodeError := restclient.RestResponse{NumRecords: 1, Records: []map[string]any{badRecordInterface}}
 	responses := map[string][]restclient.MockResponse{
 		"test_no_records_1": {
 			{ExpectedMethod: "GET", ExpectedURL: "storage/snapshot-policies", StatusCode: 200, Response: noRecords, Err: nil},
@@ -216,30 +216,30 @@ func TestGetSnapshotPolicy(t *testing.T) {
 func TestCreateSnapshotPolicy(t *testing.T) {
 	errorHandler := utils.NewErrorHandler(context.Background(), &diag.Diagnostics{})
 
-	var basicRecordInterface map[string]interface{}
+	var basicRecordInterface map[string]any
 	err := mapstructure.Decode(basicSnapshotPolicyRecord, &basicRecordInterface)
 	if err != nil {
 		panic(err)
 	}
-	var twoCopiesRecordInterface map[string]interface{}
+	var twoCopiesRecordInterface map[string]any
 	err = mapstructure.Decode(twoSnapshotPolicyCopiesRecord, &twoCopiesRecordInterface)
 	if err != nil {
 		panic(err)
 	}
-	var notEnabledRecordInterface map[string]interface{}
+	var notEnabledRecordInterface map[string]any
 	err = mapstructure.Decode(notEnabledSnapshotPolicyRecord, &notEnabledRecordInterface)
 	if err != nil {
 		panic(err)
 	}
-	var badRecordInterface map[string]interface{}
+	var badRecordInterface map[string]any
 	err = mapstructure.Decode(badSnapshotPolicyRecord, &badRecordInterface)
 	if err != nil {
 		panic(err)
 	}
-	onebasicSnapshotPolicyRecord := restclient.RestResponse{NumRecords: 1, Records: []map[string]interface{}{basicRecordInterface}}
-	oneTwoCopiesRecord := restclient.RestResponse{NumRecords: 1, Records: []map[string]interface{}{twoCopiesRecordInterface}}
-	oneNotEnabledRecord := restclient.RestResponse{NumRecords: 1, Records: []map[string]interface{}{notEnabledRecordInterface}}
-	decodeError := restclient.RestResponse{NumRecords: 1, Records: []map[string]interface{}{badRecordInterface}}
+	onebasicSnapshotPolicyRecord := restclient.RestResponse{NumRecords: 1, Records: []map[string]any{basicRecordInterface}}
+	oneTwoCopiesRecord := restclient.RestResponse{NumRecords: 1, Records: []map[string]any{twoCopiesRecordInterface}}
+	oneNotEnabledRecord := restclient.RestResponse{NumRecords: 1, Records: []map[string]any{notEnabledRecordInterface}}
+	decodeError := restclient.RestResponse{NumRecords: 1, Records: []map[string]any{badRecordInterface}}
 	responses := map[string][]restclient.MockResponse{
 		"test_create_basic_record_1": {
 			{ExpectedMethod: "POST", ExpectedURL: "storage/snapshot-policies", StatusCode: 200, Response: onebasicSnapshotPolicyRecord, Err: nil},
@@ -289,17 +289,17 @@ func TestCreateSnapshotPolicy(t *testing.T) {
 
 func TestDeleteSnapshotPolicy(t *testing.T) {
 	errorHandler := utils.NewErrorHandler(context.Background(), &diag.Diagnostics{})
-	var recordInterface map[string]interface{}
+	var recordInterface map[string]any
 	err := mapstructure.Decode(basicSnapshotPolicyRecord, &recordInterface)
 	if err != nil {
 		panic(err)
 	}
-	var badRecordInterface map[string]interface{}
+	var badRecordInterface map[string]any
 	err = mapstructure.Decode(badSnapshotPolicyRecord, &badRecordInterface)
 	if err != nil {
 		panic(err)
 	}
-	noRecords := restclient.RestResponse{NumRecords: 0, Records: []map[string]interface{}{}}
+	noRecords := restclient.RestResponse{NumRecords: 0, Records: []map[string]any{}}
 	genericError := errors.New("generic error for UT")
 	responses := map[string][]restclient.MockResponse{
 		"test_delete": {

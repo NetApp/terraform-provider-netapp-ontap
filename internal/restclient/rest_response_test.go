@@ -17,28 +17,28 @@ func TestRestClient_unmarshalResponse(t *testing.T) {
 		responseJSON  []byte
 		httpClientErr error
 	}
-	responseForJSON := map[string]interface{}{
+	responseForJSON := map[string]any{
 		"num_records": 1,
-		"records": []map[string]interface{}{
+		"records": []map[string]any{
 			{"option": "value"},
 		},
 		"statuscode": 200}
 	response := RestResponse{
 		NumRecords: 1,
-		Records: []map[string]interface{}{
+		Records: []map[string]any{
 			{"option": "value"},
 		},
 		StatusCode: 200}
 	responseOthers := RestResponse{
 		NumRecords: 1,
-		Records: []map[string]interface{}{
+		Records: []map[string]any{
 			{"_link": "somelink", "option": "value"},
 		},
 		StatusCode: 200}
 	restError := RestError{"123", "", ""}
 	responseRestError := RestResponse{
 		NumRecords: 0,
-		Records:    []map[string]interface{}(nil),
+		Records:    []map[string]any(nil),
 		RestError:  restError,
 		StatusCode: 400,
 		HTTPError:  "",
@@ -46,7 +46,7 @@ func TestRestClient_unmarshalResponse(t *testing.T) {
 	}
 	responseStatusCodeError := RestResponse{
 		NumRecords: 0,
-		Records:    []map[string]interface{}(nil),
+		Records:    []map[string]any(nil),
 		StatusCode: 400,
 		ErrorType:  "statuscode_error",
 	}
@@ -55,9 +55,9 @@ func TestRestClient_unmarshalResponse(t *testing.T) {
 	}{
 		Error: restError,
 	}
-	responseOther := map[string]interface{}{"_link": "somelink", "option": "value"}
+	responseOther := map[string]any{"_link": "somelink", "option": "value"}
 
-	rawEmpty := interface{}(nil)
+	rawEmpty := any(nil)
 	emptyJSON, err := json.Marshal(rawEmpty)
 	if err != nil {
 		panic(err)
@@ -93,9 +93,9 @@ func TestRestClient_unmarshalResponse(t *testing.T) {
 		want1   RestResponse
 		wantErr bool
 	}{
-		{name: "error_no_json", args: args{}, want: 0, want1: RestResponse{ErrorType: "bad_response_decode_json", Records: []map[string]interface{}{}}, wantErr: true},
-		{name: "error_mismatch_json", args: args{statusCode: 200, responseJSON: badJSON}, want: 200, want1: RestResponse{ErrorType: "bad_response_decode_interface", Records: []map[string]interface{}{}, StatusCode: 200}, wantErr: true},
-		{name: "error_http_error", args: args{httpClientErr: genericError}, want: 0, want1: RestResponse{HTTPError: genericError.Error(), ErrorType: "http", Records: []map[string]interface{}{}}, wantErr: true},
+		{name: "error_no_json", args: args{}, want: 0, want1: RestResponse{ErrorType: "bad_response_decode_json", Records: []map[string]any{}}, wantErr: true},
+		{name: "error_mismatch_json", args: args{statusCode: 200, responseJSON: badJSON}, want: 200, want1: RestResponse{ErrorType: "bad_response_decode_interface", Records: []map[string]any{}, StatusCode: 200}, wantErr: true},
+		{name: "error_http_error", args: args{httpClientErr: genericError}, want: 0, want1: RestResponse{HTTPError: genericError.Error(), ErrorType: "http", Records: []map[string]any{}}, wantErr: true},
 		{name: "json_unmarshalled", args: args{statusCode: 200, responseJSON: responseJSON}, want: 200, want1: response, wantErr: false},
 		{name: "json_unmarshalled_other", args: args{statusCode: 200, responseJSON: responseJSONOther}, want: 200, want1: responseOthers, wantErr: false},
 		{name: "rest_error", args: args{statusCode: 400, responseJSON: responseJSONRestError}, want: 400, want1: responseRestError, wantErr: true},

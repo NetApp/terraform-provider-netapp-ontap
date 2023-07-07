@@ -59,27 +59,27 @@ var badBody = ClusterScheduleResourceBodyDataModelONTAP{
 
 func TestGetClusterSchedule(t *testing.T) {
 	errorHandler := utils.NewErrorHandler(context.Background(), &diag.Diagnostics{})
-	var basicCronRecordInterface map[string]interface{}
+	var basicCronRecordInterface map[string]any
 	err := mapstructure.Decode(basicCronRecord, &basicCronRecordInterface)
 	if err != nil {
 		panic(err)
 	}
-	var intervalRecordInterface map[string]interface{}
+	var intervalRecordInterface map[string]any
 	err = mapstructure.Decode(intervalRecord, &intervalRecordInterface)
 	if err != nil {
 		panic(err)
 	}
-	var badRecordInterface map[string]interface{}
+	var badRecordInterface map[string]any
 	err = mapstructure.Decode(badRecord, &badRecordInterface)
 	if err != nil {
 		panic(err)
 	}
-	noRecords := restclient.RestResponse{NumRecords: 0, Records: []map[string]interface{}{}}
-	oneCronRecord := restclient.RestResponse{NumRecords: 1, Records: []map[string]interface{}{basicCronRecordInterface}}
-	oneIntervalRecord := restclient.RestResponse{NumRecords: 1, Records: []map[string]interface{}{intervalRecordInterface}}
-	twoCronRecords := restclient.RestResponse{NumRecords: 2, Records: []map[string]interface{}{basicCronRecordInterface, basicCronRecordInterface}}
+	noRecords := restclient.RestResponse{NumRecords: 0, Records: []map[string]any{}}
+	oneCronRecord := restclient.RestResponse{NumRecords: 1, Records: []map[string]any{basicCronRecordInterface}}
+	oneIntervalRecord := restclient.RestResponse{NumRecords: 1, Records: []map[string]any{intervalRecordInterface}}
+	twoCronRecords := restclient.RestResponse{NumRecords: 2, Records: []map[string]any{basicCronRecordInterface, basicCronRecordInterface}}
 	genericError := errors.New("generic error for UT")
-	decodeError := restclient.RestResponse{NumRecords: 1, Records: []map[string]interface{}{badRecordInterface}}
+	decodeError := restclient.RestResponse{NumRecords: 1, Records: []map[string]any{badRecordInterface}}
 	responses := map[string][]restclient.MockResponse{
 		"test_no_records_1": {
 			{ExpectedMethod: "GET", ExpectedURL: "cluster/schedules", StatusCode: 200, Response: noRecords, Err: nil},
@@ -133,26 +133,26 @@ func TestGetClusterSchedule(t *testing.T) {
 func TestCreateClusterSchedule(t *testing.T) {
 	errorHandler := utils.NewErrorHandler(context.Background(), &diag.Diagnostics{})
 	// cron type
-	var basicCronRecordInterface map[string]interface{}
+	var basicCronRecordInterface map[string]any
 	err := mapstructure.Decode(basicCronRecord, &basicCronRecordInterface)
 	if err != nil {
 		panic(err)
 	}
 	// interval
-	var intervalRecordInterface map[string]interface{}
+	var intervalRecordInterface map[string]any
 	err = mapstructure.Decode(intervalRecord, &intervalRecordInterface)
 	if err != nil {
 		panic(err)
 	}
 	// bad record
-	var badRecordInterface map[string]interface{}
+	var badRecordInterface map[string]any
 	err = mapstructure.Decode(badRecord, &badRecordInterface)
 	if err != nil {
 		panic(err)
 	}
-	oneBasicCronRecord := restclient.RestResponse{NumRecords: 1, Records: []map[string]interface{}{basicCronRecordInterface}}
-	oneIntervalRecord := restclient.RestResponse{NumRecords: 1, Records: []map[string]interface{}{intervalRecordInterface}}
-	decodeError := restclient.RestResponse{NumRecords: 1, Records: []map[string]interface{}{badRecordInterface}}
+	oneBasicCronRecord := restclient.RestResponse{NumRecords: 1, Records: []map[string]any{basicCronRecordInterface}}
+	oneIntervalRecord := restclient.RestResponse{NumRecords: 1, Records: []map[string]any{intervalRecordInterface}}
+	decodeError := restclient.RestResponse{NumRecords: 1, Records: []map[string]any{badRecordInterface}}
 	responses := map[string][]restclient.MockResponse{
 		"test_create_basic_corn_record_1": {
 			{ExpectedMethod: "POST", ExpectedURL: "cluster/schedules", StatusCode: 200, Response: oneBasicCronRecord, Err: nil},
@@ -200,17 +200,17 @@ func TestCreateClusterSchedule(t *testing.T) {
 
 func TestDeleteClusterSchedule(t *testing.T) {
 	errorHandler := utils.NewErrorHandler(context.Background(), &diag.Diagnostics{})
-	var recordInterface map[string]interface{}
+	var recordInterface map[string]any
 	err := mapstructure.Decode(basicCronRecord, &recordInterface)
 	if err != nil {
 		panic(err)
 	}
-	var badRecordInterface map[string]interface{}
+	var badRecordInterface map[string]any
 	err = mapstructure.Decode(badRecord, &badRecordInterface)
 	if err != nil {
 		panic(err)
 	}
-	noRecords := restclient.RestResponse{NumRecords: 0, Records: []map[string]interface{}{}}
+	noRecords := restclient.RestResponse{NumRecords: 0, Records: []map[string]any{}}
 	genericError := errors.New("generic error for UT")
 	responses := map[string][]restclient.MockResponse{
 		"test_delete_one_record": {

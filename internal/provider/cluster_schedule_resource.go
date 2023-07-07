@@ -49,7 +49,7 @@ type CronScheduleResourceModel struct {
 type ClusterScheduleResourceModel struct {
 	CxProfileName types.String               `tfsdk:"cx_profile_name"`
 	Name          types.String               `tfsdk:"name"`
-	UUID          types.String               `tfsdk:"uuid"`
+	ID            types.String               `tfsdk:"id"`
 	Interval      types.String               `tfsdk:"interval"`
 	Cron          *CronScheduleResourceModel `tfsdk:"cron"`
 }
@@ -74,7 +74,7 @@ func (r *ClusterScheduleResource) Schema(ctx context.Context, req resource.Schem
 				MarkdownDescription: "The name of the cluster schedule",
 				Required:            true,
 			},
-			"uuid": schema.StringAttribute{
+			"id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Cluster/Job schedule identifier",
 				PlanModifiers: []planmodifier.String{
@@ -168,7 +168,7 @@ func (r *ClusterScheduleResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 	// data.Name = types.StringValue(restInfo.Name)
-	data.UUID = types.StringValue(restInfo.UUID)
+	data.ID = types.StringValue(restInfo.UUID)
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
@@ -231,9 +231,9 @@ func (r *ClusterScheduleResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	data.UUID = types.StringValue(resource.UUID)
+	data.ID = types.StringValue(resource.UUID)
 
-	tflog.Trace(ctx, fmt.Sprintf("created a resource, UUID=%s", data.UUID))
+	tflog.Trace(ctx, fmt.Sprintf("created a resource, UUID=%s", data.ID))
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -282,7 +282,7 @@ func (r *ClusterScheduleResource) Update(ctx context.Context, req resource.Updat
 		request.Cron.Months = months
 	}
 
-	err = interfaces.UpdateClusterSchedule(errorHandler, *client, request, data.UUID.ValueString())
+	err = interfaces.UpdateClusterSchedule(errorHandler, *client, request, data.ID.ValueString())
 	if err != nil {
 		return
 	}
@@ -309,12 +309,12 @@ func (r *ClusterScheduleResource) Delete(ctx context.Context, req resource.Delet
 		return
 	}
 
-	if data.UUID.IsNull() {
+	if data.ID.IsNull() {
 		errorHandler.MakeAndReportError("UUID is null", "cluster_schedule UUID is null")
 		return
 	}
 
-	err = interfaces.DeleteClusterSchedule(errorHandler, *client, data.UUID.ValueString())
+	err = interfaces.DeleteClusterSchedule(errorHandler, *client, data.ID.ValueString())
 	if err != nil {
 		return
 	}
