@@ -880,6 +880,9 @@ func (r *ProtocolsNfsServiceResource) Update(ctx context.Context, req resource.U
 	}
 
 	err = interfaces.UpdateProtocolsNfsService(errorHandler, *client, request, svm.UUID)
+	if err != nil {
+		return
+	}
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
