@@ -223,10 +223,15 @@ func (r *SvmResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		// error reporting done inside NewClient
 		return
 	}
-	_, err = interfaces.GetSvm(errorHandler, *client, data.UUID.ValueString())
+	svm, err := interfaces.GetSvm(errorHandler, *client, data.UUID.ValueString())
 	if err != nil {
 		return
 	}
+	if svm == nil {
+		errorHandler.MakeAndReportError("No Svm found", fmt.Sprintf("No SVM found"))
+	}
+	data.Name = types.StringValue(svm.Name)
+	data.UUID = types.StringValue(svm.UUID)
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -238,13 +243,83 @@ func (r *SvmResource) Update(ctx context.Context, req resource.UpdateRequest, re
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	if data.UUID.IsNull() {
+		errorHandler.MakeAndReportError("UUID is Null", "UUID is NUll")
+	}
+
+	var request interfaces.SvmResourceModel
+	request.Name = data.Name.ValueString()
+	// TODO: Ipspace can not be modify on SVM/patch. We can't fail or maybe a warning should be sent?
+	//if !data.Ipspace.IsNull() {
+	//	request.Ipspace.Name = data.Ipspace.ValueString()
+	//}
+
+	if !data.SnapshotPolicy.IsNull() {
+		request.SnapshotPolicy.Name = data.SnapshotPolicy.ValueString()
+	}
+
+	if !data.SubType.IsNull() {
+		request.SubType = data.SubType.ValueString()
+	}
+
+	if !data.Comment.IsNull() {
+		request.Comment = data.Comment.ValueString()
+	}
+
+	if !data.Language.IsNull() {
+		request.Language = data.Language.ValueString()
+	}
+
+	if !data.MaxVolumes.IsNull() {
+		err := interfaces.ValidateIntORString(errorHandler, data.MaxVolumes.ValueString(), "unlimited")
+		if err != nil {
+			return
+		}
+		request.MaxVolumes = data.MaxVolumes.ValueString()
+	}
+
+	if len(data.Aggregates) != 0 {
+		aggregates := []interfaces.Aggregate{}
+		for _, v := range data.Aggregates {
+			aggr := interfaces.Aggregate{}
+			aggr.Name = v.ValueString()
+			aggregates = append(aggregates, aggr)
+		}
+		err := mapstructure.Decode(aggregates, &request.Aggregates)
+		if err != nil {
+			errorHandler.MakeAndReportError("error creating vserver", fmt.Sprintf("error on encoding aggregates info: %s, aggregates %#v", err, aggregates))
+			return
+		}
+	}
+	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	if err != nil {
+		return
+	}
+	// We need to check to see if the name has changed for a rename
+	rename := false
+	existingSvm, err := interfaces.GetSvm(errorHandler, *client, data.UUID.ValueString())
+	if err != nil {
+		return
+	}
+	if existingSvm.Name != request.Name {
+		rename = true
+	}
+	err = interfaces.UpdateSvm(errorHandler, *client, request, data.UUID.ValueString(), rename)
+	if err != nil {
+		return
+	}
+	data.ID = types.StringValue(data.UUID.ValueString())
+
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
 
 // Delete deletes the resource and removes the Terraform state on success.

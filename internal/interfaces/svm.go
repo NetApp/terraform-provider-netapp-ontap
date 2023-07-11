@@ -81,7 +81,6 @@ func CreateSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, data S
 	var body map[string]interface{}
 	if err := mapstructure.Decode(data, &body); err != nil {
 		return nil, errorHandler.MakeAndReportError("error encoding vserver body", fmt.Sprintf("error on encoding svm/svms body: %s, body: %#v", err, data))
-
 	}
 	query := r.NewQuery()
 	query.Add("return_records", "true")
@@ -107,6 +106,25 @@ func DeleteSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid s
 	if err != nil {
 		return errorHandler.MakeAndReportError("error deleting vserver", fmt.Sprintf("error on DELETE %s: %s, statusCode %d", api, err, statusCode))
 
+	}
+	return nil
+}
+
+// UpdateSvm to update a vserver
+func UpdateSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, data SvmResourceModel, uuid string, rename bool) error {
+	var body map[string]interface{}
+	if err := mapstructure.Decode(data, &body); err != nil {
+		return errorHandler.MakeAndReportError("error encoding vserver body", fmt.Sprintf("error on encoding svm/svms body: %s, body: %#v", err, data))
+	}
+	// Name is only passed to patch if it is a rename
+	if !rename {
+		delete(body, "name")
+	}
+	query := r.NewQuery()
+	query.Add("return_records", "true")
+	statusCode, _, err := r.CallUpdateMethod("svm/svms/"+uuid, query, body)
+	if err != nil {
+		return errorHandler.MakeAndReportError("error updating vserver", fmt.Sprintf("error on PATCH svm/svms: %s, statusCode %d", err, statusCode))
 	}
 	return nil
 }
