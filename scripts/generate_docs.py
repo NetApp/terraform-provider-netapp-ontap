@@ -36,6 +36,7 @@ CATAGORYS = {
     'snaplock': [],
     'snapmirror': [],
     'storage': [
+        "storage_aggregate_resource.md",
         "storage_snapshot_policy_resource.md",
         "storage_volume_snapshot_data_source.md",
         "storage_volume_resource.md",
