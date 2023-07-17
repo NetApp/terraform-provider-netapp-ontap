@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
@@ -63,7 +64,8 @@ func (c *Config) NewClient(errorHandler *utils.ErrorHandler, cxProfileName strin
 	}
 	// the tag resource_name/version will be used for telemetry
 
-	client, err := restclient.NewClient(errorHandler.Ctx, profile, strings.Join([]string{resName, c.Version}, "/"), c.JobCompletionTimeOut)
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Version string is: %#v", strings.Join([]string{"TerrafromONTAP", resName, c.Version}, "/")))
+	client, err := restclient.NewClient(errorHandler.Ctx, profile, strings.Join([]string{"TerrafromONTAP", resName, c.Version}, "/"), c.JobCompletionTimeOut)
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError("unable to create REST client",
 			fmt.Sprintf("error creating REST client: %s", err))
