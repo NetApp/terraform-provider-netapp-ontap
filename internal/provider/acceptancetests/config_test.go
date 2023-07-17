@@ -66,7 +66,7 @@ func TestConfig_NewClient(t *testing.T) {
 	cxProfile := provider.ConnectionProfile{}
 	cxProfiles := map[string]provider.ConnectionProfile{"empty": cxProfile}
 	// cxProfilesTwo := map[string]ConnectionProfile{"empty1": cxProfile, "empty2": cxProfile}
-	restClient, err := restclient.NewClient(context.Background(), restclient.ConnectionProfile{}, "config_test/v1.2.3", 600)
+	restClient, err := restclient.NewClient(context.Background(), restclient.ConnectionProfile{}, "TerrafromONTAP/config_test/v1.2.3", 600)
 	if err != nil {
 		panic(err)
 	}
