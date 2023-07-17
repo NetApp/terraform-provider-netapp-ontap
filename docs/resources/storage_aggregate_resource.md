@@ -24,7 +24,6 @@ resource "netapp-ontap_storage_aggregate_resource" "example" {
   raid_type = "raid4"
   snaplock_type = "compliance"
   encryption = true
-  state = "offline"
 }
 ```
 
@@ -55,7 +54,7 @@ resource "netapp-ontap_storage_aggregate_resource" "example" {
 - `raid_size` (Number) Sets the maximum number of drives per raid group.
 - `raid_type` (String)
 - `snaplock_type` (String) Type of snaplock for the aggregate being created.
-- `state` (String) Whether the specified aggregate should be enabled or disabled. Creates aggregate if doesnt exist.
+- `state` (String) Whether the specified aggregate should be enabled or disabled.
 
 ### Read-Only
 

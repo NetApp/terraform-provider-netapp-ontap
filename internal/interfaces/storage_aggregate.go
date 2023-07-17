@@ -14,10 +14,16 @@ import (
 type StorageAggregateGetDataModelONTAP struct {
 	Name           string                  `mapstructure:"name"`
 	UUID           string                  `mapstructure:"uuid"`
+	Node           StorageAggregateNode    `mapstructure:"node"`
 	BlockStorage   AggregateBlockStorage   `mapstructure:"block_storage"`
 	DataEncryption AggregateDataEncryption `mapstructure:"data_encryption"`
 	SnaplockType   string                  `mapstructure:"snaplock_type"`
 	State          string                  `mapstructure:"state"`
+}
+
+// StorageAggregateNode is the body data model for node field
+type StorageAggregateNode struct {
+	Name string `mapstructure:"name"`
 }
 
 // AggregateDataEncryption describes data_encryption within StorageAggregateGetDataModelONTAP
@@ -56,7 +62,14 @@ type AggregateBlockStoragePrimary struct {
 
 // GetStorageAggregate to get aggregate info by uuid
 func GetStorageAggregate(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) (*StorageAggregateGetDataModelONTAP, error) {
-	statusCode, response, err := r.GetNilOrOneRecord("storage/aggregates/"+uuid, nil, nil)
+	api := "storage/aggregates/"
+	query := r.NewQuery()
+	query.Set("uuid", uuid)
+	query.Fields([]string{"name", "snaplock_type", "block_storage", "data_encryption", "state"})
+	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError("error reading aggregate info", fmt.Sprintf("error on GET storage/aggregates/%s: %s", uuid, err))
 	}
