@@ -10,5 +10,4 @@ resource "netapp-ontap_storage_aggregate_resource" "example" {
   raid_type = "raid4"
   snaplock_type = "compliance"
   encryption = true
-  state = "offline"
 }

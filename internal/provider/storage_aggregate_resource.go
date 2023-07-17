@@ -89,7 +89,7 @@ func (r *AggregateResource) Schema(ctx context.Context, req resource.SchemaReque
 				Optional:            true,
 				Computed:            true,
 				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
-				MarkdownDescription: "Whether the specified aggregate should be enabled or disabled. Creates aggregate if doesnt exist.",
+				MarkdownDescription: "Whether the specified aggregate should be enabled or disabled.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("online", "offline"),
 				},
@@ -173,9 +173,13 @@ func (r *AggregateResource) Schema(ctx context.Context, req resource.SchemaReque
 			// },
 			"snaplock_type": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Type of snaplock for the aggregate being created.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("compliance", "enterprise", "non_snaplock"),
+				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"encryption": schema.BoolAttribute{
@@ -268,6 +272,12 @@ func (r *AggregateResource) Create(ctx context.Context, req resource.CreateReque
 		request.BlockStorage["mirror"] = map[string]bool{
 			"enabled": data.IsMirrored.ValueBool(),
 		}
+	}
+	// state parameter only can be updated
+	// if set the state at the creation stage is illegal
+	if data.State.ValueString() != "" {
+		errorHandler.MakeAndReportError("set state is not allowed on creation", "error on setting state during resource creation")
+		return
 	}
 	aggregate, err := interfaces.CreateStorageAggregate(errorHandler, *client, request, diskSize)
 	if err != nil {
