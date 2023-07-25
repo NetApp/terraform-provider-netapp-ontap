@@ -11,26 +11,26 @@ import (
 
 // StorageVolumeSnapshotGetDataModelONTAP describes the GET record data model using go types for mapping
 type StorageVolumeSnapshotGetDataModelONTAP struct {
-	Name   string
-	Volume struct {
-		UUID string
-		Name string
-	}
-	CreateTime      string `mapstructure:"create_time"`
-	ExpiryTime      string `mapstructure:"expiry_time"`
-	State           string
-	Size            float64
-	Comment         string
-	UUID            string
-	SnapmirrorLabel string `mapstructure:"snaplock_label"`
+	Name               string
+	Volume             NameDataModel `mapstructure:"volume"`
+	SVM                NameDataModel `mapstructure:"svm"`
+	CreateTime         string        `mapstructure:"create_time"`
+	ExpiryTime         string        `mapstructure:"expiry_time"`
+	SnaplockExpiryTime string        `mapstructure:"snaplock_expiry_time"`
+	State              string
+	Size               float64
+	Comment            string
+	UUID               string
+	SnapmirrorLabel    string `mapstructure:"snapmirror_label"`
 }
 
 // StorageVolumeSnapshotResourceModel describes the resource data model.
 type StorageVolumeSnapshotResourceModel struct {
-	Name            string `mapstructure:"name"`
-	ExpiryTime      string `mapstructure:"expiry_time,omitempty"`
-	Comment         string `mapstructure:"comment,omitempty"`
-	SnapmirrorLabel string `mapstructure:"snaplock_label,omitempty"`
+	Name               string `mapstructure:"name,omitempty"` // not set name if modificaiton is not rename
+	ExpiryTime         string `mapstructure:"expiry_time,omitempty"`
+	SnaplockExpiryTime string `mapstructure:"snaplock_expiry_time,omitempty"`
+	Comment            string `mapstructure:"comment,omitempty"`
+	SnapmirrorLabel    string `mapstructure:"snapmirror_label,omitempty"`
 }
 
 // GetUUIDStorageVolumeSnapshotsByName get a snapshot UUID based off name
@@ -55,6 +55,25 @@ func GetUUIDStorageVolumeSnapshotsByName(errorHandler *utils.ErrorHandler, r res
 			fmt.Sprintf("statusCode %d, response %#v", statusCode, response))
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read storage/volumes data source: %#v", dataONTAP))
+	return &dataONTAP, nil
+}
+
+// GetStorageVolumeSnapshot to get snapshot info by uuid
+func GetStorageVolumeSnapshot(errorHandler *utils.ErrorHandler, r restclient.RestClient, volumeUUID string, UUID string) (*StorageVolumeSnapshotGetDataModelONTAP, error) {
+	api := fmt.Sprintf("storage/volumes/%s/snapshots/%s", volumeUUID, UUID)
+	statusCode, response, err := r.GetNilOrOneRecord(api, nil, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading snapshot info", fmt.Sprintf("error on GET storage/volumes/%s/snapshots/%s: %s", volumeUUID, UUID, err))
+	}
+
+	var dataONTAP StorageVolumeSnapshotGetDataModelONTAP
+	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
+		return nil, errorHandler.MakeAndReportError("error decoding snapshot info", fmt.Sprintf("error on decode storage/volumes/%s/snapshots/%s: %s, statusCode %d, response %#v", volumeUUID, UUID, err, statusCode, response))
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read snapshot source - udata: %#v", dataONTAP))
 	return &dataONTAP, nil
 }
 
@@ -101,7 +120,7 @@ func CreateStorageVolumeSnapshot(errorHandler *utils.ErrorHandler, r restclient.
 	}
 
 	var dataONTAP StorageVolumeSnapshotGetDataModelONTAP
-	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
+	if err := mapstructure.Decode(response.Records[0], &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError("error decoding snapshot info",
 			fmt.Sprintf("err: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
@@ -109,13 +128,31 @@ func CreateStorageVolumeSnapshot(errorHandler *utils.ErrorHandler, r restclient.
 	return &dataONTAP, nil
 }
 
+// UpdateStorageVolumeSnapshot updates snapshot
+func UpdateStorageVolumeSnapshot(errorHandler *utils.ErrorHandler, r restclient.RestClient, data StorageVolumeSnapshotResourceModel, volumeUUID string, UUID string) error {
+	var body map[string]interface{}
+	if err := mapstructure.Decode(data, &body); err != nil {
+		return errorHandler.MakeAndReportError("error encoding snapshot body", fmt.Sprintf("error on encoding storage/volumes/%s/snapshots/%s body: %s, body: %#v", volumeUUID, UUID, err, data))
+	}
+	query := r.NewQuery()
+	query.Add("return_records", "true")
+
+	// API has no option to return records
+	api := fmt.Sprintf("storage/volumes/%s/snapshots/%s", volumeUUID, UUID)
+	statusCode, _, err := r.CallUpdateMethod(api, query, body)
+	if err != nil {
+		return errorHandler.MakeAndReportError("error updating snapshot", fmt.Sprintf("error on PATCH storage/volumes/%s/snapshots/%s: %s, statusCode %d", volumeUUID, UUID, err, statusCode))
+	}
+	return nil
+}
+
 // DeleteStorageVolumeSnapshot to delete a snapshot
-func DeleteStorageVolumeSnapshot(errorHandler *utils.ErrorHandler, r restclient.RestClient, volumeUUID string, uuid string) (*StorageVolumeSnapshotGetDataModelONTAP, error) {
+func DeleteStorageVolumeSnapshot(errorHandler *utils.ErrorHandler, r restclient.RestClient, volumeUUID string, uuid string) error {
 	api := "storage/volumes/" + volumeUUID + "/snapshots/" + uuid
 	statusCode, _, err := r.CallDeleteMethod(api, nil, nil)
 	if err != nil {
-		return nil, errorHandler.MakeAndReportError("error deleting snapshot info",
+		return errorHandler.MakeAndReportError("error deleting snapshot info",
 			fmt.Sprintf("error on DELETE %s: %s, statuscode: %d", api, err, statusCode))
 	}
-	return nil, nil
+	return nil
 }

@@ -2,10 +2,11 @@ package acceptancetests
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"os"
 	"regexp"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccStorageVolumeSnapshotResource(t *testing.T) {
@@ -15,23 +16,34 @@ func TestAccStorageVolumeSnapshotResource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// non-existant SVM return code 2621462. Must happen before create/read
 			{
-				Config:      testAccStorageVolumeSnapshotResourceConfig("non-existant"),
+				Config:      testAccStorageVolumeSnapshotResourceConfig("non-existant", "my comment"),
 				ExpectError: regexp.MustCompile("Error: No svm found"),
 			},
-			// Read testing
+			// Create and read testing
 			{
-				Config: testAccStorageVolumeSnapshotResourceConfig("carchi-test"),
+				Config: testAccStorageVolumeSnapshotResourceConfig("carchi-test", "my comment"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "volume.name", "carchi_test_root"),
 					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "name", "snaptest"),
 					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "svm.name", "carchi-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "comment", "my comment"),
+				),
+			},
+			// Update and read testing
+			{
+				Config: testAccStorageVolumeSnapshotResourceConfig("carchi-test", "new comment"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "volume.name", "carchi_test_root"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "name", "snaptest"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "svm.name", "carchi-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "comment", "new comment"),
 				),
 			},
 		},
 	})
 }
 
-func testAccStorageVolumeSnapshotResourceConfig(svmName string) string {
+func testAccStorageVolumeSnapshotResourceConfig(svmName string, comment string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS")
@@ -61,5 +73,6 @@ resource "netapp-ontap_storage_volume_snapshot_resource" "example" {
   svm = {
     name = "%s"
   }
-}`, host, admin, password, svmName)
+  comment = "%s"
+}`, host, admin, password, svmName, comment)
 }
