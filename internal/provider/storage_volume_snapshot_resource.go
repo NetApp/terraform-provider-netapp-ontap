@@ -3,9 +3,12 @@ package provider
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
@@ -32,14 +35,15 @@ type StorageVolumeSnapshotResource struct {
 
 // StorageVolumeSnapshotResourceModel describes the resource data model.
 type StorageVolumeSnapshotResourceModel struct {
-	CxProfileName   types.String      `tfsdk:"cx_profile_name"`
-	Name            types.String      `tfsdk:"name"`
-	Volume          NameResourceModel `tfsdk:"volume"`
-	SVM             NameResourceModel `tfsdk:"svm"`
-	ExpiryTime      types.String      `tfsdk:"expiry_time"`
-	Comment         types.String      `tfsdk:"comment"`
-	SnapmirrorLabel types.String      `tfsdk:"snaplock_label"`
-	ID              types.String      `tfsdk:"id"`
+	CxProfileName      types.String      `tfsdk:"cx_profile_name"`
+	Name               types.String      `tfsdk:"name"`
+	Volume             NameResourceModel `tfsdk:"volume"`
+	SVM                NameResourceModel `tfsdk:"svm"`
+	ExpiryTime         types.String      `tfsdk:"expiry_time"`
+	SnaplockExpiryTime types.String      `tfsdk:"snaplock_expiry_time"`
+	Comment            types.String      `tfsdk:"comment"`
+	SnapmirrorLabel    types.String      `tfsdk:"snapmirror_label"`
+	ID                 types.String      `tfsdk:"id"`
 }
 
 // Metadata returns the resource type name.
@@ -90,12 +94,20 @@ func (r *StorageVolumeSnapshotResource) Schema(ctx context.Context, req resource
 				MarkdownDescription: "Comment",
 				Optional:            true,
 			},
-			"snaplock_label": schema.StringAttribute{
+			"snapmirror_label": schema.StringAttribute{
 				MarkdownDescription: "Label for SnapMirror Operations",
 				Optional:            true,
 			},
+			"snaplock_expiry_time": schema.StringAttribute{
+				MarkdownDescription: "Expiry time for Snapshot copy locking enabled volumes",
+				Optional:            true,
+			},
 			"id": schema.StringAttribute{
-				Computed: true,
+				Computed:            true,
+				MarkdownDescription: "storage/volumes/snapshots identifier",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 		},
 	}
@@ -154,17 +166,25 @@ func (r *StorageVolumeSnapshotResource) Create(ctx context.Context, req resource
 	}
 
 	request.Name = data.Name.ValueString()
-	request.ExpiryTime = data.ExpiryTime.ValueString()
-	request.Comment = data.Comment.ValueString()
-	request.SnapmirrorLabel = data.SnapmirrorLabel.ValueString()
-	data.ID = data.Name
+	if !data.ExpiryTime.IsNull() {
+		request.ExpiryTime = data.ExpiryTime.ValueString()
+	}
+	if !data.Comment.IsNull() {
+		request.Comment = data.Comment.ValueString()
+	}
+	if !data.SnapmirrorLabel.IsNull() {
+		request.SnapmirrorLabel = data.SnapmirrorLabel.ValueString()
+	}
+	if !data.SnaplockExpiryTime.IsNull() {
+		request.SnaplockExpiryTime = data.SnaplockExpiryTime.ValueString()
+	}
 
-	_, err = interfaces.CreateStorageVolumeSnapshot(errorHandler, *client, request, volume.UUID)
+	snapshot, err := interfaces.CreateStorageVolumeSnapshot(errorHandler, *client, request, volume.UUID)
 	if err != nil {
 		return
 	}
 	// TODO: add async calls or add wait condition for create
-
+	data.ID = types.StringValue(snapshot.UUID)
 	tflog.Trace(ctx, "created a resource")
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -193,12 +213,11 @@ func (r *StorageVolumeSnapshotResource) Read(ctx context.Context, req resource.R
 	if err != nil {
 		return
 	}
-	snapshot, err := interfaces.GetStorageVolumeSnapshots(errorHandler, *client, data.Name.ValueString(), volume.UUID)
+	snapshot, err := interfaces.GetStorageVolumeSnapshot(errorHandler, *client, volume.UUID, data.ID.ValueString())
 	if err != nil {
 		return
 	}
 	data.Name = types.StringValue(snapshot.Name)
-	data.ID = types.StringValue(snapshot.Name)
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
@@ -211,11 +230,65 @@ func (r *StorageVolumeSnapshotResource) Read(ctx context.Context, req resource.R
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *StorageVolumeSnapshotResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data *StorageVolumeSnapshotResourceModel
+	var state *StorageVolumeSnapshotResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
+	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	if err != nil {
+		// error reporting done inside NewClient
+		return
+	}
+	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.SVM.Name.ValueString())
+	if err != nil {
+		return
+	}
+	volume, err := interfaces.GetUUIDVolumeByName(errorHandler, *client, svm.UUID, data.Volume.Name.ValueString())
+	if err != nil {
+		return
+	}
+	var request interfaces.StorageVolumeSnapshotResourceModel
+	if !data.Name.Equal(state.Name) {
+		// rename snapshot
+		request.Name = data.Name.ValueString()
+	}
+	if !data.ExpiryTime.Equal(state.ExpiryTime) {
+		if data.ExpiryTime.ValueString() == "" {
+			errorHandler.MakeAndReportError("update expiry_time", "expiry_time cannot be updated with empty string")
+			return
+		}
+		request.ExpiryTime = data.ExpiryTime.ValueString()
+	}
+	if !data.SnaplockExpiryTime.Equal(state.SnaplockExpiryTime) {
+		if data.SnaplockExpiryTime.ValueString() == "" {
+			errorHandler.MakeAndReportError("update snaplock_expiry_time", "snaplock_expiry_time cannot be updated with empty string")
+			return
+		}
+		request.SnaplockExpiryTime = data.SnaplockExpiryTime.ValueString()
+	}
+	if !data.Comment.Equal(state.Comment) {
+		if data.Comment.ValueString() == "" {
+			errorHandler.MakeAndReportError("update comment", "comment cannot be updated with empty string")
+			return
+		}
+		request.Comment = data.Comment.ValueString()
+	}
+	if !data.SnapmirrorLabel.Equal(state.SnapmirrorLabel) {
+		if data.SnapmirrorLabel.ValueString() == "" {
+			errorHandler.MakeAndReportError("update snapmirror_label", "snapmirror_label cannot be updated with empty string")
+			return
+		}
+		request.SnapmirrorLabel = data.SnapmirrorLabel.ValueString()
+	}
+	tflog.Debug(ctx, fmt.Sprintf("update a resource %s: %#v", state.ID.ValueString(), request))
+	err = interfaces.UpdateStorageVolumeSnapshot(errorHandler, *client, request, volume.UUID, state.ID.ValueString())
+	if err != nil {
 		return
 	}
 
@@ -247,11 +320,7 @@ func (r *StorageVolumeSnapshotResource) Delete(ctx context.Context, req resource
 	if err != nil {
 		return
 	}
-	snapshot, err := interfaces.GetUUIDStorageVolumeSnapshotsByName(errorHandler, *client, data.Name.ValueString(), volume.UUID)
-	if err != nil {
-		return
-	}
-	_, err = interfaces.DeleteStorageVolumeSnapshot(errorHandler, *client, volume.UUID, snapshot.UUID)
+	err = interfaces.DeleteStorageVolumeSnapshot(errorHandler, *client, volume.UUID, data.ID.ValueString())
 	if err != nil {
 		return
 	}
