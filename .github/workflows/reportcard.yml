@@ -16,5 +16,6 @@ jobs:
 
       - name: Build
         run: |
-          go install ./cmd/goreportcard-cli \
+          go install ./cmd/goreportcard-cli
+          which goreportcard
           goreportcard-cli -v -t 90
