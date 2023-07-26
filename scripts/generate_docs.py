@@ -35,7 +35,7 @@ CATAGORYS = {
     'san': [],
     'security': [],
     'snaplock': [],
-    'snapmirror': [],
+    'snapmirror': ["snapmirror_policy_resource.md"],
     'storage': [
         "storage_aggregate_resource.md",
         "storage_snapshot_policy_resource.md",
