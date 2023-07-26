@@ -17,4 +17,5 @@ jobs:
       - name: Build
         run: |
           export GOFLAGS=-buildvcs=false
+          pwd
           go build -v -o .
