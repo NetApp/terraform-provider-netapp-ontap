@@ -16,7 +16,7 @@ jobs:
 
       - name: Set up goreportcard
         run: |
-          working-directory: /tmp
+          working-directory: ./temp
           git clone https://github.com/gojp/goreportcard.git
           cd goreportcard
           make install
