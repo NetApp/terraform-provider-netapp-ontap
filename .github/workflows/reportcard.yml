@@ -14,8 +14,12 @@ jobs:
         with:
           go-version: '1.19.3'
 
-      - name: Build
+      - name: Set up goreportcard
         run: |
+          working-directory: /tmp
+          git clone https://github.com/gojp/goreportcard.git
+          cd goreportcard
+          make install
           go install ./cmd/goreportcard-cli
-          which goreportcard
-          goreportcard-cli -v -t 90
+      - name: run report card
+        run: goreportcard-cli -v -t 90
