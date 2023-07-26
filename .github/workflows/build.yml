@@ -1,6 +1,4 @@
-
 name: Go build
-
 on: [push]
 
 jobs:
