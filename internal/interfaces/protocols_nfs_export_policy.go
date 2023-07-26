@@ -46,7 +46,11 @@ func CreateExportPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClien
 
 // GetExportPolicy to get export policy
 func GetExportPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClient, id string) (*ExportPolicyGetDataModelONTAP, error) {
-	statusCode, response, err := r.GetNilOrOneRecord("protocols/nfs/export-policies/"+id, nil, nil)
+	api := "protocols/nfs/export-policies/" + id
+	statusCode, response, err := r.GetNilOrOneRecord(api, nil, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError("error reading export policy info", fmt.Sprintf("error on GET protocols/nfs/export-policies/%s: %s", id, err))
 	}
