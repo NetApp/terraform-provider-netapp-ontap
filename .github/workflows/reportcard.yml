@@ -15,7 +15,7 @@ jobs:
           go-version: '1.19.3'
 
       - name: Set up goreportcard
-        working-directory: ./temp
+        working-directory: /tmp
         run: |
           git clone https://github.com/gojp/goreportcard.git
           cd goreportcard
