@@ -15,4 +15,6 @@ jobs:
           go-version: '1.19.3'
 
       - name: Build
-        run: go build -v -o .
+        run: |
+          export GOFLAGS=-buildvcs=false
+          go build -v -o .
