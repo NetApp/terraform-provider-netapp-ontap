@@ -10,7 +10,8 @@ CATAGORYS = {
     'cluster': [
         "cluster_data_source.md",
         "cluster_schedule_data_source.md",
-        "cluster_schedule_resource.md"],
+        "cluster_schedule_resource.md",
+        "cluster_licensing_license_resource.md"],
     'nas': [
         "protocols_nfs_service_data_source.md",
         "protocols_nfs_service_resource.md",
