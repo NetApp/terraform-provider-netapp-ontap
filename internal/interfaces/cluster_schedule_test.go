@@ -217,7 +217,7 @@ func TestDeleteClusterSchedule(t *testing.T) {
 			{ExpectedMethod: "DELETE", ExpectedURL: "cluster/schedules/1234", StatusCode: 200, Response: noRecords, Err: nil},
 		},
 		"test_delete_error": {
-			{ExpectedMethod: "GET", ExpectedURL: "cluster/scheduless/1234", StatusCode: 200, Response: noRecords, Err: genericError},
+			{ExpectedMethod: "DELETE", ExpectedURL: "cluster/scheduless/1234", StatusCode: 200, Response: noRecords, Err: genericError},
 		},
 	}
 	tests := []struct {

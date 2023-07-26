@@ -232,17 +232,6 @@ func TestCreateProtocolsNfsService(t *testing.T) {
 
 func TestDeleteProtocolsNfsService(t *testing.T) {
 	errorHandler := utils.NewErrorHandler(context.Background(), &diag.Diagnostics{})
-	badRecord := struct{ Enabled int }{123}
-	var recordInterface map[string]any
-	err := mapstructure.Decode(nfsServiceRecord, &recordInterface)
-	if err != nil {
-		panic(err)
-	}
-	var badRecordInterface map[string]any
-	err = mapstructure.Decode(badRecord, &badRecordInterface)
-	if err != nil {
-		panic(err)
-	}
 	noRecords := restclient.RestResponse{NumRecords: 0, Records: []map[string]any{}}
 	genericError := errors.New("generic error for UT")
 	responses := map[string][]restclient.MockResponse{

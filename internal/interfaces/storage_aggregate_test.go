@@ -178,16 +178,6 @@ func TestCreateStorageAggregate(t *testing.T) {
 
 func TestDeleteStorageAggregate(t *testing.T) {
 	errorHandler := utils.NewErrorHandler(context.Background(), &diag.Diagnostics{})
-	var recordInterface map[string]any
-	err := mapstructure.Decode(basicStorageAggregateRecord, &recordInterface)
-	if err != nil {
-		panic(err)
-	}
-	var badRecordInterface map[string]any
-	err = mapstructure.Decode(badStorageAggregateRecord, &badRecordInterface)
-	if err != nil {
-		panic(err)
-	}
 	noRecords := restclient.RestResponse{NumRecords: 0, Records: []map[string]any{}}
 	genericError := errors.New("generic error for UT")
 	responses := map[string][]restclient.MockResponse{

@@ -245,7 +245,7 @@ func TestCreateSnapshotPolicy(t *testing.T) {
 			{ExpectedMethod: "POST", ExpectedURL: "storage/snapshot-policies", StatusCode: 200, Response: onebasicSnapshotPolicyRecord, Err: nil},
 		},
 		"test_create_two_copies_record_1": {
-			{ExpectedMethod: "GET", ExpectedURL: "storage/snapshot-policies", StatusCode: 200, Response: oneTwoCopiesRecord, Err: nil},
+			{ExpectedMethod: "POST", ExpectedURL: "storage/snapshot-policies", StatusCode: 200, Response: oneTwoCopiesRecord, Err: nil},
 		},
 		"test_create_not_enabled_record_1": {
 			{ExpectedMethod: "POST", ExpectedURL: "storage/snapshot-policies", StatusCode: 200, Response: oneNotEnabledRecord, Err: nil},
@@ -306,7 +306,7 @@ func TestDeleteSnapshotPolicy(t *testing.T) {
 			{ExpectedMethod: "DELETE", ExpectedURL: "storage/snapshot-policies/1234", StatusCode: 200, Response: noRecords, Err: nil},
 		},
 		"test_error_2": {
-			{ExpectedMethod: "GET", ExpectedURL: "storage/snapshot-policies/1234", StatusCode: 200, Response: noRecords, Err: genericError},
+			{ExpectedMethod: "DELETE", ExpectedURL: "storage/snapshot-policies/1234", StatusCode: 200, Response: noRecords, Err: genericError},
 		},
 	}
 	tests := []struct {
