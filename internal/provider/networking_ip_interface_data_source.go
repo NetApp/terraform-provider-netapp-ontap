@@ -40,7 +40,7 @@ type IPInterfaceDataSourceModel struct {
 // IPInterfaceDataSourceFilterModel describes the data source data model for queries.
 type IPInterfaceDataSourceFilterModel struct {
 	Name    types.String `tfsdk:"name"`
-	SVMName types.String `tfsdk:"svm.name"`
+	SVMName types.String `tfsdk:"svm_name"`
 	Scope   types.String `tfsdk:"scope"`
 }
 
