@@ -11,32 +11,33 @@ import (
 
 // IPRouteGetDataModelONTAP describes the GET record data model using go types for mapping.
 type IPRouteGetDataModelONTAP struct {
-	Destination DestinationDataSourceModel `mapstructure:"destination"`
+	Destination DestinationDataSourceModel `mapstructure:"destination,omitempty"`
 	UUID        string                     `mapstructure:"uuid"`
 	Gateway     string                     `mapstructure:"gateway"`
-	Metric      int64                      `mapstructure:"metric"`
+	Metric      int64                      `mapstructure:"metric,omitempty"`
 	SVMName     Vserver                    `mapstructure:"svm"`
 }
 
 // IPRouteResourceBodyDataModelONTAP describes the body data model using go types for mapping.
 type IPRouteResourceBodyDataModelONTAP struct {
-	Destination DestinationDataSourceModel `mapstructure:"destination"`
+	Destination DestinationDataSourceModel `mapstructure:"destination,omitempty"`
 	SVM         Vserver                    `mapstructure:"svm"`
-	Gateway     string                     `mapstructure:"gateway"`
-	Metric      int64                      `mapstructure:"metric"`
+	Gateway     string                     `mapstructure:"gateway,omitempty"`
+	Metric      int64                      `mapstructure:"metric,omitempty"`
 }
 
 // DestinationDataSourceModel describes the GET record data model using go types for mapping.
 type DestinationDataSourceModel struct {
-	Address string `mapstructure:"address"`
-	Netmask string `mapstructure:"netmask"`
+	Address string `mapstructure:"address,omitempty"`
+	Netmask string `mapstructure:"netmask,omitempty"`
 }
 
 // GetIPRoute to get net_route info
-func GetIPRoute(errorHandler *utils.ErrorHandler, r restclient.RestClient, Destination string, svmName string, version versionModelONTAP) (*IPRouteGetDataModelONTAP, error) {
+func GetIPRoute(errorHandler *utils.ErrorHandler, r restclient.RestClient, Destination string, svmName string, Gateway string, version versionModelONTAP) (*IPRouteGetDataModelONTAP, error) {
 	api := "/network/ip/routes"
 	query := r.NewQuery()
 	query.Set("destination.address", Destination)
+	query.Set("gateway", Gateway)
 	if svmName == "" {
 		query.Set("scope", "cluster")
 	} else {
