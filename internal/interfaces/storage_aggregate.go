@@ -21,6 +21,12 @@ type StorageAggregateGetDataModelONTAP struct {
 	State          string                  `mapstructure:"state"`
 }
 
+// StorageAggregateGetDataFilterModel describes filter model
+type StorageAggregateGetDataFilterModel struct {
+	Name    string `mapstructure:"name"`
+	SVMName string `mapstructure:"svm.name"`
+}
+
 // StorageAggregateNode is the body data model for node field
 type StorageAggregateNode struct {
 	Name string `mapstructure:"name"`
@@ -71,14 +77,71 @@ func GetStorageAggregate(errorHandler *utils.ErrorHandler, r restclient.RestClie
 		err = fmt.Errorf("no response for GET %s", api)
 	}
 	if err != nil {
-		return nil, errorHandler.MakeAndReportError("error reading aggregate info", fmt.Sprintf("error on GET storage/aggregates/%s: %s", uuid, err))
+		return nil, errorHandler.MakeAndReportError("error reading storage aggregate info", fmt.Sprintf("error on GET storage/aggregates/%s: %s", uuid, err))
 	}
 
 	var dataONTAP *StorageAggregateGetDataModelONTAP
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
-		return nil, errorHandler.MakeAndReportError("error decoding aggregate info", fmt.Sprintf("error on decode storage/aggregates: %s, statusCode %d, response %#v", err, statusCode, response))
+		return nil, errorHandler.MakeAndReportError("error decoding storage aggregate info", fmt.Sprintf("error on decode storage/aggregates: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read aggregate source - udata: %#v", dataONTAP))
+	return dataONTAP, nil
+}
+
+// GetStorageAggregateByName to get aggregate info by name
+func GetStorageAggregateByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string) (*StorageAggregateGetDataModelONTAP, error) {
+	api := "storage/aggregates"
+	query := r.NewQuery()
+	query.Set("name", name)
+
+	query.Fields([]string{"name", "node.name", "uuid", "state", "block_storage.primary.disk_class", "block_storage.primary.disk_count", "block_storage.primary.raid_size", "block_storage.primary.raid_type", "block_storage.mirror.enabled", "snaplock_type", "data_encryption.software_encryption_enabled"})
+	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading storage aggregate info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
+	}
+
+	var dataONTAP StorageAggregateGetDataModelONTAP
+	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
+		return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
+			fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read storage aggregate data source: %#v", dataONTAP))
+	return &dataONTAP, nil
+}
+
+// GetStorageAggregates to get aggregate info for all resources matching a filter
+func GetStorageAggregates(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *StorageAggregateGetDataFilterModel) ([]StorageAggregateGetDataModelONTAP, error) {
+	api := "storage/aggregates"
+	query := r.NewQuery()
+	query.Fields([]string{"name", "node.name", "uuid", "state", "block_storage.primary.disk_class", "block_storage.primary.disk_count", "block_storage.primary.raid_size", "block_storage.primary.raid_type", "block_storage.mirror.enabled", "snaplock_type", "data_encryption.software_encryption_enabled"})
+	if filter != nil {
+		var filterMap map[string]interface{}
+		if err := mapstructure.Decode(filter, &filterMap); err != nil {
+			return nil, errorHandler.MakeAndReportError("error encoding storage aggregate filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
+		}
+		query.SetValues(filterMap)
+	}
+	statusCode, response, err := r.GetZeroOrMoreRecords(api, query, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading storage aggregate info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
+	}
+
+	var dataONTAP []StorageAggregateGetDataModelONTAP
+	for _, info := range response {
+		var record StorageAggregateGetDataModelONTAP
+		if err := mapstructure.Decode(info, &record); err != nil {
+			return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
+				fmt.Sprintf("error: %s, statusCode %d, info %#v", err, statusCode, info))
+		}
+		dataONTAP = append(dataONTAP, record)
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read storage aggregate data source: %#v", dataONTAP))
 	return dataONTAP, nil
 }
 
