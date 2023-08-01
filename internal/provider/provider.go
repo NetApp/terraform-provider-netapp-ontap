@@ -166,6 +166,7 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		NewClusterDataSource,
 		NewClusterScheduleDataSource,
 		NewExampleDataSource,
+		NewExportPolicyDataSource,
 		NewExportPolicyRuleDataSource,
 		NewIPInterfaceDataSource,
 		NewIPInterfacesDataSource,
@@ -174,7 +175,8 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		NewProtocolsNfsServiceDataSource,
 		NewStorageVolumeSnapshotDataSource,
 		NewStorageVolumeDataSource,
-		NewExportPolicyDataSource,
+		NewSvmDataSource,
+		NewSvmsDataSource,
 	}
 }
 

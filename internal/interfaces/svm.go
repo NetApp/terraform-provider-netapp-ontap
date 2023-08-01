@@ -34,6 +34,19 @@ type SvmResourceModel struct {
 	Aggregates     []map[string]string `mapstructure:"aggregates,omitempty"`
 }
 
+// SvmGetDataSourceModel describes the data source model.
+type SvmGetDataSourceModel struct {
+	Name           string         `mapstructure:"name"`
+	UUID           string         `mapstructure:"uuid"`
+	Ipspace        Ipspace        `mapstructure:"ipspace"`
+	SnapshotPolicy SnapshotPolicy `mapstructure:"snapshot_policy"`
+	SubType        string         `mapstructure:"subtype,omitempty"`
+	Comment        string         `mapstructure:"comment,omitempty"`
+	Language       string         `mapstructure:"language,omitempty"`
+	Aggregates     []Aggregate    `mapstructure:"aggregates,omitempty"`
+	MaxVolumes     string         `mapstructure:"max_volumes,omitempty"`
+}
+
 // Ipspace describes the resource data model.
 type Ipspace struct {
 	Name string `mapstructure:"name,omitempty"`
@@ -42,6 +55,11 @@ type Ipspace struct {
 // SnapshotPolicy describes the resource data model.
 type SnapshotPolicy struct {
 	Name string `mapstructure:"name,omitempty"`
+}
+
+// SvmDataSourceFilterModel describes the data source data model for queries.
+type SvmDataSourceFilterModel struct {
+	Name string `mapstructure:"name"`
 }
 
 // GetSvm to get svm info by uuid
@@ -72,6 +90,63 @@ func GetSvmByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, nam
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError("failed to decode response from GET svm by name", fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read vserver info: %#v", dataONTAP))
+	return dataONTAP, nil
+}
+
+// GetSvmByNameDataSource to get data source svm info
+func GetSvmByNameDataSource(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string) (*SvmGetDataSourceModel, error) {
+	api := "svm/svms"
+	query := r.NewQuery()
+	query.Fields([]string{"name", "ipspace", "snapshot_policy", "subtype", "comment", "language", "max_volumes", "aggregates"})
+	query.Add("name", name)
+	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading vserver info", fmt.Sprintf("error on GET svm/svms: %s, statusCode %d", err, statusCode))
+	}
+
+	var dataONTAP SvmGetDataSourceModel
+	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
+		return nil, errorHandler.MakeAndReportError("failed to decode response from GET svm by name", fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read vserver info: %#v", dataONTAP))
+	return &dataONTAP, nil
+}
+
+// GetSvmsByName to get data source list svm info
+func GetSvmsByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *SvmDataSourceFilterModel) ([]SvmGetDataSourceModel, error) {
+	api := "svm/svms"
+	query := r.NewQuery()
+	query.Fields([]string{"name", "ipspace", "snapshot_policy", "subtype", "comment", "language", "max_volumes", "aggregates"})
+
+	if filter != nil {
+		var filterMap map[string]interface{}
+		if err := mapstructure.Decode(filter, &filterMap); err != nil {
+			return nil, errorHandler.MakeAndReportError("error encoding svms filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
+		}
+		query.SetValues(filterMap)
+	}
+
+	statusCode, response, err := r.GetZeroOrMoreRecords(api, query, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading svm info", fmt.Sprintf("error on GET svm/svms: %s, statusCode %d", err, statusCode))
+	}
+
+	var dataONTAP []SvmGetDataSourceModel
+	for _, info := range response {
+		var record SvmGetDataSourceModel
+		if err := mapstructure.Decode(info, &record); err != nil {
+			return nil, errorHandler.MakeAndReportError("failed to decode response from GET svms by name", fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
+		}
+		dataONTAP = append(dataONTAP, record)
+	}
+
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read vserver info: %#v", dataONTAP))
 	return dataONTAP, nil
 }
