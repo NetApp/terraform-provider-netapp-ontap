@@ -100,8 +100,7 @@ type SecurityDataSourceModel struct {
 
 // ProtocolsNfsServiceDataSourceFilterModel describes the data source data model for queries.
 type ProtocolsNfsServiceDataSourceFilterModel struct {
-	Name    types.String `tfsdk:"name"`
-	SVMName types.String `tfsdk:"svm.name"`
+	SVMName types.String `tfsdk:"svm_name"`
 }
 
 // Metadata returns the data source type name.
@@ -121,7 +120,7 @@ func (d *ProtocolsNfsServiceDataSource) Schema(ctx context.Context, req datasour
 				Required:            true,
 			},
 			"svm_name": schema.StringAttribute{
-				MarkdownDescription: "IPInterface vserver name",
+				MarkdownDescription: "NFS vserver name",
 				Required:            true,
 			},
 			"enabled": schema.BoolAttribute{

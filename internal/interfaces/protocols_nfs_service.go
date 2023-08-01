@@ -75,6 +75,11 @@ type Windows struct {
 	V3MsDosClientEnabled       bool   `mapstructure:"v3_ms_dos_client_enabled"`
 }
 
+// NfsServicesFilterModel describes filter model
+type NfsServicesFilterModel struct {
+	SVMName string `mapstructure:"svm.name"`
+}
+
 // GetProtocolsNfsService to get protcols_nfs_service info
 func GetProtocolsNfsService(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmName string, version versionModelONTAP) (*ProtocolsNfsServiceGetDataModelONTAP, error) {
 	api := "protocols/nfs/services"
@@ -107,6 +112,50 @@ func GetProtocolsNfsService(errorHandler *utils.ErrorHandler, r restclient.RestC
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read protcols_nfs_service data source: %#v", dataONTAP))
 	return &dataONTAP, nil
+}
+
+// GetProtocolsNfsServices to get protocols_nfs_services info
+func GetProtocolsNfsServices(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *NfsServicesFilterModel, version versionModelONTAP) ([]ProtocolsNfsServiceGetDataModelONTAP, error) {
+	api := "protocols/nfs/services"
+	query := r.NewQuery()
+
+	fields := []string{"svm.name", "svm.uuid", "protocol.v3_enabled", "protocol.v40_enabled", "protocol.v41_enabled",
+		"protocol.v41_features.pnfs_enabled", "vstorage_enabled", "protocol.v4_id_domain", "transport.tcp_enabled",
+		"transport.udp_enabled", "protocol.v40_features.acl_enabled", "protocol.v40_features.read_delegation_enabled",
+		"protocol.v40_features.write_delegation_enabled", "protocol.v41_features.acl_enabled", "protocol.v41_features.read_delegation_enabled",
+		"protocol.v41_features.write_delegation_enabled", "enabled"}
+	if version.Generation == 9 && version.Major > 10 {
+		fields = append(fields, "root.ignore_nt_acl", "root.skip_write_permission_check",
+			"security.chown_mode", "security.nt_acl_display_permission", "security.ntfs_unix_security", "security.rpcsec_context_idle",
+			"windows.default_user", "windows.map_unknown_uid_to_default_user", "windows.v3_ms_dos_client_enabled", "transport.tcp_max_transfer_size")
+	}
+	query.Fields(fields)
+	if filter != nil {
+		var filterMap map[string]interface{}
+		if err := mapstructure.Decode(filter, &filterMap); err != nil {
+			return nil, errorHandler.MakeAndReportError("error encoding protocols_nfs_service filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
+		}
+		query.SetValues(filterMap)
+	}
+	statusCode, response, err := r.GetZeroOrMoreRecords(api, query, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading protocols_nfs_service info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
+	}
+
+	var dataONTAP []ProtocolsNfsServiceGetDataModelONTAP
+	for _, info := range response {
+		var record ProtocolsNfsServiceGetDataModelONTAP
+		if err := mapstructure.Decode(info, &record); err != nil {
+			return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
+				fmt.Sprintf("error: %s, statusCode %d, info %#v", err, statusCode, info))
+		}
+		dataONTAP = append(dataONTAP, record)
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read protcols_nfs_service data source: %#v", dataONTAP))
+	return dataONTAP, nil
 }
 
 // CreateProtocolsNfsService Create a NFS Service

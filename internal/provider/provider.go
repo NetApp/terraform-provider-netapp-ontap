@@ -173,6 +173,7 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		NewIPRouteDataSource,
 		NewNameServicesDNSDataSource,
 		NewProtocolsNfsServiceDataSource,
+		NewProtocolsNfsServicesDataSource,
 		NewStorageVolumeSnapshotDataSource,
 		NewStorageVolumeDataSource,
 		NewSvmDataSource,
