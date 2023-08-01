@@ -141,7 +141,7 @@ func (d *IPRouteDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		return
 	}
 
-	restInfo, err := interfaces.GetIPRoute(errorHandler, *client, data.Destination.Address.ValueString(), data.SVMName.ValueString(), cluster.Version)
+	restInfo, err := interfaces.GetIPRoute(errorHandler, *client, data.Destination.Address.ValueString(), data.SVMName.ValueString(), data.Gateway.ValueString(), cluster.Version)
 	if err != nil {
 		// error reporting done inside GetNetRoute
 		return

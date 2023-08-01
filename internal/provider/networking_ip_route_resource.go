@@ -3,6 +3,12 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -40,7 +46,7 @@ type IPRouteResourceModel struct {
 	Destination   *DestinationDataSourceModel `tfsdk:"destination"`
 	Gateway       types.String                `tfsdk:"gateway"`
 	Metric        types.Int64                 `tfsdk:"metric"`
-	UUID          types.String                `tfsdk:"uuid"`
+	ID            types.String                `tfsdk:"id"`
 }
 
 // Metadata returns the resource type name.
@@ -60,16 +66,33 @@ func (r *IPRouteResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Required:            true,
 			},
 			"destination": schema.SingleNestedAttribute{
-				Required:            true,
+				Optional:            true,
 				MarkdownDescription: "destination IP address information",
+				Computed:            true,
+				Default: objectdefault.StaticValue(types.ObjectValueMust(
+					map[string]attr.Type{
+						"address": types.StringType,
+						"netmask": types.StringType,
+					},
+					map[string]attr.Value{
+						"address": types.StringValue("0.0.0.0"),
+						"netmask": types.StringValue("0"),
+					})),
+				PlanModifiers: []planmodifier.Object{objectplanmodifier.RequiresReplace()},
 				Attributes: map[string]schema.Attribute{
 					"address": schema.StringAttribute{
 						MarkdownDescription: "IPv4 or IPv6 address",
-						Required:            true,
+						Optional:            true,
+						Computed:            true,
+						Default:             stringdefault.StaticString("0.0.0.0"),
+						PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
 					},
 					"netmask": schema.StringAttribute{
 						MarkdownDescription: "netmask length (16) or IPv4 mask (255.255.0.0). For IPv6, valid range is 1 to 127.",
-						Required:            true,
+						Optional:            true,
+						Computed:            true,
+						Default:             stringdefault.StaticString("0"),
+						PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
 					},
 				},
 			},
@@ -79,13 +102,16 @@ func (r *IPRouteResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			"gateway": schema.StringAttribute{
 				MarkdownDescription: "The IP address of the gateway router leading to the destination.",
-				Optional:            true,
+				Required:            true,
 			},
 			"metric": schema.Int64Attribute{
 				MarkdownDescription: "Indicates a preference order between several routes to the same destination.",
 				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(20),
+				PlanModifiers:       []planmodifier.Int64{int64planmodifier.RequiresReplace()},
 			},
-			"uuid": schema.StringAttribute{
+			"id": schema.StringAttribute{
 				MarkdownDescription: "IP Route UUID",
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
@@ -140,7 +166,7 @@ func (r *IPRouteResource) Read(ctx context.Context, req resource.ReadRequest, re
 		errorHandler.MakeAndReportError("No cluster found", fmt.Sprintf("No Cluster found"))
 		return
 	}
-	restInfo, err := interfaces.GetIPRoute(errorHandler, *client, data.Destination.Address.ValueString(), data.SVMName.ValueString(), cluster.Version)
+	restInfo, err := interfaces.GetIPRoute(errorHandler, *client, data.Destination.Address.ValueString(), data.SVMName.ValueString(), data.Gateway.ValueString(), cluster.Version)
 	if err != nil {
 		// error reporting done inside GetIPInterface
 		return
@@ -155,6 +181,7 @@ func (r *IPRouteResource) Read(ctx context.Context, req resource.ReadRequest, re
 	data.Gateway = types.StringValue(restInfo.Gateway)
 	data.Metric = types.Int64Value(restInfo.Metric)
 	data.SVMName = types.StringValue(restInfo.SVMName.Name)
+	data.ID = types.StringValue(restInfo.UUID)
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
@@ -178,8 +205,14 @@ func (r *IPRouteResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	body.Destination.Address = data.Destination.Address.ValueString()
-	body.Destination.Netmask = data.Destination.Netmask.ValueString()
+	if data.Destination != nil {
+		if !data.Destination.Address.IsNull() {
+			body.Destination.Address = data.Destination.Address.ValueString()
+		}
+		if !data.Destination.Netmask.IsNull() {
+			body.Destination.Netmask = data.Destination.Netmask.ValueString()
+		}
+	}
 	if !data.SVMName.IsNull() {
 		body.SVM.Name = data.SVMName.ValueString()
 	}
@@ -201,9 +234,9 @@ func (r *IPRouteResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	data.UUID = types.StringValue(resource.UUID)
+	data.ID = types.StringValue(resource.UUID)
 
-	tflog.Trace(ctx, fmt.Sprintf("created a resource, UUID=%s", data.UUID))
+	tflog.Trace(ctx, fmt.Sprintf("created a resource, UUID=%s", data.ID))
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -242,12 +275,12 @@ func (r *IPRouteResource) Delete(ctx context.Context, req resource.DeleteRequest
 		return
 	}
 
-	if data.UUID.IsNull() {
+	if data.ID.IsNull() {
 		errorHandler.MakeAndReportError("UUID is null", "ip_interface UUID is null")
 		return
 	}
 
-	err = interfaces.DeleteIPRoute(errorHandler, *client, data.UUID.ValueString())
+	err = interfaces.DeleteIPRoute(errorHandler, *client, data.ID.ValueString())
 	if err != nil {
 		return
 	}
