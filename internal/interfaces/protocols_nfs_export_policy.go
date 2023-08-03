@@ -55,12 +55,12 @@ func GetExportPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClient, 
 		return nil, errorHandler.MakeAndReportError("error reading export policy info", fmt.Sprintf("error on GET protocols/nfs/export-policies/%s: %s", id, err))
 	}
 
-	var dataONTAP *ExportPolicyGetDataModelONTAP
+	var dataONTAP ExportPolicyGetDataModelONTAP
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError("error decoding export policy info", fmt.Sprintf("error on decode protocols/nfs/export-policies/%s: %s, statusCode %d, response %#v", id, err, statusCode, response))
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read export policy source - udata: %#v", dataONTAP))
-	return dataONTAP, nil
+	return &dataONTAP, nil
 }
 
 // GetExportPolicies to get export policy by name
@@ -79,12 +79,12 @@ func GetExportPolicies(errorHandler *utils.ErrorHandler, r restclient.RestClient
 		return nil, errorHandler.MakeAndReportError("error reading export policy info", fmt.Sprintf("error on GET protocols/nfs/export-policies: %s", err))
 	}
 
-	var dataONTAP *ExportPolicyGetDataModelONTAP
+	var dataONTAP ExportPolicyGetDataModelONTAP
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError("error decoding export policy info", fmt.Sprintf("error on decode protocols/nfs/export-policies: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read export policy source - udata: %#v", dataONTAP))
-	return dataONTAP, nil
+	return &dataONTAP, nil
 }
 
 // DeleteExportPolicy to delete export policy

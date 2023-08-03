@@ -80,12 +80,12 @@ func GetStorageAggregate(errorHandler *utils.ErrorHandler, r restclient.RestClie
 		return nil, errorHandler.MakeAndReportError("error reading storage aggregate info", fmt.Sprintf("error on GET storage/aggregates/%s: %s", uuid, err))
 	}
 
-	var dataONTAP *StorageAggregateGetDataModelONTAP
+	var dataONTAP StorageAggregateGetDataModelONTAP
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError("error decoding storage aggregate info", fmt.Sprintf("error on decode storage/aggregates: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read aggregate source - udata: %#v", dataONTAP))
-	return dataONTAP, nil
+	return &dataONTAP, nil
 }
 
 // GetStorageAggregateByName to get aggregate info by name
