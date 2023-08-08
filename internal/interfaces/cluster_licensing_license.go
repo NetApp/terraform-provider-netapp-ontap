@@ -26,6 +26,91 @@ type ClusterLicensingLicenseResourceBodyDataModelONTAP struct {
 	Keys []string `mapstructure:"keys"`
 }
 
+// ClusterLicensingLicenseDataSourceModelONTAP describes the data source data model.
+type ClusterLicensingLicenseDataSourceModelONTAP struct {
+	Name     string          `mapstructure:"name"`
+	Licenses []LicensesModel `mapstructure:"licenses,omitempty"`
+	State    string          `mapstructure:"state"`
+	Scope    string          `mapstructure:"scope"`
+}
+
+// LicensesModel describes data source model.
+type LicensesModel struct {
+	SerialNumber     string     `mapstructure:"serial_number"`
+	Owner            string     `mapstructure:"owner"`
+	Compliance       Compliance `mapstructure:"compliance"`
+	Active           bool       `mapstructure:"active"`
+	Evaluation       bool       `mapstructure:"evaluation"`
+	InstalledLicense string     `mapstructure:"installed_license"`
+}
+
+// Compliance describes data source model.
+type Compliance struct {
+	State string `mapstructure:"state,omitempty"`
+}
+
+// ClusterLicensingLicenseFilterModel describes filter model
+type ClusterLicensingLicenseFilterModel struct {
+	Name string `mapstructure:"name"`
+}
+
+// GetClusterLicensingLicenseByName to get license by name
+func GetClusterLicensingLicenseByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string) (*ClusterLicensingLicenseDataSourceModelONTAP, error) {
+	api := "/cluster/licensing/licenses"
+	query := r.NewQuery()
+	query.Set("name", name)
+	query.Fields([]string{"name", "state", "licenses", "scope"})
+	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading /cluster/licensing/licenses info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
+	}
+
+	var dataONTAP ClusterLicensingLicenseDataSourceModelONTAP
+	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
+		return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
+			fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read /cluster/licensing/licenses data source: %#v", dataONTAP))
+	return &dataONTAP, nil
+}
+
+// GetListClusterLicensingLicenses to get aggregate info for all resources matching a filter
+func GetListClusterLicensingLicenses(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *ClusterLicensingLicenseFilterModel) ([]ClusterLicensingLicenseDataSourceModelONTAP, error) {
+	api := "/cluster/licensing/licenses"
+	query := r.NewQuery()
+	query.Fields([]string{"name", "state", "licenses", "scope"})
+	if filter != nil {
+		var filterMap map[string]interface{}
+		if err := mapstructure.Decode(filter, &filterMap); err != nil {
+			return nil, errorHandler.MakeAndReportError("error encoding /cluster/licensing/licenses filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
+		}
+		query.SetValues(filterMap)
+	}
+	statusCode, response, err := r.GetZeroOrMoreRecords(api, query, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading /cluster/licensing/licenses info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
+	}
+
+	var dataONTAP []ClusterLicensingLicenseDataSourceModelONTAP
+	for _, info := range response {
+		var record ClusterLicensingLicenseDataSourceModelONTAP
+		if err := mapstructure.Decode(info, &record); err != nil {
+			return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
+				fmt.Sprintf("error: %s, statusCode %d, info %#v", err, statusCode, info))
+		}
+		dataONTAP = append(dataONTAP, record)
+	}
+
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read /cluster/licensing/licenses data source: %#v", dataONTAP))
+	return dataONTAP, nil
+}
+
 // GetClusterLicensingLicenses to get /cluster/licensing/licenses info
 func GetClusterLicensingLicenses(errorHandler *utils.ErrorHandler, r restclient.RestClient) ([]ClusterLicensingLicenseKeyDataModelONTAP, error) {
 	api := "/cluster/licensing/licenses"
