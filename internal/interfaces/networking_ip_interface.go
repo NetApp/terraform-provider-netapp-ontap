@@ -11,18 +11,31 @@ import (
 
 // IPInterfaceGetDataModelONTAP describes the GET record data model using go types for mapping.
 type IPInterfaceGetDataModelONTAP struct {
-	Name    string `mapstructure:"name"`
-	Scope   string `mapstructure:"scope"`
-	SVMName string `mapstructure:"svm.name"`
-	UUID    string `mapstructure:"uuid"`
+	Name     string                      `mapstructure:"name"`
+	Scope    string                      `mapstructure:"scope"`
+	SVMName  string                      `mapstructure:"svm.name"`
+	UUID     string                      `mapstructure:"uuid"`
+	IP       IPInterfaceGetIP            `mapstructure:"ip"`
+	Location IPInterfaceResourceLocation `mapstructure:"location"`
+}
+
+// IPInterfaceGetIP describes the GET record data for IP.
+type IPInterfaceGetIP struct {
+	Address string `mapstructure:"address"`
+	Netmask string `mapstructure:"netmask"`
 }
 
 // IPInterfaceResourceBodyDataModelONTAP describes the body data model using go types for mapping.
 type IPInterfaceResourceBodyDataModelONTAP struct {
 	Name     string                      `mapstructure:"name"`
-	SVM      svm                         `mapstructure:"svm"`
+	SVM      IPInterfaceSvmName          `mapstructure:"svm,omitempty"` // API errors if body contains svm name when updating. can not use universal 'svm struct'
 	IP       IPInterfaceResourceIP       `mapstructure:"ip"`
 	Location IPInterfaceResourceLocation `mapstructure:"location"`
+}
+
+// IPInterfaceSvmName describes the svm name specifcally for network ip interface.
+type IPInterfaceSvmName struct {
+	Name string `mapstructure:"name,omitempty"`
 }
 
 // IPInterfaceResourceIP is the body data model for IP field
@@ -59,7 +72,7 @@ func GetIPInterface(errorHandler *utils.ErrorHandler, r restclient.RestClient, n
 		query.Set("svm.name", svmName)
 		query.Set("scope", "svm")
 	}
-	query.Fields([]string{"name", "svm.name", "ip", "scope"})
+	query.Fields([]string{"name", "svm.name", "ip", "scope", "location"})
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
 		err = fmt.Errorf("no response for GET %s", api)
@@ -81,7 +94,7 @@ func GetIPInterface(errorHandler *utils.ErrorHandler, r restclient.RestClient, n
 func GetIPInterfaces(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *IPInterfaceGetDataModelONTAP) ([]IPInterfaceGetDataModelONTAP, error) {
 	api := "network/ip/interfaces"
 	query := r.NewQuery()
-	query.Fields([]string{"name", "svm.name", "ip", "scope"})
+	query.Fields([]string{"name", "svm.name", "ip", "scope", "location"})
 	if filter != nil {
 		var filterMap map[string]interface{}
 		if err := mapstructure.Decode(filter, &filterMap); err != nil {
@@ -130,6 +143,20 @@ func CreateIPInterface(errorHandler *utils.ErrorHandler, r restclient.RestClient
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Create ip_interface source - udata: %#v", dataONTAP))
 	return &dataONTAP, nil
+}
+
+// UpdateIPInterface to update ip_interface
+func UpdateIPInterface(errorHandler *utils.ErrorHandler, r restclient.RestClient, body IPInterfaceResourceBodyDataModelONTAP, id string) error {
+	api := fmt.Sprintf("network/ip/interfaces/%s", id)
+	var bodyMap map[string]interface{}
+	if err := mapstructure.Decode(body, &bodyMap); err != nil {
+		return errorHandler.MakeAndReportError("error encoding ip_interface body", fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body))
+	}
+	statusCode, _, err := r.CallUpdateMethod(api, nil, bodyMap)
+	if err != nil {
+		return errorHandler.MakeAndReportError("error updating ip_interface", fmt.Sprintf("error on PATCH %s: %s, statusCode %d", api, err, statusCode))
+	}
+	return nil
 }
 
 // DeleteIPInterface to delete ip_interface

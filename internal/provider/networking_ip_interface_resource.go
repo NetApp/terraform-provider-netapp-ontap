@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -59,8 +60,7 @@ type IPInterfaceResourceModel struct {
 	SVMName       types.String                 `tfsdk:"svm_name"`
 	IP            *IPInterfaceResourceIP       `tfsdk:"ip"`
 	Location      *IPInterfaceResourceLocation `tfsdk:"location"`
-	UUID          types.String                 `tfsdk:"uuid"`
-	ID            types.String                 `tfsdk:"id"`
+	UUID          types.String                 `tfsdk:"id"`
 }
 
 // Metadata returns the resource type name.
@@ -116,15 +116,12 @@ func (r *IPInterfaceResource) Schema(ctx context.Context, req resource.SchemaReq
 				},
 				Required: true,
 			},
-			"uuid": schema.StringAttribute{
+			"id": schema.StringAttribute{
 				MarkdownDescription: "IPInterface UUID",
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
-			},
-			"id": schema.StringAttribute{
-				Computed: true,
 			},
 		},
 	}
@@ -174,9 +171,16 @@ func (r *IPInterfaceResource) Read(ctx context.Context, req resource.ReadRequest
 		errorHandler.MakeAndReportError("No Interface found", fmt.Sprintf("NO interface, %s found.", data.Name.ValueString()))
 		return
 	}
-
 	data.Name = types.StringValue(restInfo.Name)
-	data.ID = types.StringValue(restInfo.UUID)
+	data.UUID = types.StringValue(restInfo.UUID)
+	data.Location.HomeNode = types.StringValue(restInfo.Location.HomeNode.Name)
+	data.IP.Address = types.StringValue(restInfo.IP.Address)
+	intValue, err := strconv.Atoi(restInfo.IP.Netmask)
+	if err != nil {
+		errorHandler.MakeAndReportError("Failed to read ip interface", fmt.Sprintf("Error: failed to convert string value '%s' to int for net mask.", restInfo.IP.Netmask))
+		return
+	}
+	data.IP.Netmask = types.Int64Value(int64(intValue))
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
@@ -224,7 +228,6 @@ func (r *IPInterfaceResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	data.UUID = types.StringValue(resource.UUID)
-	data.ID = types.StringValue(resource.UUID)
 
 	tflog.Trace(ctx, fmt.Sprintf("created a resource, UUID=%s", data.UUID))
 
@@ -239,7 +242,32 @@ func (r *IPInterfaceResource) Update(ctx context.Context, req resource.UpdateReq
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
+	var body interfaces.IPInterfaceResourceBodyDataModelONTAP
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
+
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	body.Name = data.Name.ValueString()
+	body.IP.Address = data.IP.Address.ValueString()
+	body.IP.Netmask = data.IP.Netmask.ValueInt64()
+	body.Location.HomePort = &interfaces.IPInterfaceResourceHomePort{
+		Name: data.Location.HomePort.ValueString(),
+		Node: interfaces.IPInterfaceResourceHomeNode{
+			Name: data.Location.HomeNode.ValueString(),
+		},
+	}
+
+	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	if err != nil {
+		// error reporting done inside NewClient
+		return
+	}
+
+	err = interfaces.UpdateIPInterface(errorHandler, *client, body, data.UUID.ValueString())
+
+	if err != nil {
 		return
 	}
 
