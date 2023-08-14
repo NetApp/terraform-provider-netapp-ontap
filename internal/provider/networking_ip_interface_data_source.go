@@ -65,7 +65,7 @@ func (d *IPInterfaceDataSource) Schema(ctx context.Context, req datasource.Schem
 				Required:            true,
 			},
 			"svm_name": schema.StringAttribute{
-				MarkdownDescription: "IPInterface vserver name",
+				MarkdownDescription: "IPInterface svm name",
 				Optional:            true,
 			},
 			"scope": schema.StringAttribute{

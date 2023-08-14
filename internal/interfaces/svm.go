@@ -66,14 +66,14 @@ type SvmDataSourceFilterModel struct {
 func GetSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) (*SvmGetDataModelONTAP, error) {
 	statusCode, response, err := r.GetNilOrOneRecord("svm/svms/"+uuid, nil, nil)
 	if err != nil {
-		return nil, errorHandler.MakeAndReportError("error reading vserver info", fmt.Sprintf("error on GET svm/svms: %s, statusCode %d", err, statusCode))
+		return nil, errorHandler.MakeAndReportError("error reading svm info", fmt.Sprintf("error on GET svm/svms: %s, statusCode %d", err, statusCode))
 	}
 
 	var dataONTAP *SvmGetDataModelONTAP
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError("failed to decode response from GET svm", fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
-	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read vserver info: %#v", dataONTAP))
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read svm info: %#v", dataONTAP))
 	return dataONTAP, nil
 }
 
@@ -83,14 +83,14 @@ func GetSvmByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, nam
 	query.Add("name", name)
 	statusCode, response, err := r.GetNilOrOneRecord("svm/svms", query, nil)
 	if err != nil {
-		return nil, errorHandler.MakeAndReportError("error reading vserver info", fmt.Sprintf("error on GET svm/svms: %s, statusCode %d", err, statusCode))
+		return nil, errorHandler.MakeAndReportError("error reading svm info", fmt.Sprintf("error on GET svm/svms: %s, statusCode %d", err, statusCode))
 	}
 
 	var dataONTAP *SvmGetDataModelONTAP
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError("failed to decode response from GET svm by name", fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
-	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read vserver info: %#v", dataONTAP))
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read svm info: %#v", dataONTAP))
 	return dataONTAP, nil
 }
 
@@ -105,14 +105,14 @@ func GetSvmByNameDataSource(errorHandler *utils.ErrorHandler, r restclient.RestC
 		err = fmt.Errorf("no response for GET %s", api)
 	}
 	if err != nil {
-		return nil, errorHandler.MakeAndReportError("error reading vserver info", fmt.Sprintf("error on GET svm/svms: %s, statusCode %d", err, statusCode))
+		return nil, errorHandler.MakeAndReportError("error reading svm info", fmt.Sprintf("error on GET svm/svms: %s, statusCode %d", err, statusCode))
 	}
 
 	var dataONTAP SvmGetDataSourceModel
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError("failed to decode response from GET svm by name", fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
-	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read vserver info: %#v", dataONTAP))
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read svm info: %#v", dataONTAP))
 	return &dataONTAP, nil
 }
 
@@ -147,21 +147,21 @@ func GetSvmsByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, fi
 		dataONTAP = append(dataONTAP, record)
 	}
 
-	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read vserver info: %#v", dataONTAP))
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read svm info: %#v", dataONTAP))
 	return dataONTAP, nil
 }
 
-// CreateSvm to create vserver
+// CreateSvm to create svm
 func CreateSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, data SvmResourceModel) (*SvmGetDataModelONTAP, error) {
 	var body map[string]interface{}
 	if err := mapstructure.Decode(data, &body); err != nil {
-		return nil, errorHandler.MakeAndReportError("error encoding vserver body", fmt.Sprintf("error on encoding svm/svms body: %s, body: %#v", err, data))
+		return nil, errorHandler.MakeAndReportError("error encoding svm body", fmt.Sprintf("error on encoding svm/svms body: %s, body: %#v", err, data))
 	}
 	query := r.NewQuery()
 	query.Add("return_records", "true")
 	statusCode, response, err := r.CallCreateMethod("svm/svms", query, body)
 	if err != nil {
-		return nil, errorHandler.MakeAndReportError("error creating vserver", fmt.Sprintf("error on POST svm/svms: %s, statusCode %d", err, statusCode))
+		return nil, errorHandler.MakeAndReportError("error creating svm", fmt.Sprintf("error on POST svm/svms: %s, statusCode %d", err, statusCode))
 
 	}
 
@@ -169,27 +169,27 @@ func CreateSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, data S
 	if err := mapstructure.Decode(response.Records[0], &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError("failed to decode response from POST svm/svms", fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
-	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Create vserver source - udata: %#v", dataONTAP))
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Create svm source - udata: %#v", dataONTAP))
 	return &dataONTAP, nil
 
 }
 
-// DeleteSvm to delete vserver
+// DeleteSvm to delete svm
 func DeleteSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) error {
 	api := "svm/svms/" + uuid
 	statusCode, _, err := r.CallDeleteMethod(api, nil, nil)
 	if err != nil {
-		return errorHandler.MakeAndReportError("error deleting vserver", fmt.Sprintf("error on DELETE %s: %s, statusCode %d", api, err, statusCode))
+		return errorHandler.MakeAndReportError("error deleting svm", fmt.Sprintf("error on DELETE %s: %s, statusCode %d", api, err, statusCode))
 
 	}
 	return nil
 }
 
-// UpdateSvm to update a vserver
+// UpdateSvm to update a svm
 func UpdateSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, data SvmResourceModel, uuid string, rename bool) error {
 	var body map[string]interface{}
 	if err := mapstructure.Decode(data, &body); err != nil {
-		return errorHandler.MakeAndReportError("error encoding vserver body", fmt.Sprintf("error on encoding svm/svms body: %s, body: %#v", err, data))
+		return errorHandler.MakeAndReportError("error encoding svm body", fmt.Sprintf("error on encoding svm/svms body: %s, body: %#v", err, data))
 	}
 	// Name is only passed to patch if it is a rename
 	if !rename {
@@ -199,7 +199,7 @@ func UpdateSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, data S
 	query.Add("return_records", "true")
 	statusCode, _, err := r.CallUpdateMethod("svm/svms/"+uuid, query, body)
 	if err != nil {
-		return errorHandler.MakeAndReportError("error updating vserver", fmt.Sprintf("error on PATCH svm/svms: %s, statusCode %d", err, statusCode))
+		return errorHandler.MakeAndReportError("error updating svm", fmt.Sprintf("error on PATCH svm/svms: %s, statusCode %d", err, statusCode))
 	}
 	return nil
 }

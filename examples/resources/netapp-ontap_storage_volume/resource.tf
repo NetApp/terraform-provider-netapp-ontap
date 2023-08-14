@@ -1,7 +1,7 @@
 resource "netapp-ontap_storage_volume_resource" "example" {
   cx_profile_name = "cluster2"
   name = "terraformTest"
-  vserver = "ansibleSVM"
+  svm_name = "ansibleSVM"
   aggregates = ["aggr1"]
   size = 20
   size_unit = "mb"

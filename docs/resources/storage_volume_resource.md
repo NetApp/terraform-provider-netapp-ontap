@@ -22,7 +22,7 @@ Volume resource
 - `name` (String) The name of the volume to manage
 - `size` (Number) The size of the volume
 - `size_unit` (String) The unit used to interpret the size parameter
-- `vserver` (String) Name of the vserver to use
+- `svm_name` (String) Name of the svm to use
 
 ### Optional
 

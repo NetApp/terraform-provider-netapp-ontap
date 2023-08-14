@@ -136,7 +136,7 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 				Required:            true,
 			},
 			"svm_name": schema.StringAttribute{
-				MarkdownDescription: "IPInterface vserver name",
+				MarkdownDescription: "IPInterface svm name",
 				Required:            true,
 			},
 			"enabled": schema.BoolAttribute{

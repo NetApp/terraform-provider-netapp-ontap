@@ -70,7 +70,7 @@ func (d *GoPrefixDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 				Required:            true,
 			},
 			"svm_name": schema.StringAttribute{
-				MarkdownDescription: "IPInterface vserver name",
+				MarkdownDescription: "IPInterface svm name",
 				Optional:            true,
 			},
 		},

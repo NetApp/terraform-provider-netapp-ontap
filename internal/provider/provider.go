@@ -75,7 +75,7 @@ func (p *ONTAPProvider) Schema(ctx context.Context, req provider.SchemaRequest, 
 							Required:            true,
 						},
 						"username": schema.StringAttribute{
-							MarkdownDescription: "ONTAP management user name (cluster or vserver)",
+							MarkdownDescription: "ONTAP management user name (cluster or svm)",
 							Required:            true,
 						},
 						"password": schema.StringAttribute{

@@ -13,7 +13,7 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient/httpclient"
 )
 
-// ConnectionProfile describes out to reach a cluster or vserver
+// ConnectionProfile describes out to reach a cluster or svm
 type ConnectionProfile struct {
 	// TODO: add certs in addition to basic authentication
 	// TODO: Add Timeout (currently hardcoded to 10 seconds)

@@ -24,7 +24,7 @@ terraform {
 
 
 provider "netapp-ontap" {
-  # A connection profile defines how to interface with an ONTAP cluster or vserver.
+  # A connection profile defines how to interface with an ONTAP cluster or svm.
   # At least one is required.
   connection_profiles = [
     {
@@ -72,7 +72,7 @@ Required:
 - `hostname` (String) ONTAP management interface IP address or name
 - `name` (String) Profile name
 - `password` (String, Sensitive) ONTAP management password for username
-- `username` (String) ONTAP management user name (cluster or vserver)
+- `username` (String) ONTAP management user name (cluster or svm)
 
 Optional:
 

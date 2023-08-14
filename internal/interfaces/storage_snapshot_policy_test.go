@@ -77,7 +77,7 @@ var badSnapshotPolicyBody = SnapshotPolicyResourceBodyDataModelONTAP{
 // create with requried parameters
 var basicSnapshotPolicyBody = SnapshotPolicyResourceBodyDataModelONTAP{
 	Name: "string",
-	SVM: Vserver{
+	SVM: svm{
 		Name: "string",
 	},
 	Copies: []map[string]any{
@@ -93,7 +93,7 @@ var basicSnapshotPolicyBody = SnapshotPolicyResourceBodyDataModelONTAP{
 // create with two copies snapshot policy
 var twoSnapshotPolicyCopiesBody = SnapshotPolicyResourceBodyDataModelONTAP{
 	Name: "string",
-	SVM: Vserver{
+	SVM: svm{
 		Name: "string",
 	},
 	Copies: []map[string]any{
@@ -115,7 +115,7 @@ var twoSnapshotPolicyCopiesBody = SnapshotPolicyResourceBodyDataModelONTAP{
 // create with not enabled parameters
 var notEnabledSnapshotPolicyBody = SnapshotPolicyResourceBodyDataModelONTAP{
 	Name: "string",
-	SVM: Vserver{
+	SVM: svm{
 		Name: "string",
 	},
 	Copies: []map[string]any{

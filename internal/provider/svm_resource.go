@@ -70,7 +70,7 @@ func (r *SvmResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 			},
 			"uuid": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Vserver identifier",
+				MarkdownDescription: "svm identifier",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -84,24 +84,24 @@ func (r *SvmResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 				Optional:            true,
 			},
 			"subtype": schema.StringAttribute{
-				MarkdownDescription: "The subtype for vserver to be created",
+				MarkdownDescription: "The subtype for svm to be created",
 				Optional:            true,
 			},
 			"comment": schema.StringAttribute{
-				MarkdownDescription: "Comment for vserver to be created",
+				MarkdownDescription: "Comment for svm to be created",
 				Optional:            true,
 			},
 			"language": schema.StringAttribute{
-				MarkdownDescription: "Language to use for vserver",
+				MarkdownDescription: "Language to use for svm",
 				Optional:            true,
 			},
 			"aggregates": schema.ListAttribute{
 				ElementType:         types.StringType,
-				MarkdownDescription: "Aggregates to be assigned use for vserver",
+				MarkdownDescription: "Aggregates to be assigned use for svm",
 				Optional:            true,
 			},
 			"max_volumes": schema.StringAttribute{
-				MarkdownDescription: "Maximum number of volumes that can be created on the vserver. Expects an integer or unlimited",
+				MarkdownDescription: "Maximum number of volumes that can be created on the svm. Expects an integer or unlimited",
 				Optional:            true,
 			},
 			"id": schema.StringAttribute{
@@ -177,7 +177,7 @@ func (r *SvmResource) Create(ctx context.Context, req resource.CreateRequest, re
 		}
 		err := mapstructure.Decode(aggregates, &request.Aggregates)
 		if err != nil {
-			errorHandler.MakeAndReportError("error creating vserver", fmt.Sprintf("error on encoding aggregates info: %s, aggregates %#v", err, aggregates))
+			errorHandler.MakeAndReportError("error creating svm", fmt.Sprintf("error on encoding aggregates info: %s, aggregates %#v", err, aggregates))
 			return
 		}
 
@@ -214,7 +214,7 @@ func (r *SvmResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	if data.UUID.IsNull() {
-		errorHandler.MakeAndReportError("UUID is null", "vserver UUID is null")
+		errorHandler.MakeAndReportError("UUID is null", "svm UUID is null")
 		return
 	}
 
@@ -292,7 +292,7 @@ func (r *SvmResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		}
 		err := mapstructure.Decode(aggregates, &request.Aggregates)
 		if err != nil {
-			errorHandler.MakeAndReportError("error creating vserver", fmt.Sprintf("error on encoding aggregates info: %s, aggregates %#v", err, aggregates))
+			errorHandler.MakeAndReportError("error creating svm", fmt.Sprintf("error on encoding aggregates info: %s, aggregates %#v", err, aggregates))
 			return
 		}
 	}
@@ -335,7 +335,7 @@ func (r *SvmResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	if data.UUID.IsNull() {
-		errorHandler.MakeAndReportError("UUID is null", "vserver UUID is null")
+		errorHandler.MakeAndReportError("UUID is null", "svm UUID is null")
 		return
 	}
 

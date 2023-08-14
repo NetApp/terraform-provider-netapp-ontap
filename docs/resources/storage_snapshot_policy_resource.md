@@ -50,7 +50,7 @@ resource "netapp-ontap_storage_snapshot_policy_resource" "storage_snapshot_polic
 
 - `comment` (String) A comment associated with the Snapshot copy policy
 - `enabled` (Boolean) Is the Snapshot copy policy enabled?
-- `svm_name` (String) SnapshotPolicy vserver name
+- `svm_name` (String) SnapshotPolicy svm name
 
 ### Read-Only
 

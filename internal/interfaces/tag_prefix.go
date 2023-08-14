@@ -24,8 +24,8 @@ type GoPrefixGetDataModelONTAP struct {
 
 // GoPrefixResourceBodyDataModelONTAP describes the body data model using go types for mapping.
 type GoPrefixResourceBodyDataModelONTAP struct {
-	Name string  `mapstructure:"name"`
-	SVM  Vserver `mapstructure:"svm"`
+	Name string `mapstructure:"name"`
+	SVM  svm    `mapstructure:"svm"`
 }
 
 // GetGoPrefix to get tag_prefix info

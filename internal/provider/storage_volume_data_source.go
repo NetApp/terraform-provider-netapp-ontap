@@ -35,7 +35,7 @@ type StorageVolumeDataSourceModel struct {
 	CxProfileName types.String `tfsdk:"cx_profile_name"`
 	// Volume Variables
 	Name                      types.String   `tfsdk:"name"`
-	Vserver                   types.String   `tfsdk:"vserver"`
+	SVMName                   types.String   `tfsdk:"svm_name"`
 	Size                      types.Int64    `tfsdk:"size"`
 	SizeUnit                  types.String   `tfsdk:"size_unit"`
 	IsOnline                  types.Bool     `tfsdk:"is_online"`
@@ -86,8 +86,8 @@ func (d *StorageVolumeDataSource) Schema(ctx context.Context, req datasource.Sch
 				MarkdownDescription: "Volume name",
 				Required:            true,
 			},
-			"vserver": schema.StringAttribute{
-				MarkdownDescription: "Name of the vserver to use",
+			"svm": schema.StringAttribute{
+				MarkdownDescription: "Name of the svm to use",
 				Required:            true,
 			},
 			"size": schema.Int64Attribute{
@@ -236,7 +236,7 @@ func (d *StorageVolumeDataSource) Read(ctx context.Context, req datasource.ReadR
 	}
 	data.Name = types.StringValue(volume.Name)
 	data.UUID = types.StringValue(volume.UUID)
-	data.Vserver = types.StringValue(volume.SVM.Name)
+	data.SVMName = types.StringValue(volume.SVM.Name)
 	var aggregates []types.String
 	for _, e := range volume.Aggregates {
 		aggregates = append(aggregates, types.StringValue(e.Name))

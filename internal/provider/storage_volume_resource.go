@@ -38,7 +38,7 @@ type StorageVolumeResource struct {
 type StorageVolumeResourceModel struct {
 	CxProfileName           types.String   `tfsdk:"cx_profile_name"`
 	Name                    types.String   `tfsdk:"name"`
-	Vserver                 types.String   `tfsdk:"vserver"`
+	SVMName                 types.String   `tfsdk:"svm_name"`
 	Size                    types.Int64    `tfsdk:"size"`
 	SizeUnit                types.String   `tfsdk:"size_unit"`
 	IsOnline                types.Bool     `tfsdk:"is_online"`
@@ -91,8 +91,8 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 				MarkdownDescription: "The name of the volume to manage",
 				Required:            true,
 			},
-			"vserver": schema.StringAttribute{
-				MarkdownDescription: "Name of the vserver to use",
+			"svm_name": schema.StringAttribute{
+				MarkdownDescription: "Name of the svm to use",
 				Required:            true,
 			},
 			"size": schema.Int64Attribute{
@@ -297,7 +297,7 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 	request.Name = data.Name.ValueString()
-	request.SVM.Name = data.Vserver.ValueString()
+	request.SVM.Name = data.SVMName.ValueString()
 
 	if _, ok := interfaces.POW2BYTEMAP[data.SizeUnit.ValueString()]; !ok {
 		errorHandler.MakeAndReportError("error creating volume", fmt.Sprintf("invalid input for size_unit: %s, required one of: bytes, b, kb, mb, gb, tb, pb, eb, zb, yb", data.SizeUnit.ValueString()))

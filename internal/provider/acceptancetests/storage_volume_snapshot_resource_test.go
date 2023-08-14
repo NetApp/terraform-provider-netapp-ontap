@@ -23,9 +23,9 @@ func TestAccStorageVolumeSnapshotResource(t *testing.T) {
 			{
 				Config: testAccStorageVolumeSnapshotResourceConfig("carchi-test", "my comment"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "volume.name", "carchi_test_root"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "volume_name", "carchi_test_root"),
 					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "name", "snaptest"),
-					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "svm.name", "carchi-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "svm_name", "carchi-test"),
 					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "comment", "my comment"),
 				),
 			},
@@ -33,9 +33,9 @@ func TestAccStorageVolumeSnapshotResource(t *testing.T) {
 			{
 				Config: testAccStorageVolumeSnapshotResourceConfig("carchi-test", "new comment"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "volume.name", "carchi_test_root"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "volume_name", "carchi_test_root"),
 					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "name", "snaptest"),
-					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "svm.name", "carchi-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "svm_name", "carchi-test"),
 					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "comment", "new comment"),
 				),
 			},
@@ -67,12 +67,8 @@ provider "netapp-ontap" {
 resource "netapp-ontap_storage_volume_snapshot_resource" "example" {
   cx_profile_name = "cluster4"
   name = "snaptest"
-  volume = {
-    name = "carchi_test_root"
-  }
-  svm = {
-    name = "%s"
-  }
+  volume_name = "carchi_test_root"
+  svm_name = "%s"
   comment = "%s"
 }`, host, admin, password, svmName, comment)
 }

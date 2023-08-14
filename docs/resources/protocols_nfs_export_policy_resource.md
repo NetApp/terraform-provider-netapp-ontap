@@ -15,7 +15,7 @@ Create/Modify/Delete an Export policy resource
 ```terraform
 resource "netapp-ontap_protocols_nfs_export_policy_resource" "example" {
   cx_profile_name = "cluster4"
-  vserver = "carchi-test"
+  svm_name = "carchi-test"
   name = "exportpolicytest"
 }
 ``````
@@ -27,7 +27,7 @@ resource "netapp-ontap_protocols_nfs_export_policy_resource" "example" {
 
 - `cx_profile_name` (String) Connection profile name
 - `name` (String) The name of the export policy to manage
-- `vserver` (String) Name of the vserver to use
+- `svm_name` (String) Name of the svm to use
 
 ### Read-Only
 

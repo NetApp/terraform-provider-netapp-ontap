@@ -22,7 +22,7 @@ IPInterface data source
 
 ### Optional
 
-- `svm_name` (String) IPInterface vserver name
+- `svm_name` (String) IPInterface svm name
 
 ### Read-Only
 

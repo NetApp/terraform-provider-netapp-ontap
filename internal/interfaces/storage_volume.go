@@ -13,7 +13,7 @@ import (
 // StorageVolumeGetDataModelONTAP describes the GET record data model using go types for mapping.
 type StorageVolumeGetDataModelONTAP struct {
 	Name                 string
-	SVM                  Vserver
+	SVM                  svm
 	Aggregates           []Aggregate
 	UUID                 string
 	Space                Space
@@ -36,7 +36,7 @@ type StorageVolumeGetDataModelONTAP struct {
 // StorageVolumeResourceModel describes the resource data model.
 type StorageVolumeResourceModel struct {
 	Name           string              `mapstructure:"name"`
-	SVM            Vserver             `mapstructure:"svm"`
+	SVM            svm                 `mapstructure:"svm"`
 	Space          Space               `mapstructure:"space"`
 	State          string              `mapstructure:"state,omitempty"`
 	Type           string              `mapstructure:"type,omitempty"`
@@ -144,8 +144,8 @@ type ExportPolicy struct {
 	Name string `mapstructure:"name,omitempty"`
 }
 
-// Vserver describes the resource data model.
-type Vserver struct {
+// svm describes the resource data model.
+type svm struct {
 	Name string `mapstructure:"name"`
 }
 

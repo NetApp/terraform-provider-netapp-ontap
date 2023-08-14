@@ -34,7 +34,7 @@ Optional:
 
 - `name` (String) IPInterface name
 - `scope` (String) IPInterface scope
-- `svm_name` (String) IPInterface vserver name
+- `svm_name` (String) IPInterface svm name
 
 
 <a id="nestedatt--ip_interfaces"></a>
@@ -47,7 +47,7 @@ Required:
 
 Optional:
 
-- `svm_name` (String) IPInterface vserver name
+- `svm_name` (String) IPInterface svm name
 
 Read-Only:
 

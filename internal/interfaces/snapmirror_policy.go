@@ -12,7 +12,7 @@ import (
 // SnapmirrorPolicyGetDataModelONTAP defines the resource get data model
 type SnapmirrorPolicyGetDataModelONTAP struct {
 	Name                      string                  `mapstructure:"name"`
-	SVM                       Vserver                 `mapstructure:"svm"`
+	SVM                       svm                     `mapstructure:"svm"`
 	Type                      string                  `mapstructure:"type,omitempty"`
 	SyncType                  string                  `mapstructure:"sync_type,omitempty"`
 	Comment                   string                  `mapstructure:"comment"`
@@ -28,7 +28,7 @@ type SnapmirrorPolicyGetDataModelONTAP struct {
 // SnapmirrorPolicyGetRawDataModelONTAP defines the resource get data model
 type SnapmirrorPolicyGetRawDataModelONTAP struct {
 	Name                      string                     `mapstructure:"name"`
-	SVM                       Vserver                    `mapstructure:"svm"`
+	SVM                       svm                        `mapstructure:"svm"`
 	Type                      string                     `mapstructure:"type,omitempty"`
 	SyncType                  string                     `mapstructure:"sync_type,omitempty"`
 	Comment                   string                     `mapstructure:"comment"`
@@ -66,7 +66,7 @@ type CreationScheduleModel struct {
 // SnapmirrorPolicyResourceBodyDataModelONTAP defines the resource data model
 type SnapmirrorPolicyResourceBodyDataModelONTAP struct {
 	Name                      string                   `mapstructure:"name"`
-	SVM                       Vserver                  `mapstructure:"svm"`
+	SVM                       svm                      `mapstructure:"svm"`
 	Type                      string                   `mapstructure:"type,omitempty"`
 	SyncType                  string                   `mapstructure:"sync_type,omitempty"`
 	Comment                   string                   `mapstructure:"comment"`

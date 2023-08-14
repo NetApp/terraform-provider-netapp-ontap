@@ -20,7 +20,7 @@ Export policy rule resource
 - `clients_match` (List of String) List of Client Match Hostnames, IP Addresses, Netgroups, or Domains
 - `cx_profile_name` (String) Connection profile name
 - `export_policy_name` (String) Export policy name
-- `vserver` (String) Name of the vserver to use
+- `svm_name` (String) Name of the svm to use
 
 ### Optional
 

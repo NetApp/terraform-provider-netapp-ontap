@@ -64,7 +64,7 @@ func (d *StorageVolumeSnapshotDataSource) Schema(ctx context.Context, req dataso
 				MarkdownDescription: "Snapshot name",
 				Required:            true,
 			},
-			// TODO: replace UUID with Volume Name, and vserver name
+			// TODO: replace UUID with Volume Name, and svm name
 			"volume_uuid": schema.StringAttribute{
 				MarkdownDescription: "Volume UUID",
 				Required:            true,

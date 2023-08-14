@@ -39,7 +39,7 @@ type ExportPolicyResource struct {
 type ExportPolicyResourceModel struct {
 	CxProfileName types.String `tfsdk:"cx_profile_name"`
 	Name          types.String `tfsdk:"name"`
-	Vserver       types.String `tfsdk:"vserver"`
+	SVMName       types.String `tfsdk:"svm_name"`
 	ID            types.String `tfsdk:"id"`
 }
 
@@ -63,8 +63,8 @@ func (r *ExportPolicyResource) Schema(ctx context.Context, req resource.SchemaRe
 				MarkdownDescription: "The name of the export policy to manage",
 				Required:            true,
 			},
-			"vserver": schema.StringAttribute{
-				MarkdownDescription: "Name of the vserver to use",
+			"svm_name": schema.StringAttribute{
+				MarkdownDescription: "Name of the svm to use",
 				Required:            true,
 			},
 			"id": schema.StringAttribute{
@@ -115,15 +115,15 @@ func (r *ExportPolicyResource) Create(ctx context.Context, req resource.CreateRe
 		// error reporting done inside NewClient
 		return
 	}
-	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.Vserver.ValueString())
+	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.SVMName.ValueString())
 	if err != nil {
 		return
 	}
 	if svm == nil {
-		errorHandler.MakeAndReportError("No svm found", fmt.Sprintf("svm %s not found.", data.Vserver.ValueString()))
+		errorHandler.MakeAndReportError("No svm found", fmt.Sprintf("svm %s not found.", data.SVMName.ValueString()))
 		return
 	}
-	request.Svm.Name = data.Vserver.ValueString()
+	request.Svm.Name = data.SVMName.ValueString()
 	request.Svm.UUID = svm.UUID
 
 	exportPolicy, err := interfaces.CreateExportPolicy(errorHandler, *client, request)

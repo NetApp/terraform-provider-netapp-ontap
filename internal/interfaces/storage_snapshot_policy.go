@@ -12,7 +12,7 @@ import (
 // SnapshotPolicyGetDataModelONTAP describes the GET record data model using go types for mapping.
 type SnapshotPolicyGetDataModelONTAP struct {
 	Name    string     `mapstructure:"name"`
-	SVM     Vserver    `mapstructure:"svm"`
+	SVM     svm        `mapstructure:"svm"`
 	UUID    string     `mapstructure:"uuid,omitempty"`
 	Copies  []CopyType `mapstructure:"copies"`
 	Comment string     `mapstructure:"comment,omitempty"`
@@ -22,7 +22,7 @@ type SnapshotPolicyGetDataModelONTAP struct {
 // SnapshotPolicyResourceBodyDataModelONTAP describes the body data model using go types for mapping.
 type SnapshotPolicyResourceBodyDataModelONTAP struct {
 	Name    string                   `mapstructure:"name"`
-	SVM     Vserver                  `mapstructure:"svm"`
+	SVM     svm                      `mapstructure:"svm"`
 	Copies  []map[string]interface{} `mapstructure:"copies"`
 	Comment string                   `mapstructure:"comment,omitempty"`
 	Enabled bool                     `mapstructure:"enabled"`

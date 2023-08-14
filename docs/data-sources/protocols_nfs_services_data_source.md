@@ -41,7 +41,7 @@ data "netapp-ontap_protocols_nfs_services_data_source" "protocols_nfs_services" 
 
 Optional:
 
-- `svm_name` (String) ProtocolsNfsService vserver name
+- `svm_name` (String) ProtocolsNfsService svm name
 
 
 <a id="nestedatt--protocols_nfs_services"></a>
@@ -58,7 +58,7 @@ Read-Only:
 - `root` (Attributes) Specific Root user options (see [below for nested schema](#nestedatt--protocols_nfs_services--root))
 - `security` (Attributes) NFS Security options (see [below for nested schema](#nestedatt--protocols_nfs_services--security))
 - `showmount_enabled` (Boolean) Whether SVM allows showmount
-- `svm_name` (String) IPInterface vserver name
+- `svm_name` (String) IPInterface svm name
 - `transport` (Attributes) (see [below for nested schema](#nestedatt--protocols_nfs_services--transport))
 - `vstorage_enabled` (Boolean) Whether Vstorage is enabled
 - `windows` (Attributes) (see [below for nested schema](#nestedatt--protocols_nfs_services--windows))

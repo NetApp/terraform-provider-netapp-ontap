@@ -43,7 +43,7 @@ data "netapp-ontap_storage_aggregates_data_source" "storage_aggregates" {
 Optional:
 
 - `name` (String) StorageAggregate name
-- `svm_name` (String) StorageAggregate vserver name
+- `svm_name` (String) StorageAggregate svm name
 
 
 <a id="nestedatt--storage_aggregates"></a>
