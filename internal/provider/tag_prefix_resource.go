@@ -69,7 +69,7 @@ func (r *GoPrefixResource) Schema(ctx context.Context, req resource.SchemaReques
 				Required:            true,
 			},
 			"svm_name": schema.StringAttribute{
-				MarkdownDescription: "GoPrefix vserver name",
+				MarkdownDescription: "GoPrefix svm name",
 				Optional:            true,
 			},
 			"uuid": schema.StringAttribute{

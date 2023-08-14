@@ -21,7 +21,7 @@ IPInterface resource
 - `ip` (Attributes) (see [below for nested schema](#nestedatt--ip))
 - `location` (Attributes) (see [below for nested schema](#nestedatt--location))
 - `name` (String) IPInterface name
-- `svm_name` (String) IPInterface vserver name
+- `svm_name` (String) IPInterface svm name
 
 ### Read-Only
 

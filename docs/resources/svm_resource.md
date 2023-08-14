@@ -37,16 +37,16 @@ resource "netapp-ontap_svm_resource" "example" {
 
 ### Optional
 
-- `aggregates` (List of String) Aggregates to be assigned use for vserver
-- `comment` (String) Comment for vserver to be created
+- `aggregates` (List of String) Aggregates to be assigned use for svm
+- `comment` (String) Comment for svm to be created
 - `ipspace` (String) The name of the ipspace to manage
-- `language` (String) Language to use for vserver
-- `max_volumes` (String) Maximum number of volumes that can be created on the vserver. Expects an integer or unlimited
+- `language` (String) Language to use for svm
+- `max_volumes` (String) Maximum number of volumes that can be created on the svm. Expects an integer or unlimited
 - `snapshot_policy` (String) The name of the snapshot policy to manage
-- `subtype` (String) The subtype for vserver to be created
+- `subtype` (String) The subtype for svm to be created
 
 ### Read-Only
 
-- `uuid` (String) Vserver identifier
+- `uuid` (String) svm identifier
 
 

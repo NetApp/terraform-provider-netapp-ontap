@@ -55,7 +55,7 @@ func (d *ProtocolsNfsServicesDataSource) Schema(ctx context.Context, req datasou
 			"filter": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"svm_name": schema.StringAttribute{
-						MarkdownDescription: "ProtocolsNfsService vserver name",
+						MarkdownDescription: "ProtocolsNfsService svm name",
 						Optional:            true,
 					},
 				},
@@ -69,7 +69,7 @@ func (d *ProtocolsNfsServicesDataSource) Schema(ctx context.Context, req datasou
 							Required:            true,
 						},
 						"svm_name": schema.StringAttribute{
-							MarkdownDescription: "IPInterface vserver name",
+							MarkdownDescription: "IPInterface svm name",
 							Computed:            true,
 						},
 						"enabled": schema.BoolAttribute{

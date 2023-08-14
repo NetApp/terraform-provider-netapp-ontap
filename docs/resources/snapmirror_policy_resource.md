@@ -77,7 +77,7 @@ resource "netapp-ontap_snapmirror_policy_resource" "snapmirror_policy_sync" {
 
 - `cx_profile_name` (String) Connection profile name
 - `name` (String) SnapmirrorPolicy name
-- `svm_name` (String) SnapmirrorPolicy vserver name
+- `svm_name` (String) SnapmirrorPolicy svm name
 
 ### Optional
 

@@ -59,17 +59,17 @@ func (d *NameServicesDNSDataSource) Schema(ctx context.Context, req datasource.S
 				Required:            true,
 			},
 			"svm_name": schema.StringAttribute{
-				MarkdownDescription: "IPInterface vserver name",
+				MarkdownDescription: "IPInterface svm name",
 				Required:            true,
 			},
 			"svm_uuid": schema.StringAttribute{
-				MarkdownDescription: "UUID of Vserver",
+				MarkdownDescription: "UUID of svm",
 				Computed:            true,
 			},
 			"dns_domains": schema.ListAttribute{
 				ElementType:         types.StringType,
 				Computed:            true,
-				MarkdownDescription: "List of DNS domains such as 'sales.bar.com'. The first domain is the one that the Vserver belongs to",
+				MarkdownDescription: "List of DNS domains such as 'sales.bar.com'. The first domain is the one that the svm belongs to",
 			},
 			"name_servers": schema.ListAttribute{
 				ElementType:         types.StringType,

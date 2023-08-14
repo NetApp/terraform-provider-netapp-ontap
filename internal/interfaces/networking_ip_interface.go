@@ -20,7 +20,7 @@ type IPInterfaceGetDataModelONTAP struct {
 // IPInterfaceResourceBodyDataModelONTAP describes the body data model using go types for mapping.
 type IPInterfaceResourceBodyDataModelONTAP struct {
 	Name     string                      `mapstructure:"name"`
-	SVM      Vserver                     `mapstructure:"svm"`
+	SVM      svm                         `mapstructure:"svm"`
 	IP       IPInterfaceResourceIP       `mapstructure:"ip"`
 	Location IPInterfaceResourceLocation `mapstructure:"location"`
 }

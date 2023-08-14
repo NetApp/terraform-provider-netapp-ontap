@@ -11,7 +11,7 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-// ConnectionProfile describes how to reach a cluster or vserver
+// ConnectionProfile describes how to reach a cluster or svm
 type ConnectionProfile struct {
 	// TODO: add certs in addition to basic authentication
 	// TODO: Add Timeout (currently hardcoded to 10 seconds)

@@ -15,13 +15,13 @@ type IPRouteGetDataModelONTAP struct {
 	UUID        string                     `mapstructure:"uuid"`
 	Gateway     string                     `mapstructure:"gateway"`
 	Metric      int64                      `mapstructure:"metric,omitempty"`
-	SVMName     Vserver                    `mapstructure:"svm"`
+	SVMName     svm                        `mapstructure:"svm"`
 }
 
 // IPRouteResourceBodyDataModelONTAP describes the body data model using go types for mapping.
 type IPRouteResourceBodyDataModelONTAP struct {
 	Destination DestinationDataSourceModel `mapstructure:"destination,omitempty"`
-	SVM         Vserver                    `mapstructure:"svm"`
+	SVM         svm                        `mapstructure:"svm"`
 	Gateway     string                     `mapstructure:"gateway,omitempty"`
 	Metric      int64                      `mapstructure:"metric,omitempty"`
 }

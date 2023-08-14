@@ -35,7 +35,7 @@ resource "netapp-ontap_protocols_nfs_service_resource" "protocols_nfs_service" {
 ### Required
 
 - `cx_profile_name` (String) Connection profile name
-- `svm_name` (String) IPInterface vserver name
+- `svm_name` (String) IPInterface svm name
 
 ### Optional
 

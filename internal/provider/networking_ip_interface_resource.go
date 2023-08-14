@@ -85,7 +85,7 @@ func (r *IPInterfaceResource) Schema(ctx context.Context, req resource.SchemaReq
 			},
 			// TODO: Make svm_name optional for cluster scoped interface
 			"svm_name": schema.StringAttribute{
-				MarkdownDescription: "IPInterface vserver name",
+				MarkdownDescription: "IPInterface svm name",
 				Required:            true,
 			},
 			// TODO: Make IP optional once subnet is supported

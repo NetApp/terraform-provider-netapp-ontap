@@ -97,7 +97,7 @@ func (r *IPRouteResource) Schema(ctx context.Context, req resource.SchemaRequest
 				},
 			},
 			"svm_name": schema.StringAttribute{
-				MarkdownDescription: "IPInterface vserver name",
+				MarkdownDescription: "IPInterface svm name",
 				Optional:            true,
 			},
 			"gateway": schema.StringAttribute{

@@ -34,7 +34,7 @@ type ExportPolicyDataSource struct {
 // ExportPolicyDataSourceModel describes the source data model.
 type ExportPolicyDataSourceModel struct {
 	CxProfileName types.String `tfsdk:"cx_profile_name"`
-	Vserver       types.String `tfsdk:"vserver"`
+	SVMName       types.String `tfsdk:"svm_name"`
 	Name          types.String `tfsdk:"name"`
 	ID            types.String `tfsdk:"id"`
 }
@@ -55,8 +55,8 @@ func (d *ExportPolicyDataSource) Schema(ctx context.Context, req datasource.Sche
 				MarkdownDescription: "Connection profile name",
 				Required:            true,
 			},
-			"vserver": schema.StringAttribute{
-				MarkdownDescription: "Name of the vserver to use",
+			"svm_name": schema.StringAttribute{
+				MarkdownDescription: "Name of the svm to use",
 				Required:            true,
 			},
 			"name": schema.StringAttribute{

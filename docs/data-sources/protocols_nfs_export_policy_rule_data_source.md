@@ -20,7 +20,7 @@ Export policy rule resource
 - `cx_profile_name` (String) Connection profile name
 - `export_policy_name` (String) Export policy name
 - `index` (Number) rule index
-- `vserver` (String) Name of the vserver to use
+- `svm_name` (String) Name of the svm to use
 
 ### Read-Only
 

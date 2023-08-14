@@ -146,7 +146,7 @@ func (r *SnapshotPolicyResource) Schema(ctx context.Context, req resource.Schema
 				PlanModifiers: []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 			},
 			"svm_name": schema.StringAttribute{
-				MarkdownDescription: "SnapshotPolicy vserver name",
+				MarkdownDescription: "SnapshotPolicy svm name",
 				Optional:            true,
 			},
 			"id": schema.StringAttribute{

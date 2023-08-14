@@ -15,9 +15,12 @@ import (
 
 // basic get data record
 var basicExportPolicyRecord = ExportPolicyGetDataModelONTAP{
-	Name:    "string",
-	Vserver: "string",
-	ID:      122880,
+	Name: "string",
+	Svm: SvmDataModelONTAP{
+		Name: "string",
+		UUID: "string",
+	},
+	ID: 122880,
 }
 
 // bad record

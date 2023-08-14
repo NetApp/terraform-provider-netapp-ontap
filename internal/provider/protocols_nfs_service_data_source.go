@@ -120,7 +120,7 @@ func (d *ProtocolsNfsServiceDataSource) Schema(ctx context.Context, req datasour
 				Required:            true,
 			},
 			"svm_name": schema.StringAttribute{
-				MarkdownDescription: "NFS vserver name",
+				MarkdownDescription: "NFS svm name",
 				Required:            true,
 			},
 			"enabled": schema.BoolAttribute{

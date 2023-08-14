@@ -26,7 +26,7 @@ data "netapp-ontap_protcols_nfs_service_data_source" "protcols_nfs_services" {
 ### Required
 
 - `cx_profile_name` (String) Connection profile name
-- `svm_name` (String) IPInterface vserver name
+- `svm_name` (String) IPInterface svm name
 
 ## Attributes Reference
 In addition to all arguments above, the following attributes are exported:

@@ -35,15 +35,15 @@ type StorageVolumeSnapshotResource struct {
 
 // StorageVolumeSnapshotResourceModel describes the resource data model.
 type StorageVolumeSnapshotResourceModel struct {
-	CxProfileName      types.String      `tfsdk:"cx_profile_name"`
-	Name               types.String      `tfsdk:"name"`
-	Volume             NameResourceModel `tfsdk:"volume"`
-	SVM                NameResourceModel `tfsdk:"svm"`
-	ExpiryTime         types.String      `tfsdk:"expiry_time"`
-	SnaplockExpiryTime types.String      `tfsdk:"snaplock_expiry_time"`
-	Comment            types.String      `tfsdk:"comment"`
-	SnapmirrorLabel    types.String      `tfsdk:"snapmirror_label"`
-	ID                 types.String      `tfsdk:"id"`
+	CxProfileName      types.String `tfsdk:"cx_profile_name"`
+	Name               types.String `tfsdk:"name"`
+	VolumeName         types.String `tfsdk:"volume_name"`
+	SVMName            types.String `tfsdk:"svm_name"`
+	ExpiryTime         types.String `tfsdk:"expiry_time"`
+	SnaplockExpiryTime types.String `tfsdk:"snaplock_expiry_time"`
+	Comment            types.String `tfsdk:"comment"`
+	SnapmirrorLabel    types.String `tfsdk:"snapmirror_label"`
+	ID                 types.String `tfsdk:"id"`
 }
 
 // Metadata returns the resource type name.
@@ -66,25 +66,13 @@ func (r *StorageVolumeSnapshotResource) Schema(ctx context.Context, req resource
 				MarkdownDescription: "Snapshot name",
 				Required:            true,
 			},
-			"volume": schema.SingleNestedAttribute{
-				MarkdownDescription: "Volume the snapshot is on",
+			"volume_name": schema.StringAttribute{
+				MarkdownDescription: "The name of the volume the snapshot is on",
 				Required:            true,
-				Attributes: map[string]schema.Attribute{
-					"name": schema.StringAttribute{
-						MarkdownDescription: "Volume Name",
-						Required:            true,
-					},
-				},
 			},
-			"svm": schema.SingleNestedAttribute{
-				MarkdownDescription: "svm the snapshot is on",
+			"svm_name": schema.StringAttribute{
+				MarkdownDescription: "The name of the SVM the snapshot is on",
 				Required:            true,
-				Attributes: map[string]schema.Attribute{
-					"name": schema.StringAttribute{
-						MarkdownDescription: "svm Name",
-						Required:            true,
-					},
-				},
 			},
 			"expiry_time": schema.StringAttribute{
 				MarkdownDescription: "Snapshot copies with an expiry time set are not allowed to be deleted until the retetion time is reached",
@@ -148,20 +136,20 @@ func (r *StorageVolumeSnapshotResource) Create(ctx context.Context, req resource
 		return
 	}
 
-	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.SVM.Name.ValueString())
+	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.SVMName.ValueString())
 	if err != nil {
 		return
 	}
 	if svm == nil {
-		errorHandler.MakeAndReportError("No svm found", fmt.Sprintf("svm %s not found.", data.SVM.Name))
+		errorHandler.MakeAndReportError("No svm found", fmt.Sprintf("svm %s not found.", data.SVMName))
 		return
 	}
-	volume, err := interfaces.GetUUIDVolumeByName(errorHandler, *client, svm.UUID, data.Volume.Name.ValueString())
+	volume, err := interfaces.GetUUIDVolumeByName(errorHandler, *client, svm.UUID, data.VolumeName.ValueString())
 	if err != nil {
 		return
 	}
 	if volume == nil {
-		errorHandler.MakeAndReportError("No volume found", fmt.Sprintf("volume %s not found.", data.Volume.Name))
+		errorHandler.MakeAndReportError("No volume found", fmt.Sprintf("volume %s not found.", data.VolumeName))
 		return
 	}
 
@@ -205,11 +193,11 @@ func (r *StorageVolumeSnapshotResource) Read(ctx context.Context, req resource.R
 	if err != nil {
 		return
 	}
-	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.SVM.Name.ValueString())
+	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.SVMName.ValueString())
 	if err != nil {
 		return
 	}
-	volume, err := interfaces.GetUUIDVolumeByName(errorHandler, *client, svm.UUID, data.Volume.Name.ValueString())
+	volume, err := interfaces.GetUUIDVolumeByName(errorHandler, *client, svm.UUID, data.VolumeName.ValueString())
 	if err != nil {
 		return
 	}
@@ -245,11 +233,11 @@ func (r *StorageVolumeSnapshotResource) Update(ctx context.Context, req resource
 		// error reporting done inside NewClient
 		return
 	}
-	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.SVM.Name.ValueString())
+	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.SVMName.ValueString())
 	if err != nil {
 		return
 	}
-	volume, err := interfaces.GetUUIDVolumeByName(errorHandler, *client, svm.UUID, data.Volume.Name.ValueString())
+	volume, err := interfaces.GetUUIDVolumeByName(errorHandler, *client, svm.UUID, data.VolumeName.ValueString())
 	if err != nil {
 		return
 	}
@@ -312,11 +300,11 @@ func (r *StorageVolumeSnapshotResource) Delete(ctx context.Context, req resource
 		// error reporting done inside NewClient
 		return
 	}
-	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.SVM.Name.ValueString())
+	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.SVMName.ValueString())
 	if err != nil {
 		return
 	}
-	volume, err := interfaces.GetUUIDVolumeByName(errorHandler, *client, svm.UUID, data.Volume.Name.ValueString())
+	volume, err := interfaces.GetUUIDVolumeByName(errorHandler, *client, svm.UUID, data.VolumeName.ValueString())
 	if err != nil {
 		return
 	}

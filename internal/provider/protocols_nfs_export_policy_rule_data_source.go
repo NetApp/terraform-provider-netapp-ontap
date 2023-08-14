@@ -35,7 +35,7 @@ type ExportPolicyRuleDataSource struct {
 type ExportPolicyRuleDataSourceModel struct {
 	CxProfileName       types.String   `tfsdk:"cx_profile_name"`
 	ExportPolicyID      types.String   `tfsdk:"export_policy_id"`
-	Vserver             types.String   `tfsdk:"vserver"`
+	SVMName             types.String   `tfsdk:"svm_name"`
 	RoRule              []types.String `tfsdk:"ro_rule"`
 	RwRule              []types.String `tfsdk:"rw_rule"`
 	Protocols           []types.String `tfsdk:"protocols"`
@@ -65,8 +65,8 @@ func (d *ExportPolicyRuleDataSource) Schema(ctx context.Context, req datasource.
 				MarkdownDescription: "Connection profile name",
 				Required:            true,
 			},
-			"vserver": schema.StringAttribute{
-				MarkdownDescription: "Name of the vserver to use",
+			"svm": schema.StringAttribute{
+				MarkdownDescription: "Name of the svm to use",
 				Required:            true,
 			},
 			"export_policy_name": schema.StringAttribute{

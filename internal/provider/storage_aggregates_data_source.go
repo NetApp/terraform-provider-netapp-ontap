@@ -59,7 +59,7 @@ func (d *StorageAggregatesDataSource) Schema(ctx context.Context, req datasource
 						Optional:            true,
 					},
 					"svm_name": schema.StringAttribute{
-						MarkdownDescription: "StorageAggregate vserver name",
+						MarkdownDescription: "StorageAggregate svm name",
 						Optional:            true,
 					},
 				},

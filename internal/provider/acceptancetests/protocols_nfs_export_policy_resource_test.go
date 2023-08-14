@@ -30,7 +30,7 @@ func TestAccNFSExportPolicyResource(t *testing.T) {
 	})
 }
 
-func testAccNFSExportPolicyResourceConfig(vserver string) string {
+func testAccNFSExportPolicyResourceConfig(svm string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS")
@@ -53,7 +53,7 @@ provider "netapp-ontap" {
 
 resource "netapp-ontap_protocols_nfs_export_policy_resource" "example" {
 	cx_profile_name = "cluster4"
-	vserver = "%s"
+	svm_name = "%s"
 	name = "acc_test"
-}`, host, admin, password, vserver)
+}`, host, admin, password, svm)
 }

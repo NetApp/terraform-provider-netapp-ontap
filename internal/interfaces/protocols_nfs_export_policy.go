@@ -18,9 +18,9 @@ type ExportpolicyResourceModel struct {
 
 // ExportPolicyGetDataModelONTAP describes the GET record data model using go types for mapping.
 type ExportPolicyGetDataModelONTAP struct {
-	Name    string
-	Vserver string
-	ID      int
+	Name string
+	Svm  SvmDataModelONTAP
+	ID   int
 }
 
 // CreateExportPolicy to create export policy

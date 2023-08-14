@@ -66,7 +66,7 @@ func (d *GoAllPrefixDataSource) Schema(ctx context.Context, req datasource.Schem
 						Optional:            true,
 					},
 					"svm_name": schema.StringAttribute{
-						MarkdownDescription: "GoPrefix vserver name",
+						MarkdownDescription: "GoPrefix svm name",
 						Optional:            true,
 					},
 				},

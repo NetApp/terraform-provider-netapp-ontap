@@ -33,8 +33,8 @@ resource "netapp-ontap_storage_volume_snapshot_resource" "example" {
 
 - `cx_profile_name` (String) Connection profile name
 - `name` (String) Snapshot name
-- `svm` (Attributes) svm the snapshot is on (see [below for nested schema](#nestedatt--svm))
-- `volume` (Attributes) Volume the snapshot is on (see [below for nested schema](#nestedatt--volume))
+- `svm` (String) The name of the SVM the snapshot is on
+- `volume` (String) The name of the volume the snapshot is on
 
 ### Optional
 
@@ -46,20 +46,5 @@ resource "netapp-ontap_storage_volume_snapshot_resource" "example" {
 ### Read-Only
 
 - `id` (String) storage/volumes/snapshots identifier
-
-<a id="nestedatt--svm"></a>
-### Nested Schema for `svm`
-
-Required:
-
-- `name` (String) svm Name
-
-
-<a id="nestedatt--volume"></a>
-### Nested Schema for `volume`
-
-Required:
-
-- `name` (String) Volume Name
 
 

@@ -87,7 +87,7 @@ func (r *SnapmirrorPolicyResource) Schema(ctx context.Context, req resource.Sche
 				Required:            true,
 			},
 			"svm_name": schema.StringAttribute{
-				MarkdownDescription: "SnapmirrorPolicy vserver name",
+				MarkdownDescription: "SnapmirrorPolicy svm name",
 				Required:            true,
 			},
 			"type": schema.StringAttribute{

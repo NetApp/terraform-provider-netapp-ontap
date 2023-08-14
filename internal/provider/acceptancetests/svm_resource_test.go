@@ -16,7 +16,7 @@ func TestAccSvmResource(t *testing.T) {
 			{
 				Config: testAccSvmResourceConfig("tfsvm4", "test"),
 				Check: resource.ComposeTestCheckFunc(
-					// Check to see the Vserver name is correct,
+					// Check to see the svm name is correct,
 					resource.TestCheckResourceAttr("netapp-ontap_svm_resource.example", "name", "tfsvm4"),
 					// Check to see if Ipspace is set correctly
 					resource.TestCheckResourceAttr("netapp-ontap_svm_resource.example", "ipspace", "ansibleIpspace_newname"),
@@ -46,7 +46,7 @@ func TestAccSvmResource(t *testing.T) {
 		},
 	})
 }
-func testAccSvmResourceConfig(vserver, comment string) string {
+func testAccSvmResourceConfig(svm, comment string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS")
@@ -77,5 +77,5 @@ resource "netapp-ontap_svm_resource" "example" {
   language = "en_us.utf_8"
   aggregates = ["aggr2"]
   max_volumes = "200"
-}`, host, admin, password, vserver, comment)
+}`, host, admin, password, svm, comment)
 }

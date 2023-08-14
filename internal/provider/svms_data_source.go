@@ -81,24 +81,24 @@ func (d *SvmsDataSource) Schema(ctx context.Context, req datasource.SchemaReques
 							Computed:            true,
 						},
 						"subtype": schema.StringAttribute{
-							MarkdownDescription: "The subtype for vserver to be created",
+							MarkdownDescription: "The subtype for svm to be created",
 							Computed:            true,
 						},
 						"comment": schema.StringAttribute{
-							MarkdownDescription: "Comment for vserver to be created",
+							MarkdownDescription: "Comment for svm to be created",
 							Computed:            true,
 						},
 						"language": schema.StringAttribute{
-							MarkdownDescription: "Language to use for vserver",
+							MarkdownDescription: "Language to use for svm",
 							Computed:            true,
 						},
 						"aggregates": schema.ListAttribute{
 							ElementType:         types.StringType,
-							MarkdownDescription: "Aggregates to be assigned use for vserver",
+							MarkdownDescription: "Aggregates to be assigned use for svm",
 							Computed:            true,
 						},
 						"max_volumes": schema.StringAttribute{
-							MarkdownDescription: "Maximum number of volumes that can be created on the vserver. Expects an integer or unlimited",
+							MarkdownDescription: "Maximum number of volumes that can be created on the svm. Expects an integer or unlimited",
 							Computed:            true,
 						},
 						"id": schema.StringAttribute{

@@ -28,11 +28,11 @@ data "netapp-ontap_name_services_dns_data_source" "name_services_dns" {
 
 ### Optional
 
-- `svm_name` (String) IPInterface vserver name
+- `svm_name` (String) IPInterface svm name
 
 ### Read-Only
 
-- `dns_domains` (List of String) List of DNS domains such as 'sales.bar.com'. The first domain is the one that the Vserver belongs to
+- `dns_domains` (List of String) List of DNS domains such as 'sales.bar.com'. The first domain is the one that the svm belongs to
 - `name_servers` (List of String) List of IPv4 addresses of name servers such as '123.123.123.123'.
 
 

@@ -35,7 +35,7 @@ func TestAccStorageVolumeResource(t *testing.T) {
 	})
 }
 
-func testAccStorageVolumeResourceConfig(vserver, volName string) string {
+func testAccStorageVolumeResourceConfig(svm, volName string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS")
@@ -59,9 +59,9 @@ provider "netapp-ontap" {
 resource "netapp-ontap_storage_volume_resource" "example" {
   cx_profile_name = "cluster4"
   name = "%s"
-  vserver = "%s"
+  svm_name = "%s"
   aggregates = ["aggr2"]
   size = 20
   size_unit = "mb"
-}`, host, admin, password, volName, vserver)
+}`, host, admin, password, volName, svm)
 }
