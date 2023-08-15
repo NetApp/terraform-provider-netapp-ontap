@@ -86,7 +86,7 @@ func (d *StorageVolumeDataSource) Schema(ctx context.Context, req datasource.Sch
 				MarkdownDescription: "Volume name",
 				Required:            true,
 			},
-			"svm": schema.StringAttribute{
+			"svm_name": schema.StringAttribute{
 				MarkdownDescription: "Name of the svm to use",
 				Required:            true,
 			},
@@ -226,7 +226,7 @@ func (d *StorageVolumeDataSource) Read(ctx context.Context, req datasource.ReadR
 		return
 	}
 
-	volume, err := interfaces.GetStorageVolumeByName(errorHandler, *client, data.Name.ValueString())
+	volume, err := interfaces.GetStorageVolumeByName(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString())
 	if err != nil {
 		return
 	}
