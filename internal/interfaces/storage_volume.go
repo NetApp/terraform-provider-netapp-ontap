@@ -172,6 +172,12 @@ var POW2BYTEMAP = map[string]int{
 	"yb":    int(math.Pow(1024, 8)),
 }
 
+// StorageVolumeDataSourceFilterModel describes the data source data model for queries.
+type StorageVolumeDataSourceFilterModel struct {
+	Name    string `mapstructure:"name"`
+	SVMName string `mapstructure:"svm.name"`
+}
+
 // GetUUIDVolumeByName get a volumes UUID by volume name
 func GetUUIDVolumeByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmUUID string, name string) (*NameDataModel, error) {
 	query := r.NewQuery()
@@ -213,10 +219,11 @@ func GetStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClient,
 	return dataONTAP, nil
 }
 
-// GetStorageVolumeByName to get volume info by name
-func GetStorageVolumeByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string) (*StorageVolumeGetDataModelONTAP, error) {
+// GetStorageVolumeByName to get volume info by name and svm_name
+func GetStorageVolumeByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name, svmName string) (*StorageVolumeGetDataModelONTAP, error) {
 	query := r.NewQuery()
 	query.Add("name", name)
+	query.Add("svm.name", svmName)
 	query.Add("return_records", "true")
 	query.Fields([]string{"name", "svm.name", "aggregates", "space.size", "state", "type", "nas.export_policy.name", "nas.path", "guarantee.type", "space.snapshot.reserve_percent",
 		"nas.security_style", "encryption.enabled", "efficiency.policy.name", "nas.unix_permissions", "nas.gid", "nas.uid", "snapshot_policy.name", "language", "qos.policy.name",
@@ -235,6 +242,42 @@ func GetStorageVolumeByName(errorHandler *utils.ErrorHandler, r restclient.RestC
 		return nil, errorHandler.MakeAndReportError("error decoding volume info by name", fmt.Sprintf("error on decode storage/volumes: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read volume source - udata: %#v", dataONTAP))
+	return dataONTAP, nil
+}
+
+// GetStorageVolumes to get volumes info for all resources matching a filter
+func GetStorageVolumes(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *StorageVolumeDataSourceFilterModel) ([]StorageVolumeGetDataModelONTAP, error) {
+	api := "storage/volumes"
+	query := r.NewQuery()
+	query.Fields([]string{"name", "svm.name", "aggregates", "space.size", "state", "type", "nas.export_policy.name", "nas.path", "guarantee.type", "space.snapshot.reserve_percent",
+		"nas.security_style", "encryption.enabled", "efficiency.policy.name", "nas.unix_permissions", "nas.gid", "nas.uid", "snapshot_policy.name", "language", "qos.policy.name",
+		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state"})
+	if filter != nil {
+		var filterMap map[string]interface{}
+		if err := mapstructure.Decode(filter, &filterMap); err != nil {
+			return nil, errorHandler.MakeAndReportError("error encoding storage volume filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
+		}
+		query.SetValues(filterMap)
+	}
+
+	statusCode, response, err := r.GetZeroOrMoreRecords(api, query, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading storage volume info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
+	}
+
+	var dataONTAP []StorageVolumeGetDataModelONTAP
+	for _, info := range response {
+		var record StorageVolumeGetDataModelONTAP
+		if err := mapstructure.Decode(info, &record); err != nil {
+			return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
+				fmt.Sprintf("error: %s, statusCode %d, info %#v", err, statusCode, info))
+		}
+		dataONTAP = append(dataONTAP, record)
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read storage volume data source: %#v", dataONTAP))
 	return dataONTAP, nil
 }
 
