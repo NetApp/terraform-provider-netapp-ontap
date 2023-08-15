@@ -13,7 +13,7 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
-// Only requried parameters
+// Only required parameters
 var basicSnapshotPolicyRecord = SnapshotPolicyGetDataModelONTAP{
 	Name: "string",
 	UUID: "string",
@@ -330,6 +330,166 @@ func TestDeleteSnapshotPolicy(t *testing.T) {
 			if (err2 != nil) != tt.wantErr {
 				t.Errorf("DeleteSnapshotPolicy() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+		})
+	}
+}
+
+func TestGetSnapshotPolicies(t *testing.T) {
+	errorHandler := utils.NewErrorHandler(context.Background(), &diag.Diagnostics{})
+	var recordInterface map[string]any
+	err := mapstructure.Decode(basicSnapshotPolicyRecord, &recordInterface)
+	if err != nil {
+		panic(err)
+	}
+
+	var secondRecordInterface map[string]any
+	err = mapstructure.Decode(twoSnapshotPolicyCopiesRecord, &secondRecordInterface)
+	if err != nil {
+		panic(err)
+	}
+
+	var badRecordInterface map[string]any
+	err = mapstructure.Decode(badSnapshotPolicyRecord, &badRecordInterface)
+	if err != nil {
+		panic(err)
+	}
+	noRecords := restclient.RestResponse{NumRecords: 0, Records: []map[string]any{}}
+	oneRecord := restclient.RestResponse{NumRecords: 1, Records: []map[string]any{recordInterface}}
+	twoRecords := restclient.RestResponse{NumRecords: 2, Records: []map[string]any{recordInterface, secondRecordInterface}}
+	//genericError := errors.New("generic error for UT")
+	badRecordResponse := restclient.RestResponse{NumRecords: 1, Records: []map[string]any{badRecordInterface}}
+
+	var OneRecord = []SnapshotPolicyGetDataModelONTAP{basicSnapshotPolicyRecord}
+	var TwoRecords = []SnapshotPolicyGetDataModelONTAP{basicSnapshotPolicyRecord, twoSnapshotPolicyCopiesRecord}
+
+	responses := map[string][]restclient.MockResponse{
+		"test_no_records_1": {
+			{ExpectedMethod: "GET", ExpectedURL: "storage/snapshot-policies", StatusCode: 200, Response: noRecords, Err: nil},
+		},
+		"test_one_record_1": {
+
+			{ExpectedMethod: "GET", ExpectedURL: "storage/snapshot-policies", StatusCode: 200, Response: oneRecord, Err: nil},
+		},
+		"test_two_records_1": {
+			{ExpectedMethod: "GET", ExpectedURL: "storage/snapshot-policies", StatusCode: 200, Response: twoRecords, Err: nil},
+		},
+		"test_decode_error": {
+			{ExpectedMethod: "GET", ExpectedURL: "storage/snapshot-policies", StatusCode: 200, Response: badRecordResponse, Err: nil},
+		},
+	}
+	tests := []struct {
+		name      string
+		responses []restclient.MockResponse
+		// args      args
+		want    []SnapshotPolicyGetDataModelONTAP
+		wantErr bool
+	}{
+		{name: "test_no_records_1", responses: responses["test_no_records_1"], want: nil, wantErr: false},
+		{name: "test_one_record_1", responses: responses["test_one_record_1"], want: OneRecord, wantErr: false},
+		{name: "test_two_records_1", responses: responses["test_two_records_1"], want: TwoRecords, wantErr: false},
+		{name: "test_decode_error", responses: responses["test_decode_error"], want: nil, wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := restclient.NewMockedRestClient(tt.responses)
+			if err != nil {
+				panic(err)
+			}
+			got, err := GetSnapshotPolicies(errorHandler, *r, &SnapshotPolicyGetDataFilterModel{Name: ""})
+			if err != nil {
+				fmt.Printf("err: %s\n", err)
+			}
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetSnapshotPoliciesDataSource() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetSnapshotPoliciesDataSource() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGetSnapshotPolicyByName(t *testing.T) {
+	errorHandler := utils.NewErrorHandler(context.Background(), &diag.Diagnostics{})
+
+	var basicRecordInterface map[string]any
+	err := mapstructure.Decode(basicSnapshotPolicyRecord, &basicRecordInterface)
+	if err != nil {
+		panic(err)
+	}
+	var twoCopiesRecordInterface map[string]any
+	err = mapstructure.Decode(twoSnapshotPolicyCopiesRecord, &twoCopiesRecordInterface)
+	if err != nil {
+		panic(err)
+	}
+	var notEnabledRecordInterface map[string]any
+	err = mapstructure.Decode(notEnabledSnapshotPolicyRecord, &notEnabledRecordInterface)
+	if err != nil {
+		panic(err)
+	}
+	var badRecordInterface map[string]any
+	err = mapstructure.Decode(badSnapshotPolicyRecord, &badRecordInterface)
+	if err != nil {
+		panic(err)
+	}
+	noRecords := restclient.RestResponse{NumRecords: 0, Records: []map[string]any{}}
+	oneRecord := restclient.RestResponse{NumRecords: 1, Records: []map[string]any{basicRecordInterface}}
+	oneTwoCopiesRecord := restclient.RestResponse{NumRecords: 1, Records: []map[string]any{twoCopiesRecordInterface}}
+	oneNotEnabledRecord := restclient.RestResponse{NumRecords: 1, Records: []map[string]any{notEnabledRecordInterface}}
+	twoRecords := restclient.RestResponse{NumRecords: 2, Records: []map[string]any{basicRecordInterface, basicRecordInterface}}
+	genericError := errors.New("generic error for UT")
+	decodeError := restclient.RestResponse{NumRecords: 1, Records: []map[string]any{badRecordInterface}}
+	responses := map[string][]restclient.MockResponse{
+		"test_no_records_1": {
+			{ExpectedMethod: "GET", ExpectedURL: "storage/snapshot-policies", StatusCode: 200, Response: noRecords, Err: nil},
+		},
+		"test_one_record_1": {
+			{ExpectedMethod: "GET", ExpectedURL: "storage/snapshot-policies", StatusCode: 200, Response: oneRecord, Err: nil},
+		},
+		"test_two_copies_record_1": {
+			{ExpectedMethod: "GET", ExpectedURL: "storage/snapshot-policies", StatusCode: 200, Response: oneTwoCopiesRecord, Err: nil},
+		},
+		"test_one_not_enabled_record_1": {
+			{ExpectedMethod: "GET", ExpectedURL: "storage/snapshot-policies", StatusCode: 200, Response: oneNotEnabledRecord, Err: nil},
+		},
+		"test_two_records_error": {
+			{ExpectedMethod: "GET", ExpectedURL: "storage/snapshot-policies", StatusCode: 200, Response: twoRecords, Err: genericError},
+		},
+		"test_error_1": {
+			{ExpectedMethod: "GET", ExpectedURL: "storage/snapshot-policies", StatusCode: 200, Response: decodeError, Err: nil},
+		},
+	}
+	tests := []struct {
+		name      string
+		responses []restclient.MockResponse
+		want      *SnapshotPolicyGetDataModelONTAP
+		wantErr   bool
+	}{
+		{name: "test_no_records_1", responses: responses["test_no_records_1"], want: nil, wantErr: true},
+		{name: "test_one_record_1", responses: responses["test_one_record_1"], want: &basicSnapshotPolicyRecord, wantErr: false},
+		{name: "test_two_copies_record_1", responses: responses["test_two_copies_record_1"], want: &twoSnapshotPolicyCopiesRecord, wantErr: false},
+		{name: "test_one_not_enabled_record_1", responses: responses["test_one_not_enabled_record_1"], want: &notEnabledSnapshotPolicyRecord, wantErr: false},
+		{name: "test_two_records_error", responses: responses["test_two_records_error"], want: nil, wantErr: true},
+		{name: "test_error_1", responses: responses["test_error_1"], want: nil, wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := restclient.NewMockedRestClient(tt.responses)
+			if err != nil {
+				panic(err)
+			}
+			got, err := GetSnapshotPolicyByName(errorHandler, *r, "string")
+			if err != nil {
+				fmt.Printf("err: %s\n", err)
+			}
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetSnapshotPolicy() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetSnapshotPolicy() = %v, want %v", got, tt.want)
 			}
 		})
 	}

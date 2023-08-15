@@ -48,6 +48,12 @@ type Schedule struct {
 	Name string `mapstructure:"name"`
 }
 
+// SnapshotPolicyGetDataFilterModel describes filter model
+type SnapshotPolicyGetDataFilterModel struct {
+	Name    string `mapstructure:"name"`
+	SVMName string `mapstructure:"svm.name"`
+}
+
 // GetSnapshotPolicy to get storage_snapshot_policy info
 func GetSnapshotPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClient, id string) (*SnapshotPolicyGetDataModelONTAP, error) {
 	api := "storage/snapshot-policies"
@@ -71,11 +77,34 @@ func GetSnapshotPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClient
 	return &dataONTAP, nil
 }
 
-// GetSnapshotPolicies to get storage_snapshot_policy info for all resources matching a filter
-func GetSnapshotPolicies(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *SnapshotPolicyGetDataModelONTAP) ([]SnapshotPolicyGetDataModelONTAP, error) {
+// GetSnapshotPolicyByName to get storage_snapshot_policy info
+func GetSnapshotPolicyByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string) (*SnapshotPolicyGetDataModelONTAP, error) {
 	api := "storage/snapshot-policies"
 	query := r.NewQuery()
-	query.Fields([]string{"name", "svm.name", "scope", "enabled"})
+	query.Set("name", name)
+	query.Fields([]string{"name", "svm.name", "copies", "scope", "enabled", "comment"})
+	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading storage_snapshot_policy info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
+	}
+
+	var dataONTAP SnapshotPolicyGetDataModelONTAP
+	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
+		return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
+			fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read storage_snapshot_policy data source: %#v", dataONTAP))
+	return &dataONTAP, nil
+}
+
+// GetSnapshotPolicies to get storage_snapshot_policy info for all resources matching a filter
+func GetSnapshotPolicies(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *SnapshotPolicyGetDataFilterModel) ([]SnapshotPolicyGetDataModelONTAP, error) {
+	api := "storage/snapshot-policies"
+	query := r.NewQuery()
+	query.Fields([]string{"name", "svm.name", "copies", "scope", "enabled", "comment"})
 	if filter != nil {
 		var filterMap map[string]interface{}
 		if err := mapstructure.Decode(filter, &filterMap); err != nil {
