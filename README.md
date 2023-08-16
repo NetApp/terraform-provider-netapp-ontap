@@ -1,9 +1,9 @@
 <!-- markdownlint-disable first-line-h1 no-inline-html -->
 <a href="https://netapp.com">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/netapp-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset=".github/netapp-light.png">
-    <img src=".github/netapp-light.png" alt="NetApp logo" title="NetApp" align="right" height="400">
+    <source media="(prefers-color-scheme: dark)" srcset=".github/NTAP_BIG.D.png">
+    <source media="(prefers-color-scheme: light)" srcset=".github/NTAP_BIG.png">
+    <img src=".github/NTAP_BIG.png" alt="NetApp logo" title="NetApp" align="right" height="100">
   </picture>
 </a>
 
