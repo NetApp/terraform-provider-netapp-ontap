@@ -3,7 +3,7 @@
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset=".github/NTAP_BIG.D.png">
     <source media="(prefers-color-scheme: light)" srcset=".github/NTAP_BIG.png">
-    <img src=".github/NTAP_BIG.png" alt="NetApp logo" title="NetApp" align="right" height="50">
+    <img src=".github/NTAP_BIG.png" alt="NetApp logo" title="NetApp" align="right" height="100">
   </picture>
 </a>
 
