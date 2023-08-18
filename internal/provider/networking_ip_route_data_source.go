@@ -44,12 +44,6 @@ type DestinationDataSourceModel struct {
 	Netmask types.String `tfsdk:"netmask"`
 }
 
-// IPRouteDataSourceFilterModel describes the data source data model for queries.
-type IPRouteDataSourceFilterModel struct {
-	SVMName     types.String               `tfsdk:"svm.name"`
-	Destination DestinationDataSourceModel `tfsdk:"destination"`
-}
-
 // Metadata returns the data source type name.
 func (d *IPRouteDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + d.config.name
@@ -66,6 +60,10 @@ func (d *IPRouteDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 				MarkdownDescription: "Connection profile name",
 				Required:            true,
 			},
+			"svm_name": schema.StringAttribute{
+				MarkdownDescription: "IPInterface svm name",
+				Required:            true,
+			},
 			"destination": schema.SingleNestedAttribute{
 				Required:            true,
 				MarkdownDescription: "destination IP address information",
@@ -80,13 +78,9 @@ func (d *IPRouteDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 					},
 				},
 			},
-			"svm_name": schema.StringAttribute{
-				MarkdownDescription: "IPInterface svm name",
-				Optional:            true,
-			},
 			"gateway": schema.StringAttribute{
 				MarkdownDescription: "The IP address of the gateway router leading to the destination.",
-				Computed:            true,
+				Required:            true,
 			},
 			"metric": schema.Int64Attribute{
 				MarkdownDescription: "Indicates a preference order between several routes to the same destination.",
@@ -151,11 +145,11 @@ func (d *IPRouteDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		return
 	}
 
+	data.SVMName = types.StringValue(restInfo.SVMName.Name)
 	data.Destination.Address = types.StringValue(restInfo.Destination.Address)
 	data.Destination.Netmask = types.StringValue(restInfo.Destination.Netmask)
 	data.Gateway = types.StringValue(restInfo.Gateway)
 	data.Metric = types.Int64Value(restInfo.Metric)
-	data.SVMName = types.StringValue(restInfo.SVMName.Name)
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log

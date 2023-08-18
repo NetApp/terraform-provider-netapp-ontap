@@ -5,4 +5,5 @@ data "netapp-ontap_networking_ip_route_data_source" "networking_ip_route" {
     address = "0.0.0.0"
   }
   svm_name = "ansibleSVM"
+  gateway = "10.193.176.1"
 }
