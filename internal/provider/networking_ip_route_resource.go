@@ -253,6 +253,8 @@ func (r *IPRouteResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
+	tflog.Error(ctx, fmt.Sprintf("Update not supported by REST API for IP Routes"))
+
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
