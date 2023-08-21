@@ -1,5 +1,5 @@
 data "netapp-ontap_cluster_schedule_data_source" "cluster_schedule" {
-  cx_profile_name = "cluster2"
+  cx_profile_name = "cluster4"
   # name = "Application Templates ASUP Dump"
-  name = "mylistcron"
+  name = "Balanced Placement Model Cache Update"
 }

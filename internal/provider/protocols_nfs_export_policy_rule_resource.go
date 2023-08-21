@@ -252,8 +252,11 @@ func (r *ExportPolicyRuleResource) Create(ctx context.Context, req resource.Crea
 		request.NtfsUnixSecurity = data.NtfsUnixSecurity.ValueString()
 	}
 
-	filter := map[string]string{"name": data.ExportPolicyName.ValueString()}
-	exportPolicy, err := interfaces.GetExportPolicies(errorHandler, *client, &filter)
+	filter := map[string]string{
+		"name":     data.ExportPolicyName.ValueString(),
+		"svm.name": data.SVMName.ValueString(),
+	}
+	exportPolicy, err := interfaces.GetNfsExportPolicyByName(errorHandler, *client, &filter)
 	if err != nil {
 		return
 	}
@@ -295,8 +298,8 @@ func (r *ExportPolicyRuleResource) Read(ctx context.Context, req resource.ReadRe
 
 	var exportPolicyID string
 	if data.ExportPolicyID.IsNull() {
-		filter := map[string]string{"name": data.ExportPolicyName.ValueString()}
-		exportPolicy, err := interfaces.GetExportPolicies(errorHandler, *client, &filter)
+		filter := map[string]string{"name": data.ExportPolicyName.ValueString(), "svm.name": data.SVMName.ValueString()}
+		exportPolicy, err := interfaces.GetNfsExportPolicyByName(errorHandler, *client, &filter)
 		if err != nil {
 			return
 		}
@@ -378,8 +381,8 @@ func (r *ExportPolicyRuleResource) Update(ctx context.Context, req resource.Upda
 
 	var exportPolicyID string
 	if data.ExportPolicyID.IsNull() {
-		filter := map[string]string{"name": data.ExportPolicyName.ValueString()}
-		exportPolicy, err := interfaces.GetExportPolicies(errorHandler, *client, &filter)
+		filter := map[string]string{"name": data.ExportPolicyName.ValueString(), "svm.name": data.SVMName.ValueString()}
+		exportPolicy, err := interfaces.GetNfsExportPolicyByName(errorHandler, *client, &filter)
 		if err != nil {
 			return
 		}
@@ -460,8 +463,8 @@ func (r *ExportPolicyRuleResource) Delete(ctx context.Context, req resource.Dele
 
 	var exportPolicyID string
 	if data.ExportPolicyID.IsNull() {
-		filter := map[string]string{"name": data.ExportPolicyName.ValueString()}
-		exportPolicy, err := interfaces.GetExportPolicies(errorHandler, *client, &filter)
+		filter := map[string]string{"name": data.ExportPolicyName.ValueString(), "svm.name": data.SVMName.ValueString()}
+		exportPolicy, err := interfaces.GetNfsExportPolicyByName(errorHandler, *client, &filter)
 		if err != nil {
 			return
 		}

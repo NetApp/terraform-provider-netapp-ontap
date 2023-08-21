@@ -65,7 +65,7 @@ func (d *ExportPolicyRuleDataSource) Schema(ctx context.Context, req datasource.
 				MarkdownDescription: "Connection profile name",
 				Required:            true,
 			},
-			"svm": schema.StringAttribute{
+			"svm_name": schema.StringAttribute{
 				MarkdownDescription: "Name of the svm to use",
 				Required:            true,
 			},
@@ -177,8 +177,11 @@ func (d *ExportPolicyRuleDataSource) Read(ctx context.Context, req datasource.Re
 
 	var exportPolicyID string
 	if data.ExportPolicyID.IsNull() {
-		filter := map[string]string{"name": data.ExportPolicyName.ValueString()}
-		exportPolicy, err := interfaces.GetExportPolicies(errorHandler, *client, &filter)
+		filter := map[string]string{
+			"name":     data.ExportPolicyName.ValueString(),
+			"svm.name": data.SVMName.ValueString(),
+		}
+		exportPolicy, err := interfaces.GetNfsExportPolicyByName(errorHandler, *client, &filter)
 		if err != nil {
 			return
 		}

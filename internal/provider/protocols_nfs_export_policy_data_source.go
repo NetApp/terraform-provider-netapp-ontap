@@ -39,6 +39,12 @@ type ExportPolicyDataSourceModel struct {
 	ID            types.String `tfsdk:"id"`
 }
 
+// ExportPolicyDataSourceFilterModel describes the data source data model for queries.
+type ExportPolicyDataSourceFilterModel struct {
+	Name    types.String `tfsdk:"name"`
+	SVMName types.String `tfsdk:"svm_name"`
+}
+
 // Metadata returns the resource type name.
 func (d *ExportPolicyDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + d.config.name
@@ -106,8 +112,11 @@ func (d *ExportPolicyDataSource) Read(ctx context.Context, req datasource.ReadRe
 		return
 	}
 
-	filter := map[string]string{"name": data.Name.ValueString()}
-	exportPolicy, err := interfaces.GetExportPolicies(errorHandler, *client, &filter)
+	filter := map[string]string{
+		"name":     data.Name.ValueString(),
+		"svm.name": data.SVMName.ValueString(),
+	}
+	exportPolicy, err := interfaces.GetNfsExportPolicyByName(errorHandler, *client, &filter)
 	if err != nil {
 		return
 	}

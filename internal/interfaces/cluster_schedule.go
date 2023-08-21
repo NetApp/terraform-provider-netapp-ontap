@@ -36,6 +36,11 @@ type ClusterScheduleResourceBodyDataModelONTAP struct {
 	Interval string       `mapstructure:"interval,omitempty"`
 }
 
+// ClusterScheduleFilterModel describes filter model.
+type ClusterScheduleFilterModel struct {
+	Type string `mapstructure:"type"`
+}
+
 // GetClusterSchedule to get a single schedule info
 func GetClusterSchedule(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string) (*ClusterScheduleGetDataModelONTAP, error) {
 	query := r.NewQuery()
@@ -61,6 +66,47 @@ func GetClusterSchedule(errorHandler *utils.ErrorHandler, r restclient.RestClien
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read cluster/schedules data source: %#v", dataONTAP))
 	return &dataONTAP, nil
+}
+
+// GetListClusterSchedules to get cluster_schedule info for all resources matching a filter
+func GetListClusterSchedules(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *ClusterScheduleFilterModel) ([]ClusterScheduleGetDataModelONTAP, error) {
+	api := "cluster/schedules"
+	query := r.NewQuery()
+
+	if filter != nil {
+		query.Set("type", filter.Type)
+	}
+
+	query.Fields([]string{"name", "uuid", "cron", "interval", "type", "scope"})
+
+	if filter != nil {
+		var filterMap map[string]interface{}
+		if err := mapstructure.Decode(filter, &filterMap); err != nil {
+			return nil, errorHandler.MakeAndReportError("error decoding schedule filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
+		}
+		query.SetValues(filterMap)
+	}
+
+	statusCode, response, err := r.GetZeroOrMoreRecords(api, query, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading cluster_schedule info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
+	}
+
+	var dataONTAP []ClusterScheduleGetDataModelONTAP
+	for _, info := range response {
+		var record ClusterScheduleGetDataModelONTAP
+		if err := mapstructure.Decode(info, &record); err != nil {
+			return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
+				fmt.Sprintf("error: %s, statusCode %d, info %#v", err, statusCode, info))
+		}
+		dataONTAP = append(dataONTAP, record)
+	}
+
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read protcols_nfs_service data source: %#v", dataONTAP))
+	return dataONTAP, nil
 }
 
 // CreateClusterSchedule to create job schedule
