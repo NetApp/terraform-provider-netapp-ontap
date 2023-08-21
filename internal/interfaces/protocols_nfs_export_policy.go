@@ -12,15 +12,21 @@ import (
 // ExportpolicyResourceModel describes the resource data model.
 type ExportpolicyResourceModel struct {
 	Name string            `mapstructure:"name"`
-	Svm  SvmDataModelONTAP `mapstructure:"svm,omitempty"`
-	ID   int               `mapstructure:"id,omitempty"`
+	Svm  SvmDataModelONTAP `mapstructure:"svm"`
+	ID   int               `mapstructure:"id"`
 }
 
 // ExportPolicyGetDataModelONTAP describes the GET record data model using go types for mapping.
 type ExportPolicyGetDataModelONTAP struct {
-	Name string
-	Svm  SvmDataModelONTAP
-	ID   int
+	Name string `mapstructure:"name"`
+	Svm  string `mapstructure:"svm_name"`
+	ID   int    `mapstructure:"id"`
+}
+
+// ExportPolicyGetDataFilterModel describes filter model
+type ExportPolicyGetDataFilterModel struct {
+	Name    string `mapstructure:"name"`
+	SVMName string `mapstructure:"svm.name"`
 }
 
 // CreateExportPolicy to create export policy
@@ -63,8 +69,8 @@ func GetExportPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClient, 
 	return &dataONTAP, nil
 }
 
-// GetExportPolicies to get export policy by name
-func GetExportPolicies(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter interface{}) (*ExportPolicyGetDataModelONTAP, error) {
+// GetNfsExportPolicyByName to get export policy by filter
+func GetNfsExportPolicyByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter interface{}) (*ExportPolicyGetDataModelONTAP, error) {
 	query := r.NewQuery()
 	query.Fields([]string{"name"})
 	if filter != nil {
@@ -85,6 +91,39 @@ func GetExportPolicies(errorHandler *utils.ErrorHandler, r restclient.RestClient
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read export policy source - udata: %#v", dataONTAP))
 	return &dataONTAP, nil
+}
+
+// GetExportPoliciesList to get export policies
+func GetExportPoliciesList(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *ExportPolicyGetDataFilterModel) ([]ExportpolicyResourceModel, error) {
+	api := "protocols/nfs/export-policies"
+	query := r.NewQuery()
+	query.Fields([]string{"name", "id", "svm.name", "svm.uuid"})
+	if filter != nil {
+		var filterMap map[string]interface{}
+		if err := mapstructure.Decode(filter, &filterMap); err != nil {
+			return nil, errorHandler.MakeAndReportError("error encoding export policies filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
+		}
+		query.SetValues(filterMap)
+	}
+	statusCode, response, err := r.GetZeroOrMoreRecords(api, query, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading export policies info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
+	}
+
+	var dataONTAP []ExportpolicyResourceModel
+	for _, info := range response {
+		var record ExportpolicyResourceModel
+		if err := mapstructure.Decode(info, &record); err != nil {
+			return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
+				fmt.Sprintf("error: %s, statusCode %d, info %#v", err, statusCode, info))
+		}
+		dataONTAP = append(dataONTAP, record)
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read export policies data source: %#v", dataONTAP))
+	return dataONTAP, nil
 }
 
 // DeleteExportPolicy to delete export policy
