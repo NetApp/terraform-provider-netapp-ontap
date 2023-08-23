@@ -106,6 +106,11 @@ type UpdateTransferScheduleType struct {
 	UUID string `mapstructure:"uuid,omitempty"`
 }
 
+// SnapmirrorPolicyFilterModel describes filter model
+type SnapmirrorPolicyFilterModel struct {
+	Name string `mapstructure:"name"`
+}
+
 // GetSnapmirrorPolicy by ID
 func GetSnapmirrorPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClient, id string) (*SnapmirrorPolicyGetRawDataModelONTAP, error) {
 	api := "snapmirror/policies/" + id
@@ -153,6 +158,83 @@ func GetSnapmirrorPolicyByName(errorHandler *utils.ErrorHandler, r restclient.Re
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read snapmirror/policies data source: %#v", dataONTAP))
 	// If retention is [] we need to convert it to nil for Terrafrom to work correct
 	return &dataONTAP, nil
+}
+
+// GetSnapmirrorPolicyDataSourceByName to get snapmirror policy data source info by name
+func GetSnapmirrorPolicyDataSourceByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, version versionModelONTAP) (*SnapmirrorPolicyGetRawDataModelONTAP, error) {
+	api := "snapmirror/policies"
+	query := r.NewQuery()
+	query.Set("name", name)
+
+	fields := []string{"name", "svm.name", "type", "comment", "transfer_schedule", "network_compression_enabled",
+		"retention", "identity_preservation", "uuid", "create_snapshot_on_source", "transfer_schedule.name", "sync_type"}
+	if version.Generation == 9 && version.Major > 9 {
+		fields = append(fields, "copy_all_source_snapshots")
+	}
+	if version.Generation == 9 && version.Major > 10 {
+		fields = append(fields, "create_snapshot_on_source", "copy_latest_source_snapshot")
+	}
+	query.Fields(fields)
+
+	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading snapmirror/policies info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
+	}
+
+	var dataONTAP SnapmirrorPolicyGetRawDataModelONTAP
+
+	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
+		return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
+			fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read snapmirror/policies data source: %#v", dataONTAP))
+
+	return &dataONTAP, nil
+}
+
+// GetSnapmirrorPolicies to get list of policies
+func GetSnapmirrorPolicies(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *SnapmirrorPolicyFilterModel, version versionModelONTAP) ([]SnapmirrorPolicyGetRawDataModelONTAP, error) {
+	api := "snapmirror/policies"
+	query := r.NewQuery()
+
+	fields := []string{"name", "svm.name", "type", "comment", "transfer_schedule", "network_compression_enabled",
+		"retention", "identity_preservation", "uuid", "create_snapshot_on_source", "transfer_schedule.name", "sync_type"}
+	if version.Generation == 9 && version.Major > 9 {
+		fields = append(fields, "copy_all_source_snapshots")
+	}
+	if version.Generation == 9 && version.Major > 10 {
+		fields = append(fields, "create_snapshot_on_source", "copy_latest_source_snapshot")
+	}
+	query.Fields(fields)
+	if filter != nil {
+		var filterMap map[string]interface{}
+		if err := mapstructure.Decode(filter, &filterMap); err != nil {
+			return nil, errorHandler.MakeAndReportError("error encoding snapmirror/policies filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
+		}
+		query.SetValues(filterMap)
+	}
+	statusCode, response, err := r.GetZeroOrMoreRecords(api, query, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading snapmirror/policies info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
+	}
+
+	var dataONTAP []SnapmirrorPolicyGetRawDataModelONTAP
+	for _, info := range response {
+		var record SnapmirrorPolicyGetRawDataModelONTAP
+		if err := mapstructure.Decode(info, &record); err != nil {
+			return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
+				fmt.Sprintf("error: %s, statusCode %d, info %#v", err, statusCode, info))
+		}
+		dataONTAP = append(dataONTAP, record)
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read protcols_nfs_service data source: %#v", dataONTAP))
+	return dataONTAP, nil
 }
 
 // CreateSnapmirrorPolicy to create snapmirror policy
