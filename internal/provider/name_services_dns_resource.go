@@ -43,7 +43,7 @@ type NameServicesDNSResource struct {
 type NameServicesDNSResourceModel struct {
 	CxProfileName types.String   `tfsdk:"cx_profile_name"`
 	SVMName       types.String   `tfsdk:"svm_name"`
-	SVMUUID       types.String   `tfsdk:"svm_uuid"`
+	ID            types.String   `tfsdk:"id"`
 	Domains       []types.String `tfsdk:"dns_domains"`
 	NameServers   []types.String `tfsdk:"name_servers"`
 }
@@ -68,7 +68,7 @@ func (r *NameServicesDNSResource) Schema(ctx context.Context, req resource.Schem
 				MarkdownDescription: "IPInterface svm name",
 				Required:            true,
 			},
-			"svm_uuid": schema.StringAttribute{
+			"id": schema.StringAttribute{
 				MarkdownDescription: "UUID of svm",
 				Computed:            true,
 			},
@@ -132,7 +132,7 @@ func (r *NameServicesDNSResource) Read(ctx context.Context, req resource.ReadReq
 	}
 
 	data.SVMName = types.StringValue(restInfo.SVM.Name)
-	data.SVMUUID = types.StringValue(restInfo.SVM.UUID)
+	data.ID = types.StringValue(restInfo.SVM.UUID)
 	var servers []types.String
 	for _, v := range restInfo.Servers {
 		servers = append(data.NameServers, types.StringValue(v))
@@ -167,7 +167,7 @@ func (r *NameServicesDNSResource) Create(ctx context.Context, req resource.Creat
 	}
 
 	body.SVM.Name = data.SVMName.ValueString()
-	body.SVM.UUID = data.SVMUUID.ValueString()
+	body.SVM.UUID = data.ID.ValueString()
 	var servers, domains []string
 	for _, v := range data.NameServers {
 		servers = append(servers, v.ValueString())
