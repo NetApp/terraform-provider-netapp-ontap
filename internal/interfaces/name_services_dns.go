@@ -27,6 +27,7 @@ type NameServicesDNSGetDataModelONTAP struct {
 func GetNameServicesDNS(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmName string) (*NameServicesDNSGetDataModelONTAP, error) {
 	api := "name-services/dns"
 	query := r.NewQuery()
+	query.Set("svm.name", svmName)
 	query.Fields([]string{"domains", "servers"})
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
