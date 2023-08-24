@@ -25,7 +25,7 @@ data "netapp-ontap_protocols_nfs_export_policy_data_source" "export_policy" {
 
 - `cx_profile_name` (String) Connection profile name
 - `name` (String) Export policy name
-- `svm_name` (String) Name of the svm name to use
+- `svm_name` (String) Name of the svm to use
 
 ### Read-Only
 
