@@ -19,7 +19,7 @@ func TestAccStorageSnapshotPolicyResource(t *testing.T) {
 				Config:      testAccStorageSnapshotPolicyResourceConfig("non-existant", "unknowsvm", "wrong case", false),
 				ExpectError: regexp.MustCompile("error creating storage_snapshot_policy"),
 			},
-			// Create create storage snapshot policy and read
+			// Create storage snapshot policy and read
 			{
 				Config: testAccStorageSnapshotPolicyResourceConfig("tf-sn-policy", "carchi-test", "create a test snapshot policy", true),
 				Check: resource.ComposeTestCheckFunc(
