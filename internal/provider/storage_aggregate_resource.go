@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -282,6 +281,14 @@ func (r *AggregateResource) Create(ctx context.Context, req resource.CreateReque
 	aggregate, err := interfaces.CreateStorageAggregate(errorHandler, *client, request, diskSize)
 	if err != nil {
 		return
+	}
+
+	// ONTAP will return the aggregate state as "onlining" when it is being created, Encryption is not enabled until the aggregate is online.
+	// So we need to wait until the aggregate is online.
+	waitTime := 1
+	for aggregate.State == "onlining" {
+		aggregate, err = interfaces.GetStorageAggregate(errorHandler, *client, aggregate.UUID)
+		waitTime = ExpontentialBackoff(waitTime, 360)
 	}
 
 	data.ID = types.StringValue(aggregate.UUID)

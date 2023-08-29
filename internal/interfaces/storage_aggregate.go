@@ -2,12 +2,11 @@ package interfaces
 
 import (
 	"fmt"
-	"strconv"
-
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
+	"strconv"
 )
 
 // StorageAggregateGetDataModelONTAP describes the GET record data model using go types for mapping.
