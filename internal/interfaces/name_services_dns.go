@@ -2,19 +2,13 @@ package interfaces
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
-
-// TODO:
-// copy this file to match you data source (should match internal/interfaces/name_services_dns.go)
-// replace NameServicesDNS with the name of the resource, following go conventions, eg IPInterface
-// replace name_services_dns with the name of the resource, for logging purposes, eg ip_interface
-// replace api_url with API, eg ip/interfaces
-// delete these 5 lines
 
 // NameServicesDNSGetDataModelONTAP describes the GET record data model using go types for mapping.
 type NameServicesDNSGetDataModelONTAP struct {
@@ -23,11 +17,18 @@ type NameServicesDNSGetDataModelONTAP struct {
 	SVM     SvmDataModelONTAP `mapstructure:"svm"`
 }
 
+// NameServicesDNSDataSourceFilterModel describes filter model.
+type NameServicesDNSDataSourceFilterModel struct {
+	SVMName string `tfsdk:"svm_name"`
+	Domains string `tfsdk:"domains"`
+	Servers string `tfsdk:"servers"`
+}
+
 // GetNameServicesDNS to get name_services_dns info
 func GetNameServicesDNS(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmName string) (*NameServicesDNSGetDataModelONTAP, error) {
 	api := "name-services/dns"
 	query := r.NewQuery()
-	query.Set("svm.name", svmName)
+	query.Add("svm.name", svmName)
 	query.Fields([]string{"domains", "servers"})
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
@@ -44,6 +45,47 @@ func GetNameServicesDNS(errorHandler *utils.ErrorHandler, r restclient.RestClien
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read name_services_dns data source: %#v", dataONTAP))
 	return &dataONTAP, nil
+}
+
+// GetListNameServicesDNSs to get name_services_dnss info
+func GetListNameServicesDNSs(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *NameServicesDNSDataSourceFilterModel) ([]NameServicesDNSGetDataModelONTAP, error) {
+	api := "name-services/dns"
+	query := r.NewQuery()
+
+	if filter != nil {
+		if filter.SVMName != "" {
+			query.Add("svm.name", strings.ToLower(filter.SVMName))
+		}
+		if filter.Domains != "" {
+			query.Add("domains", strings.ToLower(filter.Domains))
+		}
+		if filter.Servers != "" {
+			query.Add("servers", strings.ToLower(filter.Servers))
+		}
+	}
+
+	query.Fields([]string{"svm.name", "domains", "servers"})
+
+	statusCode, response, err := r.GetZeroOrMoreRecords(api, query, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading name_services_dns info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
+	}
+
+	var dataONTAP []NameServicesDNSGetDataModelONTAP
+	for _, info := range response {
+		var record NameServicesDNSGetDataModelONTAP
+		if err := mapstructure.Decode(info, &record); err != nil {
+			return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
+				fmt.Sprintf("error: %s, statusCode %d, info %#v", err, statusCode, info))
+		}
+		dataONTAP = append(dataONTAP, record)
+	}
+
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read name_services_dns data source: %#v", dataONTAP))
+	return dataONTAP, nil
 }
 
 // CreateNameServicesDNS Create a new DNS service
