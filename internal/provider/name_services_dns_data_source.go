@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -35,11 +36,6 @@ type NameServicesDNSDataSourceModel struct {
 	SVMUUID       types.String   `tfsdk:"svm_uuid"`
 	Domains       []types.String `tfsdk:"dns_domains"`
 	NameServers   []types.String `tfsdk:"name_servers"`
-}
-
-// NameServicesDNSDataSourceFilterModel describes the data source data model for queries.
-type NameServicesDNSDataSourceFilterModel struct {
-	SVMName types.String `tfsdk:"svm.name"`
 }
 
 // Metadata returns the data source type name.

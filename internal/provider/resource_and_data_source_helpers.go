@@ -37,3 +37,16 @@ func flattenTypesInt64List(clist []int64) []types.Int64 {
 
 	return cronUnits
 }
+
+// func flattenTypesStringList(terraformStringsList []string) interface{} {
+func flattenTypesStringList(terraformStringsList []string) []types.String {
+	if len(terraformStringsList) == 0 {
+		return nil
+	}
+	stringsList := make([]types.String, len(terraformStringsList))
+	for index, record := range terraformStringsList {
+		stringsList[index] = types.StringValue(record)
+	}
+
+	return stringsList
+}
