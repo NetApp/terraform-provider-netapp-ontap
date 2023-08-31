@@ -6,9 +6,27 @@ description: |-
   IPInterface resource
 ---
 
-# netapp-ontap_networking_ip_interface_resource (Resource)
+# Resource netapp-ontap_networking_ip_interface_resource
 
-IPInterface resource
+Create/Update/Delete an IPInterface resource
+
+## Example Usage
+
+```terraform
+resource "netapp-ontap_networking_ip_interface_resource" "example" {
+	cx_profile_name = "cluster4"
+	name = "test-interface"
+	svm_name = "carchi-test"
+  	ip = {
+    	address = "10.10.10.10"
+    	netmask = 18
+    }
+  	location = {
+    	home_port = "e0d"
+    	home_node = "ontap_cluster_1-01"
+  	}
+}
+```
 
 
 
