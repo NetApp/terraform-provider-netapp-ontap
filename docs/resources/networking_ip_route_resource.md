@@ -6,7 +6,7 @@ description: |-
   Route resource
 ---
 
-# Resouce netapp-ontap_networking_ip_route_resource
+# Resource netapp-ontap_networking_ip_route_resource
 
 Create/Delete an IP Route resource
 
