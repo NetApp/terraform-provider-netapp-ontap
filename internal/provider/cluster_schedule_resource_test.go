@@ -19,7 +19,7 @@ func TestAccClusterScheduleResource(t *testing.T) {
 				Config:      testAccClusterScheduleResourceIntervalConfig("non-existant", "wrongvalue"),
 				ExpectError: regexp.MustCompile("error creating cluster_schedule"),
 			},
-			// Create intervale and read
+			// Create interval and read
 			{
 				Config: testAccClusterScheduleResourceIntervalConfig("tf-interval-schedule-test", "PT8M30S"),
 				Check: resource.ComposeTestCheckFunc(

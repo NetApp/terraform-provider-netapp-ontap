@@ -5,10 +5,16 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -52,6 +58,7 @@ type ExportPolicyRuleResourceModel struct {
 	ClientsMatch        []types.String `tfsdk:"clients_match"`
 	Index               types.Int64    `tfsdk:"index"`
 	ExportPolicyName    types.String   `tfsdk:"export_policy_name"`
+	ID                  types.String   `tfsdk:"id"`
 }
 
 // Metadata returns the resource type name.
@@ -85,50 +92,82 @@ func (r *ExportPolicyRuleResource) Schema(ctx context.Context, req resource.Sche
 				Required:            true,
 				MarkdownDescription: "Export policy name",
 			},
-			"ro_rule": schema.ListAttribute{
-				Optional:            true,
+			"ro_rule": schema.SetAttribute{
+				Required:            true,
 				MarkdownDescription: "RO Access Rule",
 				ElementType:         types.StringType,
 			},
-			"rw_rule": schema.ListAttribute{
-				Optional:            true,
+			"rw_rule": schema.SetAttribute{
+				Required:            true,
 				MarkdownDescription: "RW Access Rule",
 				ElementType:         types.StringType,
 			},
-			"clients_match": schema.ListAttribute{
+			"clients_match": schema.SetAttribute{
 				Required:            true,
 				MarkdownDescription: "List of Client Match Hostnames, IP Addresses, Netgroups, or Domains",
 				ElementType:         types.StringType,
 			},
-			"protocols": schema.ListAttribute{
-				Optional:            true,
+			"protocols": schema.SetAttribute{
+				Optional: true,
+				Computed: true,
+				// {"any"}
+				Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{types.StringValue("any")})),
 				MarkdownDescription: "Access Protocol",
 				ElementType:         types.StringType,
+				PlanModifiers:       []planmodifier.Set{setplanmodifier.UseStateForUnknown()},
 			},
 			"anonymous_user": schema.StringAttribute{
 				MarkdownDescription: "User ID To Which Anonymous Users Are Mapped",
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("65534"),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
-			"superuser": schema.ListAttribute{
+			"superuser": schema.SetAttribute{
 				MarkdownDescription: "Superuser Security Types",
 				Optional:            true,
+				Computed:            true,
+				Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{types.StringValue("any")})),
 				ElementType:         types.StringType,
+				PlanModifiers:       []planmodifier.Set{setplanmodifier.UseStateForUnknown()},
 			},
 			"allow_device_creation": schema.BoolAttribute{
 				MarkdownDescription: "Allow Creation of Devices",
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"ntfs_unix_security": schema.StringAttribute{
 				MarkdownDescription: "NTFS export UNIX security options",
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("fail"),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"chown_mode": schema.StringAttribute{
 				MarkdownDescription: "Specifies who is authorized to change the ownership mode of a file",
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("restricted"),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"allow_suid": schema.BoolAttribute{
 				MarkdownDescription: "Honor SetUID Bits in SETATTR",
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"index": schema.Int64Attribute{
 				MarkdownDescription: "rule index",
@@ -136,6 +175,9 @@ func (r *ExportPolicyRuleResource) Schema(ctx context.Context, req resource.Sche
 				PlanModifiers: []planmodifier.Int64{
 					IntUseStateForUnknown(),
 				},
+			},
+			"id": schema.StringAttribute{
+				Computed: true,
 			},
 		},
 	}
@@ -203,7 +245,7 @@ func (r *ExportPolicyRuleResource) Create(ctx context.Context, req resource.Crea
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-	var request interfaces.ExportpolicyRuleResourceModel
+	var request interfaces.ExportpolicyRuleResourceBodyDataModelONTAP
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -232,8 +274,12 @@ func (r *ExportPolicyRuleResource) Create(ctx context.Context, req resource.Crea
 	}
 	request.RoRule = roRule
 	request.RwRule = rwRule
-	request.Protocols = protocols
-	request.Superuser = superuser
+	if len(protocols) > 0 {
+		request.Protocols = protocols
+	}
+	if len(superuser) > 0 {
+		request.Superuser = superuser
+	}
 
 	//optional params
 	if !data.AnonymousUser.IsNull() {
@@ -257,6 +303,7 @@ func (r *ExportPolicyRuleResource) Create(ctx context.Context, req resource.Crea
 		"svm.name": data.SVMName.ValueString(),
 	}
 	exportPolicy, err := interfaces.GetNfsExportPolicyByName(errorHandler, *client, &filter)
+
 	if err != nil {
 		return
 	}
@@ -269,9 +316,10 @@ func (r *ExportPolicyRuleResource) Create(ctx context.Context, req resource.Crea
 	if err != nil {
 		return
 	}
+
 	data.Index = types.Int64Value(exportPolicyRule.Index)
 	data.ExportPolicyID = types.StringValue(strconv.Itoa(exportPolicy.ID))
-
+	data.ID = types.StringValue(fmt.Sprintf("%s_%s_%s_%d", data.CxProfileName.ValueString(), data.SVMName.ValueString(), data.ExportPolicyName.ValueString(), exportPolicyRule.Index))
 	tflog.Trace(ctx, "created a resource")
 
 	// Save data into Terraform state
@@ -299,7 +347,9 @@ func (r *ExportPolicyRuleResource) Read(ctx context.Context, req resource.ReadRe
 	var exportPolicyID string
 	if data.ExportPolicyID.IsNull() {
 		filter := map[string]string{"name": data.ExportPolicyName.ValueString(), "svm.name": data.SVMName.ValueString()}
+
 		exportPolicy, err := interfaces.GetNfsExportPolicyByName(errorHandler, *client, &filter)
+
 		if err != nil {
 			return
 		}
@@ -382,7 +432,9 @@ func (r *ExportPolicyRuleResource) Update(ctx context.Context, req resource.Upda
 	var exportPolicyID string
 	if data.ExportPolicyID.IsNull() {
 		filter := map[string]string{"name": data.ExportPolicyName.ValueString(), "svm.name": data.SVMName.ValueString()}
+
 		exportPolicy, err := interfaces.GetNfsExportPolicyByName(errorHandler, *client, &filter)
+
 		if err != nil {
 			return
 		}
@@ -391,7 +443,7 @@ func (r *ExportPolicyRuleResource) Update(ctx context.Context, req resource.Upda
 		exportPolicyID = data.ExportPolicyID.ValueString()
 	}
 
-	var request interfaces.ExportpolicyRuleResourceModel
+	var request interfaces.ExportpolicyRuleResourceBodyDataModelONTAP
 
 	var roRule, rwRule, protocols, superuser []string
 	for _, e := range data.RoRule {
@@ -435,6 +487,7 @@ func (r *ExportPolicyRuleResource) Update(ctx context.Context, req resource.Upda
 	if err != nil {
 		return
 	}
+	data.ID = types.StringValue(fmt.Sprintf("%s_%s_%s_%d", data.CxProfileName.ValueString(), data.SVMName.ValueString(), data.ExportPolicyName.ValueString(), data.Index.ValueInt64()))
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -464,7 +517,9 @@ func (r *ExportPolicyRuleResource) Delete(ctx context.Context, req resource.Dele
 	var exportPolicyID string
 	if data.ExportPolicyID.IsNull() {
 		filter := map[string]string{"name": data.ExportPolicyName.ValueString(), "svm.name": data.SVMName.ValueString()}
+
 		exportPolicy, err := interfaces.GetNfsExportPolicyByName(errorHandler, *client, &filter)
+
 		if err != nil {
 			return
 		}

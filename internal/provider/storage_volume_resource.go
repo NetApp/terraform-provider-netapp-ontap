@@ -363,7 +363,7 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 
 	if !data.QOSPolicyGroup.IsNull() && !data.QOSAdaptivePolicyGroup.IsNull() {
 		errorHandler.MakeAndReportError("error creating volume",
-			fmt.Sprintf("with Rest API qos_policy_group and qos_adaptive_policy_group are now the same thing and cannot be set at the same time"))
+			"with Rest API qos_policy_group and qos_adaptive_policy_group are now the same thing and cannot be set at the same time")
 		return
 	}
 
