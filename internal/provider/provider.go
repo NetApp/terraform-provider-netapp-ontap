@@ -142,6 +142,7 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 // Resources defines the provider's resources.
 func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
+		NewAggregateResource,
 		NewClusterLicensingLicenseResource,
 		NewClusterScheduleResource,
 		NewExampleResource,
@@ -157,7 +158,6 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		NewStorageVolumeResource,
 		NewStorageVolumeSnapshotResource,
 		NewSvmResource,
-		NewAggregateResource,
 	}
 }
 
