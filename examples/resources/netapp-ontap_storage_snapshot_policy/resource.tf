@@ -1,9 +1,9 @@
 resource "netapp-ontap_storage_snapshot_policy_resource" "storage_snapshot_policy" {
   # required to know which system to interface with
-  cx_profile_name = "cluster2"
+  cx_profile_name = "cluster4"
   name = "testmesnapshotpolicy"
-  svm_name = "tfSVM"
-  comment = "This is a test for tf snapshot policy"
+  svm_name = "abc-test"
+  comment = "This is a test for tf snapshot policy upate"
   enabled = false
   copies = [
     {
