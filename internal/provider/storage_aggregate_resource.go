@@ -288,6 +288,9 @@ func (r *AggregateResource) Create(ctx context.Context, req resource.CreateReque
 	waitTime := 1
 	for aggregate.State == "onlining" {
 		aggregate, err = interfaces.GetStorageAggregate(errorHandler, *client, aggregate.UUID)
+		if err != nil {
+			return
+		}
 		waitTime = ExpontentialBackoff(waitTime, 360)
 	}
 
