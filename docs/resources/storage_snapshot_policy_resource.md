@@ -42,7 +42,7 @@ resource "netapp-ontap_storage_snapshot_policy_resource" "storage_snapshot_polic
 
 ### Required
 
-- `copies` (Attributes List) Snapshot copy (see [below for nested schema](#nestedatt--copies))
+- `copies` (Attributes Set) Snapshot copy (see [below for nested schema](#nestedatt--copies))
 - `cx_profile_name` (String) Connection profile name
 - `name` (String) SnapshotPolicy name
 

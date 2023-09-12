@@ -83,27 +83,27 @@ func (r *ClusterScheduleResource) Schema(ctx context.Context, req resource.Schem
 			},
 			"cron": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
-					"minutes": schema.ListAttribute{
+					"minutes": schema.SetAttribute{
 						ElementType:         types.Int64Type,
 						MarkdownDescription: "List of cluster schedule minutes",
 						Optional:            true,
 					},
-					"hours": schema.ListAttribute{
+					"hours": schema.SetAttribute{
 						ElementType:         types.Int64Type,
 						MarkdownDescription: "List of cluster schedule hours",
 						Optional:            true,
 					},
-					"days": schema.ListAttribute{
+					"days": schema.SetAttribute{
 						ElementType:         types.Int64Type,
 						MarkdownDescription: "List of cluster schedule days",
 						Optional:            true,
 					},
-					"weekdays": schema.ListAttribute{
+					"weekdays": schema.SetAttribute{
 						ElementType:         types.Int64Type,
 						MarkdownDescription: "List of cluster schedule weekdays",
 						Optional:            true,
 					},
-					"months": schema.ListAttribute{
+					"months": schema.SetAttribute{
 						ElementType:         types.Int64Type,
 						MarkdownDescription: "List of cluster schedule months",
 						Optional:            true,

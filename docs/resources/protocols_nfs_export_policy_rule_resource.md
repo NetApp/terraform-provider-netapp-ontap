@@ -14,12 +14,10 @@ Export policy rule resource
 resource "netapp-ontap_protocols_nfs_export_policy_rule_resource" "example" {
   cx_profile_name = "cluster4"
   svm_name = "svm0"
-  export_policy_name = "export_policy"
+  export_policy_name = "default"
   clients_match = ["0.0.0.0/0"]
-  protocols = ["any"]
   ro_rule =  ["any"]
   rw_rule =  ["none"]
-  superuser = ["none"]
 }
 ```
 
@@ -28,9 +26,11 @@ resource "netapp-ontap_protocols_nfs_export_policy_rule_resource" "example" {
 
 ### Required
 
-- `clients_match` (List of String) List of Client Match Hostnames, IP Addresses, Netgroups, or Domains
+- `clients_match` (Set of String) List of Client Match Hostnames, IP Addresses, Netgroups, or Domains
 - `cx_profile_name` (String) Connection profile name
 - `export_policy_name` (String) Export policy name
+- `ro_rule` (Set of String) RO Access Rule
+- `rw_rule` (Set of String) RW Access Rule
 - `svm_name` (String) Name of the svm to use
 
 ### Optional
@@ -40,14 +40,13 @@ resource "netapp-ontap_protocols_nfs_export_policy_rule_resource" "example" {
 - `anonymous_user` (String) User ID To Which Anonymous Users Are Mapped
 - `chown_mode` (String) Specifies who is authorized to change the ownership mode of a file
 - `ntfs_unix_security` (String) NTFS export UNIX security options
-- `protocols` (List of String) Access Protocol
-- `ro_rule` (List of String) RO Access Rule
-- `rw_rule` (List of String) RW Access Rule
-- `superuser` (List of String) Superuser Security Types
+- `protocols` (Set of String) Access Protocol
+- `superuser` (Set of String) Superuser Security Types
 
 ### Read-Only
 
 - `export_policy_id` (String) Export policy identifier
+- `id` (String) The ID of this resource.
 - `index` (Number) rule index
 
 

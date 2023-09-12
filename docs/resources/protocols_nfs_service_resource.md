@@ -36,17 +36,21 @@ resource "netapp-ontap_protocols_nfs_service_resource" "protocols_nfs_service" {
 
 - `cx_profile_name` (String) Connection profile name
 - `svm_name` (String) IPInterface svm name
+- `protocol` (Attributes) Protocol (see [below for nested schema](#nestedatt--protocol))
 
 ### Optional
 
 - `enabled` (Boolean) NFS should be enabled or disabled
-- `protocol` (Attributes) Protocol (see [below for nested schema](#nestedatt--protocol))
 - `root` (Attributes) Specific Root user options (see [below for nested schema](#nestedatt--root))
 - `security` (Attributes) NFS Security options (see [below for nested schema](#nestedatt--security))
 - `showmount_enabled` (Boolean) Whether SVM allows showmount
 - `transport` (Attributes) (see [below for nested schema](#nestedatt--transport))
 - `vstorage_enabled` (Boolean) Whether Vstorage is enabled
 - `windows` (Attributes) (see [below for nested schema](#nestedatt--windows))
+
+### Read-Only
+
+- `id` (String) The ID of this resource.
 
 ~> **NOTE:** `root`, `secrutiy`, `windows` requires ONTAP 9.11 or higher
 
@@ -101,7 +105,6 @@ Optional:
 - `chown_mode` (String) Specifies whether file ownership can be changed only by the superuser, or if a non-root user can also change file ownership
 - `nt_acl_display_permission` (Boolean) Controls the permissions that are displayed to NFSv3 and NFSv4 clients on a file or directory that has an NT ACL set
 - `ntfs_unix_security` (String) Specifies how NFSv3 security changes affect NTFS volumes
-- `permitted_encryption_types` (List of String) Specifies the permitted encryption types for Kerberos over NFS.
 - `rpcsec_context_idle` (Number) Specifies, in seconds, the amount of time a RPCSEC_GSS context is permitted to remain unused before it is deleted
 
 
@@ -111,7 +114,7 @@ Optional:
 Optional:
 
 - `tcp_enabled` (Boolean) tcp enabled
-- `tcp_max_transfer_size` (Number) Max tcp transfter size
+- `tcp_max_transfer_size` (Number) Max tcp transfer size
 - `udp_enabled` (Boolean) udp enabled
 
 ~> **NOTE:** `tcp_max_transfer_size` requires ONTAP 9.11 or higher

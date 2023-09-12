@@ -195,7 +195,7 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 				MarkdownDescription: "Whether to report space logically",
 				Optional:            true,
 			},
-			"aggregates": schema.ListAttribute{
+			"aggregates": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Required:            true,
 				MarkdownDescription: "List of aggregates in which to create the volume",

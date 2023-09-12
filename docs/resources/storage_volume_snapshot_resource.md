@@ -16,12 +16,8 @@ Create/Modify/Delete a Snapshot resource
 resource "netapp-ontap_storage_volume_snapshot_resource" "example" {
   cx_profile_name = "cluster4"
   name = "snaptest"
-  volume = {
-    name = "tf_test_root"
-  }
-  svm = {
-    name = "tf-test"
-  }
+  volume_name = "tf_test_root"
+  svm_name = "tf-test"
 }
 ```
 
@@ -33,8 +29,8 @@ resource "netapp-ontap_storage_volume_snapshot_resource" "example" {
 
 - `cx_profile_name` (String) Connection profile name
 - `name` (String) Snapshot name
-- `svm` (String) The name of the SVM the snapshot is on
-- `volume` (String) The name of the volume the snapshot is on
+- `svm_nmae` (String) The name of the SVM the snapshot is on
+- `volume_name` (String) The name of the volume the snapshot is on
 
 ### Optional
 

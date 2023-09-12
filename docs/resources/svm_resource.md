@@ -37,7 +37,7 @@ resource "netapp-ontap_svm_resource" "example" {
 
 ### Optional
 
-- `aggregates` (List of String) Aggregates to be assigned use for svm
+- `aggregates` (Set of String) Aggregates to be assigned use for svm
 - `comment` (String) Comment for svm to be created
 - `ipspace` (String) The name of the ipspace to manage
 - `language` (String) Language to use for svm
@@ -47,6 +47,6 @@ resource "netapp-ontap_svm_resource" "example" {
 
 ### Read-Only
 
-- `uuid` (String) svm identifier
+- `id` (String) svm identifier
 
 

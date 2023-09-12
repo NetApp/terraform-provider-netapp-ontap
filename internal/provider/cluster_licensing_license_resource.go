@@ -58,7 +58,7 @@ func (r *ClusterLicensingLicenseResource) Schema(ctx context.Context, req resour
 				MarkdownDescription: "Connection profile name",
 				Required:            true,
 			},
-			"keys": schema.ListAttribute{
+			"keys": schema.SetAttribute{
 				Required:            true,
 				MarkdownDescription: "List of NLF or 26-character keys",
 				ElementType:         types.StringType,

@@ -72,12 +72,12 @@ func (r *NameServicesDNSResource) Schema(ctx context.Context, req resource.Schem
 				MarkdownDescription: "UUID of svm",
 				Computed:            true,
 			},
-			"dns_domains": schema.ListAttribute{
+			"dns_domains": schema.SetAttribute{
 				ElementType:         types.StringType,
 				MarkdownDescription: "List of DNS domains such as 'sales.bar.com'. The first domain is the one that the svm belongs to",
 				Optional:            true,
 			},
-			"name_servers": schema.ListAttribute{
+			"name_servers": schema.SetAttribute{
 				ElementType:         types.StringType,
 				MarkdownDescription: "List of IPv4 addresses of name servers such as '123.123.123.123'.",
 				Optional:            true,

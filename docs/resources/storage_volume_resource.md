@@ -17,7 +17,7 @@ Volume resource
 
 ### Required
 
-- `aggregates` (List of String) List of aggregates in which to create the volume
+- `aggregates` (Set of String) List of aggregates in which to create the volume
 - `cx_profile_name` (String) Connection profile name
 - `name` (String) The name of the volume to manage
 - `size` (Number) The size of the volume
@@ -54,6 +54,6 @@ Volume resource
 
 ### Read-Only
 
-- `uuid` (String) Volume identifier
+- `id` (String) Volume identifier
 
 
