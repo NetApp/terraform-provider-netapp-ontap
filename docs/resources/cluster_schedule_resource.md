@@ -57,10 +57,10 @@ resource "netapp-ontap_cluster_schedule_resource" "cs_example2" {
 
 Optional:
 
-- `days` (List of Number) List of cluster schedule days
-- `hours` (List of Number) List of cluster schedule hours
-- `minutes` (List of Number) List of cluster schedule minutes
-- `months` (List of Number) List of cluster schedule months
-- `weekdays` (List of Number) List of cluster schedule weekdays
+- `days` (Set of Number) List of cluster schedule days
+- `hours` (Set of Number) List of cluster schedule hours
+- `minutes` (Set of Number) List of cluster schedule minutes
+- `months` (Set of Number) List of cluster schedule months
+- `weekdays` (Set of Number) List of cluster schedule weekdays
 
 

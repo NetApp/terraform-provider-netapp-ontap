@@ -31,11 +31,11 @@ resource "netapp-ontap_name_services_dns_resource" "name_services_dns" {
 
 ### Optional
 
-- `dns_domains` (List of String) List of DNS domains such as 'sales.bar.com'. The first domain is the one that the svm belongs to
-- `name_servers` (List of String) List of IPv4 addresses of name servers such as '123.123.123.123'.
+- `dns_domains` (Set of String) List of DNS domains such as 'sales.bar.com'. The first domain is the one that the svm belongs to
+- `name_servers` (Set of String) List of IPv4 addresses of name servers such as '123.123.123.123'.
 
 ### Read-Only
 
-- `svm_uuid` (String) UUID of svm
+- `id` (String) UUID of svm
 
 

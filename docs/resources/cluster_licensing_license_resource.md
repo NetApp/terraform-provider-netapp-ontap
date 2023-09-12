@@ -26,7 +26,7 @@ resource "netapp-ontap_cluster_licensing_license_resource" "cluster_licensing_li
 ### Required
 
 - `cx_profile_name` (String) Connection profile name
-- `keys` (List of String) List of NLF or 26-character keys
+- `keys` (Set of String) List of NLF or 26-character keys
 
 ### Read-Only
 

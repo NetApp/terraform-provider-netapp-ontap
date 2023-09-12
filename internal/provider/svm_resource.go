@@ -95,7 +95,7 @@ func (r *SvmResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 				MarkdownDescription: "Language to use for svm",
 				Optional:            true,
 			},
-			"aggregates": schema.ListAttribute{
+			"aggregates": schema.SetAttribute{
 				ElementType:         types.StringType,
 				MarkdownDescription: "Aggregates to be assigned use for svm",
 				Optional:            true,

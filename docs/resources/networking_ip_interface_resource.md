@@ -43,7 +43,7 @@ resource "netapp-ontap_networking_ip_interface_resource" "example" {
 
 ### Read-Only
 
-- `uuid` (String) IPInterface UUID
+- `id` (String) IPInterface UUID
 
 <a id="nestedatt--ip"></a>
 ### Nested Schema for `ip`
