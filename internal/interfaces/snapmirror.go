@@ -44,6 +44,48 @@ type Cluster struct {
 	Name string `mapstructure:"name,omitempty"`
 }
 
+// SnapmirrorFilterModel Snapmirror filter model
+type SnapmirrorFilterModel struct {
+	DestinationPath string `mapstructure:"destination.path"`
+}
+
+// SnapmirrorDataSourceModel data model
+type SnapmirrorDataSourceModel struct {
+	Source      Source           `mapstructure:"source"`
+	Destination Destination      `mapstructure:"destination"`
+	Healthy     bool             `mapstructure:"healthy"`
+	Restore     bool             `mapstructure:"restore"`
+	UUID        string           `mapstructure:"uuid"`
+	State       string           `mapstructure:"state"`
+	Policy      SnapmirrorPolicy `mapstructure:"policy"`
+	GroupType   string           `mapstructure:"group_type"`
+	Throttle    int              `mapstructure:"throttle"`
+}
+
+// Source data model
+type Source struct {
+	Cluster SnapmirrorCluster `mapstructure:"cluster"`
+	Path    string            `mapstructure:"path"`
+	Svm     SvmDataModelONTAP `mapstructure:"svm"`
+}
+
+// Destination data model
+type Destination struct {
+	Path string            `mapstructure:"path"`
+	Svm  SvmDataModelONTAP `mapstructure:"svm"`
+}
+
+// SnapmirrorCluster data model
+type SnapmirrorCluster struct {
+	Name string `mapstructure:"name"`
+	UUID string `mapstructure:"uuid"`
+}
+
+// SnapmirrorPolicy data model
+type SnapmirrorPolicy struct {
+	UUID string `mapstructure:"uuid"`
+}
+
 // GetSnapmirrorByID ...
 func GetSnapmirrorByID(errorHandler *utils.ErrorHandler, r restclient.RestClient, id string) (*SnapmirrorGetDataModelONTAP, error) {
 	api := "snapmirror/relationships/" + id
@@ -60,6 +102,80 @@ func GetSnapmirrorByID(errorHandler *utils.ErrorHandler, r restclient.RestClient
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read snapmirror source - udata: %#v", rawDataONTAP))
 	return &rawDataONTAP, nil
+}
+
+// GetSnapmirrorByDestinationPath to get snapmirror data source info by Destination Path
+func GetSnapmirrorByDestinationPath(errorHandler *utils.ErrorHandler, r restclient.RestClient, destinationPath string, version versionModelONTAP) (*SnapmirrorDataSourceModel, error) {
+	api := "snapmirror/relationships"
+	query := r.NewQuery()
+	query.Add("destination.path", destinationPath)
+	fields := []string{"destination", "healthy", "source", "restore", "policy", "state"}
+	if version.Generation == 9 && version.Major > 10 {
+		fields = append(fields, "throttle", "group_type")
+	}
+	query.Fields(fields)
+
+	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading snapmirror/relationships info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
+	}
+
+	var dataONTAP SnapmirrorDataSourceModel
+
+	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
+		return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
+			fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read snapmirror/relationships data source: %#v", dataONTAP))
+
+	return &dataONTAP, nil
+}
+
+// GetSnapmirrors to get list of policies
+func GetSnapmirrors(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *SnapmirrorFilterModel, version versionModelONTAP) ([]SnapmirrorDataSourceModel, error) {
+	api := "snapmirror/relationships"
+	query := r.NewQuery()
+
+	fields := []string{"unhealthy_reason", "destination", "healthy", "source", "restore", "policy", "transfer", "state", "exported_snapshot", "lag_time"}
+	if version.Generation == 9 && version.Major > 7 {
+		fields = append(fields, "consistency_group_failover")
+	}
+	if version.Generation == 9 && version.Major > 10 {
+		fields = append(fields, "identity_preservation", "throttle", "transfer_schedule", "group_type", "last_transfer_type")
+	}
+	if version.Generation == 9 && version.Major > 12 {
+		fields = append(fields, "total_transfer_duration", "last_transfer_network_compression_ratio", "total_transfer_bytes", "svmdr_volumes")
+	}
+	query.Fields(fields)
+	if filter != nil {
+		var filterMap map[string]interface{}
+		if err := mapstructure.Decode(filter, &filterMap); err != nil {
+			return nil, errorHandler.MakeAndReportError("error encoding snapmirror/relationships filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
+		}
+		query.SetValues(filterMap)
+	}
+	statusCode, response, err := r.GetZeroOrMoreRecords(api, query, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading snapmirror/relationships info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
+	}
+
+	var dataONTAP []SnapmirrorDataSourceModel
+	for _, info := range response {
+		var record SnapmirrorDataSourceModel
+		if err := mapstructure.Decode(info, &record); err != nil {
+			return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
+				fmt.Sprintf("error: %s, statusCode %d, info %#v", err, statusCode, info))
+		}
+		dataONTAP = append(dataONTAP, record)
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read snapmirror/relationships data source: %#v", dataONTAP))
+	return dataONTAP, nil
 }
 
 // CreateSnapmirror to create snapmirror
