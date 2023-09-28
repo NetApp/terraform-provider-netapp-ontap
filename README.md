@@ -41,3 +41,4 @@ Click on Issues, we have 6 categories for issues:
 6. General Questions -- If you have any general question we have a Discord channel for that.
 
 ## Contributing
+Please read the [Contributing Guide](CONTRIBUTING.md) for details on the process for submitting pull requests to us.

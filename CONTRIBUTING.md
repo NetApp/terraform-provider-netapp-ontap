@@ -8,7 +8,7 @@ We appreciate that you want to take the time to contribute! Please follow these 
 2. If the issue does not exist, [create a new one](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/new/choose) that explains the bug or feature request.
 3. Let us know in the issue that you plan on creating a pull request for it, by selecting the option when creating an issue. This helps us to keep track of the pull request and make sure there isn't duplicate effort.
 4. It's better to wait for feedback from someone on Netapp's Terraform Team development team before writing code. We don't have an SLA for our feedback, but we will do our best to respond in a timely manner (at a minimum, to give you an idea if you're on the right track and that you should proceed, or not).
-5. Sign and submit [NetApp's Contributor License Agreement](Corporate Contributor License Agreement (CCLA)). You must sign and submit the Corporate Contributor License Agreement (CCLA) in order to contribute.
+5. Sign and submit [NetApp's Contributor License Agreement (CCLA)](https://netapp.tap.thinksmart.com/prod/Portal/ShowWorkFlow/AnonymousEmbed/3d2f3aa5-9161-4970-997d-e482b0b033fa). You must sign and submit the Corporate Contributor License Agreement (CCLA) in order to contribute.
 * For Project name, select "Terraform Provider for ONTAP"
 * For Project Website, enter "https://github.com/NetApp/terraform-provider-netapp-ontap"
 6. If you've made it this far, have written the code that solves your issue, and addressed the review comments, then feel free to create your pull request.
@@ -20,8 +20,8 @@ If your building a new Resouces or Data Source for the ONTAP we have a few requi
 * documentation in the /docs directory
 * example in the /examples directory
 * ACCtest in the /internal/provider directory
-  * we have a Github Action that will run the ACCtest, if there is anything that need to be set up for the ACCtest to run please let us know in the PR.
-* Pass the existing Github actions test
+  * we have a GitHub Self Hosted Action that will run the ACCtest on an internal ONTAP VSIM, if there is anything that need to be set up for the ACCtest to run please let us know in the PR.
+* Pass all existing GitHub actions test
 
 
 # Netapp's Terraform Team's Commitment
