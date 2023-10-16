@@ -20,40 +20,96 @@ Volume resource
 - `aggregates` (Set of String) List of aggregates in which to create the volume
 - `cx_profile_name` (String) Connection profile name
 - `name` (String) The name of the volume to manage
-- `size` (Number) The size of the volume
-- `size_unit` (String) The unit used to interpret the size parameter
+- `space` (Attributes) (see [below for nested schema](#nestedatt--space))
 - `svm_name` (String) Name of the svm to use
 
 ### Optional
 
-- `analytics` (String) Set file system analytics state of the volume
+- `analytics` (Attributes) (see [below for nested schema](#nestedatt--analytics))
 - `comment` (String) Sets a comment associated with the volume
-- `compression` (Boolean) Whether to enable compression for the volume (HDD and Flash Pool aggregates)
-- `efficiency_policy` (String) Allows a storage efficiency policy to be set on volume creation
-- `encrypt` (Boolean) Whether or not to enable Volume Encryption
-- `export_policy` (String) The name of the export policy
-- `group_id` (Number) The UNIX group ID for the volume
-- `inline_compression` (Boolean) Whether to enable inline compression for the volume (HDD and Flash Pool aggregates, AFF platforms)
-- `is_online` (Boolean) Whether the specified volume is online, or not
-- `junction_path` (String) Junction path of the volume
+- `efficiency` (Attributes) (see [below for nested schema](#nestedatt--efficiency))
+- `encryption` (Boolean) Whether or not to enable Volume Encryption
 - `language` (String) Language to use for volume
-- `logical_space_enforcement` (Boolean) Whether to perform logical space accounting on the volume
-- `logical_space_reporting` (Boolean) Whether to report space logically
-- `percent_snapshot_space` (Number) Amount of space reserved for snapshot copies of the volume
-- `qos_adaptive_policy_group` (String) Specifies a QoS adaptive policy group to be set on volume
+- `nas` (Attributes) (see [below for nested schema](#nestedatt--nas))
 - `qos_policy_group` (String) Specifies a QoS policy group to be set on volume
-- `security_style` (String) The security style associated to the volume
-- `snaplock_type` (String) The SnapLock type of the volume
+- `snaplock` (Attributes) (see [below for nested schema](#nestedatt--snaplock))
 - `snapshot_policy` (String) The name of the snapshot policy
 - `space_guarantee` (String) Space guarantee style for the volume
-- `tiering_minimum_cooling_days` (Number) Determines how many days must pass before inactive data in a volume using the Auto or Snapshot-Only policy is considered cold and eligible for tiering
-- `tiering_policy` (String) The tiering policy that is to be associated with the volume
+- `state` (String) Whether the specified volume is online, or not
+- `tiering` (Attributes) (see [below for nested schema](#nestedatt--tiering))
 - `type` (String) The volume type, either read-write (RW) or data-protection (DP)
-- `unix_permissions` (String) Unix permission bits in octal or symbolic format. For example, 0 is equivalent to ------------, 777 is equivalent to ---rwxrwxrwx,both formats are accepted
-- `user_id` (Number) The UNIX user ID for the volume
 
 ### Read-Only
 
 - `id` (String) Volume identifier
+
+<a id="nestedatt--space"></a>
+### Nested Schema for `space`
+
+Required:
+
+- `size` (Number) The size of the volume
+- `size_unit` (String) The unit used to interpret the size parameter
+
+Optional:
+
+- `logical_space` (Attributes) (see [below for nested schema](#nestedatt--space--logical_space))
+- `percent_snapshot_space` (Number) Amount of space reserved for snapshot copies of the volume
+
+<a id="nestedatt--space--logical_space"></a>
+### Nested Schema for `space.logical_space`
+
+Optional:
+
+- `enforcement` (Boolean) Whether to perform logical space accounting on the volume
+- `reporting` (Boolean) Whether to report space logically
+
+
+
+<a id="nestedatt--analytics"></a>
+### Nested Schema for `analytics`
+
+Optional:
+
+- `state` (String) Set file system analytics state of the volume
+
+
+<a id="nestedatt--efficiency"></a>
+### Nested Schema for `efficiency`
+
+Optional:
+
+- `compression` (String) Whether to enable compression for the volume (HDD and Flash Pool aggregates)
+- `policy_name` (String) Allows a storage efficiency policy to be set on volume creation
+
+
+<a id="nestedatt--nas"></a>
+### Nested Schema for `nas`
+
+Optional:
+
+- `export_policy_name` (String) The name of the export policy
+- `group_id` (Number) The UNIX group ID for the volume
+- `junction_path` (String) Junction path of the volume
+- `security_style` (String) The security style associated to the volume
+- `unix_permissions` (Number) Unix permission bits in octal or symbolic format. For example, 0 is equivalent to ------------, 777 is equivalent to ---rwxrwxrwx,both formats are accepted
+- `user_id` (Number) The UNIX user ID for the volume
+
+
+<a id="nestedatt--snaplock"></a>
+### Nested Schema for `snaplock`
+
+Optional:
+
+- `type` (String) The SnapLock type of the volume
+
+
+<a id="nestedatt--tiering"></a>
+### Nested Schema for `tiering`
+
+Optional:
+
+- `minimum_cooling_days` (Number) Determines how many days must pass before inactive data in a volume using the Auto or Snapshot-Only policy is considered cold and eligible for tiering
+- `policy_name` (String) The tiering policy that is to be associated with the volume
 
 
