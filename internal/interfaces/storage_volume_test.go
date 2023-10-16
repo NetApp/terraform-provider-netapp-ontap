@@ -4,12 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
-	"reflect"
-	"testing"
 )
 
 var basicStorageVolumeRecord = StorageVolumeGetDataModelONTAP{
@@ -31,7 +32,7 @@ var basicStorageVolumeRecord = StorageVolumeGetDataModelONTAP{
 	},
 	State: "string",
 	Type:  "string",
-	NAS: NASData{
+	NAS: NAS{
 		ExportPolicy: ExportPolicy{
 			Name: "string",
 		},
@@ -42,9 +43,6 @@ var basicStorageVolumeRecord = StorageVolumeGetDataModelONTAP{
 		UserID:          0,
 	},
 	SpaceGuarantee: Guarantee{
-		Type: "string",
-	},
-	PercentSnapshotSpace: Snaplock{
 		Type: "string",
 	},
 	Encryption: Encryption{

@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	"fmt"
+	"log"
 	"math"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -12,32 +13,31 @@ import (
 
 // StorageVolumeGetDataModelONTAP describes the GET record data model using go types for mapping.
 type StorageVolumeGetDataModelONTAP struct {
-	Name                 string
-	SVM                  svm
-	Aggregates           []Aggregate
-	UUID                 string
-	Space                Space
-	State                string
-	Type                 string
-	NAS                  NASData
-	SpaceGuarantee       Guarantee `mapstructure:"guarantee"`
-	PercentSnapshotSpace Snaplock  `mapstructure:"snaplock"`
-	Encryption           Encryption
-	Efficiency           Efficiency
-	SnapshotPolicy       SnapshotPolicy `mapstructure:"snapshot_policy,omitempty"`
-	Language             string
-	QOS                  QOS
-	TieringPolicy        TieringPolicy `mapstructure:"tiering,omitempty"`
-	Comment              string
-	Snaplock             Snaplock
-	Analytics            Analytics
+	Name           string
+	SVM            svm
+	Space          Space
+	State          string
+	Type           string
+	Comment        string
+	SpaceGuarantee Guarantee `mapstructure:"guarantee"`
+	NAS            NAS
+	QOS            QOS
+	Encryption     Encryption
+	Efficiency     Efficiency
+	SnapshotPolicy SnapshotPolicy `mapstructure:"snapshot_policy,omitempty"`
+	TieringPolicy  TieringPolicy  `mapstructure:"tiering,omitempty"`
+	Snaplock       Snaplock
+	Analytics      Analytics
+	Language       string
+	Aggregates     []Aggregate
+	UUID           string
 }
 
 // StorageVolumeResourceModel describes the resource data model.
 type StorageVolumeResourceModel struct {
-	Name           string              `mapstructure:"name"`
-	SVM            svm                 `mapstructure:"svm"`
-	Space          Space               `mapstructure:"space"`
+	Name           string              `mapstructure:"name,omitempty"`
+	SVM            svm                 `mapstructure:"svm,omitempty"`
+	Space          Space               `mapstructure:"space,omitempty"`
 	State          string              `mapstructure:"state,omitempty"`
 	Type           string              `mapstructure:"type,omitempty"`
 	Comment        string              `mapstructure:"comment,omitempty"`
@@ -51,7 +51,7 @@ type StorageVolumeResourceModel struct {
 	Snaplock       Snaplock            `mapstructure:"snaplock,omitempty"`
 	Analytics      Analytics           `mapstructure:"analytics,omitempty"`
 	Language       string              `mapstructure:"language,omitempty"`
-	Aggregates     []map[string]string `mapstructure:"aggregates"`
+	Aggregates     []map[string]string `mapstructure:"aggregates,omitempty"`
 }
 
 // Aggregate describes the resource data model.
@@ -66,7 +66,7 @@ type Analytics struct {
 
 // Space describes the resource data model.
 type Space struct {
-	Size         int          `mapstructure:"size"`
+	Size         int          `mapstructure:"size,omitempty"`
 	Snapshot     Snapshot     `mapstructure:"snapshot,omitempty"`
 	LogicalSpace LogicalSpace `mapstructure:"logical_space,omitempty"`
 }
@@ -119,20 +119,20 @@ type NAS struct {
 	ExportPolicy    ExportPolicy `mapstructure:"export_policy,omitempty"`
 	JunctionPath    string       `mapstructure:"path,omitempty"`
 	SecurityStyle   string       `mapstructure:"security_style,omitempty"`
-	UnixPermissions string       `mapstructure:"unix_permissions,omitempty"`
-	GroupID         int          `mapstructure:"gid,omitempty"`
-	UserID          int          `mapstructure:"uid,omitempty"`
+	UnixPermissions int          `mapstructure:"unix_permissions,omitempty"`
+	GroupID         int          `mapstructure:"gid"`
+	UserID          int          `mapstructure:"uid"`
 }
 
 // NASData describes the data source model.
-type NASData struct {
-	ExportPolicy    ExportPolicy `mapstructure:"export_policy,omitempty"`
-	JunctionPath    string       `mapstructure:"path,omitempty"`
-	SecurityStyle   string       `mapstructure:"security_style,omitempty"`
-	UnixPermissions int          `mapstructure:"unix_permissions,omitempty"`
-	GroupID         int          `mapstructure:"gid,omitempty"`
-	UserID          int          `mapstructure:"uid,omitempty"`
-}
+// type NASData struct {
+// 	ExportPolicy    ExportPolicy `mapstructure:"export_policy,omitempty"`
+// 	JunctionPath    string       `mapstructure:"path,omitempty"`
+// 	SecurityStyle   string       `mapstructure:"security_style,omitempty"`
+// 	UnixPermissions int          `mapstructure:"unix_permissions,omitempty"`
+// 	GroupID         int          `mapstructure:"gid,omitempty"`
+// 	UserID          int          `mapstructure:"uid,omitempty"`
+// }
 
 // Encryption describes the resource data model.
 type Encryption struct {
@@ -146,7 +146,7 @@ type ExportPolicy struct {
 
 // svm describes the resource data model.
 type svm struct {
-	Name string `mapstructure:"name"`
+	Name string `mapstructure:"name,omitempty"`
 }
 
 // POW2BYTEMAP coverts size based on size unit.
@@ -206,11 +206,15 @@ func GetUUIDVolumeByName(errorHandler *utils.ErrorHandler, r restclient.RestClie
 
 // GetStorageVolume to get volume info by uuid
 func GetStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) (*StorageVolumeGetDataModelONTAP, error) {
-	statusCode, response, err := r.GetNilOrOneRecord("storage/volumes/"+uuid, nil, nil)
+	query := r.NewQuery()
+	query.Fields([]string{"name", "svm.name", "aggregates", "space.size", "state", "type", "nas.export_policy.name", "nas.path", "guarantee.type", "space.snapshot.reserve_percent",
+		"nas.security_style", "encryption.enabled", "efficiency.policy.name", "nas.unix_permissions", "nas.gid", "nas.uid", "snapshot_policy.name", "language", "qos.policy.name",
+		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state"})
+	statusCode, response, err := r.GetNilOrOneRecord("storage/volumes/"+uuid, query, nil)
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError("error reading volume info", fmt.Sprintf("error on GET storage/volumes: %s", err))
 	}
-
+	log.Printf("raw is: %#v", response)
 	var dataONTAP *StorageVolumeGetDataModelONTAP
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError("error decoding volume info", fmt.Sprintf("error on decode storage/volumes: %s, statusCode %d, response %#v", err, statusCode, response))
@@ -236,7 +240,7 @@ func GetStorageVolumeByName(errorHandler *utils.ErrorHandler, r restclient.RestC
 	if response == nil {
 		return nil, errorHandler.MakeAndReportError("no volume found", fmt.Sprintf("no volume found by name %s", name))
 	}
-
+	log.Printf("raw is: %#v", response)
 	var dataONTAP *StorageVolumeGetDataModelONTAP
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError("error decoding volume info by name", fmt.Sprintf("error on decode storage/volumes: %s, statusCode %d, response %#v", err, statusCode, response))
@@ -307,6 +311,20 @@ func DeleteStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClie
 	statusCode, _, err := r.CallDeleteMethod("storage/volumes/"+uuid, nil, nil)
 	if err != nil {
 		return errorHandler.MakeAndReportError("error deleting volume", fmt.Sprintf("error on DELETE storage/volumes: %s, statusCode %d", err, statusCode))
+	}
+	return nil
+}
+
+// UpddateStorageVolume to update volume
+func UpddateStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClient, data StorageVolumeResourceModel, ID string) error {
+	var body map[string]interface{}
+	if err := mapstructure.Decode(data, &body); err != nil {
+		return errorHandler.MakeAndReportError("error encoding volume body", fmt.Sprintf("error on encoding storage/volumes body: %s, body: %#v", err, data))
+	}
+	log.Printf("body body: %#v", body)
+	statusCode, _, err := r.CallUpdateMethod("storage/volumes/"+ID, nil, body)
+	if err != nil {
+		return errorHandler.MakeAndReportError("error updating volume", fmt.Sprintf("error on POST storage/volumes: %s, statusCode %d", err, statusCode))
 	}
 	return nil
 }
