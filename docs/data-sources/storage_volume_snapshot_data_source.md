@@ -3,12 +3,21 @@
 page_title: "netapp-ontap_storage_volume_snapshot_data_source Data Source - terraform-provider-netapp-ontap"
 subcategory: "storage"
 description: |-
-  Storage Volume Snapshot data source
+  Retrieves details of a specific volume Snapshot copy
 ---
 
-# netapp-ontap_storage_volume_snapshot_data_source (Data Source)
+# # Data Source snapshot
 
-Storage Volume Snapshot data source
+Retrieves details of a specific volume Snapshot copy
+
+## Example Usage
+```terraform
+data "netapp-ontap_storage_volume_snapshot_data_source" "snapshot" {
+  cx_profile_name = "cluster4"
+  name = "weekly.2023-05-21_0015"
+  volume_uuid = "271e0dce-a082-11ed-926e-005056b34578"
+}
+```
 
 
 

@@ -33,6 +33,11 @@ type StorageVolumeSnapshotResourceModel struct {
 	SnapmirrorLabel    string `mapstructure:"snapmirror_label,omitempty"`
 }
 
+// StorageVolumeSnapshotDataSourceFilterModel describes filter model
+type StorageVolumeSnapshotDataSourceFilterModel struct {
+	Name string `tfsdk:"name"`
+}
+
 // GetUUIDStorageVolumeSnapshotsByName get a snapshot UUID based off name
 func GetUUIDStorageVolumeSnapshotsByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, volumeUUID string) (*NameDataModel, error) {
 	query := r.NewQuery()
@@ -101,6 +106,43 @@ func GetStorageVolumeSnapshots(errorHandler *utils.ErrorHandler, r restclient.Re
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read storage/volumes/snapshots data source: %#v", dataONTAP))
 	return &dataONTAP, nil
+}
+
+// GetListStorageVolumeSnapshots to get snapshots info for all resources matching a filter
+func GetListStorageVolumeSnapshots(errorHandler *utils.ErrorHandler, r restclient.RestClient, volumeUUID string, filter *StorageVolumeSnapshotDataSourceFilterModel) ([]StorageVolumeSnapshotGetDataModelONTAP, error) {
+	query := r.NewQuery()
+
+	if filter != nil {
+		if filter.Name != "" {
+			query.Add("name", filter.Name)
+		}
+	}
+
+	query.Fields([]string{"name", "create_time", "expiry_time", "state", "size", "comment", "volume", "volume.uuid", "snapmirror_label"})
+	api := "storage/volumes/" + volumeUUID + "/snapshots"
+	statusCode, response, err := r.GetZeroOrMoreRecords(api, query, nil)
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading snapshots info",
+			fmt.Sprintf("error on GET %s: %s, statuscode: %d", api, err, statusCode))
+	}
+
+	if response == nil {
+		tflog.Debug(errorHandler.Ctx, fmt.Sprintf("snapshots not found for volume UUID %s", volumeUUID))
+		return nil, nil
+	}
+
+	var dataONTAP []StorageVolumeSnapshotGetDataModelONTAP
+	for _, info := range response {
+		var record StorageVolumeSnapshotGetDataModelONTAP
+		if err := mapstructure.Decode(info, &record); err != nil {
+			return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
+				fmt.Sprintf("error: %s, statusCode %d, info %#v", err, statusCode, info))
+		}
+		dataONTAP = append(dataONTAP, record)
+	}
+
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read storage/volumes/snapshots data source: %#v", dataONTAP))
+	return dataONTAP, nil
 }
 
 // CreateStorageVolumeSnapshot to create a snapshot
