@@ -40,8 +40,8 @@ type StorageVolumeSnapshotDataSourceModel struct {
 	Size            types.Float64 `tfsdk:"size"`
 	SnapmirrorLabel types.String  `tfsdk:"snapmirror_label"`
 	State           types.String  `tfsdk:"state"`
-	VolumeUUID      types.String  `tfsdk:"volume_uuid"`
 	VolumeName      types.String  `tfsdk:"volume_name"`
+	SVMName         types.String  `tfsdk:"svm_name"`
 }
 
 // Metadata returns the data source type name.
@@ -64,14 +64,13 @@ func (d *StorageVolumeSnapshotDataSource) Schema(ctx context.Context, req dataso
 				MarkdownDescription: "Snapshot name",
 				Required:            true,
 			},
-			// TODO: replace UUID with Volume Name, and svm name
-			"volume_uuid": schema.StringAttribute{
-				MarkdownDescription: "Volume UUID",
-				Required:            true,
-			},
 			"volume_name": schema.StringAttribute{
 				MarkdownDescription: "Volume Name",
-				Computed:            true,
+				Required:            true,
+			},
+			"svm_name": schema.StringAttribute{
+				MarkdownDescription: "SVM Name",
+				Required:            true,
 			},
 			"create_time": schema.StringAttribute{
 				MarkdownDescription: "Create time",
@@ -125,12 +124,23 @@ func (d *StorageVolumeSnapshotDataSource) Read(ctx context.Context, req datasour
 		return
 	}
 	// TODO change to volume name
-	if data.VolumeUUID.IsNull() {
+	if data.VolumeName.IsNull() {
 		errorHandler.MakeAndReportError("error reading snapshot", "Volume UUID is null")
 		return
 	}
 
-	snapshot, err := interfaces.GetStorageVolumeSnapshots(errorHandler, *client, data.Name.ValueString(), data.VolumeUUID.ValueString())
+	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.SVMName.ValueString())
+	if err != nil {
+		// error reporting done inside GetStorageVolumeSnapshots
+		return
+	}
+	volume, err := interfaces.GetStorageVolumeByName(errorHandler, *client, data.VolumeName.ValueString(), svm.Name)
+	if err != nil {
+		// error reporting done inside GetStorageVolumeSnapshots
+		return
+	}
+
+	snapshot, err := interfaces.GetStorageVolumeSnapshots(errorHandler, *client, data.Name.ValueString(), volume.UUID)
 	if err != nil {
 		return
 	}
@@ -145,7 +155,6 @@ func (d *StorageVolumeSnapshotDataSource) Read(ctx context.Context, req datasour
 	data.Size = types.Float64Value(snapshot.Size)
 	data.SnapmirrorLabel = types.StringValue(snapshot.SnapmirrorLabel)
 	data.State = types.StringValue(snapshot.State)
-	data.VolumeUUID = types.StringValue(snapshot.Volume.UUID)
 	data.VolumeName = types.StringValue(snapshot.Volume.Name)
 
 	// Write logs using the tflog package
