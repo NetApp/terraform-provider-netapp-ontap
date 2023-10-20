@@ -2,7 +2,6 @@ package interfaces
 
 import (
 	"fmt"
-
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient"
@@ -13,7 +12,7 @@ import (
 type IPInterfaceGetDataModelONTAP struct {
 	Name     string                      `mapstructure:"name"`
 	Scope    string                      `mapstructure:"scope"`
-	SVMName  string                      `mapstructure:"svm.name"`
+	SVM      IPInterfaceSvmName          `mapstructure:"svm"`
 	UUID     string                      `mapstructure:"uuid"`
 	IP       IPInterfaceGetIP            `mapstructure:"ip"`
 	Location IPInterfaceResourceLocation `mapstructure:"location"`
@@ -61,6 +60,13 @@ type IPInterfaceResourceHomePort struct {
 	Node IPInterfaceResourceHomeNode `mapstructure:"node"`
 }
 
+// IPInterfaceDataSourceFilterModel describes filter model.
+type IPInterfaceDataSourceFilterModel struct {
+	Name    string `tfsdk:"name"`
+	SVMName string `tfsdk:"svm_name"`
+	Scope   string `tfsdk:"scope"`
+}
+
 // GetIPInterface to get ip_interface info
 func GetIPInterface(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, svmName string) (*IPInterfaceGetDataModelONTAP, error) {
 	api := "network/ip/interfaces"
@@ -90,18 +96,24 @@ func GetIPInterface(errorHandler *utils.ErrorHandler, r restclient.RestClient, n
 	return &dataONTAP, nil
 }
 
-// GetIPInterfaces to get ip_interface info for all resources matching a filter
-func GetIPInterfaces(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *IPInterfaceGetDataModelONTAP) ([]IPInterfaceGetDataModelONTAP, error) {
+// GetListIPInterfaces to get ip_interface info for all resources matching a filter
+func GetListIPInterfaces(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *IPInterfaceDataSourceFilterModel) ([]IPInterfaceGetDataModelONTAP, error) {
 	api := "network/ip/interfaces"
 	query := r.NewQuery()
 	query.Fields([]string{"name", "svm.name", "ip", "scope", "location"})
+
 	if filter != nil {
-		var filterMap map[string]interface{}
-		if err := mapstructure.Decode(filter, &filterMap); err != nil {
-			return nil, errorHandler.MakeAndReportError("error encoding ip_interface filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
+		if filter.Name != "" {
+			query.Set("name", filter.Name)
 		}
-		query.SetValues(filterMap)
+		if filter.SVMName != "" {
+			query.Set("svm.name", filter.SVMName)
+		}
+		if filter.Scope != "" {
+			query.Set("scope", filter.Scope)
+		}
 	}
+
 	statusCode, response, err := r.GetZeroOrMoreRecords(api, query, nil)
 	if err == nil && response == nil {
 		err = fmt.Errorf("no response for GET %s", api)

@@ -1,5 +1,5 @@
-data "netapp-ontap_ip_interface_data_source" "ip_interface" {
+data "netapp-ontap_networking_ip_interface_data_source" "ip_interface" {
   # required to know which system to interface with
-  cx_profile_name = "cluster1"
-  name = "laurentn-vsim1_clus_1"
+  cx_profile_name = "cluster4"
+  name = "cluster_mgmt"
 }

@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -36,6 +37,13 @@ type IPInterfacesDataSourceModel struct {
 	Filter        *IPInterfaceDataSourceFilterModel `tfsdk:"filter"`
 }
 
+// IPInterfaceDataSourceFilterModel describes the data source data model for queries.
+type IPInterfaceDataSourceFilterModel struct {
+	Name    types.String `tfsdk:"name"`
+	SVMName types.String `tfsdk:"svm_name"`
+	Scope   types.String `tfsdk:"scope"`
+}
+
 // Metadata returns the data source type name.
 func (d *IPInterfacesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + d.config.name
@@ -55,16 +63,16 @@ func (d *IPInterfacesDataSource) Schema(ctx context.Context, req datasource.Sche
 			"filter": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"name": schema.StringAttribute{
-						MarkdownDescription: "IPInterface name",
 						Optional:            true,
+						MarkdownDescription: "IPInterface name",
 					},
 					"svm_name": schema.StringAttribute{
-						MarkdownDescription: "IPInterface svm name",
 						Optional:            true,
+						MarkdownDescription: "IPInterface svm name",
 					},
 					"scope": schema.StringAttribute{
-						MarkdownDescription: "IPInterface scope",
 						Optional:            true,
+						MarkdownDescription: "IPInterface scope",
 					},
 				},
 				Optional: true,
@@ -73,20 +81,46 @@ func (d *IPInterfacesDataSource) Schema(ctx context.Context, req datasource.Sche
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"cx_profile_name": schema.StringAttribute{
+							Computed:            true,
 							MarkdownDescription: "Connection profile name",
-							Required:            true,
 						},
 						"name": schema.StringAttribute{
+							Computed:            true,
 							MarkdownDescription: "IPInterface name",
-							Required:            true,
 						},
 						"svm_name": schema.StringAttribute{
+							Computed:            true,
 							MarkdownDescription: "IPInterface svm name",
-							Optional:            true,
 						},
 						"scope": schema.StringAttribute{
-							MarkdownDescription: "IPInterface scope",
 							Computed:            true,
+							MarkdownDescription: "IPInterface scope",
+						},
+						"ip": schema.SingleNestedAttribute{
+							Attributes: map[string]schema.Attribute{
+								"address": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "IPInterface IP address",
+								},
+								"netmask": schema.Int64Attribute{
+									Computed:            true,
+									MarkdownDescription: "IPInterface IP netmask",
+								},
+							},
+							Computed: true,
+						},
+						"location": schema.SingleNestedAttribute{
+							Attributes: map[string]schema.Attribute{
+								"home_node": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "IPInterface home node",
+								},
+								"home_port": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "IPInterface home port",
+								},
+							},
+							Computed: true,
 						},
 					},
 				},
@@ -132,15 +166,16 @@ func (d *IPInterfacesDataSource) Read(ctx context.Context, req datasource.ReadRe
 		return
 	}
 
-	var filter *interfaces.IPInterfaceGetDataModelONTAP = nil
+	var filter *interfaces.IPInterfaceDataSourceFilterModel = nil
 	if data.Filter != nil {
-		filter = &interfaces.IPInterfaceGetDataModelONTAP{
+		filter = &interfaces.IPInterfaceDataSourceFilterModel{
 			Name:    data.Filter.Name.ValueString(),
 			Scope:   data.Filter.Scope.ValueString(),
 			SVMName: data.Filter.SVMName.ValueString(),
 		}
 	}
-	restInfo, err := interfaces.GetIPInterfaces(errorHandler, *client, filter)
+
+	restInfo, err := interfaces.GetListIPInterfaces(errorHandler, *client, filter)
 	if err != nil {
 		// error reporting done inside GetIPInterfaces
 		return
@@ -152,7 +187,20 @@ func (d *IPInterfacesDataSource) Read(ctx context.Context, req datasource.ReadRe
 			CxProfileName: types.String(data.CxProfileName),
 			Name:          types.StringValue(record.Name),
 			Scope:         types.StringValue(record.Scope),
-			SVMName:       types.StringValue(record.SVMName),
+			SVMName:       types.StringValue(record.SVM.Name),
+		}
+		intNetmask, err := strconv.Atoi(record.IP.Netmask)
+		if err != nil {
+			errorHandler.MakeAndReportError("Failed to read ip interface", fmt.Sprintf("Error: failed to convert string value '%s' to int for net mask.", record.IP.Netmask))
+			return
+		}
+		data.IPInterfaces[index].IP = &IPDataSourceModel{
+			Address: types.StringValue(record.IP.Address),
+			Netmask: types.Int64Value(int64(intNetmask)),
+		}
+		data.IPInterfaces[index].Location = &LocationDataSourceModel{
+			HomeNode: types.StringValue(record.Location.HomeNode.Name),
+			HomePort: types.StringValue(record.Location.HomePort.Name),
 		}
 	}
 
