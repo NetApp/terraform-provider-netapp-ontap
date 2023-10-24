@@ -95,6 +95,71 @@ var updateExportPolicyRuleErrorBody = ExportpolicyRuleResourceBodyDataModelONTAP
 	Index:            9,
 }
 
+func TestGetExportPolicyRuleSingle(t *testing.T) {
+	errorHandler := utils.NewErrorHandler(context.Background(), &diag.Diagnostics{})
+
+	var basicRecordInterface map[string]any
+	err := mapstructure.Decode(basicExportPolicyRuleRecord, &basicRecordInterface)
+	if err != nil {
+		panic(err)
+	}
+	var badRecordInterface map[string]any
+	err = mapstructure.Decode(badExportPolicyRuleRecord, &badRecordInterface)
+	if err != nil {
+		panic(err)
+	}
+
+	noRecords := restclient.RestResponse{NumRecords: 0, Records: []map[string]any{}}
+	oneRecord := restclient.RestResponse{NumRecords: 1, Records: []map[string]any{basicRecordInterface}}
+	twoRecords := restclient.RestResponse{NumRecords: 2, Records: []map[string]any{basicRecordInterface, basicRecordInterface}}
+	genericError := errors.New("generic error for UT")
+	decodeError := restclient.RestResponse{NumRecords: 1, Records: []map[string]any{badRecordInterface}}
+	responses := map[string][]restclient.MockResponse{
+		"test_no_records_1": {
+			{ExpectedMethod: "GET", ExpectedURL: "protocols/nfs/export-policies/12884901889/rules/8", StatusCode: 200, Response: noRecords, Err: nil},
+		},
+		"test_one_record_1": {
+			{ExpectedMethod: "GET", ExpectedURL: "protocols/nfs/export-policies/12884901889/rules/8", StatusCode: 200, Response: oneRecord, Err: nil},
+		},
+		"test_two_records_error": {
+			{ExpectedMethod: "GET", ExpectedURL: "protocols/nfs/export-policies/12884901889/rules/8", StatusCode: 200, Response: twoRecords, Err: genericError},
+		},
+		"test_get_error_1": {
+			{ExpectedMethod: "GET", ExpectedURL: "protocols/nfs/export-policies/12884901889/rules/8", StatusCode: 200, Response: decodeError, Err: nil},
+		},
+	}
+	tests := []struct {
+		name      string
+		responses []restclient.MockResponse
+		want      *ExportPolicyRuleGetDataModelONTAP
+		wantErr   bool
+	}{
+		{name: "test_no_records_1", responses: responses["test_no_records_1"], want: nil, wantErr: false},
+		{name: "test_one_record_1", responses: responses["test_one_record_1"], want: &basicExportPolicyRuleRecord, wantErr: false},
+		{name: "test_two_records_error", responses: responses["test_two_records_error"], want: nil, wantErr: true},
+		{name: "test_get_error_1", responses: responses["test_get_error_1"], want: nil, wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := restclient.NewMockedRestClient(tt.responses)
+			if err != nil {
+				panic(err)
+			}
+			got, err := GetExportPolicyRuleSingle(errorHandler, *r, "string", 8, versionModelONTAP{Generation: 9, Major: 10})
+			if err != nil {
+				fmt.Printf("err: %s\n", err)
+			}
+			if (err != nil) != tt.wantErr {
+				t.Errorf("TestGetExportPolicyRuleSingle() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("TestGetExportPolicyRuleSingle() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestGetExportPolicyRule(t *testing.T) {
 	errorHandler := utils.NewErrorHandler(context.Background(), &diag.Diagnostics{})
 
@@ -155,6 +220,78 @@ func TestGetExportPolicyRule(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetExportPolicyRule() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGetListExportPolicyRules(t *testing.T) {
+	errorHandler := utils.NewErrorHandler(context.Background(), &diag.Diagnostics{})
+	badRecord := struct{ Svm int }{1}
+	var recordInterface map[string]any
+	err := mapstructure.Decode(basicExportPolicyRuleRecord, &recordInterface)
+	if err != nil {
+		panic(err)
+	}
+
+	var badRecordInterface map[string]interface{}
+	err = mapstructure.Decode(badRecord, &badRecordInterface)
+	if err != nil {
+		panic(err)
+	}
+	noRecordsResponse := restclient.RestResponse{NumRecords: 0, Records: []map[string]any{}}
+	oneRecordResponse := restclient.RestResponse{NumRecords: 1, Records: []map[string]any{recordInterface}}
+	twoRecordsResponse := restclient.RestResponse{NumRecords: 2, Records: []map[string]any{recordInterface, recordInterface}}
+	decodeErrorResponse := restclient.RestResponse{NumRecords: 1, Records: []map[string]interface{}{badRecordInterface}}
+
+	var wantOneRecord = []ExportPolicyRuleGetDataModelONTAP{basicExportPolicyRuleRecord}
+	var wantTwoRecords = []ExportPolicyRuleGetDataModelONTAP{basicExportPolicyRuleRecord, basicExportPolicyRuleRecord}
+
+	responses := map[string][]restclient.MockResponse{
+		"test_no_records_1": {
+			{ExpectedMethod: "GET", ExpectedURL: "protocols/nfs/export-policies/1234/rules", StatusCode: 200, Response: noRecordsResponse, Err: nil},
+		},
+		"test_one_record_1": {
+
+			{ExpectedMethod: "GET", ExpectedURL: "protocols/nfs/export-policies/1234/rules", StatusCode: 200, Response: oneRecordResponse, Err: nil},
+		},
+		"test_two_records_1": {
+			{ExpectedMethod: "GET", ExpectedURL: "protocols/nfs/export-policies/1234/rules", StatusCode: 200, Response: twoRecordsResponse, Err: nil},
+		},
+		"test_decode_error": {
+			{ExpectedMethod: "GET", ExpectedURL: "protocols/nfs/export-policies/1234/rules", StatusCode: 200, Response: decodeErrorResponse, Err: nil},
+		},
+	}
+	tests := []struct {
+		name      string
+		responses []restclient.MockResponse
+		// args      args
+		want    []ExportPolicyRuleGetDataModelONTAP
+		wantErr bool
+		gen     int
+		maj     int
+	}{
+		{name: "test_no_records_1", responses: responses["test_no_records_1"], want: nil, wantErr: false, gen: 9, maj: 11},
+		{name: "test_one_record_1", responses: responses["test_one_record_1"], want: wantOneRecord, wantErr: false, gen: 9, maj: 11},
+		{name: "test_two_records_1", responses: responses["test_two_records_1"], want: wantTwoRecords, wantErr: false, gen: 9, maj: 10},
+		{name: "test_decode_error", responses: responses["test_decode_error"], want: nil, wantErr: true, gen: 9, maj: 11},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := restclient.NewMockedRestClient(tt.responses)
+			if err != nil {
+				panic(err)
+			}
+			got, err := GetListExportPolicyRules(errorHandler, *r, "string", nil, versionModelONTAP{Generation: tt.gen, Major: tt.maj})
+			if err != nil {
+				fmt.Printf("err: %s\n", err)
+			}
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetListExportPolicyRules() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetListExportPolicyRules() = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -173,6 +173,7 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		NewExportPolicyDataSource,
 		NewExportPoliciesDataSource,
 		NewExportPolicyRuleDataSource,
+		NewExportPolicyRulesDataSource,
 		NewIPInterfaceDataSource,
 		NewIPInterfacesDataSource,
 		NewIPRouteDataSource,

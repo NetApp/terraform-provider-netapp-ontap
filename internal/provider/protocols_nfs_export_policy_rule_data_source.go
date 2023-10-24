@@ -36,6 +36,7 @@ type ExportPolicyRuleDataSourceModel struct {
 	CxProfileName       types.String   `tfsdk:"cx_profile_name"`
 	ExportPolicyID      types.String   `tfsdk:"export_policy_id"`
 	SVMName             types.String   `tfsdk:"svm_name"`
+	ExportPolicyName    types.String   `tfsdk:"export_policy_name"`
 	RoRule              []types.String `tfsdk:"ro_rule"`
 	RwRule              []types.String `tfsdk:"rw_rule"`
 	Protocols           []types.String `tfsdk:"protocols"`
@@ -149,7 +150,7 @@ func (d *ExportPolicyRuleDataSource) Configure(ctx context.Context, req datasour
 
 // Read refreshes the Terraform state with the latest data.
 func (d *ExportPolicyRuleDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data *ExportPolicyRuleResourceModel
+	var data *ExportPolicyRuleDataSourceModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -162,6 +163,16 @@ func (d *ExportPolicyRuleDataSource) Read(ctx context.Context, req datasource.Re
 	client, err := getRestClient(errorHandler, d.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
+		return
+	}
+
+	cluster, err := interfaces.GetCluster(errorHandler, *client)
+	if err != nil {
+		// error reporting done inside GetCluster
+		return
+	}
+	if cluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", fmt.Sprintf("cluster not found"))
 		return
 	}
 
@@ -190,7 +201,7 @@ func (d *ExportPolicyRuleDataSource) Read(ctx context.Context, req datasource.Re
 		exportPolicyID = data.ExportPolicyID.ValueString()
 	}
 
-	restInfo, err := interfaces.GetExportPolicyRule(errorHandler, *client, exportPolicyID, data.Index.ValueInt64())
+	restInfo, err := interfaces.GetExportPolicyRuleSingle(errorHandler, *client, exportPolicyID, data.Index.ValueInt64(), cluster.Version)
 	if err != nil {
 		return
 	}
@@ -198,50 +209,24 @@ func (d *ExportPolicyRuleDataSource) Read(ctx context.Context, req datasource.Re
 		errorHandler.MakeAndReportError("error reading export policy rule", "rule not found")
 		return
 	}
-	var roRule, rwRule, protocols, superuser, clientsMatch []types.String
-	for _, e := range restInfo.RoRule {
-		roRule = append(roRule, types.StringValue(e))
-	}
 
-	for _, e := range restInfo.RwRule {
-		rwRule = append(rwRule, types.StringValue(e))
-	}
-	for _, e := range restInfo.Protocols {
-		protocols = append(protocols, types.StringValue(e))
-	}
-	for _, e := range restInfo.Superuser {
-		superuser = append(superuser, types.StringValue(e))
-	}
-	data.RoRule = roRule
-	data.RwRule = rwRule
-	data.Protocols = protocols
-	data.Superuser = superuser
+	data.RoRule = flattenTypesStringList(restInfo.RoRule)
+	data.RwRule = flattenTypesStringList(restInfo.RwRule)
+	data.Protocols = flattenTypesStringList(restInfo.Protocols)
+	data.Superuser = flattenTypesStringList(restInfo.Superuser)
 
+	var clientsMatch []types.String
 	for _, e := range restInfo.ClientsMatch {
 		clientsMatch = append(clientsMatch, types.StringValue(e.Match))
 	}
 	data.ClientsMatch = clientsMatch
 
-	if !data.AllowDeviceCreation.IsNull() {
-		data.AllowDeviceCreation = types.BoolValue(restInfo.AllowDeviceCreation)
-	}
-
-	if !data.AllowSuid.IsNull() {
-		data.AllowSuid = types.BoolValue(restInfo.AllowSuid)
-	}
-
-	if !data.ChownMode.IsNull() {
-		data.ChownMode = types.StringValue(restInfo.ChownMode)
-	}
-	if !data.NtfsUnixSecurity.IsNull() {
-		data.NtfsUnixSecurity = types.StringValue(restInfo.NtfsUnixSecurity)
-	}
-	if !data.AnonymousUser.IsNull() {
-		data.AnonymousUser = types.StringValue(restInfo.AnonymousUser)
-	}
-	if data.ExportPolicyID.IsNull() {
-		data.ExportPolicyID = types.StringValue(exportPolicyID)
-	}
+	data.AllowDeviceCreation = types.BoolValue(restInfo.AllowDeviceCreation)
+	data.AllowSuid = types.BoolValue(restInfo.AllowSuid)
+	data.ChownMode = types.StringValue(restInfo.ChownMode)
+	data.NtfsUnixSecurity = types.StringValue(restInfo.NtfsUnixSecurity)
+	data.AnonymousUser = types.StringValue(restInfo.AnonymousUser)
+	data.ExportPolicyID = types.StringValue(exportPolicyID)
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
