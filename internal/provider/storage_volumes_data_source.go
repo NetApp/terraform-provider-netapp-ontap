@@ -3,8 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"strconv"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -80,22 +78,26 @@ func (d *StorageVolumesDataSource) Schema(ctx context.Context, req datasource.Sc
 							Required:            true,
 						},
 						"name": schema.StringAttribute{
-							MarkdownDescription: "StorageVolume name",
+							MarkdownDescription: "The name of the volume to manage",
 							Required:            true,
 						},
 						"svm_name": schema.StringAttribute{
 							MarkdownDescription: "Name of the svm to use",
 							Required:            true,
 						},
-						"size": schema.Int64Attribute{
-							MarkdownDescription: "The size of the volume",
+						"aggregates": schema.ListNestedAttribute{
 							Computed:            true,
+							MarkdownDescription: "List of aggregates that the volume is on",
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"name": schema.StringAttribute{
+										MarkdownDescription: "Name of the aggregate",
+										Computed:            true,
+									},
+								},
+							},
 						},
-						"size_unit": schema.StringAttribute{
-							MarkdownDescription: "The unit used to interpret the size parameter",
-							Computed:            true,
-						},
-						"is_online": schema.BoolAttribute{
+						"state": schema.StringAttribute{
 							MarkdownDescription: "Whether the specified volume is online, or not",
 							Computed:            true,
 						},
@@ -103,44 +105,12 @@ func (d *StorageVolumesDataSource) Schema(ctx context.Context, req datasource.Sc
 							MarkdownDescription: "The volume type, either read-write (RW) or data-protection (DP)",
 							Computed:            true,
 						},
-						"export_policy": schema.StringAttribute{
-							MarkdownDescription: "The name of the export policy",
-							Computed:            true,
-						},
-						"junction_path": schema.StringAttribute{
-							MarkdownDescription: "Junction path of the volume",
-							Computed:            true,
-						},
 						"space_guarantee": schema.StringAttribute{
 							MarkdownDescription: "Space guarantee style for the volume",
 							Computed:            true,
 						},
-						"percent_snapshot_space": schema.Int64Attribute{
-							MarkdownDescription: "Amount of space reserved for snapshot copies of the volume",
-							Computed:            true,
-						},
-						"security_style": schema.StringAttribute{
-							MarkdownDescription: "The security style associated to the volume",
-							Computed:            true,
-						},
-						"encrypt": schema.BoolAttribute{
+						"encryption": schema.BoolAttribute{
 							MarkdownDescription: "Whether or not to enable Volume Encryption",
-							Computed:            true,
-						},
-						"efficiency_policy": schema.StringAttribute{
-							MarkdownDescription: "Allows a storage efficiency policy to be set on volume creation",
-							Computed:            true,
-						},
-						"unix_permissions": schema.StringAttribute{
-							MarkdownDescription: "Unix permission bits in octal or symbolic format. For example, 0 is equivalent to ------------, 777 is equivalent to ---rwxrwxrwx,both formats are accepted",
-							Computed:            true,
-						},
-						"group_id": schema.Int64Attribute{
-							MarkdownDescription: "The UNIX group ID for the volume",
-							Computed:            true,
-						},
-						"user_id": schema.Int64Attribute{
-							MarkdownDescription: "The UNIX user ID for the volume",
 							Computed:            true,
 						},
 						"snapshot_policy": schema.StringAttribute{
@@ -151,52 +121,120 @@ func (d *StorageVolumesDataSource) Schema(ctx context.Context, req datasource.Sc
 							MarkdownDescription: "Language to use for volume",
 							Computed:            true,
 						},
+						// with Rest API qos_policy_group and qos_adaptive_policy_group are now the same thing and cannot be set at the same time
 						"qos_policy_group": schema.StringAttribute{
 							MarkdownDescription: "Specifies a QoS policy group to be set on volume",
-							Computed:            true,
-						},
-						"qos_adaptive_policy_group": schema.StringAttribute{
-							MarkdownDescription: "Specifies a QoS adaptive policy group to be set on volume",
-							Computed:            true,
-						},
-						"tiering_policy": schema.StringAttribute{
-							MarkdownDescription: "The tiering policy that is to be associated with the volume",
 							Computed:            true,
 						},
 						"comment": schema.StringAttribute{
 							MarkdownDescription: "Sets a comment associated with the volume",
 							Computed:            true,
 						},
-						"compression": schema.StringAttribute{
-							MarkdownDescription: "Whether to enable compression for the volume (HDD and Flash Pool aggregates, AFF platforms)",
-							Computed:            true,
+						"space": schema.SingleNestedAttribute{
+							Computed: true,
+							Attributes: map[string]schema.Attribute{
+								"size": schema.Int64Attribute{
+									MarkdownDescription: "The size of the volume",
+									Computed:            true,
+								},
+								"size_unit": schema.StringAttribute{
+									MarkdownDescription: "The unit used to interpret the size parameter",
+									Computed:            true,
+								},
+								"percent_snapshot_space": schema.Int64Attribute{
+									MarkdownDescription: "Amount of space reserved for snapshot copies of the volume",
+									Computed:            true,
+								},
+								"logical_space": schema.SingleNestedAttribute{
+									Computed: true,
+									Attributes: map[string]schema.Attribute{
+										"enforcement": schema.BoolAttribute{
+											MarkdownDescription: "Whether to perform logical space accounting on the volume",
+											Computed:            true,
+										},
+										"reporting": schema.BoolAttribute{
+											MarkdownDescription: "Whether to report space logically",
+											Computed:            true,
+										},
+									},
+								},
+							},
 						},
-						"tiering_minimum_cooling_days": schema.Int64Attribute{
-							MarkdownDescription: "Determines how many days must pass before inactive data in a volume using the Auto or Snapshot-Only policy is considered cold and eligible for tiering",
-							Computed:            true,
+						"nas": schema.SingleNestedAttribute{
+							Computed: true,
+							Attributes: map[string]schema.Attribute{
+								"export_policy_name": schema.StringAttribute{
+									MarkdownDescription: "The name of the export policy",
+									Computed:            true,
+								},
+								"junction_path": schema.StringAttribute{
+									MarkdownDescription: "Junction path of the volume",
+									Computed:            true,
+								},
+								"group_id": schema.Int64Attribute{
+									MarkdownDescription: "The UNIX group ID for the volume",
+									Computed:            true,
+								},
+								"user_id": schema.Int64Attribute{
+									MarkdownDescription: "The UNIX user ID for the volume",
+									Computed:            true,
+								},
+								"security_style": schema.StringAttribute{
+									MarkdownDescription: "The security style associated to the volume",
+									Computed:            true,
+								},
+								"unix_permissions": schema.Int64Attribute{
+									MarkdownDescription: "Unix permission bits in octal or symbolic format. For example, 0 is equivalent to ------------, 777 is equivalent to ---rwxrwxrwx,both formats are accepted",
+									Computed:            true,
+								},
+							},
 						},
-						"logical_space_enforcement": schema.BoolAttribute{
-							MarkdownDescription: "Whether to perform logical space accounting on the volume",
-							Computed:            true,
+						"tiering": schema.SingleNestedAttribute{
+							Computed: true,
+							Attributes: map[string]schema.Attribute{
+								"policy_name": schema.StringAttribute{
+									MarkdownDescription: "The tiering policy that is to be associated with the volume",
+									Computed:            true,
+								},
+								"minimum_cooling_days": schema.Int64Attribute{
+									MarkdownDescription: "Determines how many days must pass before inactive data in a volume using the Auto or Snapshot-Only policy is considered cold and eligible for tiering",
+									Computed:            true,
+								},
+							},
 						},
-						"logical_space_reporting": schema.BoolAttribute{
-							MarkdownDescription: "Whether to report space logically",
-							Computed:            true,
+						"efficiency": schema.SingleNestedAttribute{
+							Computed: true,
+							Attributes: map[string]schema.Attribute{
+								"policy_name": schema.StringAttribute{
+									MarkdownDescription: "Allows a storage efficiency policy to be set on volume creation",
+									Computed:            true,
+								},
+								"compression": schema.StringAttribute{
+									MarkdownDescription: "Whether to enable compression for the volume (HDD and Flash Pool aggregates)",
+									Computed:            true,
+								},
+							},
 						},
-						"aggregates": schema.ListAttribute{
-							ElementType:         types.StringType,
-							Computed:            true,
-							MarkdownDescription: "List of aggregates in which to create the volume",
+
+						"snaplock": schema.SingleNestedAttribute{
+							Computed: true,
+							Attributes: map[string]schema.Attribute{
+								"type": schema.StringAttribute{
+									MarkdownDescription: "The SnapLock type of the volume",
+									Computed:            true,
+								},
+							},
 						},
-						"snaplock_type": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "The SnapLock type of the volume",
+						"analytics": schema.SingleNestedAttribute{
+							Computed: true,
+							Attributes: map[string]schema.Attribute{
+								"state": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "Set file system analytics state of the volume",
+								},
+							},
 						},
-						"analytics": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "Set file system analytics state of the volume",
-						},
-						"uuid": schema.StringAttribute{
+						"id": schema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "Volume identifier",
 						},
@@ -259,45 +297,58 @@ func (d *StorageVolumesDataSource) Read(ctx context.Context, req datasource.Read
 
 	data.StorageVolumes = make([]StorageVolumeDataSourceModel, len(restInfo))
 	for index, record := range restInfo {
-		var aggregates []types.String
-		for _, e := range record.Aggregates {
-			aggregates = append(aggregates, types.StringValue(e.Name))
+
+		vsize, vunits := interfaces.ByteFormat(int64(record.Space.Size))
+		var aggregates = make([]StorageVolumeDataSourceAggregates, len(record.Aggregates))
+		for i, v := range record.Aggregates {
+			aggregates[i].Name = types.StringValue(v.Name)
 		}
 
-		size, sizeUnit := interfaces.ByteFormat(int64(record.Space.Size))
-
 		data.StorageVolumes[index] = StorageVolumeDataSourceModel{
-			CxProfileName:             types.String(data.CxProfileName),
-			Name:                      types.StringValue(record.Name),
-			UUID:                      types.StringValue(record.UUID),
-			SVMName:                   types.StringValue(record.SVM.Name),
-			Aggregates:                aggregates,
-			Size:                      types.Int64Value(size),
-			SizeUnit:                  types.StringValue(sizeUnit),
-			IsOnline:                  types.BoolValue(interfaces.OnlineToBool(record.State)),
-			Type:                      types.StringValue(record.Type),
-			ExportPolicy:              types.StringValue(record.NAS.ExportPolicy.Name),
-			JunctionPath:              types.StringValue(record.NAS.JunctionPath),
-			SpaceGuarantee:            types.StringValue(record.SpaceGuarantee.Type),
-			PercentSnapshotSpace:      types.Int64Value(int64(record.Space.Snapshot.ReservePercent)),
-			SecurityStyle:             types.StringValue(record.NAS.SecurityStyle),
-			Encrypt:                   types.BoolValue(record.Encryption.Enabled),
-			EfficiencyPolicy:          types.StringValue(record.Efficiency.Policy.Name),
-			UnixPermissions:           types.StringValue(strconv.Itoa(record.NAS.UnixPermissions)),
-			GroupID:                   types.Int64Value(int64(record.NAS.GroupID)),
-			UserID:                    types.Int64Value(int64(record.NAS.UserID)),
-			SnapshotPolicy:            types.StringValue(record.SnapshotPolicy.Name),
-			Language:                  types.StringValue(record.Language),
-			QosPolicyGroup:            types.StringValue(record.QOS.Policy.Name),
-			QosAdaptivePolicyGroup:    types.StringValue(record.QOS.Policy.Name),
-			TieringPolicy:             types.StringValue(record.TieringPolicy.Policy),
-			Comment:                   types.StringValue(record.Comment),
-			Compression:               types.StringValue(record.Efficiency.Compression),
-			TieringMinimumCoolingDays: types.Int64Value(int64(record.TieringPolicy.MinCoolingDays)),
-			LogicalSpaceEnforcement:   types.BoolValue(record.Space.LogicalSpace.Enforcement),
-			LogicalSpaceReporting:     types.BoolValue(record.Space.LogicalSpace.Reporting),
-			SnaplockType:              types.StringValue(record.Snaplock.Type),
-			Analytics:                 types.StringValue(record.Analytics.State),
+			CxProfileName:  types.String(data.CxProfileName),
+			Name:           types.StringValue(record.Name),
+			SVMName:        types.StringValue(record.SVM.Name),
+			Aggregates:     aggregates,
+			State:          types.StringValue(record.State),
+			Type:           types.StringValue(record.Type),
+			SpaceGuarantee: types.StringValue(record.SpaceGuarantee.Type),
+			Encrypt:        types.BoolValue(record.Encryption.Enabled),
+			SnapshotPolicy: types.StringValue(record.SnapshotPolicy.Name),
+			Language:       types.StringValue(record.Language),
+			QOSPolicyGroup: types.StringValue(record.QOS.Policy.Name),
+			Comment:        types.StringValue(record.Comment),
+			Space: &StorageVolumeDataSourceSpace{
+				Size:                 types.Int64Value(vsize),
+				SizeUnit:             types.StringValue(vunits),
+				PercentSnapshotSpace: types.Int64Value(int64(record.Space.Snapshot.ReservePercent)),
+				LogicalSpace: &StorageVolumeDataSourceSpaceLogicalSpace{
+					Enforcement: types.BoolValue(record.Space.LogicalSpace.Enforcement),
+					Reporting:   types.BoolValue(record.Space.LogicalSpace.Reporting),
+				},
+			},
+			Nas: &StorageVolumeDataSourceNas{
+				ExportPolicy:    types.StringValue(record.NAS.ExportPolicy.Name),
+				JunctionPath:    types.StringValue(record.NAS.JunctionPath),
+				GroupID:         types.Int64Value(int64(record.NAS.GroupID)),
+				UserID:          types.Int64Value(int64(record.NAS.UserID)),
+				SecurityStyle:   types.StringValue(record.NAS.SecurityStyle),
+				UnixPermissions: types.Int64Value(int64(record.NAS.UnixPermissions)),
+			},
+			Tiering: &StorageVolumeDataSourceTiering{
+				Policy:             types.StringValue(record.TieringPolicy.Policy),
+				MinimumCoolingDays: types.Int64Value(int64(record.TieringPolicy.MinCoolingDays)),
+			},
+			Efficiency: &StorageVolumeDataSourceEfficiency{
+				Policy:      types.StringValue(record.Efficiency.Policy.Name),
+				Compression: types.StringValue(record.Efficiency.Compression),
+			},
+			SnapLock: &StorageVolumeDataSourceSnapLock{
+				SnaplockType: types.StringValue(record.Snaplock.Type),
+			},
+			Analytics: &StorageVolumeDataSourceAnalytics{
+				State: types.StringValue(record.Analytics.State),
+			},
+			ID: types.StringValue(record.UUID),
 		}
 	}
 
