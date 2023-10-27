@@ -209,11 +209,14 @@ func (r *IPInterfaceResource) Create(ctx context.Context, req resource.CreateReq
 	body.SVM.Name = data.SVMName.ValueString()
 	body.IP.Address = data.IP.Address.ValueString()
 	body.IP.Netmask = data.IP.Netmask.ValueInt64()
-	body.Location.HomePort = &interfaces.IPInterfaceResourceHomePort{
+	body.Location.HomePort = interfaces.IPInterfaceResourceHomePort{
 		Name: data.Location.HomePort.ValueString(),
 		Node: interfaces.IPInterfaceResourceHomeNode{
 			Name: data.Location.HomeNode.ValueString(),
 		},
+	}
+	body.Location.HomeNode = interfaces.IPInterfaceResourceHomeNode{
+		Name: data.Location.HomeNode.ValueString(),
 	}
 
 	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
@@ -252,11 +255,14 @@ func (r *IPInterfaceResource) Update(ctx context.Context, req resource.UpdateReq
 	body.Name = data.Name.ValueString()
 	body.IP.Address = data.IP.Address.ValueString()
 	body.IP.Netmask = data.IP.Netmask.ValueInt64()
-	body.Location.HomePort = &interfaces.IPInterfaceResourceHomePort{
+	body.Location.HomePort = interfaces.IPInterfaceResourceHomePort{
 		Name: data.Location.HomePort.ValueString(),
 		Node: interfaces.IPInterfaceResourceHomeNode{
 			Name: data.Location.HomeNode.ValueString(),
 		},
+	}
+	body.Location.HomeNode = interfaces.IPInterfaceResourceHomeNode{
+		Name: data.Location.HomeNode.ValueString(),
 	}
 
 	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)

@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient"
@@ -45,8 +46,8 @@ type IPInterfaceResourceIP struct {
 
 // IPInterfaceResourceLocation is the body data model for location field
 type IPInterfaceResourceLocation struct {
-	HomeNode *IPInterfaceResourceHomeNode `mapstructure:"home_node,omitempty"`
-	HomePort *IPInterfaceResourceHomePort `mapstructure:"home_port,omitempty"`
+	HomeNode IPInterfaceResourceHomeNode `mapstructure:"home_node,omitempty"`
+	HomePort IPInterfaceResourceHomePort `mapstructure:"home_port,omitempty"`
 }
 
 // IPInterfaceResourceHomeNode is the body data model for home_node field
