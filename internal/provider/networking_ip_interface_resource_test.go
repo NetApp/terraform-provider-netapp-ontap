@@ -2,10 +2,11 @@ package provider
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"os"
 	"regexp"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccNetworkingIpInterfaceResource(t *testing.T) {
@@ -18,26 +19,27 @@ func TestAccNetworkingIpInterfaceResource(t *testing.T) {
 				Config:      testAccNetworkingIPInterfaceResourceConfig("non-existant", "10.10.10.10", "ontap_cluster_1-01"),
 				ExpectError: regexp.MustCompile("2621462"),
 			},
-			// non-existant homeport
+			// non-existant home node
 			{
-				Config:      testAccNetworkingIPInterfaceResourceConfig("carchi-test", "10.10.10.10", "non-existant_home_node"),
+				Config:      testAccNetworkingIPInterfaceResourceConfig("svm0", "10.10.10.10", "non-existant_home_node"),
 				ExpectError: regexp.MustCompile("393271"),
 			},
 			// Create and Read
 			{
-				Config: testAccNetworkingIPInterfaceResourceConfig("carchi-test", "10.10.10.10", "ontap_cluster_1-01"),
+				Config: testAccNetworkingIPInterfaceResourceConfig("svm0", "10.10.10.10", "ontap_cluster_1-01"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "name", "test-interface"),
-					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "svm_name", "carchi-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "svm_name", "svm0"),
 				),
 			},
-			// Update and Read (when update is implemented this is what it would look like)
-			//{
-			//	Config: testAccNetworkingIPInterfaceResourceConfig("carchi-test", "10.10.10.20"),
-			//	Check: resource.ComposeTestCheckFunc(
-			//		resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "name", "test-interface", "ontap_cluster_1-01"),
-			//	),
-			//},
+			// Update and Read
+			{
+				Config: testAccNetworkingIPInterfaceResourceConfig("svm0", "10.10.10.20", "ontap_cluster_1-01"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "name", "test-interface"),
+					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "ip.address", "10.10.10.20"),
+				),
+			},
 		},
 	})
 }
