@@ -39,7 +39,7 @@ data "netapp-ontap_snapmirror_policy_data_source" "snapmirror_policy" {
 - `sync_type` (String) SnapmirrorPolicy sync type. [sync, strict_sync, automated_failover]
 - `transfer_schedule_name` (String) The schedule used to update asynchronous relationships
 - `type` (String) SnapmirrorPolicy type. [async, sync, continuous]
-- `uuid` (String) SnapmirrorPolicy uuid
+- `id` (String) SnapmirrorPolicy uuid
 
 <a id="nestedatt--retention"></a>
 ### Nested Schema for `retention`

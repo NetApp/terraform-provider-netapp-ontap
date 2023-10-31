@@ -59,7 +59,7 @@ Read-Only:
 - `name` (String) ClusterSchedule name
 - `scope` (String) Cluster schedule scope
 - `type` (String) Cluster schdeule type
-- `uuid` (String) Cluster schedule UUID
+- `id` (String) Cluster schedule UUID
 
 <a id="nestedatt--cluster_schedules--cron"></a>
 ### Nested Schema for `cluster_schedules.cron`

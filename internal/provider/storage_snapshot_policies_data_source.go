@@ -80,7 +80,7 @@ func (d *SnapshotPoliciesDataSource) Schema(ctx context.Context, req datasource.
 							MarkdownDescription: "IPInterface svm name",
 							Computed:            true,
 						},
-						"uuid": schema.StringAttribute{
+						"id": schema.StringAttribute{
 							MarkdownDescription: "SnapshotPolicy UUID",
 							Computed:            true,
 						},
@@ -206,7 +206,7 @@ func (d *SnapshotPoliciesDataSource) Read(ctx context.Context, req datasource.Re
 			CxProfileName: types.String(data.CxProfileName),
 			Name:          types.StringValue(record.Name),
 			SVMName:       types.StringValue(record.SVM.Name),
-			UUID:          types.StringValue(record.UUID),
+			ID:            types.StringValue(record.UUID),
 			Copies:        copies,
 			Comment:       types.StringValue(record.Comment),
 			Enabled:       types.BoolValue(record.Enabled),

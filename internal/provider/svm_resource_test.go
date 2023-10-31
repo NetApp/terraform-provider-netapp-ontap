@@ -2,10 +2,11 @@ package provider
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"os"
 	"regexp"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccSvmResource(t *testing.T) {
@@ -20,8 +21,8 @@ func TestAccSvmResource(t *testing.T) {
 					resource.TestCheckResourceAttr("netapp-ontap_svm_resource.example", "name", "tfsvm4"),
 					// Check to see if Ipspace is set correctly
 					resource.TestCheckResourceAttr("netapp-ontap_svm_resource.example", "ipspace", "ansibleIpspace_newname"),
-					// Check that a UUID has been set (we don't know what the vaule is as it changes
-					resource.TestCheckResourceAttrSet("netapp-ontap_svm_resource.example", "uuid"),
+					// Check that a ID has been set (we don't know what the vaule is as it changes
+					resource.TestCheckResourceAttrSet("netapp-ontap_svm_resource.example", "id"),
 					resource.TestCheckResourceAttr("netapp-ontap_svm_resource.example", "comment", "test")),
 			},
 			// Update a comment

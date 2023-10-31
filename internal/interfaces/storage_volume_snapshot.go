@@ -118,7 +118,7 @@ func GetListStorageVolumeSnapshots(errorHandler *utils.ErrorHandler, r restclien
 		}
 	}
 
-	query.Fields([]string{"name", "create_time", "expiry_time", "state", "size", "comment", "volume", "volume.uuid", "snapmirror_label"})
+	query.Fields([]string{"name", "svm.name", "create_time", "expiry_time", "state", "size", "comment", "volume", "volume.uuid", "snapmirror_label"})
 	api := "storage/volumes/" + volumeUUID + "/snapshots"
 	statusCode, response, err := r.GetZeroOrMoreRecords(api, query, nil)
 	if err != nil {

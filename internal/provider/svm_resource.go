@@ -35,9 +35,9 @@ type SvmResource struct {
 
 // SvmResourceModel describes the resource data model.
 type SvmResourceModel struct {
-	CxProfileName  types.String   `tfsdk:"cx_profile_name"`
-	Name           types.String   `tfsdk:"name"`
-	UUID           types.String   `tfsdk:"uuid"`
+	CxProfileName types.String `tfsdk:"cx_profile_name"`
+	Name          types.String `tfsdk:"name"`
+	// UUID           types.String   `tfsdk:"uuid"`
 	Ipspace        types.String   `tfsdk:"ipspace"`
 	SnapshotPolicy types.String   `tfsdk:"snapshot_policy"`
 	SubType        types.String   `tfsdk:"subtype"`
@@ -67,13 +67,6 @@ func (r *SvmResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the svm to manage",
 				Required:            true,
-			},
-			"uuid": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "svm identifier",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
 			},
 			"ipspace": schema.StringAttribute{
 				MarkdownDescription: "The name of the ipspace to manage",
@@ -105,7 +98,11 @@ func (r *SvmResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 				Optional:            true,
 			},
 			"id": schema.StringAttribute{
-				Computed: true,
+				Computed:            true,
+				MarkdownDescription: "SVM identifier",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 		},
 	}
@@ -193,7 +190,7 @@ func (r *SvmResource) Create(ctx context.Context, req resource.CreateRequest, re
 	if err != nil {
 		return
 	}
-	data.UUID = types.StringValue(svm.UUID)
+	// data.UUID = types.StringValue(svm.UUID)
 	data.ID = types.StringValue(svm.UUID)
 	tflog.Trace(ctx, "created a resource")
 
@@ -213,17 +210,14 @@ func (r *SvmResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	}
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	if data.UUID.IsNull() {
-		errorHandler.MakeAndReportError("UUID is null", "svm UUID is null")
-		return
-	}
 
 	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
 	}
-	svm, err := interfaces.GetSvm(errorHandler, *client, data.UUID.ValueString())
+	tflog.Debug(ctx, fmt.Sprintf("read a svm resource: %#v", data))
+	svm, err := interfaces.GetSvm(errorHandler, *client, data.ID.ValueString())
 	if err != nil {
 		return
 	}
@@ -231,7 +225,7 @@ func (r *SvmResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		errorHandler.MakeAndReportError("No Svm found", "No SVM found")
 	}
 	data.Name = types.StringValue(svm.Name)
-	data.UUID = types.StringValue(svm.UUID)
+	data.ID = types.StringValue(svm.UUID)
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -240,42 +234,72 @@ func (r *SvmResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *SvmResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data *SvmResourceModel
+	var state *SvmResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
+	// Read state file data
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if data.UUID.IsNull() {
-		errorHandler.MakeAndReportError("UUID is Null", "UUID is NUll")
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
+
+	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	if err != nil {
+		return
 	}
 
 	var request interfaces.SvmResourceModel
-	request.Name = data.Name.ValueString()
+	if !data.Name.Equal(state.Name) {
+		if data.Name.ValueString() == "" {
+			errorHandler.MakeAndReportError("update name", "name cannot be updated with empty string")
+			return
+		}
+		request.Name = data.Name.ValueString()
+	}
 	// TODO: Ipspace can not be modify on SVM/patch. We can't fail or maybe a warning should be sent?
 	//if !data.Ipspace.IsNull() {
 	//	request.Ipspace.Name = data.Ipspace.ValueString()
 	//}
 
-	if !data.SnapshotPolicy.IsNull() {
+	if !data.SnapshotPolicy.Equal(state.SnapshotPolicy) {
+		if data.SnapshotPolicy.ValueString() == "" {
+			errorHandler.MakeAndReportError("update snapshot_policy", "snapshot_policy cannot be updated with empty string")
+			return
+		}
 		request.SnapshotPolicy.Name = data.SnapshotPolicy.ValueString()
 	}
-
-	if !data.SubType.IsNull() {
+	if !data.SubType.Equal(state.SubType) {
+		if data.SubType.ValueString() == "" {
+			errorHandler.MakeAndReportError("update subtype", "subtype cannot be updated with empty string")
+			return
+		}
 		request.SubType = data.SubType.ValueString()
 	}
-
-	if !data.Comment.IsNull() {
+	if !data.Comment.Equal(state.Comment) {
+		if data.Comment.ValueString() == "" {
+			errorHandler.MakeAndReportError("update comment", "comment cannot be updated with empty string")
+			return
+		}
 		request.Comment = data.Comment.ValueString()
 	}
 
-	if !data.Language.IsNull() {
+	if !data.Language.Equal(state.Language) {
+		if data.Language.ValueString() == "" {
+			errorHandler.MakeAndReportError("update language", "language cannot be updated with empty string")
+			return
+		}
 		request.Language = data.Language.ValueString()
 	}
 
-	if !data.MaxVolumes.IsNull() {
+	if !data.MaxVolumes.Equal(state.MaxVolumes) {
+		if data.MaxVolumes.ValueString() == "" {
+			errorHandler.MakeAndReportError("update max_volumes", "max_volumes cannot be updated with empty string")
+			return
+		}
 		err := interfaces.ValidateIntORString(errorHandler, data.MaxVolumes.ValueString(), "unlimited")
 		if err != nil {
 			return
@@ -296,24 +320,12 @@ func (r *SvmResource) Update(ctx context.Context, req resource.UpdateRequest, re
 			return
 		}
 	}
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+
+	tflog.Debug(ctx, fmt.Sprintf("update a svm resource: %#v", data))
+	err = interfaces.UpdateSvm(errorHandler, *client, request, state.ID.ValueString())
 	if err != nil {
 		return
 	}
-	// We need to check to see if the name has changed for a rename
-	rename := false
-	existingSvm, err := interfaces.GetSvm(errorHandler, *client, data.UUID.ValueString())
-	if err != nil {
-		return
-	}
-	if existingSvm.Name != request.Name {
-		rename = true
-	}
-	err = interfaces.UpdateSvm(errorHandler, *client, request, data.UUID.ValueString(), rename)
-	if err != nil {
-		return
-	}
-	data.ID = types.StringValue(data.UUID.ValueString())
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -334,8 +346,8 @@ func (r *SvmResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	}
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	if data.UUID.IsNull() {
-		errorHandler.MakeAndReportError("UUID is null", "svm UUID is null")
+	if data.ID.IsNull() {
+		errorHandler.MakeAndReportError("ID is null", "svm UUID is null")
 		return
 	}
 
@@ -344,7 +356,7 @@ func (r *SvmResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 		// error reporting done inside NewClient
 		return
 	}
-	err = interfaces.DeleteSvm(errorHandler, *client, data.UUID.ValueString())
+	err = interfaces.DeleteSvm(errorHandler, *client, data.ID.ValueString())
 	if err != nil {
 		return
 	}

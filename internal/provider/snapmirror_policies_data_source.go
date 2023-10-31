@@ -3,13 +3,14 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strconv"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
-	"strconv"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -136,7 +137,7 @@ func (d *SnapmirrorPoliciesDataSource) Schema(ctx context.Context, req datasourc
 							MarkdownDescription: "Specifies that all the source Snapshot copies (including the one created by SnapMirror before the transfer begins) should be copied to the destination on a transfer.",
 							Computed:            true,
 						},
-						"uuid": schema.StringAttribute{
+						"id": schema.StringAttribute{
 							MarkdownDescription: "SnapmirrorPolicy uuid",
 							Computed:            true,
 						},
@@ -233,7 +234,7 @@ func (d *SnapmirrorPoliciesDataSource) Read(ctx context.Context, req datasource.
 			TransferScheduleName:      types.StringValue(record.TransferSchedule.Name),
 			NetworkCompressionEnabled: types.BoolValue(record.NetworkCompressionEnabled),
 			IdentityPreservation:      types.StringValue(record.IdentityPreservation),
-			UUID:                      types.StringValue(record.UUID),
+			ID:                        types.StringValue(record.UUID),
 		}
 
 		if cluster.Version.Generation == 9 && cluster.Version.Major > 9 {

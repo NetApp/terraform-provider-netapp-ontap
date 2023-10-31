@@ -1,3 +1,3 @@
 username = "admin"
-password = "*****"
-validate_certs = false
+password = "xxxxxxxxx"
+validate_certs = true

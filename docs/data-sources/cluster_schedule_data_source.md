@@ -34,7 +34,7 @@ data "netapp-ontap_cluster_schedule_data_source" "cluster_schedule" {
 - `interval` (String) Cluster schedule interval
 - `scope` (String) Cluster schedule scope
 - `type` (String) Cluster schdeule type
-- `uuid` (String) Cluster schedule UUID
+- `id` (String) Cluster schedule UUID
 
 <a id="nestedatt--cron"></a>
 ### Nested Schema for `cron`

@@ -58,12 +58,11 @@ Read-Only:
 
 - `aggregates` (List of String) Aggregates to be assigned use for svm
 - `comment` (String) Comment for svm to be created
-- `id` (String)
+- `id` (String) The ID of this resource.
 - `ipspace` (String) The name of the ipspace to manage
 - `language` (String) Language to use for svm
 - `max_volumes` (String) Maximum number of volumes that can be created on the svm. Expects an integer or unlimited
 - `snapshot_policy` (String) The name of the snapshot policy to manage
 - `subtype` (String) The subtype for svm to be created
-- `uuid` (String) svm identifier
 
 

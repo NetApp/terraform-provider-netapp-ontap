@@ -91,6 +91,10 @@ func (d *StorageVolumeSnapshotsDataSource) Schema(ctx context.Context, req datas
 							MarkdownDescription: "Volume Name",
 							Computed:            true,
 						},
+						"svm_name": schema.StringAttribute{
+							MarkdownDescription: "SVM Name",
+							Required:            true,
+						},
 						"create_time": schema.StringAttribute{
 							MarkdownDescription: "Create time",
 							Computed:            true,
@@ -113,6 +117,10 @@ func (d *StorageVolumeSnapshotsDataSource) Schema(ctx context.Context, req datas
 						},
 						"snapmirror_label": schema.StringAttribute{
 							MarkdownDescription: "Snapmirror Label",
+							Computed:            true,
+						},
+						"id": schema.StringAttribute{
+							MarkdownDescription: "volume snapshot UUID",
 							Computed:            true,
 						},
 					},
@@ -192,12 +200,14 @@ func (d *StorageVolumeSnapshotsDataSource) Read(ctx context.Context, req datasou
 		data.StorageVolumeSnapshots[index] = StorageVolumeSnapshotDataSourceModel{
 			CxProfileName:   types.String(data.CxProfileName),
 			Name:            types.StringValue(record.Name),
+			SVMName:         types.StringValue(record.SVM.Name),
 			CreateTime:      types.StringValue(record.CreateTime),
 			ExpiryTime:      types.StringValue(record.ExpiryTime),
 			Size:            types.Float64Value(record.Size),
 			SnapmirrorLabel: types.StringValue(record.SnapmirrorLabel),
 			State:           types.StringValue(record.State),
 			VolumeName:      types.StringValue(record.Volume.Name),
+			ID:              types.StringValue(record.UUID),
 		}
 	}
 

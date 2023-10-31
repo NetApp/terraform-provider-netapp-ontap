@@ -33,7 +33,7 @@ data "netapp-ontap_storage_snapshot_policy_data_source" "storage_snapshot_policy
 - `copies` (Attributes List) Snapshot copy (see [below for nested schema](#nestedatt--copies))
 - `enabled` (Boolean) Is the Snapshot copy policy enabled?
 - `svm_name` (String) IPInterface vserver name
-- `uuid` (String) SnapshotPolicy UUID
+- `id` (String) SnapshotPolicy UUID
 
 <a id="nestedatt--copies"></a>
 ### Nested Schema for `copies`
