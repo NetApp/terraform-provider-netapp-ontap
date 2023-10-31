@@ -14,9 +14,10 @@ Retrieves a collection of volume Snapshot copies
 data "netapp-ontap_storage_volume_snapshots_data_source" "storage_volume_snapshots" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
-  volume_uuid = "271e0dce-a082-11ed-926e-005056b34578"
   filter = {
     name = "weekly.*"
+    volume_name ="testvolume"
+    svm_name = "testsvm"
   }
 }
 ```
@@ -29,7 +30,9 @@ data "netapp-ontap_storage_volume_snapshots_data_source" "storage_volume_snapsho
 ### Required
 
 - `cx_profile_name` (String) Connection profile name
-- `volume_uuid` (String) Volume UUID
+- `name` (String) Snapshot name
+- `volume_name` (String) Volume Name
+- `svm_name` (String) SVM name
 
 ### Optional
 
@@ -54,7 +57,8 @@ Required:
 
 - `cx_profile_name` (String) Connection profile name
 - `name` (String) StorageVolumeSnapshot name
-- `volume_uuid` (String) Volume UUID
+- `volume_name` (String) Volume Name
+- `svm_name` (String) SVM name
 
 Read-Only:
 
@@ -64,6 +68,6 @@ Read-Only:
 - `size` (Number) Size
 - `snapmirror_label` (String) Snapmirror Label
 - `state` (String) State
-- `volume_name` (String) Volume Name
+- `id` (String) Volume Snapshot Identifier
 
 

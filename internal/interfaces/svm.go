@@ -24,7 +24,7 @@ type SvmDataModelONTAP struct {
 
 // SvmResourceModel describes the resource data model.
 type SvmResourceModel struct {
-	Name           string              `mapstructure:"name"`
+	Name           string              `mapstructure:"name,omitempty"`
 	Ipspace        Ipspace             `mapstructure:"ipspace"`
 	SnapshotPolicy SnapshotPolicy      `mapstructure:"snapshot_policy"`
 	SubType        string              `mapstructure:"subtype,omitempty"`
@@ -186,15 +186,12 @@ func DeleteSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid s
 }
 
 // UpdateSvm to update a svm
-func UpdateSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, data SvmResourceModel, uuid string, rename bool) error {
+func UpdateSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, data SvmResourceModel, uuid string) error {
 	var body map[string]interface{}
 	if err := mapstructure.Decode(data, &body); err != nil {
 		return errorHandler.MakeAndReportError("error encoding svm body", fmt.Sprintf("error on encoding svm/svms body: %s, body: %#v", err, data))
 	}
-	// Name is only passed to patch if it is a rename
-	if !rename {
-		delete(body, "name")
-	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Update svm info: %#v", data))
 	query := r.NewQuery()
 	query.Add("return_records", "true")
 	statusCode, _, err := r.CallUpdateMethod("svm/svms/"+uuid, query, body)

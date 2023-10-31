@@ -42,6 +42,7 @@ type StorageVolumeSnapshotDataSourceModel struct {
 	State           types.String  `tfsdk:"state"`
 	VolumeName      types.String  `tfsdk:"volume_name"`
 	SVMName         types.String  `tfsdk:"svm_name"`
+	ID              types.String  `tfsdk:"id"`
 }
 
 // Metadata returns the data source type name.
@@ -94,6 +95,10 @@ func (d *StorageVolumeSnapshotDataSource) Schema(ctx context.Context, req dataso
 			},
 			"snapmirror_label": schema.StringAttribute{
 				MarkdownDescription: "Snapmirror Label",
+				Computed:            true,
+			},
+			"id": schema.StringAttribute{
+				MarkdownDescription: "volume snapshot UUID",
 				Computed:            true,
 			},
 		},
@@ -156,6 +161,7 @@ func (d *StorageVolumeSnapshotDataSource) Read(ctx context.Context, req datasour
 	data.SnapmirrorLabel = types.StringValue(snapshot.SnapmirrorLabel)
 	data.State = types.StringValue(snapshot.State)
 	data.VolumeName = types.StringValue(snapshot.Volume.Name)
+	data.ID = types.StringValue(snapshot.UUID)
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log

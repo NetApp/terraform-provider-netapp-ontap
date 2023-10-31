@@ -44,7 +44,7 @@ type SnapmirrorPolicyDataSourceModel struct {
 	IdentityPreservation      types.String            `tfsdk:"identity_preservation"`
 	CopyAllSourceSnapshots    types.Bool              `tfsdk:"copy_all_source_snapshots"`
 	CopyLatestSourceSnapshot  types.Bool              `tfsdk:"copy_latest_source_snapshot"`
-	UUID                      types.String            `tfsdk:"uuid"`
+	ID                        types.String            `tfsdk:"id"`
 	CreateSnapshotOnSource    types.Bool              `tfsdk:"create_snapshot_on_source"`
 }
 
@@ -145,7 +145,7 @@ func (d *SnapmirrorPolicyDataSource) Schema(ctx context.Context, req datasource.
 				MarkdownDescription: "Specifies that all the source Snapshot copies (including the one created by SnapMirror before the transfer begins) should be copied to the destination on a transfer.",
 				Computed:            true,
 			},
-			"uuid": schema.StringAttribute{
+			"id": schema.StringAttribute{
 				MarkdownDescription: "SnapmirrorPolicy uuid",
 				Computed:            true,
 			},
@@ -229,7 +229,7 @@ func (d *SnapmirrorPolicyDataSource) Read(ctx context.Context, req datasource.Re
 		TransferScheduleName:      types.StringValue(restInfo.TransferSchedule.Name),
 		NetworkCompressionEnabled: types.BoolValue(restInfo.NetworkCompressionEnabled),
 		IdentityPreservation:      types.StringValue(restInfo.IdentityPreservation),
-		UUID:                      types.StringValue(restInfo.UUID),
+		ID:                        types.StringValue(restInfo.UUID),
 	}
 
 	if len(restInfo.Retention) == 0 {

@@ -37,7 +37,7 @@ data "netapp-ontap_snapmirror_data_source" "snapmirror" {
 - `source` (Attributes) Snapmirror source endpoint (see [below for nested schema](#nestedatt--source))
 - `state` (String) state of the relationship
 - `throttle` (Number) throttle of the relationship
-- `uuid` (String) uuid of the relationship
+- `id` (String) uuid of the relationship
 
 <a id="nestedatt--destination"></a>
 ### Nested Schema for `destination`

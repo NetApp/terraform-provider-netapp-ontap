@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -142,7 +143,7 @@ func (d *SnapmirrorsDataSource) Schema(ctx context.Context, req datasource.Schem
 							MarkdownDescription: "restore of the relationship",
 							Computed:            true,
 						},
-						"uuid": schema.StringAttribute{
+						"id": schema.StringAttribute{
 							MarkdownDescription: "uuid of the relationship",
 							Computed:            true,
 						},
@@ -258,7 +259,7 @@ func (d *SnapmirrorsDataSource) Read(ctx context.Context, req datasource.ReadReq
 			},
 			Healthy: types.BoolValue(record.Healthy),
 			Restore: types.BoolValue(record.Restore),
-			UUID:    types.StringValue(record.UUID),
+			ID:      types.StringValue(record.UUID),
 			State:   types.StringValue(record.State),
 		}
 

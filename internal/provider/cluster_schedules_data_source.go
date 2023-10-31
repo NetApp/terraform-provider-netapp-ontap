@@ -81,7 +81,7 @@ func (d *ClusterSchedulesDataSource) Schema(ctx context.Context, req datasource.
 							MarkdownDescription: "Cluster schdeule type",
 							Computed:            true,
 						},
-						"uuid": schema.StringAttribute{
+						"id": schema.StringAttribute{
 							MarkdownDescription: "Cluster schedule UUID",
 							Computed:            true,
 						},
@@ -184,7 +184,7 @@ func (d *ClusterSchedulesDataSource) Read(ctx context.Context, req datasource.Re
 		data.ClusterSchedules[index] = ClusterScheduleDataSourceModel{
 			CxProfileName: types.String(data.CxProfileName),
 			Name:          types.StringValue(record.Name),
-			UUID:          types.StringValue(record.UUID),
+			ID:            types.StringValue(record.UUID),
 			Type:          types.StringValue(record.Type),
 			Scope:         types.StringValue(record.Scope),
 		}

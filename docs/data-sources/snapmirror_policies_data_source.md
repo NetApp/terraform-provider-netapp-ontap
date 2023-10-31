@@ -65,7 +65,7 @@ Read-Only:
 - `sync_type` (String) SnapmirrorPolicy sync type. [sync, strict_sync, automated_failover]
 - `transfer_schedule_name` (String) The schedule used to update asynchronous relationships
 - `type` (String) SnapmirrorPolicy type. [async, sync, continuous]
-- `uuid` (String) SnapmirrorPolicy uuid
+- `id` (String) SnapmirrorPolicy uuid
 
 <a id="nestedatt--snapmirror_policies--retention"></a>
 ### Nested Schema for `snapmirror_policies.retention`

@@ -36,7 +36,7 @@ type SnapmirrorDataSourceModel struct {
 	Destination   *Destination      `tfsdk:"destination"`
 	Healthy       types.Bool        `tfsdk:"healthy"`
 	Restore       types.Bool        `tfsdk:"restore"`
-	UUID          types.String      `tfsdk:"uuid"`
+	ID            types.String      `tfsdk:"id"`
 	State         types.String      `tfsdk:"state"`
 	Policy        *SnapmirrorPolicy `tfsdk:"policy"`
 	GroupType     types.String      `tfsdk:"group_type"`
@@ -159,7 +159,7 @@ func (d *SnapmirrorDataSource) Schema(ctx context.Context, req datasource.Schema
 				MarkdownDescription: "restore of the relationship",
 				Computed:            true,
 			},
-			"uuid": schema.StringAttribute{
+			"id": schema.StringAttribute{
 				MarkdownDescription: "uuid of the relationship",
 				Computed:            true,
 			},
@@ -262,7 +262,7 @@ func (d *SnapmirrorDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		},
 		Healthy: types.BoolValue(restInfo.Healthy),
 		Restore: types.BoolValue(restInfo.Restore),
-		UUID:    types.StringValue(restInfo.UUID),
+		ID:      types.StringValue(restInfo.UUID),
 		State:   types.StringValue(restInfo.State),
 	}
 

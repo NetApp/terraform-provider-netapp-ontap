@@ -54,7 +54,7 @@ resource "netapp-ontap_storage_snapshot_policy_resource" "storage_snapshot_polic
 
 ### Read-Only
 
-- `uuid` (String) SnapshotPolicy UUID
+- `id` (String) SnapshotPolicy UUID
 
 <a id="nestedatt--copies"></a>
 ### Nested Schema for `copies`

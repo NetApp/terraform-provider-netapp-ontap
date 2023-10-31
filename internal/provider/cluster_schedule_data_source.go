@@ -33,7 +33,7 @@ type ClusterScheduleDataSource struct {
 type ClusterScheduleDataSourceModel struct {
 	CxProfileName types.String       `tfsdk:"cx_profile_name"`
 	Name          types.String       `tfsdk:"name"`
-	UUID          types.String       `tfsdk:"uuid"`
+	ID            types.String       `tfsdk:"id"`
 	Type          types.String       `tfsdk:"type"`
 	Interval      types.String       `tfsdk:"interval"`
 	Scope         types.String       `tfsdk:"scope"`
@@ -73,7 +73,7 @@ func (d *ClusterScheduleDataSource) Schema(ctx context.Context, req datasource.S
 				MarkdownDescription: "Cluster schdeule type",
 				Computed:            true,
 			},
-			"uuid": schema.StringAttribute{
+			"id": schema.StringAttribute{
 				MarkdownDescription: "Cluster schedule UUID",
 				Computed:            true,
 			},
@@ -163,7 +163,7 @@ func (d *ClusterScheduleDataSource) Read(ctx context.Context, req datasource.Rea
 		return
 	}
 	data.Name = types.StringValue(restInfo.Name)
-	data.UUID = types.StringValue(restInfo.UUID)
+	data.ID = types.StringValue(restInfo.UUID)
 	data.Type = types.StringValue(restInfo.Type)
 	data.Scope = types.StringValue(restInfo.Scope)
 

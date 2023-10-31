@@ -205,7 +205,12 @@ func (r *NameServicesDNSResource) Update(ctx context.Context, req resource.Updat
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
+	// License updates are not supported
+	err := errorHandler.MakeAndReportError("Update not supported for dns", "Update not supported for dns")
+	if err != nil {
+		return
+	}
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

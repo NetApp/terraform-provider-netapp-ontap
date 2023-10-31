@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -33,7 +34,7 @@ type SnapshotPolicyDataSourceModel struct {
 	CxProfileName types.String        `tfsdk:"cx_profile_name"`
 	Name          types.String        `tfsdk:"name"`
 	SVMName       types.String        `tfsdk:"svm_name"`
-	UUID          types.String        `tfsdk:"uuid"`
+	ID            types.String        `tfsdk:"id"`
 	Copies        []CopyResourceModel `tfsdk:"copies"`
 	Comment       types.String        `tfsdk:"comment"`
 	Enabled       types.Bool          `tfsdk:"enabled"`
@@ -69,7 +70,7 @@ func (d *SnapshotPolicyDataSource) Schema(ctx context.Context, req datasource.Sc
 				MarkdownDescription: "IPInterface svm name",
 				Computed:            true,
 			},
-			"uuid": schema.StringAttribute{
+			"id": schema.StringAttribute{
 				MarkdownDescription: "SnapshotPolicy UUID",
 				Computed:            true,
 			},
@@ -162,7 +163,7 @@ func (d *SnapshotPolicyDataSource) Read(ctx context.Context, req datasource.Read
 
 	data.Name = types.StringValue(restInfo.Name)
 	data.SVMName = types.StringValue(restInfo.SVM.Name)
-	data.UUID = types.StringValue(restInfo.UUID)
+	data.ID = types.StringValue(restInfo.UUID)
 	data.Copies = make([]CopyResourceModel, len(restInfo.Copies))
 	for index, record := range restInfo.Copies {
 		data.Copies[index] = CopyResourceModel{

@@ -302,7 +302,12 @@ func (r *SnapmirrorResource) Update(ctx context.Context, req resource.UpdateRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
+	// License updates are not supported
+	err := errorHandler.MakeAndReportError("Update not supported for snapmirror", "Update not supported for snapmirror")
+	if err != nil {
+		return
+	}
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }

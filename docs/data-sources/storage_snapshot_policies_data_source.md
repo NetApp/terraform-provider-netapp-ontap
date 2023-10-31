@@ -59,7 +59,7 @@ Read-Only:
 - `copies` (Attributes List) Snapshot copy (see [below for nested schema](#nestedatt--storage_snapshot_policies--copies))
 - `enabled` (Boolean) Is the Snapshot copy policy enabled?
 - `svm_name` (String) IPInterface vserver name
-- `uuid` (String) SnapshotPolicy UUID
+- `id` (String) SnapshotPolicy UUID
 
 <a id="nestedatt--storage_snapshot_policies--copies"></a>
 ### Nested Schema for `storage_snapshot_policies.copies`

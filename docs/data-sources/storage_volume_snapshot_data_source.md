@@ -15,7 +15,8 @@ Retrieves details of a specific volume Snapshot copy
 data "netapp-ontap_storage_volume_snapshot_data_source" "snapshot" {
   cx_profile_name = "cluster4"
   name = "weekly.2023-05-21_0015"
-  volume_uuid = "271e0dce-a082-11ed-926e-005056b34578"
+  volume_name = "testvolume"
+  svm_name = "testsvm"
 }
 ```
 
@@ -28,7 +29,8 @@ data "netapp-ontap_storage_volume_snapshot_data_source" "snapshot" {
 
 - `cx_profile_name` (String) Connection profile name
 - `name` (String) Snapshot name
-- `volume_uuid` (String) Volume UUID
+- `volume_name` (String) Volume Name
+- `svm_name` (String) SVM name
 
 ### Read-Only
 
@@ -38,6 +40,6 @@ data "netapp-ontap_storage_volume_snapshot_data_source" "snapshot" {
 - `size` (Number) Size
 - `snapmirror_label` (String) Snapmirror Label
 - `state` (String) State
-- `volume_name` (String) Volume Name
+- `id` (String) Volume Snapshot Identifier
 
 
