@@ -26,12 +26,12 @@ type SvmDataModelONTAP struct {
 type SvmResourceModel struct {
 	Name           string              `mapstructure:"name,omitempty"`
 	Ipspace        Ipspace             `mapstructure:"ipspace"`
-	SnapshotPolicy SnapshotPolicy      `mapstructure:"snapshot_policy"`
+	SnapshotPolicy SnapshotPolicy      `mapstructure:"snapshot_policy,omitempty"`
 	SubType        string              `mapstructure:"subtype,omitempty"`
-	Comment        string              `mapstructure:"comment,omitempty"`
+	Comment        string              `mapstructure:"comment"`
 	Language       string              `mapstructure:"language,omitempty"`
 	MaxVolumes     string              `mapstructure:"max_volumes,omitempty"`
-	Aggregates     []map[string]string `mapstructure:"aggregates,omitempty"`
+	Aggregates     []map[string]string `mapstructure:"aggregates"`
 }
 
 // SvmGetDataSourceModel describes the data source model.
@@ -152,10 +152,16 @@ func GetSvmsByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, fi
 }
 
 // CreateSvm to create svm
-func CreateSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, data SvmResourceModel) (*SvmGetDataModelONTAP, error) {
+func CreateSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, data SvmResourceModel, setAggrEmpty bool, setCommentEmpty bool) (*SvmGetDataModelONTAP, error) {
 	var body map[string]interface{}
 	if err := mapstructure.Decode(data, &body); err != nil {
 		return nil, errorHandler.MakeAndReportError("error encoding svm body", fmt.Sprintf("error on encoding svm/svms body: %s, body: %#v", err, data))
+	}
+	if setAggrEmpty {
+		delete(body, "aggregates")
+	}
+	if setCommentEmpty {
+		delete(body, "comment")
 	}
 	query := r.NewQuery()
 	query.Add("return_records", "true")
@@ -186,10 +192,17 @@ func DeleteSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid s
 }
 
 // UpdateSvm to update a svm
-func UpdateSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, data SvmResourceModel, uuid string) error {
+func UpdateSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, data SvmResourceModel, uuid string, setAggrEmpty bool, setCommentEmpty bool) error {
 	var body map[string]interface{}
 	if err := mapstructure.Decode(data, &body); err != nil {
 		return errorHandler.MakeAndReportError("error encoding svm body", fmt.Sprintf("error on encoding svm/svms body: %s, body: %#v", err, data))
+	}
+	// delete body if there is no change - comment can be changed to empty, aggregate can be changed to empty
+	if !setAggrEmpty && len(data.Aggregates) == 0 {
+		delete(body, "aggregates")
+	}
+	if !setCommentEmpty && data.Comment == "" {
+		delete(body, "comment")
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Update svm info: %#v", data))
 	query := r.NewQuery()
