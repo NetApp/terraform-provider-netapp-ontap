@@ -35,9 +35,8 @@ type SvmResource struct {
 
 // SvmResourceModel describes the resource data model.
 type SvmResourceModel struct {
-	CxProfileName types.String `tfsdk:"cx_profile_name"`
-	Name          types.String `tfsdk:"name"`
-	// UUID           types.String   `tfsdk:"uuid"`
+	CxProfileName  types.String   `tfsdk:"cx_profile_name"`
+	Name           types.String   `tfsdk:"name"`
 	Ipspace        types.String   `tfsdk:"ipspace"`
 	SnapshotPolicy types.String   `tfsdk:"snapshot_policy"`
 	SubType        types.String   `tfsdk:"subtype"`
@@ -149,8 +148,11 @@ func (r *SvmResource) Create(ctx context.Context, req resource.CreateRequest, re
 		request.SubType = data.SubType.ValueString()
 	}
 
+	setCommentEmpty := false
 	if !data.Comment.IsNull() {
 		request.Comment = data.Comment.ValueString()
+	} else {
+		setCommentEmpty = true
 	}
 
 	if !data.Language.IsNull() {
@@ -165,6 +167,7 @@ func (r *SvmResource) Create(ctx context.Context, req resource.CreateRequest, re
 		request.MaxVolumes = data.MaxVolumes.ValueString()
 	}
 
+	setAggrEmpty := false
 	if len(data.Aggregates) != 0 {
 		aggregates := []interfaces.Aggregate{}
 		for _, v := range data.Aggregates {
@@ -177,7 +180,8 @@ func (r *SvmResource) Create(ctx context.Context, req resource.CreateRequest, re
 			errorHandler.MakeAndReportError("error creating svm", fmt.Sprintf("error on encoding aggregates info: %s, aggregates %#v", err, aggregates))
 			return
 		}
-
+	} else {
+		setAggrEmpty = true
 	}
 
 	errorHandler = utils.NewErrorHandler(ctx, &resp.Diagnostics)
@@ -186,7 +190,7 @@ func (r *SvmResource) Create(ctx context.Context, req resource.CreateRequest, re
 		// error reporting done inside NewClient
 		return
 	}
-	svm, err := interfaces.CreateSvm(errorHandler, *client, request)
+	svm, err := interfaces.CreateSvm(errorHandler, *client, request, setAggrEmpty, setCommentEmpty)
 	if err != nil {
 		return
 	}
@@ -235,6 +239,8 @@ func (r *SvmResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 func (r *SvmResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data *SvmResourceModel
 	var state *SvmResourceModel
+	setCommentEmpty := false
+	setAggrEmpty := false
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -267,22 +273,20 @@ func (r *SvmResource) Update(ctx context.Context, req resource.UpdateRequest, re
 
 	if !data.SnapshotPolicy.Equal(state.SnapshotPolicy) {
 		if data.SnapshotPolicy.ValueString() == "" {
+			// snapshot policy cannot be modifoed as empty name but API does not fail with empty snapshot policy
 			errorHandler.MakeAndReportError("update snapshot_policy", "snapshot_policy cannot be updated with empty string")
 			return
 		}
 		request.SnapshotPolicy.Name = data.SnapshotPolicy.ValueString()
 	}
 	if !data.SubType.Equal(state.SubType) {
-		if data.SubType.ValueString() == "" {
-			errorHandler.MakeAndReportError("update subtype", "subtype cannot be updated with empty string")
-			return
-		}
-		request.SubType = data.SubType.ValueString()
+		errorHandler.MakeAndReportError("update subtype", "subtype cannot be modified")
+		return
 	}
+	// comment can be modified as empty string
 	if !data.Comment.Equal(state.Comment) {
 		if data.Comment.ValueString() == "" {
-			errorHandler.MakeAndReportError("update comment", "comment cannot be updated with empty string")
-			return
+			setCommentEmpty = true
 		}
 		request.Comment = data.Comment.ValueString()
 	}
@@ -307,22 +311,27 @@ func (r *SvmResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		request.MaxVolumes = data.MaxVolumes.ValueString()
 	}
 
+	// aggregates can be modified as empty list
+	aggregates := []interfaces.Aggregate{}
 	if len(data.Aggregates) != 0 {
-		aggregates := []interfaces.Aggregate{}
 		for _, v := range data.Aggregates {
 			aggr := interfaces.Aggregate{}
 			aggr.Name = v.ValueString()
 			aggregates = append(aggregates, aggr)
 		}
-		err := mapstructure.Decode(aggregates, &request.Aggregates)
-		if err != nil {
-			errorHandler.MakeAndReportError("error creating svm", fmt.Sprintf("error on encoding aggregates info: %s, aggregates %#v", err, aggregates))
-			return
+	} else {
+		if len(state.Aggregates) != 0 {
+			setAggrEmpty = true
 		}
+	}
+	err = mapstructure.Decode(aggregates, &request.Aggregates)
+	if err != nil {
+		errorHandler.MakeAndReportError("error creating svm", fmt.Sprintf("error on encoding aggregates info: %s, aggregates %#v", err, aggregates))
+		return
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("update a svm resource: %#v", data))
-	err = interfaces.UpdateSvm(errorHandler, *client, request, state.ID.ValueString())
+	err = interfaces.UpdateSvm(errorHandler, *client, request, state.ID.ValueString(), setAggrEmpty, setCommentEmpty)
 	if err != nil {
 		return
 	}
