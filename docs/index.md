@@ -6,9 +6,14 @@ description: |-
   
 ---
 
-# netapp-ontap Provider
+# Netapp Ontap Provider
 
+Use the Netapp Ontap provider to interact with Netapp Ontap resources supported by the Netapp Ontap REST API.
+You must configure the provider with the proper credentials before you can use it.
 
+Use the navigation to the left to read about the available resources. These are currently 15 Resources and 30 Data Sources.
+
+To learn the basics of Terraform using this provider, follow the hands-on [get started tutorials](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/infrastructure-as-code)
 
 ## Example Usage
 
@@ -17,11 +22,10 @@ terraform {
   required_providers {
     netapp-ontap = {
       source = "NetApp/netapp-ontap"
-      version = "0.0.1"
+      version = "1.0.0"
     }
   }
 }
-
 
 provider "netapp-ontap" {
   # A connection profile defines how to interface with an ONTAP cluster or svm.
@@ -29,25 +33,18 @@ provider "netapp-ontap" {
   connection_profiles = [
     {
       name = "cluster1"
-      hostname = "10.193.78.219"
+      hostname = var.hostname
       username = var.username
       password = var.password
       validate_certs = var.validate_certs
     },
     {
       name = "cluster2"
-      hostname = "10.193.78.222"
+      hostname = "10.10.10.10"
       username = "admin"
-      password = "netapp1!"
+      password = "Password"
       validate_certs = false
     },
-    {
-      name = "cluster3"
-      hostname = "10.193.176.159"
-      username = var.username
-      password = var.password
-      validate_certs = var.validate_certs
-    }
   ]
 }
 ```
