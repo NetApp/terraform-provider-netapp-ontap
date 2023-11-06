@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/mitchellh/mapstructure"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -14,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
@@ -42,25 +42,30 @@ type StorageVolumeResource struct {
 
 // StorageVolumeResourceModel describes the resource data model.
 type StorageVolumeResourceModel struct {
-	CxProfileName  types.String   `tfsdk:"cx_profile_name"`
-	Name           types.String   `tfsdk:"name"`
-	SVMName        types.String   `tfsdk:"svm_name"`
-	State          types.String   `tfsdk:"state"`
-	Type           types.String   `tfsdk:"type"`
-	SpaceGuarantee types.String   `tfsdk:"space_guarantee"`
-	Encrypt        types.Bool     `tfsdk:"encryption"`
-	SnapshotPolicy types.String   `tfsdk:"snapshot_policy"`
-	Language       types.String   `tfsdk:"language"`
-	QOSPolicyGroup types.String   `tfsdk:"qos_policy_group"`
-	Comment        types.String   `tfsdk:"comment"`
-	Aggregates     []types.String `tfsdk:"aggregates"`
-	ID             types.String   `tfsdk:"id"`
-	Space          types.Object   `tfsdk:"space"`
-	Nas            types.Object   `tfsdk:"nas"`
-	Tiering        types.Object   `tfsdk:"tiering"`
-	Efficiency     types.Object   `tfsdk:"efficiency"`
-	SnapLock       types.Object   `tfsdk:"snaplock"`
-	Analytics      types.Object   `tfsdk:"analytics"`
+	CxProfileName  types.String                      `tfsdk:"cx_profile_name"`
+	Name           types.String                      `tfsdk:"name"`
+	SVMName        types.String                      `tfsdk:"svm_name"`
+	State          types.String                      `tfsdk:"state"`
+	Type           types.String                      `tfsdk:"type"`
+	SpaceGuarantee types.String                      `tfsdk:"space_guarantee"`
+	Encrypt        types.Bool                        `tfsdk:"encryption"`
+	SnapshotPolicy types.String                      `tfsdk:"snapshot_policy"`
+	Language       types.String                      `tfsdk:"language"`
+	QOSPolicyGroup types.String                      `tfsdk:"qos_policy_group"`
+	Comment        types.String                      `tfsdk:"comment"`
+	Aggregates     []StorageVolumeResourceAggregates `tfsdk:"aggregates"`
+	ID             types.String                      `tfsdk:"id"`
+	Space          types.Object                      `tfsdk:"space"`
+	Nas            types.Object                      `tfsdk:"nas"`
+	Tiering        types.Object                      `tfsdk:"tiering"`
+	Efficiency     types.Object                      `tfsdk:"efficiency"`
+	SnapLock       types.Object                      `tfsdk:"snaplock"`
+	Analytics      types.Object                      `tfsdk:"analytics"`
+}
+
+// StorageVolumeResourceAggregates describes the analytics model.
+type StorageVolumeResourceAggregates struct {
+	Name types.String `tfsdk:"name"`
 }
 
 // StorageVolumeResourceAnalytics describes the analytics model.
@@ -133,10 +138,17 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 				MarkdownDescription: "Name of the svm to use",
 				Required:            true,
 			},
-			"aggregates": schema.SetAttribute{
-				ElementType:         types.StringType,
+			"aggregates": schema.SetNestedAttribute{
 				Required:            true,
-				MarkdownDescription: "List of aggregates in which to create the volume",
+				MarkdownDescription: "List of aggregates to place volume on",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"name": schema.StringAttribute{
+							MarkdownDescription: "Name of the aggregate",
+							Required:            true,
+						},
+					},
+				},
 			},
 			"state": schema.StringAttribute{
 				MarkdownDescription: "Whether the specified volume is online, or not",
@@ -523,17 +535,23 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 
 	var request interfaces.StorageVolumeResourceModel
 
-	aggregates := []interfaces.Aggregate{}
+	//var aggregates = make([]interfaces.Aggregate, len(data.Aggregates))
+	//for i, v := range data.Aggregates {
+	//	aggregates[i].Name = v.Name.ValueString()
+	//}
+
+	aggrgatges := []interfaces.Aggregate{}
 	for _, v := range data.Aggregates {
-		aggr := interfaces.Aggregate{}
-		aggr.Name = v.ValueString()
-		aggregates = append(aggregates, aggr)
+		var aggr interfaces.Aggregate
+		aggr.Name = v.Name.ValueString()
+		aggrgatges = append(aggrgatges, aggr)
 	}
-	err := mapstructure.Decode(aggregates, &request.Aggregates)
+	err := mapstructure.Decode(aggrgatges, &request.Aggregates)
 	if err != nil {
-		errorHandler.MakeAndReportError("error creating volume", fmt.Sprintf("error on encoding aggregates info: %s, aggregates %#v", err, aggregates))
+		errorHandler.MakeAndReportError("error creating Volume", fmt.Sprintf("error on encoding copies info: %s, copies %#v", err, aggrgatges))
 		return
 	}
+
 	request.Name = data.Name.ValueString()
 	request.SVM.Name = data.SVMName.ValueString()
 

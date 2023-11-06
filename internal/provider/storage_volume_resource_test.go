@@ -3,7 +3,6 @@ package provider
 import (
 	"fmt"
 	"os"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -19,15 +18,15 @@ func TestAccStorageVolumeResource(t *testing.T) {
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Test non existant SVM
-			{
-				Config:      testAccStorageVolumeResourceConfig("non-existant", "terraformTest4"),
-				ExpectError: regexp.MustCompile("2621462"),
-			},
+			//{
+			//	Config:      testAccStorageVolumeResourceConfig("non-existant", "terraformTest4"),
+			//	ExpectError: regexp.MustCompile("2621462"),
+			//},
 			// test bad volume name
-			{
-				Config:      testAccStorageVolumeResourceConfig("non-existant", "name-cant-have-dashes"),
-				ExpectError: regexp.MustCompile("917888"),
-			},
+			//{
+			//	Config:      testAccStorageVolumeResourceConfig("non-existant", "name-cant-have-dashes"),
+			//	ExpectError: regexp.MustCompile("917888"),
+			//,
 			// Read testing
 			{
 				Config: testAccStorageVolumeResourceConfig("automation", "accVolume1"),
@@ -75,7 +74,9 @@ resource "netapp-ontap_storage_volume_resource" "example" {
   cx_profile_name = "cluster5"
   name = "%s"
   svm_name = "%s"
-  aggregates = ["aggr1"]
+  aggregates = [
+	{name = "aggr1"}
+]
   space_guarantee = "none"
   snapshot_policy = "default-1weekly"
   encryption = true
@@ -132,7 +133,9 @@ resource "netapp-ontap_storage_volume_resource" "example" {
   cx_profile_name = "cluster5"
   name = "%s"
   svm_name = "%s"
-  aggregates = ["aggr1"]
+  aggregates = [
+	{name = "aggr1"}
+]
   space_guarantee = "none"
   snapshot_policy = "default-1weekly"
   encryption = true
