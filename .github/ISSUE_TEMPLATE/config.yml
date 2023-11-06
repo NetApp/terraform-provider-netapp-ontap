@@ -1,5 +1,0 @@
-blank_issues_enabled: false
-contact_links:
-  - name: Terraform ONTAP Provider Questions
-    url: https://discord.com/channels/855068651522490400/1063542677804687463
-    about: GitHub issues in this repository are only intended for bug reports and feature requests. Other issues will be closed. Please ask and answer questions through the Terraform ONTAP Provider Discord.
