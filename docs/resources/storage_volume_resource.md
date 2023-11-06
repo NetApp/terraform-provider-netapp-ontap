@@ -8,7 +8,7 @@ description: |-
 
 # netapp-ontap_storage_volume_resource (Resource)
 
-Volume resource
+Create/modify/delete a Volume resource
 
 ### Related ONTAP commands
 * volume create
@@ -22,7 +22,11 @@ resource "netapp-ontap_storage_volume_resource" "example" {
   cx_profile_name = "cluster5"
   name = vol1
   svm_name = svm2
-  aggregates = ["aggr1"]
+  aggregates = [
+    {
+      name = "aggr2"
+    },
+  ]
   space_guarantee = "none"
   snapshot_policy = "default-1weekly"
   encryption = true
@@ -57,7 +61,7 @@ resource "netapp-ontap_storage_volume_resource" "example" {
 
 ### Required
 
-- `aggregates` (Set of String) List of aggregates in which to create the volume
+- `aggregates` (Attributes List) Aggregates the volume is on (see [below for nested schema](#nestedatt--aggregates))
 - `cx_profile_name` (String) Connection profile name
 - `name` (String) The name of the volume to manage
 - `space` (Attributes) (see [below for nested schema](#nestedatt--space))
@@ -83,6 +87,13 @@ resource "netapp-ontap_storage_volume_resource" "example" {
 
 - `id` (String) Volume identifier
 
+<a id="nestedatt--aggregates"></a>
+### Nested Schema for `aggregates`
+
+Required:
+
+- `name` (String) Name of the Aggregate
+- 
 <a id="nestedatt--space"></a>
 ### Nested Schema for `space`
 

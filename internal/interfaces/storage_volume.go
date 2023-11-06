@@ -35,23 +35,23 @@ type StorageVolumeGetDataModelONTAP struct {
 
 // StorageVolumeResourceModel describes the resource data model.
 type StorageVolumeResourceModel struct {
-	Name           string              `mapstructure:"name,omitempty"`
-	SVM            svm                 `mapstructure:"svm,omitempty"`
-	Space          Space               `mapstructure:"space,omitempty"`
-	State          string              `mapstructure:"state,omitempty"`
-	Type           string              `mapstructure:"type,omitempty"`
-	Comment        string              `mapstructure:"comment,omitempty"`
-	SpaceGuarantee Guarantee           `mapstructure:"guarantee,omitempty"`
-	NAS            NAS                 `mapstructure:"nas,omitempty"`
-	QOS            QOS                 `mapstructure:"qos,omitempty"`
-	Encryption     Encryption          `mapstructure:"encryption,omitempty"`
-	Efficiency     Efficiency          `mapstructure:"efficiency,omitempty"`
-	SnapshotPolicy SnapshotPolicy      `mapstructure:"snapshot_policy,omitempty"`
-	TieringPolicy  TieringPolicy       `mapstructure:"tiering,omitempty"`
-	Snaplock       Snaplock            `mapstructure:"snaplock,omitempty"`
-	Analytics      Analytics           `mapstructure:"analytics,omitempty"`
-	Language       string              `mapstructure:"language,omitempty"`
-	Aggregates     []map[string]string `mapstructure:"aggregates,omitempty"`
+	Name           string                   `mapstructure:"name,omitempty"`
+	SVM            svm                      `mapstructure:"svm,omitempty"`
+	Space          Space                    `mapstructure:"space,omitempty"`
+	State          string                   `mapstructure:"state,omitempty"`
+	Type           string                   `mapstructure:"type,omitempty"`
+	Comment        string                   `mapstructure:"comment,omitempty"`
+	SpaceGuarantee Guarantee                `mapstructure:"guarantee,omitempty"`
+	NAS            NAS                      `mapstructure:"nas,omitempty"`
+	QOS            QOS                      `mapstructure:"qos,omitempty"`
+	Encryption     Encryption               `mapstructure:"encryption,omitempty"`
+	Efficiency     Efficiency               `mapstructure:"efficiency,omitempty"`
+	SnapshotPolicy SnapshotPolicy           `mapstructure:"snapshot_policy,omitempty"`
+	TieringPolicy  TieringPolicy            `mapstructure:"tiering,omitempty"`
+	Snaplock       Snaplock                 `mapstructure:"snaplock,omitempty"`
+	Analytics      Analytics                `mapstructure:"analytics,omitempty"`
+	Language       string                   `mapstructure:"language,omitempty"`
+	Aggregates     []map[string]interface{} `mapstructure:"aggregates,omitempty"`
 }
 
 // Aggregate describes the resource data model.
