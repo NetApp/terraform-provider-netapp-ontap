@@ -35,7 +35,7 @@ go install
 Click on Issues, we have 6 categories for issues:
 1. Report a Bug -- for unexpected error, a crash, or otherwise incorrect behavior.
 2. Report a Documentation Error -- for error in our documentation, including typos, mistakes, or outdated information.
-3. Request an Enchantment -- For new fields to existing Resources or data sources 
+3. Request an Enhancement -- For new fields to existing Resources or data sources 
 4. Request a New Resource, Data Source, or Service 
 5. Other -- Any other issue that is not covered by the above categories.
 6. General Questions -- If you have any general question we have a Discord channel for that.
