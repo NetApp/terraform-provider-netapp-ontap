@@ -96,7 +96,7 @@ func CreateNameServicesDNS(errorHandler *utils.ErrorHandler, r restclient.RestCl
 	}
 	query := r.NewQuery()
 	query.Add("return_records", "true")
-	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("carchi8py body is : %#v", body))
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("name-services/dns body is : %#v", body))
 	statusCode, response, err := r.CallCreateMethod("name-services/dns", query, body)
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError("error creating DNS", fmt.Sprintf("error on POST name-services/dns: %s, statusCode %d", err, statusCode))
