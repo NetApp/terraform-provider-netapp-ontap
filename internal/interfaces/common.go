@@ -10,6 +10,7 @@ type NameDataModel struct {
 	UUID string
 }
 
+// StringInSlice checks if a string is in a slice of strings
 func StringInSlice(str string, list []types.String) bool {
 	for _, v := range list {
 		if v.ValueString() == str {
