@@ -1,5 +1,5 @@
 ---
-page_title: "ONTAP: NFS_Service "
+page_title: "ONTAP: NFS_Service 
 subcategory: "nas"
 description: |-
     Retrieves the NFS configuration of SVMs.
