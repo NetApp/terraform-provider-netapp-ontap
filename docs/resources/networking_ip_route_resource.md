@@ -56,7 +56,7 @@ resource "netapp-ontap_networking_ip_route_resource" "networking_ip_route" {
 Optional:
 
 - `address` (String) IPv4 or IPv6 address
-- `netmask` (String) netmask length (16) or IPv4 mask (255.255.0.0). For IPv6, valid range is 1 to 127.
+- `netmask` (Number) netmask length (16) or IPv4 mask (255.255.0.0). For IPv6, valid range is 1 to 127.
 
 ## Import
 Import is currently not support for this Resource.
