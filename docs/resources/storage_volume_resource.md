@@ -20,8 +20,8 @@ Create/modify/delete a Volume resource
 ```terraform
 resource "netapp-ontap_storage_volume_resource" "example" {
   cx_profile_name = "cluster5"
-  name = vol1
-  svm_name = svm2
+  name = "vol1"
+  svm_name = "svm2"
   aggregates = [
     {
       name = "aggr2"
