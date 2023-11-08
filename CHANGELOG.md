@@ -1,3 +1,9 @@
+
+## 1.0.1 ()
+
+BUG FIXES:
+* netapp-ontap_cluster_data_source, netapp-ontap_snapmirrors_data_source, netapp-ontap_networking_ip_route_resource and netapp-ontap_sotrage_volume_resource: Fix documentation ([#70](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/70))
+
 ## 1.0.0 (2023-09-18)
 
 NOTES
