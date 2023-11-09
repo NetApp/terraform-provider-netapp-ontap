@@ -20,8 +20,8 @@ Create/modify/delete a Volume resource
 ```terraform
 resource "netapp-ontap_storage_volume_resource" "example" {
   cx_profile_name = "cluster5"
-  name = vol1
-  svm_name = svm2
+  name = "vol1"
+  svm_name = "svm2"
   aggregates = [
     {
       name = "aggr2"
@@ -34,9 +34,9 @@ resource "netapp-ontap_storage_volume_resource" "example" {
     type = "non_snaplock"
   }
   space = {
-	size = 30
-	size_unit = "mb"
-	percent_snapshot_space = 20
+	  size = 30
+	  size_unit = "mb"
+	  percent_snapshot_space = 20
     logical_space = {
       enforcement = true
       reporting = true
@@ -51,7 +51,7 @@ resource "netapp-ontap_storage_volume_resource" "example" {
     user_id = 20
     unix_permissions = "755"
     security_style = "mixed"
-	junction_path = "/testacc"
+	  junction_path = "/testacc"
   }
 }
 ```
