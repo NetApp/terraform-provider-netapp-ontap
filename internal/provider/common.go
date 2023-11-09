@@ -18,3 +18,13 @@ func ExpontentialBackoff(sleepTime int, maxSleepTime int) int {
 	time.Sleep(time.Duration(sleepTime) * time.Second)
 	return sleepTime
 }
+
+// StringInSlice checks if a string is in a slice of strings
+func StringInSlice(str string, list []types.String) bool {
+	for _, v := range list {
+		if v.ValueString() == str {
+			return true
+		}
+	}
+	return false
+}
