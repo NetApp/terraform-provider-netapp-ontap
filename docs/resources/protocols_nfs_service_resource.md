@@ -1,6 +1,6 @@
 ---
 page_title: "ONTAP: NFS Service"
-subcategory: "nas"
+subcategory: "NAS"
 description: |-
   Create/Modify/Delete an NFS Configuration of a SVM.
 ---
