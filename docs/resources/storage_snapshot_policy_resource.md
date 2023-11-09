@@ -1,6 +1,6 @@
 ---
 page_title: "ONTAP: Snapshot Policy"
-subcategory: "storage"
+subcategory: "Storage"
 description: |-
   SnapshotPolicy resource
 ---

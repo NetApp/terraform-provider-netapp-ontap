@@ -1,6 +1,6 @@
 ---
 page_title: "ONTAP: Cluster Schedule"
-subcategory: "cluster"
+subcategory: "Cluster"
 description: |-
   Cluster schedule resource
 ---
