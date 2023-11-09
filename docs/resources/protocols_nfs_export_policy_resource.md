@@ -1,6 +1,6 @@
 ---
 page_title: "ONTAP: NFS Export Policy"
-subcategory: "nas"
+subcategory: "NAS"
 description: |-
   Export policy resource
 ---

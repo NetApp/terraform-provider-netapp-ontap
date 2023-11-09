@@ -1,6 +1,6 @@
 ---
 page_title: "ONTAP: Storage Aggregate"
-subcategory: "storage"
+subcategory: "Storage"
 description: |-
   Aggregate resource
 ---

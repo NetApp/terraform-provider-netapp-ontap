@@ -1,6 +1,6 @@
 ---
 page_title: "ONTAP: NFS Export Policy Rule"
-subcategory: "nas"
+subcategory: "NAS"
 description: |-
   Create/Modify/Delete an Export policy rule
 ---
