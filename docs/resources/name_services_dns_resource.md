@@ -39,6 +39,17 @@ resource "netapp-ontap_name_services_dns_resource" "name_services_dns" {
 - `id` (String) UUID of svm
 
 ## Import
-Import has not been tested, and may not work. We are working on getting this documented for the next release..
+### Terrafrom import
+terraform import netapp-ontap_name_services_dns_resource.`name` `svm_name`,`cx_profile_name`
+* name -- name you want to give the resource in terraform
+* svm_name -- name of the svm the resource belongs to
+* cx_profile_name -- name of the connection profile to use
+
+For example
+```shell
+ terraform import netapp-ontap_name_services_dns_resource.dns_import ansibleSVM,cluster4
+```
+
+!> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
 
 
