@@ -8,7 +8,7 @@ description: |-
 
 # Resource DNS
 
-Create/Modify/Delete a name services DNS resource
+Create, Modify, Delete and Import a name services DNS resource
 
 ## Example Usage
 ```terraform
@@ -39,7 +39,11 @@ resource "netapp-ontap_name_services_dns_resource" "name_services_dns" {
 - `id` (String) UUID of svm
 
 ## Import
-### Terrafrom import
+This resource supports import, which allows you to import existing name services DNS resources into the state.
+Import require a unique ID composed of the svm name and the connection profile name.
+
+id = svm_name,cx_profile_name
+### Terraform import
 terraform import netapp-ontap_name_services_dns_resource.`name` `svm_name`,`cx_profile_name`
 * name -- name you want to give the resource in terraform
 * svm_name -- name of the svm the resource belongs to
@@ -52,4 +56,31 @@ For example
 
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
 
+### Terraform import block
+This requires Terraform 1.5 or higher, and will auto create the configuration for you
+
+First create the import block
+```terraform
+import {
+  to = netapp-ontap_name_services_dns_resource.dns_import
+  id = "svm1,cluster4"
+}
+```
+Next run, this will auto create the configuration for you
+```shell
+terraform plan -generate-config-out=generated.tf
+```
+The auto generated configuration will look like this
+```terraform
+# __generated__ by Terraform
+# Please review these resources and move them into your main configuration files.
+
+# __generated__ by Terraform from "svm1,cluster4"
+resource "netapp-ontap_name_services_dns_resource" "dns_import" {
+  cx_profile_name = "cluster4"
+  dns_domains     = ["test.com", "test1.com"]
+  name_servers    = ["1.2.3.4", "3.4.5.6"]
+  svm_name        = "svm1"
+}
+```
 
