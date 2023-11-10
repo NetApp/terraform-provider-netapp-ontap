@@ -426,20 +426,16 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 	var sizeUnit string
 	var size int64
 	var space StorageVolumeResourceSpace
-	tflog.Debug(ctx, fmt.Sprintf("read a volume Space: %#v", space))
-	tflog.Debug(ctx, fmt.Sprintf("read a volume data.space: %#v", data.Space))
 	//diags := data.Space.As(ctx, &space, basetypes.ObjectAsOptions{})
 	//if diags.HasError() {
 	//	resp.Diagnostics.Append(diags...)
 	//	return
 	//}
-	tflog.Debug(ctx, fmt.Sprintf("read a volume Space3: %#v", space))
 	size, sizeUnit = interfaces.ByteFormat(int64(response.Space.Size))
 	//if _, ok := interfaces.POW2BYTEMAP[space.SizeUnit.ValueString()]; !ok {
 	//	errorHandler.MakeAndReportError("error creating volume", fmt.Sprintf("invalid input for size_unit: %s, required one of: bytes, b, kb, mb, gb, tb, pb, eb, zb, yb", space.SizeUnit.ValueString()))
 	//	return
 	//}
-	tflog.Debug(ctx, fmt.Sprintf("read a volume Space size: %#v", space))
 	//sizeUnit = space.SizeUnit.ValueString()
 
 	elements := map[string]attr.Value{
