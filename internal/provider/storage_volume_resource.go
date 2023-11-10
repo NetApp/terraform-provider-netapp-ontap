@@ -387,6 +387,7 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 	var response *interfaces.StorageVolumeGetDataModelONTAP
 	if data.ID.ValueString() == "" {
 		response, err = interfaces.GetStorageVolumeByName(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString())
+		data.ID = types.StringValue(response.UUID)
 	} else {
 		response, err = interfaces.GetStorageVolume(errorHandler, *client, data.ID.ValueString())
 	}
