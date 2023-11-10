@@ -4,16 +4,16 @@ subcategory: ""
 description: |-
 ---
 
-# Getting started with the NetApp Ontap Provider
+# Getting Started With The NetApp ONTAP Provider
 
-Before started you will need:
+Before getting started, you will need:
 * ONTAP 9.6 or later
 * Terraform 1.4 or later
 
 ## Install Terraform
 Please follow the instructions on the [Terraform website](https://learn.hashicorp.com/tutorials/terraform/install-cli) to install Terraform.
 
-## Install the NetApp ONTAP Provider
+## Install The NetApp ONTAP Provider
 Now that you have installed Terraform, you can install the NetApp ONTAP Provider.
 First make a new directory for your Terraform configuration and change into that directory.
 
@@ -38,7 +38,7 @@ provider "netapp-ontap" {
 
 ## Building Infrastructure
 
-### Create a connection profile
+### Create A Connection Profile
 Next we need to create a connection profile. This is a configuration file that tells the provider how to connect to your ONTAP system.
 In your `provider.tf` file, add the following configuration:
 
@@ -80,7 +80,7 @@ variable "validate_certs" {
 
 ```
 
-### Create a volume
+### Create A Volume
 Now let us create a volume. First, you'll want to have the documentation for [netapp-ontap_storage_volume_resource](https://registry.terraform.io/providers/NetApp/netapp-ontap/latest/docs/resources/storage_volume_resource) open in another tab.
 This will show you all the configuration options for the volume resource, including examples.
 
