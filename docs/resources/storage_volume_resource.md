@@ -164,4 +164,86 @@ Optional:
 - `policy_name` (String) The tiering policy that is to be associated with the volume
 
 ## Import
-Import is currently not support for this Resource.
+This resource supports import, which allows you to import existing volumes into the state of this resource.
+Import require a unique ID composed of the volume name, the volume name, separated by a comma.
+
+id = `name`,`svm_name`,`cx_profile_name`
+
+### Terraform Import
+
+For example
+```shell
+ terraform import netapp-ontap_storage_volume_resource.example vol1,svm2,cluster5
+```
+!> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
+
+### Terrafomr Import Block
+This requires Terraform 1.5 or higher, and will auto create the configuration for you
+
+First create the block
+```terraform
+import {
+  to = netapp-ontap_storage_volume_resource.volume_import
+  id = "svm1_root,svm1,cluster4"
+}
+```
+Next run, this will auto create the configuration for you
+```shell
+terraform plan -generate-config-out=generated.tf
+```
+This will generate a file called generated.tf, which will contain the configuration for the imported resource
+```terraform
+# __generated__ by Terraform
+# Please review these resources and move them into your main configuration files.
+
+# __generated__ by Terraform from "svm1_root,svm1,cluster4"
+resource "netapp-ontap_storage_volume_resource" "volume_import" {
+  aggregates = [
+    {
+      name = "aggr1"
+    },
+  ]
+  analytics = {
+    state = "off"
+  }
+  comment         = null
+  cx_profile_name = "cluster4"
+  efficiency = {
+    compression = "none"
+    policy_name = "-"
+  }
+  encryption = false
+  language   = "c.utf_8"
+  name       = "svm1_root"
+  nas = {
+    export_policy_name = "default"
+    group_id           = 0
+    junction_path      = "/"
+    security_style     = "unix"
+    unix_permissions   = 755
+    user_id            = 0
+  }
+  qos_policy_group = null
+  snaplock = {
+    type = "non_snaplock"
+  }
+  snapshot_policy = "default"
+  space = {
+    logical_space = {
+      enforcement = false
+      reporting   = false
+    }
+    percent_snapshot_space = 5
+    size                   = 20
+    size_unit              = "mb"
+  }
+  space_guarantee = "volume"
+  state           = "online"
+  svm_name        = "svm1"
+  tiering = {
+    minimum_cooling_days = 0
+    policy_name          = "none"
+  }
+  type = "rw"
+}
+```
