@@ -43,6 +43,15 @@ func TestAccStorageVolumeResource(t *testing.T) {
 					resource.TestCheckNoResourceAttr("netapp-ontap_storage_volume_resource.example", "volname"),
 				),
 			},
+			// Test importing a resource
+			{
+				ResourceName:  "netapp-ontap_storage_volume_resource.example",
+				ImportState:   true,
+				ImportStateId: fmt.Sprintf("%s,%s,%s", "svm1_root", "svm1", "cluster5"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "name", "svm1_root"),
+				),
+			},
 		},
 	})
 }
