@@ -1,4 +1,8 @@
 
+## 1.1.0 ()
+ENHANCEMENTS:
+* **netapp-ontap_storage_volume_resource**: Add support for import ([#72](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/41))
+
 ## 1.0.1 ()
 
 BUG FIXES:
