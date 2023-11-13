@@ -1,4 +1,8 @@
 
+## 1.1.0
+* ENHANCEMENTS:
+* **netapp-ontap_cluster_licensing_license_resource**: Add support for import ([#30](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/30))
+
 ## 1.0.1 ()
 
 BUG FIXES:
