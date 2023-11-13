@@ -15,14 +15,20 @@ Add/Remove License from ONTAP
 * system license delete
 
 ## Example Usage
-
+Example when using a license string
 ```terraform
 resource "netapp-ontap_cluster_licensing_license_resource" "cluster_licensing_license" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   keys            = ["testme"]
 }
-
+```
+Example when using a license files
+```terraform
+resource "netapp-ontap_cluster_licensing_license_resource" "cluster_licensing_license" {
+  cx_profile_name = var.cluster_name
+  keys            = [file("NLF-4034389062-EE.txt"), file("NLF-4082368507-EE.txt")]
+}
 ```
 
 
