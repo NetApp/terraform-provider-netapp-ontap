@@ -1,4 +1,8 @@
 
+## 1.1.0 ()
+ENHANCEMENTS:
+* **netapp-ontap_protocols_nfs_service_resource**: Add support for import ([#36](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/36))
+
 ## 1.0.1 ()
 
 BUG FIXES:
