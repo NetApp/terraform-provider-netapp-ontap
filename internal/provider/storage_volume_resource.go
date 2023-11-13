@@ -427,18 +427,7 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 	}
 	var sizeUnit string
 	var size int64
-	var space StorageVolumeResourceSpace
-	//diags := data.Space.As(ctx, &space, basetypes.ObjectAsOptions{})
-	//if diags.HasError() {
-	//	resp.Diagnostics.Append(diags...)
-	//	return
-	//}
 	size, sizeUnit = interfaces.ByteFormat(int64(response.Space.Size))
-	//if _, ok := interfaces.POW2BYTEMAP[space.SizeUnit.ValueString()]; !ok {
-	//	errorHandler.MakeAndReportError("error creating volume", fmt.Sprintf("invalid input for size_unit: %s, required one of: bytes, b, kb, mb, gb, tb, pb, eb, zb, yb", space.SizeUnit.ValueString()))
-	//	return
-	//}
-	//sizeUnit = space.SizeUnit.ValueString()
 
 	elements := map[string]attr.Value{
 		"size":                   types.Int64Value(size),
