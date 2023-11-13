@@ -387,13 +387,15 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 	var response *interfaces.StorageVolumeGetDataModelONTAP
 	if data.ID.ValueString() == "" {
 		response, err = interfaces.GetStorageVolumeByName(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString())
+		if err != nil {
+			return
+		}
 		data.ID = types.StringValue(response.UUID)
 	} else {
 		response, err = interfaces.GetStorageVolume(errorHandler, *client, data.ID.ValueString())
-	}
-
-	if err != nil {
-		return
+		if err != nil {
+			return
+		}
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("read a volume resource: %#v", data))
