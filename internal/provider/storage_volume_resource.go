@@ -1074,7 +1074,7 @@ func (r *StorageVolumeResource) ImportState(ctx context.Context, req resource.Im
 	if len(idParts) != 3 || idParts[0] == "" || idParts[1] == "" || idParts[2] == "" {
 		resp.Diagnostics.AddError(
 			"Unexpected Import Identifier",
-			fmt.Sprintf("Expected import identifier with format: attr_one,attr_two,attr_three. Got: %q", req.ID),
+			fmt.Sprintf("Expected import identifier with format: name,svm_name,cx_profile_name. Got: %q", req.ID),
 		)
 		return
 	}
