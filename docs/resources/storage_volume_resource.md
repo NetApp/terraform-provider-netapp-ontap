@@ -165,7 +165,7 @@ Optional:
 
 ## Import
 This resource supports import, which allows you to import existing volumes into the state of this resource.
-Import require a unique ID composed of the volume name, the volume name, separated by a comma.
+Import require a unique ID composed of the volume name, the SVM name, and connection profile, separated by a comma.
 
 id = `name`,`svm_name`,`cx_profile_name`
 
