@@ -12,11 +12,12 @@ Before getting started, you will need:
 
 ## Overview
 This guide will walk you though 
-* installing Terrafrom
-* installing the NetApp ONTAP Provider
-* creating a connection profile
-* creating a volume
-* destroying a volume
+* Installing Terrafrom
+* Installing the NetApp ONTAP Provider
+* Creating a connection profile
+* Creating a volume
+* Destroying a volume
+* Handling resource dependencies
 
 ## Install Terraform
 Please follow the instructions on the [Terraform website](https://learn.hashicorp.com/tutorials/terraform/install-cli) to install Terraform.
@@ -439,7 +440,7 @@ ontap_cluster_1::> volume show -vserver terraformSVM -volume terraformTest5
 There are no entries matching your query.
 ```
 
-## Putting multiple resources together
+## Handling resource dependencies
 Now that you have created a volume, lets say you wanted to create a volume and create a snapshot for that volume. Something like this will fail.
 The reason for this is that the volume resource is not yet created, so the snapshot resource cannot find the volume to create a snapshot for.
 Terrafrom will create all resources at the same time, so it will try to create the snapshot before the volume is created.
