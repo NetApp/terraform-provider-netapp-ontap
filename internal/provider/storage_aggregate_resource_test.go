@@ -19,7 +19,7 @@ func TestAccStorageAggregateResource(t *testing.T) {
 				ExpectError: regexp.MustCompile("is an invalid value"),
 			},
 			{
-				Config: testAccStorageAggregateResourceConfig("ontap_cluster_1-01"),
+				Config: testAccStorageAggregateResourceConfig("swenjun-vsim1"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_storage_aggregate_resource.example", "name", "acc_test_aggr"),
 					resource.TestCheckNoResourceAttr("netapp-ontap_storage_aggregate_resource.example", "vol"),
