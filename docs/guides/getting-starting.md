@@ -10,6 +10,14 @@ Before getting started, you will need:
 * ONTAP 9.6 or later
 * Terraform 1.4 or later
 
+## Overview
+This guide will walk you though 
+* installing Terrafrom
+* installing the NetApp ONTAP Provider
+* creating a connection profile
+* creating a volume
+* destroying a volume
+
 ## Install Terraform
 Please follow the instructions on the [Terraform website](https://learn.hashicorp.com/tutorials/terraform/install-cli) to install Terraform.
 
@@ -17,7 +25,7 @@ Please follow the instructions on the [Terraform website](https://learn.hashicor
 Now that you have installed Terraform, you can install the NetApp ONTAP Provider.
 First make a new directory for your Terraform configuration and change into that directory.
 
-Please go to the [Terraform Registry](https://registry.terraform.io/providers/NetApp/netapp-ontap/latest) to get the latest provider configuration, and copy that in to a file called `provider.tf` in the directory you just created.
+Please go to the [Terraform Registry](https://registry.terraform.io/providers/NetApp/netapp-ontap/latest) to get the latest provider configuration, and copy that in to a file called `provider.tf` in the directory you just created. During `Terraform init` Terraform will download the provider and any required plugins.
 You should have something that looks like this
 
 
@@ -64,7 +72,8 @@ Using var.password will prompt you for the password when you run terraform apply
 This is all you'll need for your `provider.tf` to connect to your ONTAP system.
 
 ### Variables File
-For variables, we want to type in, we can create a file called `variables.tf` and add the following configuration:
+In terraform we can create a variables file to store variables that we want to be prompted for when we run `terraform apply`.
+To do this create a file called `variables.tf` in the same directory as your `provider.tf` file.
 ```terraform
 # Terraform will prompt for values, unless a tfvars file is present.
 variable "username" {
@@ -92,11 +101,14 @@ We are just going to make a volume with the required variables
 * space.size - The size of the volume
 * space.size_unit - The unit of the size of the volume
 
+When calling a resource in Terraform, you need to specify the resource type in this case `netapp-ontap_storage_volume_resource`, the name of the resource `volume1`.
+The type and name of the resource must be unique in your configuration, and are used to identify the resource in the state file.
+
 ```terraform
-resource "netapp-ontap_storage_volume_resource" "example" {
+resource "netapp-ontap_storage_volume_resource" "volume1" {
   cx_profile_name = "cluster4"
   name = "terraformTest5"
-  svm_name = "ansibleSVM"
+  svm_name = "terraformSVM"
   aggregates = [
     {
       name = "aggr2"
@@ -109,7 +121,8 @@ resource "netapp-ontap_storage_volume_resource" "example" {
 }
 ```
 
-With this you have everything need to create a volume. Now run `terraform init` to initialize the provider and download the required plugins.
+With this you have everything need to create a volume. Now run `terraform init` to initialize the provider and download the required plugins. This will download the NetApp ONTAP Provider and any required plugins.
+
 Then run `terraform plan` to get a preview.
 
 ```bash 
@@ -130,8 +143,8 @@ Resource actions are indicated with the following symbols:
 
 Terraform will perform the following actions:
 
-  # netapp-ontap_storage_volume_resource.example will be created
-  + resource "netapp-ontap_storage_volume_resource" "example" {
+  # netapp-ontap_storage_volume_resource.volume1 will be created
+  + resource "netapp-ontap_storage_volume_resource" "volume1" {
       + aggregates       = [
           + {
               + name = "aggr2"
@@ -157,7 +170,7 @@ Terraform will perform the following actions:
         }
       + space_guarantee  = (known after apply)
       + state            = (known after apply)
-      + svm_name         = "ansibleSVM"
+      + svm_name         = "terraformSVM"
       + tiering          = (known after apply)
       + type             = (known after apply)
     }
@@ -191,8 +204,8 @@ Resource actions are indicated with the following symbols:
 
 Terraform will perform the following actions:
 
-  # netapp-ontap_storage_volume_resource.example will be created
-  + resource "netapp-ontap_storage_volume_resource" "example" {
+  # netapp-ontap_storage_volume_resource.volume1 will be created
+  + resource "netapp-ontap_storage_volume_resource" "volume1" {
       + aggregates       = [
           + {
               + name = "aggr2"
@@ -218,7 +231,7 @@ Terraform will perform the following actions:
         }
       + space_guarantee  = (known after apply)
       + state            = (known after apply)
-      + svm_name         = "ansibleSVM"
+      + svm_name         = "terraformSVM"
       + tiering          = (known after apply)
       + type             = (known after apply)
     }
@@ -231,17 +244,17 @@ Do you want to perform these actions?
 
   Enter a value: yes
 
-netapp-ontap_storage_volume_resource.example: Creating...
-netapp-ontap_storage_volume_resource.example: Creation complete after 2s [id=b6742203-7f43-11ee-8c83-005056b34578]
+netapp-ontap_storage_volume_resource.volume1: Creating...
+netapp-ontap_storage_volume_resource.volume1: Creation complete after 2s [id=b6742203-7f43-11ee-8c83-005056b34578]
 
 Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
 ```
 
-This will create a volume on your ONTAP system. You can verify this by logging into your ONTAP system and running `volume show -vserver ansibleSVM -volume terraformTest5`
+This will create a volume on your ONTAP system. You can verify this by logging into your ONTAP system and running `volume show -vserver terraformSVM -volume terraformTest5`
 ```bash
-ontap_cluster_1::> volume show -vserver ansibleSVM -volume terraformTest5
+ontap_cluster_1::> volume show -vserver terraformSVM -volume terraformTest5
 
-                                      Vserver Name: ansibleSVM
+                                      Vserver Name: terraformSVM
                                        Volume Name: terraformTest5
                                     Aggregate Name: aggr2
      List of Aggregates for FlexGroup Constituents: aggr2
@@ -269,7 +282,7 @@ cat terraform.tfstate
     {
       "mode": "managed",
       "type": "netapp-ontap_storage_volume_resource",
-      "name": "example",
+      "name": "volume1",
       "provider": "provider[\"registry.terraform.io/netapp/netapp-ontap\"]",
       "instances": [
         {
@@ -317,7 +330,7 @@ cat terraform.tfstate
             },
             "space_guarantee": "volume",
             "state": "online",
-            "svm_name": "ansibleSVM",
+            "svm_name": "terraformSVM",
             "tiering": {
               "minimum_cooling_days": 0,
               "policy_name": "none"
@@ -347,7 +360,7 @@ var.username
 var.validate_certs
   Enter a value: false
 
-netapp-ontap_storage_volume_resource.example: Refreshing state... [id=b6742203-7f43-11ee-8c83-005056b34578]
+netapp-ontap_storage_volume_resource.volume1: Refreshing state... [id=b6742203-7f43-11ee-8c83-005056b34578]
 
 Terraform used the selected providers to generate the following execution plan.
 Resource actions are indicated with the following symbols:
@@ -355,8 +368,8 @@ Resource actions are indicated with the following symbols:
 
 Terraform will perform the following actions:
 
-  # netapp-ontap_storage_volume_resource.example will be destroyed
-  - resource "netapp-ontap_storage_volume_resource" "example" {
+  # netapp-ontap_storage_volume_resource.volume1 will be destroyed
+  - resource "netapp-ontap_storage_volume_resource" "volume1" {
       - aggregates      = [
           - {
               - name = "aggr2" -> null
@@ -397,7 +410,7 @@ Terraform will perform the following actions:
         } -> null
       - space_guarantee = "volume" -> null
       - state           = "online" -> null
-      - svm_name        = "ansibleSVM" -> null
+      - svm_name        = "terraformSVM" -> null
       - tiering         = {
           - minimum_cooling_days = 0 -> null
           - policy_name          = "none" -> null
@@ -413,16 +426,81 @@ Do you really want to destroy all resources?
 
   Enter a value: yes
 
-netapp-ontap_storage_volume_resource.example: Destroying... [id=b6742203-7f43-11ee-8c83-005056b34578]
-netapp-ontap_storage_volume_resource.example: Destruction complete after 1s
+netapp-ontap_storage_volume_resource.volume1: Destroying... [id=b6742203-7f43-11ee-8c83-005056b34578]
+netapp-ontap_storage_volume_resource.volume1: Destruction complete after 1s
 
 Destroy complete! Resources: 1 destroyed.
 ```
 
-You can confirm that the volume has been destroyed by running `volume show -vserver ansibleSVM -volume terraformTest5` on your ONTAP system.
+You can confirm that the volume has been destroyed by running `volume show -vserver terraformSVM -volume terraformTest5` on your ONTAP system.
 
 ```bash
-ontap_cluster_1::> volume show -vserver ansibleSVM -volume terraformTest5
+ontap_cluster_1::> volume show -vserver terraformSVM -volume terraformTest5
 There are no entries matching your query.
-
 ```
+
+## Putting multiple resources together
+Now that you have created a volume, lets say you wanted to create a volume and create a snapshot for that volume. Something like this will fail.
+The reason for this is that the volume resource is not yet created, so the snapshot resource cannot find the volume to create a snapshot for.
+Terrafrom will create all resources at the same time, so it will try to create the snapshot before the volume is created.
+
+```terraform
+resource "netapp-ontap_storage_volume_resource" "volume1" {
+  cx_profile_name = "cluster4"
+  name            = "terraformTest5"
+  svm_name        = "terraformSVM"
+  aggregates      = [
+    {
+      name = "aggr2"
+    },
+  ]
+  space = {
+    size      = 20
+    size_unit = "mb"
+  }
+}
+
+resource "netapp-ontap_storage_volume_snapshot_resource" "snapshot1" {
+  cx_profile_name = "cluster4"
+  name = "snaptest"
+  volume_name = "terraformTest5"
+  svm_name = "terraformSVM"
+}
+```
+You can see this by running `terraform graph | dot -Tsvg > graph.svg` and opening the graph.svg file.
+
+<img src="https://github.com/NetApp/terraform-provider-netapp-ontap/tree/integration/main/docs/guides/graph.svg">
+
+In this image, you scan see both volume and snapshot resources are created at the same time.
+
+To tell Terraform that the snapshot resource depends on the volume resource, we can use an expression reference. In this case `volume_name = netapp-ontap_storage_volume_resource.volume1.name` twhich ells Terraform that the snapshot resource depends on the volume resource, and to wait until the volume resource is created before creating the snapshot resource.
+
+```terraform
+resource "netapp-ontap_storage_volume_resource" "volume1" {
+  cx_profile_name = "cluster4"
+  name = "terraformTest2"
+  svm_name = "ansibleSVM"
+  aggregates = [
+    {
+      name = "aggr2"
+    },
+  ]
+  space = {
+    size = 20
+    size_unit = "mb"
+  }
+}
+
+resource "netapp-ontap_storage_volume_snapshot_resource" "snapshot1" {
+  cx_profile_name = "cluster4"
+  name = "snaptest"
+  volume_name = netapp-ontap_storage_volume_resource.volume1.name
+  svm_name = "ansibleSVM"
+}
+````
+
+If we run `terraform graph | dot -Tsvg > graph.svg` we can see that the snapshot resource now depends on the volume resource.
+
+<img src="https://github.com/NetApp/terraform-provider-netapp-ontap/tree/integration/main/docs/guides/graph2.svg">
+
+You can now run `terraform apply` to create the volume and snapshot.
