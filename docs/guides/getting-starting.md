@@ -10,9 +10,11 @@ Before getting started, you will need:
 * ONTAP 9.6 or later
 * Terraform 1.4 or later
 
+This Provide will work with on-prem ONTAP system and Amazon FSx for NetApp ONTAP.
+
 ## Overview
 This guide will walk you though 
-* Installing Terrafrom
+* Installing Terraform
 * Installing the NetApp ONTAP Provider
 * Creating a connection profile
 * Creating a volume
@@ -26,7 +28,8 @@ Please follow the instructions on the [Terraform website](https://learn.hashicor
 Now that you have installed Terraform, you can install the NetApp ONTAP Provider.
 First make a new directory for your Terraform configuration and change into that directory.
 
-Please go to the [Terraform Registry](https://registry.terraform.io/providers/NetApp/netapp-ontap/latest) to get the latest provider configuration, and copy that in to a file called `provider.tf` in the directory you just created. During `Terraform init` Terraform will download the provider and any required plugins.
+Please go to the [Terraform Registry](https://registry.terraform.io/providers/NetApp/netapp-ontap/latest) to get the latest provider configuration, and copy that in to a file called `provider.tf` in the directory you just created. 
+During `Terraform init` Terraform will download the provider and any required plugins.
 You should have something that looks like this
 
 
@@ -57,7 +60,8 @@ In your `provider.tf` file, add the following configuration:
 * password - The password to use to connect to the ONTAP system
 * validate_certs - Whether to validate the SSL certificate of the ONTAP system
 
-Using var.password will prompt you for the password when you run terraform apply, so you don't need to hardcode it in your configuration.
+Using var.variable will prompt for the value when you run `terraform apply`. Based off the information in the Variables File section.
+For Password and secrets, we recommend using Vault. Please see the [Inject secrets into Terraform using the Vault provider](https://developer.hashicorp.com/terraform/tutorials/secrets/secrets-vault) documentation for more information.
 
 ```terraform
   connection_profiles = [
@@ -122,7 +126,8 @@ resource "netapp-ontap_storage_volume_resource" "volume1" {
 }
 ```
 
-With this you have everything need to create a volume. Now run `terraform init` to initialize the provider and download the required plugins. This will download the NetApp ONTAP Provider and any required plugins.
+With this you have everything need to create a volume. Now run `terraform init` to initialize the provider and download the required plugins. 
+This will download the NetApp ONTAP Provider and any required plugins.
 
 Then run `terraform plan` to get a preview.
 
@@ -441,7 +446,7 @@ There are no entries matching your query.
 ```
 
 ## Handling resource dependencies
-Now that you have created a volume, lets say you wanted to create a volume and create a snapshot for that volume. Something like this will fail.
+Now that you have created a volume, let's say you wanted to create a volume and create a snapshot for that volume. Something like this will fail.
 The reason for this is that the volume resource is not yet created, so the snapshot resource cannot find the volume to create a snapshot for.
 Terrafrom will create all resources at the same time, so it will try to create the snapshot before the volume is created.
 
@@ -474,7 +479,8 @@ You can see this by running `terraform graph | dot -Tsvg > graph.svg` and openin
 
 In this image, you scan see both volume and snapshot resources are created at the same time.
 
-To tell Terraform that the snapshot resource depends on the volume resource, we can use an expression reference. In this case `volume_name = netapp-ontap_storage_volume_resource.volume1.name` which tells Terraform that the snapshot resource depends on the volume resource, and to wait until the volume resource is created before creating the snapshot resource.
+To tell Terraform that the snapshot resource depends on the volume resource, we can use an expression reference. 
+In this case `volume_name = netapp-ontap_storage_volume_resource.volume1.name` which tells Terraform that the snapshot resource depends on the volume resource, and to wait until the volume resource is created before creating the snapshot resource.
 
 ```terraform
 resource "netapp-ontap_storage_volume_resource" "volume1" {
