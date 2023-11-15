@@ -474,13 +474,13 @@ You can see this by running `terraform graph | dot -Tsvg > graph.svg` and openin
 
 In this image, you scan see both volume and snapshot resources are created at the same time.
 
-To tell Terraform that the snapshot resource depends on the volume resource, we can use an expression reference. In this case `volume_name = netapp-ontap_storage_volume_resource.volume1.name` twhich ells Terraform that the snapshot resource depends on the volume resource, and to wait until the volume resource is created before creating the snapshot resource.
+To tell Terraform that the snapshot resource depends on the volume resource, we can use an expression reference. In this case `volume_name = netapp-ontap_storage_volume_resource.volume1.name` which tells Terraform that the snapshot resource depends on the volume resource, and to wait until the volume resource is created before creating the snapshot resource.
 
 ```terraform
 resource "netapp-ontap_storage_volume_resource" "volume1" {
   cx_profile_name = "cluster4"
   name = "terraformTest2"
-  svm_name = "ansibleSVM"
+  svm_name = "terraformSVM"
   aggregates = [
     {
       name = "aggr2"
@@ -496,7 +496,7 @@ resource "netapp-ontap_storage_volume_snapshot_resource" "snapshot1" {
   cx_profile_name = "cluster4"
   name = "snaptest"
   volume_name = netapp-ontap_storage_volume_resource.volume1.name
-  svm_name = "ansibleSVM"
+  svm_name = "terraformSVM"
 }
 ````
 
