@@ -9,6 +9,10 @@ description: |-
 
 Create/Modify/Delete a job schedule in a cluster.
 
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
+
 ## Example Usage
 
 ```terraform

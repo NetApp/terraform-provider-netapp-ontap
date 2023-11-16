@@ -14,6 +14,10 @@ Create/Delete an IP Route resource
 * network route create
 * network route delete
 
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
+
 ## Example Usage
 
 ```terraform
