@@ -2,11 +2,12 @@ package interfaces
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
-	"strconv"
 )
 
 // StorageAggregateGetDataModelONTAP describes the GET record data model using go types for mapping.
@@ -70,7 +71,7 @@ func GetStorageAggregate(errorHandler *utils.ErrorHandler, r restclient.RestClie
 	api := "storage/aggregates/"
 	query := r.NewQuery()
 	query.Set("uuid", uuid)
-	query.Fields([]string{"name", "snaplock_type", "block_storage", "data_encryption", "state"})
+	query.Fields([]string{"name", "node.name", "snaplock_type", "block_storage", "data_encryption", "state"})
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
 		err = fmt.Errorf("no response for GET %s", api)
