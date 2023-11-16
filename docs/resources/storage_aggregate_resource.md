@@ -14,6 +14,11 @@ Create/Modify/Delete an aggregate resource
 * storage aggregate modify
 * storage aggregate delete
 
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
+
+[comment]: <> (TODO: Add support for Amazon FSx for NetApp ONTAP )
+
 ## Example Usage
 
 ```terraform

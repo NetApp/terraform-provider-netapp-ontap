@@ -13,6 +13,10 @@ Create/Modify/Delete an Export policy resource
 * vserver export-policy delete
 * vserver export-policy rename
 
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
+
 ## Example Usage
 
 ```terraform
