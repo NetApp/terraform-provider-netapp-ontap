@@ -49,5 +49,45 @@ resource "netapp-ontap_cluster_licensing_license_resource" "cluster_licensing_li
 - `state` (String) State of the license
 
 ## Import
-Import is currently not support for this Resource.
+This resource supports import, which allows you to reference an existing license by name. Import requires a unique ID composed of the license name and connection profile
 
+id = `{License name},{cx_profile_name}`
+
+### Terraform Import
+```shell
+terraform import netapp-ontap_cluster_licensing_license_resource.import_license fcp,cluster5
+```
+
+!> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
+
+### Terraform Import Block
+This requires Terraform 1.5 or higher, and will auto create the configuration for you.
+
+First create the import block
+
+```terrafrom
+import {
+  to = netapp-ontap_cluster_licensing_license_resource.license_import
+  id = "FCP,cluster4"
+}
+```
+
+Next run terraform plan to generate the configuration for you
+    
+```shell
+terraform plan -generate-config-out=generated.tf
+```
+
+This will generate a file called generated.tf that will contain the configuration block for the imported resource.
+Keys are not stored in the state file, so a fake key is generated for you.
+
+```terraform
+# __generated__ by Terraform
+# Please review these resources and move them into your main configuration files.
+
+# __generated__ by Terraform from "FCP,cluster4"
+resource "netapp-ontap_cluster_licensing_license_resource" "license_import" {
+  cx_profile_name = "cluster4"
+  keys            = ["fake"]
+}
+```
