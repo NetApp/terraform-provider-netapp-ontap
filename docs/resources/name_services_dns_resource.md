@@ -10,6 +10,11 @@ description: |-
 
 Create, Modify, Delete and Import a name services DNS resource
 
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
+
+[comment]: <> (TODO: Add support for Amazon FSx for NetApp ONTAP )
+
 ## Example Usage
 ```terraform
 resource "netapp-ontap_name_services_dns_resource" "name_services_dns" {

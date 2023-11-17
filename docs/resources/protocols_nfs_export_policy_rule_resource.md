@@ -14,6 +14,10 @@ Export policy rule resource
 * vserver export-policy rule modify
 * vserver export-policy rule delete
 
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
+
 ## Example Usage
 ```terraform
 resource "netapp-ontap_protocols_nfs_export_policy_rule_resource" "example" {
