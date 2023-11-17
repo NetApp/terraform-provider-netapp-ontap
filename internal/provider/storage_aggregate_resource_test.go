@@ -25,6 +25,15 @@ func TestAccStorageAggregateResource(t *testing.T) {
 					resource.TestCheckNoResourceAttr("netapp-ontap_storage_aggregate_resource.example", "vol"),
 				),
 			},
+			// Test importing a resource
+			{
+				ResourceName:  "netapp-ontap_storage_aggregate_resource.example",
+				ImportState:   true,
+				ImportStateId: fmt.Sprintf("%s,%s", "acc_test_aggr", "cluster4"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_storage_aggregate_resource.example", "name", "acc_test_aggr"),
+				),
+			},
 		},
 	})
 }
