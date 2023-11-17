@@ -8,7 +8,7 @@ BUG FIXES:
 * netapp-ontap_name_services_dns_resource: Fixed and Documented Import ([#63](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/63))
 * netapp-ontap_cluster_data_source, netapp-ontap_snapmirrors_data_source, netapp-ontap_networking_ip_route_resource and netapp-ontap_sotrage_volume_resource: Fix documentation ([#70](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/70))
 
-## 1.0.0 (2023-09-18)
+## 1.0.0 (2023-11-06)
 
 FEATURES:
 * **New Data Source:** `netapp-ontap_cluster_data_source`
