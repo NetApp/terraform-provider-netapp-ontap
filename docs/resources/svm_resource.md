@@ -15,6 +15,13 @@ Create/Modify/Delete a SVM
 * vserver modify
 * vserver delete
 
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
+
+~> **NOTE:** Amazon FSx for NetApp ONTAP is not supported
+
+
+
 ## Example Usage
 
 This creates a new SVM called `tfsvm4`. In IPspace `terafromIpspace_newname`, which can have up to 200 volumes which will be cased on aggr2

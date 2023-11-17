@@ -14,6 +14,10 @@ Create/Modify/Delete an NFS Configuration of a SVM.
 * vserver nfs modify
 * vserver nfs delete
 
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
+
 ## Example Usage
 
 ```terraform

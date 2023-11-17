@@ -15,6 +15,10 @@ Create/Modify/Delete a snapmirror policy resource
 * snapmirror policy modify
 * snapmirror policy delete
 
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
+
 ## Example Usage
 ```
 # Create a basic snapmirror policy
