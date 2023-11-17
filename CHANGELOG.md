@@ -1,5 +1,5 @@
 
-## 1.0.1 ()
+## 1.0.1 (2023-11-17)
 
 BUG FIXES:
 * netapp-ontap_name_services_dns_resource: Fixed and Documented Import ([#63](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/63))
