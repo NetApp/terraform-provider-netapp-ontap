@@ -3,6 +3,8 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -328,14 +330,26 @@ func (r *AggregateResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	aggregate, err := interfaces.GetStorageAggregate(errorHandler, *client, data.ID.ValueString())
-	if err != nil {
-		return
+	var aggregate *interfaces.StorageAggregateGetDataModelONTAP
+	if data.ID.ValueString() == "" {
+		aggregate, err = interfaces.GetStorageAggregateByName(errorHandler, *client, data.Name.ValueString())
+		if err != nil {
+			return
+		}
+		data.ID = types.StringValue(aggregate.UUID)
+	} else {
+		aggregate, err = interfaces.GetStorageAggregate(errorHandler, *client, data.ID.ValueString())
+		if err != nil {
+			return
+		}
 	}
+
 	if aggregate == nil {
 		errorHandler.MakeAndReportError("No aggregate found", fmt.Sprintf("aggregate %s not found.", data.Name.ValueString()))
 		return
 	}
+	tflog.Debug(ctx, fmt.Sprintf("read an aggregate resource: %#v", data))
+
 	data.DiskCount = types.Int64Value(aggregate.BlockStorage.Primary.DiskCount)
 	data.DiskClass = types.StringValue(aggregate.BlockStorage.Primary.DiskClass)
 	data.RaidType = types.StringValue(aggregate.BlockStorage.Primary.RaidType)
@@ -346,6 +360,8 @@ func (r *AggregateResource) Read(ctx context.Context, req resource.ReadRequest, 
 	data.SnaplockType = types.StringValue(aggregate.SnaplockType)
 	data.State = types.StringValue(aggregate.State)
 	data.Name = types.StringValue(aggregate.Name)
+	data.Node = types.StringValue(aggregate.Node.Name)
+
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -449,5 +465,15 @@ func (r *AggregateResource) Delete(ctx context.Context, req resource.DeleteReque
 
 // ImportState imports a resource using ID from terraform import command by calling the Read method.
 func (r *AggregateResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	tflog.Debug(ctx, fmt.Sprintf("import req an aggregate resource: %#v", req))
+	idParts := strings.Split(req.ID, ",")
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: name,cx_profile_name. Got: %q", req.ID),
+		)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[1])...)
 }
