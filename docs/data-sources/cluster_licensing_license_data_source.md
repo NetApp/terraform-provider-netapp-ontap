@@ -1,6 +1,6 @@
 ---
 page_title: "netapp-ontap_cluster_licensing_license_data_source Data Source - terraform-provider-netapp-ontap"
-subcategory: "cluster"
+subcategory: "Cluster"
 description: |-
   ClusterLicensingLicense data source
 ---
