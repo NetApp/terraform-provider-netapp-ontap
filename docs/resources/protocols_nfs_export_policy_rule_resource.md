@@ -1,6 +1,6 @@
 ---
 page_title: "ONTAP: NFS Export Policy Rule"
-subcategory: "nas"
+subcategory: "NAS"
 description: |-
   Create/Modify/Delete an Export policy rule
 ---
@@ -13,6 +13,10 @@ Export policy rule resource
 * vserver export-policy rule create
 * vserver export-policy rule modify
 * vserver export-policy rule delete
+
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
 
 ## Example Usage
 ```terraform
