@@ -106,7 +106,11 @@ resource "netapp-ontap_svm_resource" "example" {
   snapshot_policy = "%s"
   //subtype = "dp_destination"
   language = "en_us.utf_8"
-  aggregates = ["aggr2"]
+  aggregates = [
+    {
+      name = "aggr2"
+    },
+  ]
   max_volumes = "200"
 }`, host, admin, password, svm, comment, snapshotPolicy)
 }
