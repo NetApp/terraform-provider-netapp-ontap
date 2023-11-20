@@ -1,9 +1,10 @@
 
+
 ## 1.0.3
 * netapp-ontap_name_services_dns_resource: Fixed missing ID on create ([#99](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/63))
 
 ## 1.0.2 (2023-11-17)
-* 1.0.1 did not deploy correctly 1.0.2 fixes that.
+* 1.0.1 did not deploy correctly 1.0.2 fixes that. 
 
 
 ## 1.0.1 (2023-11-17)
@@ -13,8 +14,6 @@ BUG FIXES:
 * netapp-ontap_cluster_data_source, netapp-ontap_snapmirrors_data_source, netapp-ontap_networking_ip_route_resource and netapp-ontap_sotrage_volume_resource: Fix documentation ([#70](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/70))
 
 ## 1.0.0 (2023-11-06)
-
-NOTES
 
 FEATURES:
 * **New Data Source:** `netapp-ontap_cluster_data_source`
