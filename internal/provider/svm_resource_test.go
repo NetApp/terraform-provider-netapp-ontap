@@ -68,9 +68,9 @@ func TestAccSvmResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_svm_resource.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s", "tfsvm4", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s", "ansibleSVM", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_svm_resource.example", "name", "tfsvm4"),
+					resource.TestCheckResourceAttr("netapp-ontap_svm_resource.example", "name", "ansibleSVM"),
 				),
 			},
 		},
@@ -116,6 +116,6 @@ resource "netapp-ontap_svm_resource" "example" {
       name = "aggr3"
     },
   ]
-  max_volumes = "200"
+  max_volumes = "unlimited"
 }`, host, admin, password, svm, comment, snapshotPolicy)
 }
