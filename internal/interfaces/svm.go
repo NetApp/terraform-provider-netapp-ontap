@@ -63,13 +63,13 @@ type SvmDataSourceFilterModel struct {
 }
 
 // GetSvm to get svm info by uuid
-func GetSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) (*SvmGetDataModelONTAP, error) {
+func GetSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) (*SvmGetDataSourceModel, error) {
 	statusCode, response, err := r.GetNilOrOneRecord("svm/svms/"+uuid, nil, nil)
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError("error reading svm info", fmt.Sprintf("error on GET svm/svms: %s, statusCode %d", err, statusCode))
 	}
 
-	var dataONTAP *SvmGetDataModelONTAP
+	var dataONTAP *SvmGetDataSourceModel
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError("failed to decode response from GET svm", fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
@@ -78,7 +78,7 @@ func GetSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid stri
 }
 
 // GetSvmByName to get svm info by name
-func GetSvmByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string) (*SvmGetDataModelONTAP, error) {
+func GetSvmByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string) (*SvmGetDataSourceModel, error) {
 	query := r.NewQuery()
 	query.Add("name", name)
 	statusCode, response, err := r.GetNilOrOneRecord("svm/svms", query, nil)
@@ -86,7 +86,7 @@ func GetSvmByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, nam
 		return nil, errorHandler.MakeAndReportError("error reading svm info", fmt.Sprintf("error on GET svm/svms: %s, statusCode %d", err, statusCode))
 	}
 
-	var dataONTAP *SvmGetDataModelONTAP
+	var dataONTAP *SvmGetDataSourceModel
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError("failed to decode response from GET svm by name", fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
 	}

@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -35,16 +36,21 @@ type SvmResource struct {
 
 // SvmResourceModel describes the resource data model.
 type SvmResourceModel struct {
-	CxProfileName  types.String   `tfsdk:"cx_profile_name"`
-	Name           types.String   `tfsdk:"name"`
-	Ipspace        types.String   `tfsdk:"ipspace"`
-	SnapshotPolicy types.String   `tfsdk:"snapshot_policy"`
-	SubType        types.String   `tfsdk:"subtype"`
-	Comment        types.String   `tfsdk:"comment"`
-	Language       types.String   `tfsdk:"language"`
-	Aggregates     []types.String `tfsdk:"aggregates"`
-	MaxVolumes     types.String   `tfsdk:"max_volumes"`
-	ID             types.String   `tfsdk:"id"`
+	CxProfileName  types.String `tfsdk:"cx_profile_name"`
+	Name           types.String `tfsdk:"name"`
+	Ipspace        types.String `tfsdk:"ipspace"`
+	SnapshotPolicy types.String `tfsdk:"snapshot_policy"`
+	SubType        types.String `tfsdk:"subtype"`
+	Comment        types.String `tfsdk:"comment"`
+	Language       types.String `tfsdk:"language"`
+	Aggregates     []Aggregate  `tfsdk:"aggregates"`
+	MaxVolumes     types.String `tfsdk:"max_volumes"`
+	ID             types.String `tfsdk:"id"`
+}
+
+// Aggregate describes the resource data model.
+type Aggregate struct {
+	Name string `tfsdk:"name"`
 }
 
 // Metadata returns the resource type name.
@@ -87,10 +93,22 @@ func (r *SvmResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 				MarkdownDescription: "Language to use for svm",
 				Optional:            true,
 			},
-			"aggregates": schema.SetAttribute{
-				ElementType:         types.StringType,
-				MarkdownDescription: "Aggregates to be assigned use for svm",
-				Optional:            true,
+			// "aggregates": schema.SetAttribute{
+			// 	ElementType:         types.StringType,
+			// 	MarkdownDescription: "Aggregates to be assigned use for svm",
+			// 	Optional:            true,
+			// },
+			"aggregates": schema.SetNestedAttribute{
+				Required:            true,
+				MarkdownDescription: "List of aggregates to place SVM on",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"name": schema.StringAttribute{
+							MarkdownDescription: "Name of the aggregate",
+							Required:            true,
+						},
+					},
+				},
 			},
 			"max_volumes": schema.StringAttribute{
 				MarkdownDescription: "Maximum number of volumes that can be created on the svm. Expects an integer or unlimited",
@@ -172,7 +190,7 @@ func (r *SvmResource) Create(ctx context.Context, req resource.CreateRequest, re
 		aggregates := []interfaces.Aggregate{}
 		for _, v := range data.Aggregates {
 			aggr := interfaces.Aggregate{}
-			aggr.Name = v.ValueString()
+			aggr.Name = v.Name
 			aggregates = append(aggregates, aggr)
 		}
 		err := mapstructure.Decode(aggregates, &request.Aggregates)
@@ -221,7 +239,13 @@ func (r *SvmResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		return
 	}
 	tflog.Debug(ctx, fmt.Sprintf("read a svm resource: %#v", data))
-	svm, err := interfaces.GetSvm(errorHandler, *client, data.ID.ValueString())
+	var svm *interfaces.SvmGetDataSourceModel
+	if data.ID.ValueString() != "" {
+		svm, err = interfaces.GetSvm(errorHandler, *client, data.ID.ValueString())
+	} else {
+		svm, err = interfaces.GetSvmByNameDataSource(errorHandler, *client, data.Name.ValueString())
+	}
+	// svm, err := interfaces.GetSvm(errorHandler, *client, data.ID.ValueString())
 	if err != nil {
 		return
 	}
@@ -230,6 +254,41 @@ func (r *SvmResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	}
 	data.Name = types.StringValue(svm.Name)
 	data.ID = types.StringValue(svm.UUID)
+	aggregates := []Aggregate{}
+
+	if len(svm.Aggregates) != 0 {
+		for _, v := range svm.Aggregates {
+			tflog.Debug(ctx, fmt.Sprintf("HIIIIIIIIII: %#v", v.Name))
+			aggr := Aggregate{}
+			aggr.Name = v.Name
+			aggregates = append(aggregates, aggr)
+		}
+		data.Aggregates = aggregates
+	}
+
+	if svm.Comment != "" {
+		data.Comment = types.StringValue(svm.Comment)
+	}
+
+	if svm.Ipspace.Name != "" {
+		data.Ipspace = types.StringValue(svm.Ipspace.Name)
+	}
+
+	if svm.SnapshotPolicy.Name != "" {
+		data.SnapshotPolicy = types.StringValue(svm.SnapshotPolicy.Name)
+	}
+
+	if svm.SubType != "" {
+		data.SubType = types.StringValue(svm.SubType)
+	}
+
+	if svm.Language != "" {
+		data.Language = types.StringValue(svm.Language)
+	}
+
+	if svm.MaxVolumes != "" {
+		data.MaxVolumes = types.StringValue(svm.MaxVolumes)
+	}
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -316,7 +375,7 @@ func (r *SvmResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	if len(data.Aggregates) != 0 {
 		for _, v := range data.Aggregates {
 			aggr := interfaces.Aggregate{}
-			aggr.Name = v.ValueString()
+			aggr.Name = v.Name
 			aggregates = append(aggregates, aggr)
 		}
 	} else {
@@ -373,5 +432,16 @@ func (r *SvmResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 
 // ImportState imports a resource using ID from terraform import command by calling the Read method.
 func (r *SvmResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	idParts := strings.Split(req.ID, ",")
+
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: attr_one,attr_two. Got: %q", req.ID),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[1])...)
 }
