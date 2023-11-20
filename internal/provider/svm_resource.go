@@ -93,14 +93,9 @@ func (r *SvmResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 				MarkdownDescription: "Language to use for svm",
 				Optional:            true,
 			},
-			// "aggregates": schema.SetAttribute{
-			// 	ElementType:         types.StringType,
-			// 	MarkdownDescription: "Aggregates to be assigned use for svm",
-			// 	Optional:            true,
-			// },
 			"aggregates": schema.SetNestedAttribute{
 				Required:            true,
-				MarkdownDescription: "List of aggregates to place SVM on",
+				MarkdownDescription: "List of Aggregates to be assigned use for svm",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
