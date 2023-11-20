@@ -108,7 +108,13 @@ resource "netapp-ontap_svm_resource" "example" {
   language = "en_us.utf_8"
   aggregates = [
     {
+      name = "aggr1"
+    },
+    {
       name = "aggr2"
+    },
+    {
+      name = "aggr3"
     },
   ]
   max_volumes = "200"
