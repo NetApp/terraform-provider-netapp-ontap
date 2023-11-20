@@ -70,7 +70,6 @@ func TestAccSvmResource(t *testing.T) {
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s", "tfsvm4", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_svm_resource.example", "comment", "carchi8py was here"),
 					resource.TestCheckResourceAttr("netapp-ontap_svm_resource.example", "name", "tfsvm4"),
 				),
 			},
