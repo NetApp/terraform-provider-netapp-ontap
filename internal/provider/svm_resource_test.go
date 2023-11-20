@@ -104,7 +104,7 @@ resource "netapp-ontap_svm_resource" "example" {
   ipspace = "ansibleIpspace_newname"
   comment = "%s"
   snapshot_policy = "%s"
-  //subtype = "dp_destination"
+  subtype = "default"
   language = "en_us.utf_8"
   aggregates = [
     {
