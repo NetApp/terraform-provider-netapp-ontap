@@ -1,6 +1,6 @@
 ---
 page_title: "netapp-ontap_storage_aggregate_data_source Data Source - terraform-provider-netapp-ontap"
-subcategory: "storage"
+subcategory: "Storage"
 description: |-
   Retrieves the storage aggregation details of SVMs.
 ---
