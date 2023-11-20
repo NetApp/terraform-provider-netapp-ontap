@@ -1,4 +1,8 @@
 
+## 1.1.0 ()
+ENHANCEMENTS:
+* **netapp-ontap_svm_resource**: Add support for import ([#6](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/6))
+
 ## 1.0.1 ()
 
 BUG FIXES:

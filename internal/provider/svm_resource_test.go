@@ -64,6 +64,16 @@ func TestAccSvmResource(t *testing.T) {
 				Config:      testAccSvmResourceConfig("svm5", "carchi8py was here", "default"),
 				ExpectError: regexp.MustCompile("13434908"),
 			},
+			// Import and read
+			{
+				ResourceName:  "netapp-ontap_svm_resource.example",
+				ImportState:   true,
+				ImportStateId: fmt.Sprintf("%s,%s", "tfsvm4", "cluster4"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_svm_resource.example", "comment", "carchi8py was here"),
+					resource.TestCheckResourceAttr("netapp-ontap_svm_resource.example", "name", "tfsvm4"),
+				),
+			},
 		},
 	})
 }
