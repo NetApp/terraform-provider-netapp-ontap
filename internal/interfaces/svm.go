@@ -78,7 +78,7 @@ func GetSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid stri
 }
 
 // GetSvmByName to get svm info by name
-func GetSvmByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string) (*SvmGetDataModelONTAP, error) {
+func GetSvmByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string) (*SvmGetDataSourceModel, error) {
 	query := r.NewQuery()
 	query.Add("name", name)
 	statusCode, response, err := r.GetNilOrOneRecord("svm/svms", query, nil)
@@ -92,7 +92,7 @@ func GetSvmByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, nam
 			fmt.Sprintf("svm %s not found", name))
 	}
 
-	var dataONTAP *SvmGetDataModelONTAP
+	var dataONTAP *SvmGetDataSourceModel
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError("failed to decode response from GET svm by name", fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
