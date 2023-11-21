@@ -49,4 +49,43 @@ resource "netapp-ontap_storage_volume_snapshot_resource" "example" {
 - `id` (String) storage/volumes/snapshots identifier
 
 ## Import
-Import is currently not support for this Resource.
+This Resource supports import, which allows you to import existing snapshot into the state of this resoruce.
+Import require a unique ID composed of the snapshot name, volume_name, svm_name and cx_profile_name, separated by a comma.
+
+ id = `name`,`volume_name`,`svm_name`,`cx_profile_name`
+
+ ### Terraform Import
+
+ For example
+ ```shell
+  terraform import netapp-ontap_storage_volume_snapshot_resource.example snapshotname,vol2,svm1,cluster4
+ ```
+
+!> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
+
+### Terrafomr Import Block
+This requires Terraform 1.5 or higher, and will auto create the configuration for you
+
+First create the block
+```terraform
+import {
+  to = netapp-ontap_storage_volume_snapshot_resource.snapshot_import
+  id = "snapshot1,vol1,svm1,cluster4"
+}
+```
+Next run, this will auto create the configuration for you
+```shell
+terraform plan -generate-config-out=generated.tf
+```
+This will generate a file called generated.tf, which will contain the configuration for the imported resource
+```terraform
+# __generated__ by Terraform
+# Please review these resources and move them into your main configuration files.
+# __generated__ by Terraform from "snapshot1,vol1,svm1,cluster4"
+resource "netapp-ontap_storage_volume_snapshot_resource" "snapshot_import" {
+  cx_profile_name = "cluster4"
+  name       = "snapshot1"
+  volume_name       = "vol1"
+  svm_name = "svm1"
+}
+```

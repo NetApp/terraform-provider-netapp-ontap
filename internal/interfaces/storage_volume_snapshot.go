@@ -96,7 +96,8 @@ func GetStorageVolumeSnapshots(errorHandler *utils.ErrorHandler, r restclient.Re
 
 	if response == nil {
 		tflog.Debug(errorHandler.Ctx, fmt.Sprintf("snapshot %s not found for volume UUID %s", name, volumeUUID))
-		return nil, nil
+		return nil, errorHandler.MakeAndReportError("error reading snapshot info",
+			fmt.Sprintf("snapshot %s not found for volume UUID %s", name, volumeUUID))
 	}
 
 	var dataONTAP StorageVolumeSnapshotGetDataModelONTAP
