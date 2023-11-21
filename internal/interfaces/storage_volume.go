@@ -193,7 +193,8 @@ func GetUUIDVolumeByName(errorHandler *utils.ErrorHandler, r restclient.RestClie
 
 	if response == nil {
 		tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Volume %s not found", name))
-		return nil, nil
+		return nil, errorHandler.MakeAndReportError("error reading volume info",
+			fmt.Sprintf("error on Get %s: volume %s is not found, statusCode %d", api, name, statusCode))
 	}
 	var dataONTAP NameDataModel
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {

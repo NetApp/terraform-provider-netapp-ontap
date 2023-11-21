@@ -17,7 +17,7 @@ func TestAccStorageVolumeSnapshotResource(t *testing.T) {
 			// non-existant SVM return code 2621462. Must happen before create/read
 			{
 				Config:      testAccStorageVolumeSnapshotResourceConfig("non-existant", "my comment"),
-				ExpectError: regexp.MustCompile("Error: No svm found"),
+				ExpectError: regexp.MustCompile("svm non-existant not found"),
 			},
 			// Create and read testing
 			{
@@ -37,6 +37,15 @@ func TestAccStorageVolumeSnapshotResource(t *testing.T) {
 					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "name", "snaptest"),
 					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "svm_name", "carchi-test"),
 					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "comment", "new comment"),
+				),
+			},
+			// Test importing a resource
+			{
+				ResourceName:  "netapp-ontap_storage_volume_snapshot_resource.example",
+				ImportState:   true,
+				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "snaptest", "carchi_test_root", "carchi-test", "cluster4"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "name", "snaptest"),
 				),
 			},
 		},
