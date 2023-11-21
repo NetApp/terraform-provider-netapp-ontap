@@ -2,10 +2,11 @@ package provider
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"os"
 	"regexp"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccNfsServiceResource(t *testing.T) {
@@ -16,7 +17,7 @@ func TestAccNfsServiceResource(t *testing.T) {
 			// Test error
 			{
 				Config:      testAccNfsServiceResourceConfig("non-existant", "false"),
-				ExpectError: regexp.MustCompile("svm non-existant not found."),
+				ExpectError: regexp.MustCompile("svm non-existant not found"),
 			},
 			// Create and read
 			{
