@@ -18,12 +18,21 @@ func TestAccNFSExportPolicyResource(t *testing.T) {
 				Config:      testAccNFSExportPolicyResourceConfig("non-existant"),
 				ExpectError: regexp.MustCompile("svm non-existant not found"),
 			},
-			// Read testing
+			// Create and read testing
 			{
 				Config: testAccNFSExportPolicyResourceConfig("carchi-test"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_export_policy_resource.example", "name", "acc_test"),
 					resource.TestCheckNoResourceAttr("netapp-ontap_protocols_nfs_export_policy_resource.example", "volname"),
+				),
+			},
+			// Test importing a resource
+			{
+				ResourceName:  "netapp-ontap_protocols_nfs_export_policy_resource.example",
+				ImportState:   true,
+				ImportStateId: fmt.Sprintf("%s,%s,%s", "acc_test", "carchi-test", "cluster4"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_export_policy_resource.example", "name", "acc_test"),
 				),
 			},
 		},
