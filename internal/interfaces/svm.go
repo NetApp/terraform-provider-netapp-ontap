@@ -86,6 +86,12 @@ func GetSvmByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, nam
 		return nil, errorHandler.MakeAndReportError("error reading svm info", fmt.Sprintf("error on GET svm/svms: %s, statusCode %d", err, statusCode))
 	}
 
+	if response == nil {
+		tflog.Debug(errorHandler.Ctx, fmt.Sprintf("svm %s not found", name))
+		return nil, errorHandler.MakeAndReportError("error reading svm info",
+			fmt.Sprintf("svm %s not found", name))
+	}
+
 	var dataONTAP *SvmGetDataSourceModel
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError("failed to decode response from GET svm by name", fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))

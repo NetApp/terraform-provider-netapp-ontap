@@ -7,6 +7,7 @@ ENHANCEMENTS:
 * **netapp-ontap_storage_volume_resource**: Add support for import ([#41](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/41))
 * **netapp-ontap_protocols_nfs_service_resource**: Add support for import ([#36](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/36))
 * **netapp-ontap_svm_resource**: Add support for import ([#6](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/6))
+* **netapp-ontap_storage_volume_snapshot_resource**: Add support for import ([#42](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/42))
 
 
 ## 1.0.2 (2023-11-17)
