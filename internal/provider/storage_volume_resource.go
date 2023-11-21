@@ -3,11 +3,12 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/mitchellh/mapstructure"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -382,11 +383,22 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 		// error reporting done inside NewClient
 		return
 	}
-
-	response, err := interfaces.GetStorageVolume(errorHandler, *client, data.ID.ValueString())
-	if err != nil {
-		return
+	// Import don't have id's so we need to get the id from the name
+	var response *interfaces.StorageVolumeGetDataModelONTAP
+	if data.ID.ValueString() == "" {
+		response, err = interfaces.GetStorageVolumeByName(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString())
+		if err != nil {
+			return
+		}
+		data.ID = types.StringValue(response.UUID)
+	} else {
+		response, err = interfaces.GetStorageVolume(errorHandler, *client, data.ID.ValueString())
+		if err != nil {
+			return
+		}
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("read a volume resource: %#v", data))
 
 	data.Comment = types.StringValue(response.Comment)
 	data.Encrypt = types.BoolValue(response.Encryption.Enabled)
@@ -414,20 +426,11 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 		"logical_space":          types.ObjectType{AttrTypes: nestedElementTypes},
 	}
 	var sizeUnit string
-	var space StorageVolumeResourceSpace
-	diags := data.Space.As(ctx, &space, basetypes.ObjectAsOptions{})
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
-	if _, ok := interfaces.POW2BYTEMAP[space.SizeUnit.ValueString()]; !ok {
-		errorHandler.MakeAndReportError("error creating volume", fmt.Sprintf("invalid input for size_unit: %s, required one of: bytes, b, kb, mb, gb, tb, pb, eb, zb, yb", space.SizeUnit.ValueString()))
-		return
-	}
-	sizeUnit = space.SizeUnit.ValueString()
+	var size int64
+	size, sizeUnit = interfaces.ByteFormat(int64(response.Space.Size))
 
 	elements := map[string]attr.Value{
-		"size":                   types.Int64Value(int64(response.Space.Size / interfaces.POW2BYTEMAP[sizeUnit])),
+		"size":                   types.Int64Value(size),
 		"size_unit":              types.StringValue(sizeUnit),
 		"percent_snapshot_space": types.Int64Value(int64(response.Space.Snapshot.ReservePercent)),
 		"logical_space":          logicalObjectValue,
@@ -517,6 +520,15 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 		resp.Diagnostics.Append(diags...)
 	}
 	data.Analytics = objectValue
+
+	//Aggregates
+	var aggregates []StorageVolumeResourceAggregates
+	for _, v := range response.Aggregates {
+		var aggregate StorageVolumeResourceAggregates
+		aggregate.Name = types.StringValue(v.Name)
+		aggregates = append(aggregates, aggregate)
+	}
+	data.Aggregates = aggregates
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -1057,7 +1069,19 @@ func (r *StorageVolumeResource) Delete(ctx context.Context, req resource.DeleteR
 
 // ImportState imports a resource using ID from terraform import command by calling the Read method.
 func (r *StorageVolumeResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	idParts := strings.Split(req.ID, ",")
+
+	if len(idParts) != 3 || idParts[0] == "" || idParts[1] == "" || idParts[2] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: name,svm_name,cx_profile_name. Got: %q", req.ID),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("svm_name"), idParts[1])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[2])...)
 }
 
 func readVolume(ctx context.Context, client *restclient.RestClient, data *StorageVolumeResourceModel) diag.Diagnostics {

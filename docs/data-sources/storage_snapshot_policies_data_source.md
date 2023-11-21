@@ -1,6 +1,6 @@
 ---
 page_title: "netapp-ontap_storage_snapshot_policies_data_source Data Source - terraform-provider-netapp-ontap"
-subcategory: "storage"
+subcategory: "Storage"
 description: |-
   Retrieves Snapshot Policies information
 ---

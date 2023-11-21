@@ -10,6 +10,8 @@ import (
 
 func TestLicensingLicenseResouce(t *testing.T) {
 	testLicense := os.Getenv("TF_ACC_NETAPP_LICENSE")
+	name := "FCP"
+	credName := "cluster4"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -20,6 +22,14 @@ func TestLicensingLicenseResouce(t *testing.T) {
 			},
 			{
 				Config: testAccLicensingLicenseResourceConfig(testLicense),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_licensing_license_resource.cluster_licensing_license", "name", "insight_balance")),
+			},
+			// Test importing a resource
+			{
+				ResourceName:  "netapp-ontap_cluster_licensing_license_resource.cluster_licensing_license",
+				ImportState:   true,
+				ImportStateId: fmt.Sprintf("%s,%s", name, credName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_cluster_licensing_license_resource.cluster_licensing_license", "name", "insight_balance")),
 			},

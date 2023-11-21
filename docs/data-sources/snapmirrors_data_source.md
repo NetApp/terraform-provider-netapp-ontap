@@ -1,6 +1,6 @@
 ---
 page_title: "netapp-ontap_snapmirrors_data_source Data Source - terraform-provider-netapp-ontap"
-subcategory: "snapmirror"
+subcategory: "SnapMirror"
 description: |-
   Retrieves list of the snapmirrors
 ---

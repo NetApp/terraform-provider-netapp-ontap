@@ -1,6 +1,6 @@
 ---
 page_title: "ONTAP: Cluster Schedule"
-subcategory: "cluster"
+subcategory: "Cluster"
 description: |-
   Cluster schedule resource
 ---
@@ -8,6 +8,10 @@ description: |-
 # Resource Cluster Schedule
 
 Create/Modify/Delete a job schedule in a cluster.
+
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
 
 ## Example Usage
 

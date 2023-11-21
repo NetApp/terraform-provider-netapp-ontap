@@ -1,6 +1,6 @@
 ---
 page_title: "netapp-ontap_protocols_nfs_export_policy_data_source Data Source - terraform-provider-netapp-ontap"
-subcategory: "nas"
+subcategory: "NAS"
 description: |-
   NFS Export Policy Data source
 ---
