@@ -37,6 +37,16 @@ func TestAccNfsServiceResource(t *testing.T) {
 					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service_resource.example", "protocol.v40_enabled", "true"),
 				),
 			},
+			// Import and read
+			{
+				ResourceName:  "netapp-ontap_protocols_nfs_service_resource.example",
+				ImportState:   true,
+				ImportStateId: fmt.Sprintf("%s,%s", "carchi-test", "cluster4"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service_resource.example", "protocol.v3_enabled", "true"),
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service_resource.example", "protocol.v40_enabled", "true"),
+				),
+			},
 		},
 	})
 }
