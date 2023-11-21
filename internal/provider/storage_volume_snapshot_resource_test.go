@@ -17,7 +17,7 @@ func TestAccStorageVolumeSnapshotResource(t *testing.T) {
 			// non-existant SVM return code 2621462. Must happen before create/read
 			{
 				Config:      testAccStorageVolumeSnapshotResourceConfig("non-existant", "my comment"),
-				ExpectError: regexp.MustCompile("Error: No svm found"),
+				ExpectError: regexp.MustCompile("svm non-existant not found"),
 			},
 			// Create and read testing
 			{
