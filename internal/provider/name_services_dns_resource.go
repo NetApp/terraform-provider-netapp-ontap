@@ -188,10 +188,11 @@ func (r *NameServicesDNSResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	_, err = interfaces.CreateNameServicesDNS(errorHandler, *client, body)
+	dns, err := interfaces.CreateNameServicesDNS(errorHandler, *client, body)
 	if err != nil {
 		return
 	}
+	data.ID = types.StringValue(dns.SVM.UUID)
 
 	tflog.Trace(ctx, "created a resource")
 
