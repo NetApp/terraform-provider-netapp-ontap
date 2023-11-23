@@ -41,8 +41,28 @@ type ClusterScheduleFilterModel struct {
 	Type string `mapstructure:"type"`
 }
 
-// GetClusterSchedule to get a single schedule info
-func GetClusterSchedule(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string) (*ClusterScheduleGetDataModelONTAP, error) {
+// GetClusterSchedule to get a single schedule info by uuid
+func GetClusterSchedule(errorHandler *utils.ErrorHandler, r restclient.RestClient, id string) (*ClusterScheduleGetDataModelONTAP, error) {
+	api := "cluster/schedules/" + id
+	statusCode, response, err := r.GetNilOrOneRecord(api, nil, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading cluster schedule info", fmt.Sprintf("error on GET %s: %s", api, err))
+	}
+
+	var dataONTAP ClusterScheduleGetDataModelONTAP
+	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
+		return nil, errorHandler.MakeAndReportError("error decoding schedule info",
+			fmt.Sprintf("statusCode %d, response %#v", statusCode, response))
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read cluster/schedules data source: %#v", dataONTAP))
+	return &dataONTAP, nil
+}
+
+// GetClusterScheduleByName to get a single schedule info
+func GetClusterScheduleByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string) (*ClusterScheduleGetDataModelONTAP, error) {
 	query := r.NewQuery()
 	query.Set("name", name)
 	api := "cluster/schedules"
