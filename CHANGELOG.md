@@ -1,23 +1,15 @@
 ## 1.1.0 ()
 
 ENHANCEMENTS:
-* **netapp-ontap_cluster_licensing_license_resource**: Add support for import ([#30](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/30))
-* **netapp-ontap_storage_aggregate_resource**: Add support for import ([#39](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/39))
-* **netapp-ontap_storage_volume_resource**: Add support for import ([#41](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/41))
-* **netapp-ontap_protocols_nfs_service_resource**: Add support for import ([#36](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/36))
-* **netapp-ontap_svm_resource**: Add support for import ([#6](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/6))
-* **netapp-ontap_storage_volume_snapshot_resource**: Add support for import ([#42](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/42))
 * **netapp-ontap_protocols_nfs_export_policy_resource**: Add support for import ([#34](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/34))
 
-## 1.1.0 ()
-
-ENHANCEMENTS:
 * **netapp-ontap_cluster_licensing_license_resource**: Add support for import ([#30](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/30))
 * **netapp-ontap_storage_aggregate_resource**: Add support for import ([#39](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/39))
 * **netapp-ontap_storage_volume_resource**: Add support for import ([#41](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/41))
 * **netapp-ontap_protocols_nfs_service_resource**: Add support for import ([#36](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/36))
 * **netapp-ontap_svm_resource**: Add support for import ([#6](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/6))
 * **netapp-ontap_storage_volume_snapshot_resource**: Add support for import ([#42](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/42))
+* **netapp-ontap_cluster_schedule_resource**: Add support for import ([#31](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/31))
 
 
 ## 1.0.2 (2023-11-17)
