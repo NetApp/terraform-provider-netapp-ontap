@@ -51,6 +51,10 @@ type ClusterPeerResourceBodyDataModelONTAP struct {
 	SVM  svm    `mapstructure:"svm"`
 }
 
+type ClusterPeerDataSourceFilterModel struct {
+	Name string `mapstructure:"name"`
+}
+
 func GetClusterPeerByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string) (*ClusterPeerGetDataModelONTAP, error) {
 	query := r.NewQuery()
 	query.Add("name", name)
@@ -67,5 +71,34 @@ func GetClusterPeerByName(errorHandler *utils.ErrorHandler, r restclient.RestCli
 		return nil, errorHandler.MakeAndReportError("Error decoding cluster peer", fmt.Sprintf("error decoding cluster peer: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read Cluster/peer source - udata: %#v", dataONTAP))
+	return dataONTAP, nil
+}
+
+func GetClusterPeers(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *ClusterPeerDataSourceFilterModel) ([]ClusterPeerGetDataModelONTAP, error) {
+	query := r.NewQuery()
+	query.Fields([]string{"name", "uuid", "remote", "status", "peer_applications", "encryption", "ip_address", "ipspace"})
+	if filter != nil {
+		var filterMap map[string]interface{}
+		if err := mapstructure.Decode(filter, &filterMap); err != nil {
+			return nil, errorHandler.MakeAndReportError("error encoding cluster peer filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
+		}
+		query.SetValues(filterMap)
+	}
+	statusCode, response, err := r.GetZeroOrMoreRecords("cluster/peers", query, nil)
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("Error getting cluster peers", fmt.Sprint("error on get cluster/peers: #{err}"))
+	}
+	if response == nil {
+		return nil, errorHandler.MakeAndReportError("No cluster peers found", fmt.Sprint("no cluster peers found with name: #{name}"))
+	}
+	var dataONTAP []ClusterPeerGetDataModelONTAP
+	for _, info := range response {
+		var record ClusterPeerGetDataModelONTAP
+		if err := mapstructure.Decode(info, &record); err != nil {
+			return nil, errorHandler.MakeAndReportError("Error decoding cluster peers", fmt.Sprintf("error decoding cluster peers: %s, statusCode %d, response %#v", err, statusCode, response))
+		}
+		dataONTAP = append(dataONTAP, record)
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read Cluster/peers source - udata: %#v", dataONTAP))
 	return dataONTAP, nil
 }
