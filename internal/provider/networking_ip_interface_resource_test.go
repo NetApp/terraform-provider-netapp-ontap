@@ -40,6 +40,16 @@ func TestAccNetworkingIpInterfaceResource(t *testing.T) {
 					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "ip.address", "10.10.10.20"),
 				),
 			},
+			// Test importing a resource
+			{
+				ResourceName:  "netapp-ontap_networking_ip_interface_resource.example",
+				ImportState:   true,
+				ImportStateId: fmt.Sprintf("%s,%s,%s", "test-interface", "svm0", "cluster4"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "name", "test-interface"),
+					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "ip.address", "10.10.10.20"),
+				),
+			},
 		},
 	})
 }
