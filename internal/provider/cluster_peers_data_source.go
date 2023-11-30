@@ -208,7 +208,7 @@ func (d *ClusterPeersDataSource) Read(ctx context.Context, req datasource.ReadRe
 			Name:          types.StringValue(record.Name),
 			ID:            types.StringValue(record.UUID),
 			Remote: &ClusterPeerDataSourceRemote{
-				IpAddresses: make([]types.String, len(record.Remote.IpAddress)),
+				IPAddresses: make([]types.String, len(record.Remote.IPAddress)),
 				Name:        types.StringValue(record.Remote.Name),
 			},
 			Status: &ClusterPeerDataSourceStatus{
@@ -219,13 +219,13 @@ func (d *ClusterPeersDataSource) Read(ctx context.Context, req datasource.ReadRe
 				Proposed: types.StringValue(record.Encryption.Propsed),
 				State:    types.StringValue(record.Encryption.State),
 			},
-			IpAddress: types.StringValue(record.IpAddress),
+			IPAddress: types.StringValue(record.IPAddress),
 			Ipspace: &ClusterPeerDataSourceIpspace{
 				Name: types.StringValue(record.Ipspace.Name),
 			},
 		}
-		for index, ipAddress := range record.Remote.IpAddress {
-			data.ClusterPeers[index].Remote.IpAddresses[index] = types.StringValue(ipAddress)
+		for index, IPAddress := range record.Remote.IPAddress {
+			data.ClusterPeers[index].Remote.IPAddresses[index] = types.StringValue(IPAddress)
 		}
 		for index, peerApplication := range record.PeerApplications {
 			data.ClusterPeers[index].PeerApplications[index] = types.StringValue(peerApplication)
