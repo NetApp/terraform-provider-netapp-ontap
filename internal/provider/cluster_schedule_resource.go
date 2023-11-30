@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -158,18 +159,63 @@ func (r *ClusterScheduleResource) Read(ctx context.Context, req resource.ReadReq
 		// error reporting done inside NewClient
 		return
 	}
-	restInfo, err := interfaces.GetClusterSchedule(errorHandler, *client, data.Name.ValueString())
-	if err != nil {
-		// error reporting done inside GetClusterSchedule
-		return
+
+	var restInfo *interfaces.ClusterScheduleGetDataModelONTAP
+	if data.ID.ValueString() == "" {
+		restInfo, err = interfaces.GetClusterScheduleByName(errorHandler, *client, data.Name.ValueString())
+		if err != nil {
+			// error reporting done inside GetClusterScheduleByName
+			return
+		}
+		data.ID = types.StringValue(restInfo.UUID)
+	} else {
+		restInfo, err = interfaces.GetClusterSchedule(errorHandler, *client, data.ID.ValueString())
+		if err != nil {
+			// error reporting done inside GetClusterSchedule
+			return
+		}
 	}
 	if restInfo == nil {
 		errorHandler.MakeAndReportError("No Cluster Schedule found", fmt.Sprintf("Cluster Schedule %s not found.", data.Name.ValueString()))
 		return
 	}
-	// data.Name = types.StringValue(restInfo.Name)
-	data.ID = types.StringValue(restInfo.UUID)
 
+	tflog.Debug(ctx, fmt.Sprintf("Restinfo a cluster schedule job data source: %#v", restInfo))
+	if restInfo.Interval == "" {
+		tflog.Debug(ctx, fmt.Sprintf("Cron: %#v", restInfo.Cron))
+		var cron CronScheduleResourceModel
+
+		if restInfo.Cron.Days != nil {
+			for _, v := range restInfo.Cron.Days {
+				cron.Days = append(cron.Days, types.Int64Value(v))
+			}
+		}
+		if restInfo.Cron.Hours != nil {
+			for _, v := range restInfo.Cron.Hours {
+				cron.Hours = append(cron.Hours, types.Int64Value(v))
+			}
+		}
+		if restInfo.Cron.Minutes != nil {
+			var minutes []types.Int64
+			for _, v := range restInfo.Cron.Minutes {
+				minutes = append(minutes, types.Int64Value(v))
+			}
+			cron.Minutes = minutes
+		}
+		if restInfo.Cron.Months != nil {
+			for _, v := range restInfo.Cron.Months {
+				cron.Months = append(cron.Months, types.Int64Value(v))
+			}
+		}
+		if restInfo.Cron.Weekdays != nil {
+			for _, v := range restInfo.Cron.Weekdays {
+				cron.Weekdays = append(cron.Weekdays, types.Int64Value(v))
+			}
+		}
+		data.Cron = &cron
+	} else {
+		data.Interval = types.StringValue(restInfo.Interval)
+	}
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
 	tflog.Debug(ctx, fmt.Sprintf("read a data source: %#v", data))
@@ -323,5 +369,15 @@ func (r *ClusterScheduleResource) Delete(ctx context.Context, req resource.Delet
 
 // ImportState imports a resource using ID from terraform import command by calling the Read method.
 func (r *ClusterScheduleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	tflog.Debug(ctx, fmt.Sprintf("import req a scluster schedule resource: %#v", req))
+	idParts := strings.Split(req.ID, ",")
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: name,cx_profile_name. Got: %q", req.ID),
+		)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[1])...)
 }
