@@ -38,15 +38,42 @@ type ClusterPeerDataSource struct {
 
 // ClusterPeerDataSourceModel describes the data source data model.
 type ClusterPeerDataSourceModel struct {
-	CxProfileName types.String `tfsdk:"cx_profile_name"`
-	Name          types.String `tfsdk:"name"`
-	SVMName       types.String `tfsdk:"svm_name"`
+	CxProfileName    types.String                     `tfsdk:"cx_profile_name"`
+	Name             types.String                     `tfsdk:"name"`
+	Remote           *ClusterPeerDataSourceRemote     `tfsdk:"remote"`
+	Status           *ClusterPeerDataSourceStatus     `tfsdk:"status"`
+	PeerApplications []types.String                   `tfsdk:"peer_applications"`
+	Encryption       *ClusterPeerDataSourceEncryption `tfsdk:"encryption"`
+	IpAddress        types.String                     `tfsdk:"ip_address"`
+	Ipspace          *ClusterPeerDataSourceIpspace    `tfsdk:"ipspace"`
+	ID               types.String                     `tfsdk:"id"`
 }
 
 // ClusterPeerDataSourceFilterModel describes the data source data model for queries.
 type ClusterPeerDataSourceFilterModel struct {
-	Name    types.String `tfsdk:"name"`
-	SVMName types.String `tfsdk:"svm.name"`
+	Name types.String `tfsdk:"name"`
+}
+
+// ClusterPeerDataSourceRemote describes the data source data model for remote cluster.
+type ClusterPeerDataSourceRemote struct {
+	IpAddresses []types.String `tfsdk:"ip_addresses"`
+	Name        types.String   `tfsdk:"name"`
+}
+
+// ClusterPeerDataSourceStatus describes the data source data model for status.
+type ClusterPeerDataSourceStatus struct {
+	State types.String `tfsdk:"state"`
+}
+
+// ClusterPeerDataSourceEncryption describes the data source data model for encryption.
+type ClusterPeerDataSourceEncryption struct {
+	Proposed types.String `tfsdk:"proposed"`
+	State    types.String `tfsdk:"state"`
+}
+
+// ClusterPeerDataSourceIpspace describes the data source data model for ipspace.
+type ClusterPeerDataSourceIpspace struct {
+	Name types.String `tfsdk:"name"`
 }
 
 // Metadata returns the data source type name.
@@ -69,9 +96,67 @@ func (d *ClusterPeerDataSource) Schema(ctx context.Context, req datasource.Schem
 				MarkdownDescription: "ClusterPeer name",
 				Required:            true,
 			},
-			"svm_name": schema.StringAttribute{
-				MarkdownDescription: "IPInterface svm name",
-				Optional:            true,
+			"remote": schema.SingleNestedAttribute{
+				MarkdownDescription: "Remote cluster",
+				Computed:            true,
+				Attributes: map[string]schema.Attribute{
+					"ip_addresses": schema.ListAttribute{
+						ElementType:         types.StringType,
+						MarkdownDescription: "List of IP addresses of remote cluster",
+						Computed:            true,
+					},
+					"name": schema.StringAttribute{
+						MarkdownDescription: "Name of remote cluster",
+						Computed:            true,
+					},
+				},
+			},
+			"status": schema.SingleNestedAttribute{
+				MarkdownDescription: "Status of cluster peer",
+				Computed:            true,
+				Attributes: map[string]schema.Attribute{
+					"state": schema.StringAttribute{
+						MarkdownDescription: "State of cluster peer",
+						Computed:            true,
+					},
+				},
+			},
+			"peer_applications": schema.ListAttribute{
+				ElementType:         types.StringType,
+				MarkdownDescription: "List of peer applications",
+				Computed:            true,
+			},
+			"encryption": schema.SingleNestedAttribute{
+				MarkdownDescription: "Encryption of cluster peer",
+				Computed:            true,
+				Attributes: map[string]schema.Attribute{
+					"proposed": schema.StringAttribute{
+						MarkdownDescription: "Proposed encryption of cluster peer",
+						Computed:            true,
+					},
+					"state": schema.StringAttribute{
+						MarkdownDescription: "State of encryption of cluster peer",
+						Computed:            true,
+					},
+				},
+			},
+			"ip_address": schema.StringAttribute{
+				MarkdownDescription: "IP address",
+				Computed:            true,
+			},
+			"ipspace": schema.SingleNestedAttribute{
+				MarkdownDescription: "Ipspace of cluster peer",
+				Computed:            true,
+				Attributes: map[string]schema.Attribute{
+					"name": schema.StringAttribute{
+						MarkdownDescription: "Name of ipspace of cluster peer",
+						Computed:            true,
+					},
+				},
+			},
+			"id": schema.StringAttribute{
+				MarkdownDescription: "ID of cluster peer",
+				Computed:            true,
 			},
 		},
 	}
@@ -112,13 +197,36 @@ func (d *ClusterPeerDataSource) Read(ctx context.Context, req datasource.ReadReq
 		return
 	}
 
-	restInfo, err := interfaces.GetClusterPeer(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString())
+	restInfo, err := interfaces.GetClusterPeerByName(errorHandler, *client, data.Name.ValueString())
 	if err != nil {
 		// error reporting done inside GetClusterPeer
 		return
 	}
 
 	data.Name = types.StringValue(restInfo.Name)
+	data.ID = types.StringValue(restInfo.UUID)
+	data.Remote = &ClusterPeerDataSourceRemote{
+		IpAddresses: make([]types.String, len(restInfo.Remote.IpAddress)),
+		Name:        types.StringValue(restInfo.Remote.Name),
+	}
+	for index, ipAddress := range restInfo.Remote.IpAddress {
+		data.Remote.IpAddresses[index] = types.StringValue(ipAddress)
+	}
+	data.Status = &ClusterPeerDataSourceStatus{
+		State: types.StringValue(restInfo.Status.State),
+	}
+	data.PeerApplications = make([]types.String, len(restInfo.PeerApplications))
+	for index, peerApplication := range restInfo.PeerApplications {
+		data.PeerApplications[index] = types.StringValue(peerApplication)
+	}
+	data.Encryption = &ClusterPeerDataSourceEncryption{
+		Proposed: types.StringValue(restInfo.Encryption.Propsed),
+		State:    types.StringValue(restInfo.Encryption.State),
+	}
+	data.IpAddress = types.StringValue(restInfo.IpAddress)
+	data.Ipspace = &ClusterPeerDataSourceIpspace{
+		Name: types.StringValue(restInfo.Ipspace.Name),
+	}
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
