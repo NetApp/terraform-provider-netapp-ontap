@@ -35,6 +35,16 @@ func TestAccClusterScheduleResource(t *testing.T) {
 					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule_resource.example", "interval", "PT8M20S"),
 				),
 			},
+			// Test importing a interval job schedule resource
+			{
+				ResourceName:  "netapp-ontap_cluster_schedule_resource.example",
+				ImportState:   true,
+				ImportStateId: fmt.Sprintf("%s,%s", "tf-interval-schedule-test", "cluster4"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule_resource.example", "name", "tf-interval-schedule-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule_resource.example", "interval", "PT8M20S"),
+				),
+			},
 			// Create cron schedule and read
 			{
 				Config: testAccClusterScheduleCreateResourceCronConfig("tf-cron-schedule-test"),
@@ -47,6 +57,17 @@ func TestAccClusterScheduleResource(t *testing.T) {
 				Config: testAccClusterScheduleUpdateResourceCronConfig("tf-cron-schedule-test"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule_resource.cron-example", "name", "tf-cron-schedule-test"),
+				),
+			},
+			// Test importing a cron job schedule resource
+			{
+				ResourceName:  "netapp-ontap_cluster_schedule_resource.cron-example",
+				ImportState:   true,
+				ImportStateId: fmt.Sprintf("%s,%s", "tf-cron-schedule-test", "cluster4"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule_resource.cron-example", "name", "tf-cron-schedule-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule_resource.cron-example", "cron.days.0", "2"),
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule_resource.cron-example", "cron.weekdays.2", "4"),
 				),
 			},
 		},
