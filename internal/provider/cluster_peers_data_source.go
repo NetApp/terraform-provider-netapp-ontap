@@ -38,8 +38,8 @@ type ClusterPeersDataSource struct {
 
 // ClusterPeersDataSourceModel describes the data source data model.
 type ClusterPeersDataSourceModel struct {
-	CxProfileName types.String                   `tfsdk:"cx_profile_name"`
-	ClusterPeers   []ClusterPeerDataSourceModel      `tfsdk:"cluster_peers"`
+	CxProfileName types.String                      `tfsdk:"cx_profile_name"`
+	ClusterPeers  []ClusterPeerDataSourceModel      `tfsdk:"cluster_peers"`
 	Filter        *ClusterPeerDataSourceFilterModel `tfsdk:"filter"`
 }
 
@@ -133,18 +133,17 @@ func (d *ClusterPeersDataSource) Read(ctx context.Context, req datasource.ReadRe
 			Name: data.Filter.Name.ValueString(),
 		}
 	}
-	restInfo, err := interfaces.GetClusterPeers(errorHandler, *client, filter)
+	if filter == nil {
+		filter = &interfaces.ClusterPeerGetDataModelONTAP{}
+	}
+	restInfo, err := interfaces.GetClusterPeerByName(errorHandler, *client, "this is a placeholder for the name")
 	if err != nil {
 		// error reporting done inside GetClusterPeers
 		return
 	}
-
-	data.ClusterPeers = make([]ClusterPeerDataSourceModel, len(restInfo))
-	for index, record := range restInfo {
-		data.ClusterPeers[index] = ClusterPeerDataSourceModel{
-			CxProfileName: types.String(data.CxProfileName),
-			Name:          types.StringValue(record.Name),
-		}
+	if restInfo == nil {
+		// no cluster peers found
+		return
 	}
 
 	// Write logs using the tflog package
