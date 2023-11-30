@@ -44,14 +44,14 @@ type ClusterPeerDataSourceModel struct {
 	Status           *ClusterPeerDataSourceStatus     `tfsdk:"status"`
 	PeerApplications []types.String                   `tfsdk:"peer_applications"`
 	Encryption       *ClusterPeerDataSourceEncryption `tfsdk:"encryption"`
-	IpAddress        types.String                     `tfsdk:"ip_address"`
+	IPAddress        types.String                     `tfsdk:"ip_address"`
 	Ipspace          *ClusterPeerDataSourceIpspace    `tfsdk:"ipspace"`
 	ID               types.String                     `tfsdk:"id"`
 }
 
 // ClusterPeerDataSourceRemote describes the data source data model for remote cluster.
 type ClusterPeerDataSourceRemote struct {
-	IpAddresses []types.String `tfsdk:"ip_addresses"`
+	IPAddresses []types.String `tfsdk:"ip_addresses"`
 	Name        types.String   `tfsdk:"name"`
 }
 
@@ -201,11 +201,11 @@ func (d *ClusterPeerDataSource) Read(ctx context.Context, req datasource.ReadReq
 	data.Name = types.StringValue(restInfo.Name)
 	data.ID = types.StringValue(restInfo.UUID)
 	data.Remote = &ClusterPeerDataSourceRemote{
-		IpAddresses: make([]types.String, len(restInfo.Remote.IpAddress)),
+		IPAddresses: make([]types.String, len(restInfo.Remote.IPAddress)),
 		Name:        types.StringValue(restInfo.Remote.Name),
 	}
-	for index, ipAddress := range restInfo.Remote.IpAddress {
-		data.Remote.IpAddresses[index] = types.StringValue(ipAddress)
+	for index, IPAddress := range restInfo.Remote.IPAddress {
+		data.Remote.IPAddresses[index] = types.StringValue(IPAddress)
 	}
 	data.Status = &ClusterPeerDataSourceStatus{
 		State: types.StringValue(restInfo.Status.State),
@@ -218,7 +218,7 @@ func (d *ClusterPeerDataSource) Read(ctx context.Context, req datasource.ReadReq
 		Proposed: types.StringValue(restInfo.Encryption.Propsed),
 		State:    types.StringValue(restInfo.Encryption.State),
 	}
-	data.IpAddress = types.StringValue(restInfo.IpAddress)
+	data.IPAddress = types.StringValue(restInfo.IPAddress)
 	data.Ipspace = &ClusterPeerDataSourceIpspace{
 		Name: types.StringValue(restInfo.Ipspace.Name),
 	}
