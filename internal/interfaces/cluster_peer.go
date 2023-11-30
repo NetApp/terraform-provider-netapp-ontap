@@ -23,24 +23,28 @@ type ClusterPeerGetDataModelONTAP struct {
 	Status           Status                `mapstructure:"status"`
 	PeerApplications []string              `mapstructure:"peer_applications"`
 	Encryption       ClusterPeerEncryption `mapstructure:"encryption"`
-	IpAddress        string                `mapstructure:"ip_address"`
+	IPAddress        string                `mapstructure:"ip_address"`
 	Ipspace          ClusterPeerIpspace    `mapstructure:"ipspace"`
 }
 
+// ClusterPeerIpspace describes the GET record data model using go types for mapping.
 type ClusterPeerIpspace struct {
 	Name string `mapstructure:"name"`
 }
 
+// ClusterPeerEncryption describes the GET record data model using go types for mapping.
 type ClusterPeerEncryption struct {
 	Propsed string `mapstructure:"proposed"`
 	State   string `mapstructure:"state"`
 }
 
+// Remote describes the GET record data model using go types for mapping.
 type Remote struct {
-	IpAddress []string `mapstructure:"ip_addresses"`
+	IPAddress []string `mapstructure:"ip_addresses"`
 	Name      string   `mapstructure:"name"`
 }
 
+// Status describes the GET record data model using go types for mapping.
 type Status struct {
 	State string `mapstructure:"state"`
 }
@@ -51,10 +55,12 @@ type ClusterPeerResourceBodyDataModelONTAP struct {
 	SVM  svm    `mapstructure:"svm"`
 }
 
+// ClusterPeerDataSourceFilterModel describes the data source data model for queries.
 type ClusterPeerDataSourceFilterModel struct {
 	Name string `mapstructure:"name"`
 }
 
+// GetClusterPeerByName gets a cluster peer by name.
 func GetClusterPeerByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string) (*ClusterPeerGetDataModelONTAP, error) {
 	query := r.NewQuery()
 	query.Add("name", name)
@@ -74,6 +80,7 @@ func GetClusterPeerByName(errorHandler *utils.ErrorHandler, r restclient.RestCli
 	return dataONTAP, nil
 }
 
+// GetClusterPeers gets all cluster peers.
 func GetClusterPeers(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *ClusterPeerDataSourceFilterModel) ([]ClusterPeerGetDataModelONTAP, error) {
 	query := r.NewQuery()
 	query.Fields([]string{"name", "uuid", "remote", "status", "peer_applications", "encryption", "ip_address", "ipspace"})
