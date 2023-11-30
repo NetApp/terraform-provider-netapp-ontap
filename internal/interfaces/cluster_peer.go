@@ -2,7 +2,6 @@ package interfaces
 
 import (
 	"fmt"
-
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient"
@@ -18,8 +17,32 @@ import (
 
 // ClusterPeerGetDataModelONTAP describes the GET record data model using go types for mapping.
 type ClusterPeerGetDataModelONTAP struct {
+	Name             string                `mapstructure:"name"`
+	UUID             string                `mapstructure:"uuid"`
+	Remote           Remote                `mapstructure:"remote"`
+	Status           Status                `mapstructure:"status"`
+	PeerApplications []string              `mapstructure:"peer_applications"`
+	Encryption       ClusterPeerEncryption `mapstructure:"encryption"`
+	IpAddress        string                `mapstructure:"ip_address"`
+	Ipspace          ClusterPeerIpspace    `mapstructure:"ipspace"`
+}
+
+type ClusterPeerIpspace struct {
 	Name string `mapstructure:"name"`
-	UUID string `mapstructure:"uuid"`
+}
+
+type ClusterPeerEncryption struct {
+	Propsed string `mapstructure:"proposed"`
+	State   string `mapstructure:"state"`
+}
+
+type Remote struct {
+	IpAddress []string `mapstructure:"ip_addresses"`
+	Name      string   `mapstructure:"name"`
+}
+
+type Status struct {
+	State string `mapstructure:"state"`
 }
 
 // ClusterPeerResourceBodyDataModelONTAP describes the body data model using go types for mapping.
@@ -28,96 +51,21 @@ type ClusterPeerResourceBodyDataModelONTAP struct {
 	SVM  svm    `mapstructure:"svm"`
 }
 
-// GetClusterPeer to get cluster_peer info
-func GetClusterPeer(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, svmName string) (*ClusterPeerGetDataModelONTAP, error) {
-	api := "api_url"
+func GetClusterPeerByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string) (*ClusterPeerGetDataModelONTAP, error) {
 	query := r.NewQuery()
-	query.Set("name", name)
-	if svmName == "" {
-		query.Set("scope", "cluster")
-	} else {
-		query.Set("svm.name", svmName)
-		query.Set("scope", "svm")
-	}
-	query.Fields([]string{"name", "svm.name", "ip", "scope"})
-	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
-	if err == nil && response == nil {
-		err = fmt.Errorf("no response for GET %s", api)
-	}
+	query.Add("name", name)
+	query.Fields([]string{"name", "uuid", "remote", "status", "peer_applications", "encryption", "ip_address", "ipspace"})
+	statusCode, response, err := r.GetNilOrOneRecord("cluster/peers", query, nil)
 	if err != nil {
-		return nil, errorHandler.MakeAndReportError("error reading cluster_peer info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
+		return nil, errorHandler.MakeAndReportError("Error getting cluster peer", fmt.Sprint("error on get cluster/peer: #{err}"))
 	}
-
-	var dataONTAP ClusterPeerGetDataModelONTAP
-	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
-		return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
-			fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
+	if response == nil {
+		return nil, errorHandler.MakeAndReportError("No cluster peer found", fmt.Sprint("no cluster peer found with name: #{name}"))
 	}
-	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read cluster_peer data source: %#v", dataONTAP))
-	return &dataONTAP, nil
-}
-
-// GetClusterPeers to get cluster_peer info for all resources matching a filter
-func GetClusterPeers(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *ClusterPeerGetDataModelONTAP) ([]ClusterPeerGetDataModelONTAP, error) {
-	api := "api_url"
-	query := r.NewQuery()
-	query.Fields([]string{"name", "svm.name", "scope"})
-	if filter != nil {
-		var filterMap map[string]interface{}
-		if err := mapstructure.Decode(filter, &filterMap); err != nil {
-			return nil, errorHandler.MakeAndReportError("error encoding cluster_peer filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
-		}
-		query.SetValues(filterMap)
+	var dataONTAP *ClusterPeerGetDataModelONTAP
+	if error := mapstructure.Decode(response, &dataONTAP); error != nil {
+		return nil, errorHandler.MakeAndReportError("Error decoding cluster peer", fmt.Sprintf("error decoding cluster peer: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
-	statusCode, response, err := r.GetZeroOrMoreRecords(api, query, nil)
-	if err == nil && response == nil {
-		err = fmt.Errorf("no response for GET %s", api)
-	}
-	if err != nil {
-		return nil, errorHandler.MakeAndReportError("error reading cluster_peer info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
-	}
-
-	var dataONTAP []ClusterPeerGetDataModelONTAP
-	for _, info := range response {
-		var record ClusterPeerGetDataModelONTAP
-		if err := mapstructure.Decode(info, &record); err != nil {
-			return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
-				fmt.Sprintf("error: %s, statusCode %d, info %#v", err, statusCode, info))
-		}
-		dataONTAP = append(dataONTAP, record)
-	}
-	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read cluster_peer data source: %#v", dataONTAP))
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read Cluster/peer source - udata: %#v", dataONTAP))
 	return dataONTAP, nil
-}
-
-// CreateClusterPeer to create cluster_peer
-func CreateClusterPeer(errorHandler *utils.ErrorHandler, r restclient.RestClient, body ClusterPeerResourceBodyDataModelONTAP) (*ClusterPeerGetDataModelONTAP, error) {
-	api := "api_url"
-	var bodyMap map[string]interface{}
-	if err := mapstructure.Decode(body, &bodyMap); err != nil {
-		return nil, errorHandler.MakeAndReportError("error encoding cluster_peer body", fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body))
-	}
-	query := r.NewQuery()
-	query.Add("return_records", "true")
-	statusCode, response, err := r.CallCreateMethod(api, query, bodyMap)
-	if err != nil {
-		return nil, errorHandler.MakeAndReportError("error creating cluster_peer", fmt.Sprintf("error on POST %s: %s, statusCode %d", api, err, statusCode))
-	}
-
-	var dataONTAP ClusterPeerGetDataModelONTAP
-	if err := mapstructure.Decode(response.Records[0], &dataONTAP); err != nil {
-		return nil, errorHandler.MakeAndReportError("error decoding cluster_peer info", fmt.Sprintf("error on decode storage/cluster_peers info: %s, statusCode %d, response %#v", err, statusCode, response))
-	}
-	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Create cluster_peer source - udata: %#v", dataONTAP))
-	return &dataONTAP, nil
-}
-
-// DeleteClusterPeer to delete cluster_peer
-func DeleteClusterPeer(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) error {
-	api := "api_url"
-	statusCode, _, err := r.CallDeleteMethod(api+"/"+uuid, nil, nil)
-	if err != nil {
-		return errorHandler.MakeAndReportError("error deleting cluster_peer", fmt.Sprintf("error on DELETE %s: %s, statusCode %d", api, err, statusCode))
-	}
-	return nil
 }
