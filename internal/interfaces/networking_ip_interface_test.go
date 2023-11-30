@@ -130,7 +130,7 @@ func TestGetIPInterface(t *testing.T) {
 			if err != nil {
 				panic(err)
 			}
-			got, err := GetIPInterface(errorHandler, *r, "name", "svmName")
+			got, err := GetIPInterfaceByName(errorHandler, *r, "name", "svmName")
 			if err != nil {
 				fmt.Printf("err: %s\n", err)
 			}
