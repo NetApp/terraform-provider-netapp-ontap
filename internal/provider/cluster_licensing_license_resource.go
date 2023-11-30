@@ -3,8 +3,9 @@ package provider
 import (
 	"context"
 	"fmt"
-
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"strings"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -176,15 +177,27 @@ func (r *ClusterLicensingLicenseResource) Read(ctx context.Context, req resource
 	var matchingLicense interfaces.ClusterLicensingLicenseKeyDataModelONTAP
 
 	for _, item := range restInfo {
-		if data.Name.ValueString() == item.Name {
+		if strings.ToLower(data.Name.ValueString()) == item.Name {
 			matchingLicense = item
+		}
+	}
+	if matchingLicense.Name == "" {
+		err := errorHandler.MakeAndReportError("License name not found", "License name not found")
+		if err != nil {
+			return
 		}
 	}
 
 	data.Name = types.StringValue(matchingLicense.Name)
 	data.State = types.StringValue(matchingLicense.State)
 	data.Scope = types.StringValue(matchingLicense.Scope)
+	data.ID = types.StringValue(matchingLicense.Name)
 	data.SerialNumber = types.StringValue(matchingLicense.Licenses[0].SerialNumber) // TODO: Double check there is only ever 1
+
+	// Key are required, but are not saved in the state, so we are going to fake it here as they are not used
+	if len(data.Keys) == 0 {
+		data.Keys = []types.String{types.StringValue("fake")}
+	}
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
@@ -243,5 +256,15 @@ func (r *ClusterLicensingLicenseResource) Delete(ctx context.Context, req resour
 
 // ImportState imports a resource using ID from terraform import command by calling the Read method.
 func (r *ClusterLicensingLicenseResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	idParts := strings.Split(req.ID, ",")
+
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: attr_one,attr_two. Got: %q", req.ID),
+		)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[1])...)
 }

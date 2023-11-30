@@ -3,7 +3,10 @@ package provider
 import (
 	"context"
 	"fmt"
+<<<<<<< HEAD
 	"log"
+=======
+>>>>>>> 12a3b29c453c7633bbc242c0b777730fc192a372
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -203,15 +206,36 @@ func (r *StorageVolumeSnapshotResource) Read(ctx context.Context, req resource.R
 	if err != nil {
 		return
 	}
-	snapshot, err := interfaces.GetStorageVolumeSnapshot(errorHandler, *client, volume.UUID, data.ID.ValueString())
-	if err != nil {
-		return
+	var snapshot *interfaces.StorageVolumeSnapshotGetDataModelONTAP
+	if data.ID.ValueString() == "" {
+		snapshot, err = interfaces.GetStorageVolumeSnapshots(errorHandler, *client, data.Name.ValueString(), volume.UUID)
+		if err != nil {
+			return
+		}
+		data.ID = types.StringValue(snapshot.UUID)
+	} else {
+		snapshot, err = interfaces.GetStorageVolumeSnapshot(errorHandler, *client, volume.UUID, data.ID.ValueString())
+		if err != nil {
+			return
+		}
+		data.Name = types.StringValue(snapshot.Name)
 	}
-	data.Name = types.StringValue(snapshot.Name)
 
+	if snapshot.Comment != "" {
+		data.Comment = types.StringValue(snapshot.Comment)
+	}
+	if snapshot.ExpiryTime != "" {
+		data.ExpiryTime = types.StringValue(snapshot.ExpiryTime)
+	}
+	if snapshot.SnapmirrorLabel != "" {
+		data.SnapmirrorLabel = types.StringValue(snapshot.SnapmirrorLabel)
+	}
+	if snapshot.SnaplockExpiryTime != "" {
+		data.SnaplockExpiryTime = types.StringValue(snapshot.SnaplockExpiryTime)
+	}
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
-	tflog.Debug(ctx, fmt.Sprintf("read a data source: %#v", data))
+	tflog.Debug(ctx, fmt.Sprintf("read a snapshot data source: %#v", data))
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -318,16 +342,17 @@ func (r *StorageVolumeSnapshotResource) Delete(ctx context.Context, req resource
 
 // ImportState imports a resource using ID from terraform import command by calling the Read method.
 func (r *StorageVolumeSnapshotResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	// resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	tflog.Debug(ctx, fmt.Sprintf("import req an volume snapshot resource: %#v", req))
 	idParts := strings.Split(req.ID, ",")
-	log.Printf("here here")
-	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+	if len(idParts) != 4 || idParts[0] == "" || idParts[1] == "" || idParts[2] == "" || idParts[3] == "" {
 		resp.Diagnostics.AddError(
 			"Unexpected Import Identifier",
-			fmt.Sprintf("Expected import identifier with format: name,svm_name,cx_profile_name. Got: %q", req.ID),
+			fmt.Sprintf("Expected import identifier with format: name,volume_name,svm_name,cx_profile_name. Got: %q", req.ID),
 		)
 		return
 	}
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[0])...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[1])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("volume_name"), idParts[1])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("svm_name"), idParts[2])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[3])...)
 }
