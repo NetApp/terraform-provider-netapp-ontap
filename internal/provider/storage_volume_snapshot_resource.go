@@ -3,10 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-<<<<<<< HEAD
-	"log"
-=======
->>>>>>> 12a3b29c453c7633bbc242c0b777730fc192a372
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
