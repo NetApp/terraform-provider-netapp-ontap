@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -162,10 +163,19 @@ func (r *IPInterfaceResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
-	restInfo, err := interfaces.GetIPInterface(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString())
-	if err != nil {
-		// error reporting done inside GetIPInterface
-		return
+	var restInfo *interfaces.IPInterfaceGetDataModelONTAP
+	if data.UUID.IsNull() {
+		restInfo, err = interfaces.GetIPInterfaceByName(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString())
+		if err != nil {
+			// error reporting done inside GetIPInterfaceByName
+			return
+		}
+	} else {
+		restInfo, err = interfaces.GetIPInterface(errorHandler, *client, data.UUID.ValueString())
+		if err != nil {
+			// error reporting done inside GetIPInterface
+			return
+		}
 	}
 	if restInfo == nil {
 		errorHandler.MakeAndReportError("No Interface found", fmt.Sprintf("NO interface, %s found.", data.Name.ValueString()))
@@ -173,15 +183,21 @@ func (r *IPInterfaceResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 	data.Name = types.StringValue(restInfo.Name)
 	data.UUID = types.StringValue(restInfo.UUID)
-	data.Location.HomeNode = types.StringValue(restInfo.Location.HomeNode.Name)
-	data.IP.Address = types.StringValue(restInfo.IP.Address)
+
+	var location IPInterfaceResourceLocation
+	location.HomeNode = types.StringValue(restInfo.Location.HomeNode.Name)
+	location.HomePort = types.StringValue(restInfo.Location.HomePort.Name)
+	data.Location = &location
+
+	var ip IPInterfaceResourceIP
+	ip.Address = types.StringValue(restInfo.IP.Address)
 	intValue, err := strconv.Atoi(restInfo.IP.Netmask)
 	if err != nil {
 		errorHandler.MakeAndReportError("Failed to read ip interface", fmt.Sprintf("Error: failed to convert string value '%s' to int for net mask.", restInfo.IP.Netmask))
 		return
 	}
-	data.IP.Netmask = types.Int64Value(int64(intValue))
-
+	ip.Netmask = types.Int64Value(int64(intValue))
+	data.IP = &ip
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
 	tflog.Debug(ctx, fmt.Sprintf("read a resource: %#v", data))
@@ -300,7 +316,7 @@ func (r *IPInterfaceResource) Delete(ctx context.Context, req resource.DeleteReq
 	}
 
 	if data.UUID.IsNull() {
-		errorHandler.MakeAndReportError("UUID is null", "ip_interface UUID is null")
+		errorHandler.MakeAndReportError("UUID is null", "ip_interface ID is null")
 		return
 	}
 
@@ -313,5 +329,16 @@ func (r *IPInterfaceResource) Delete(ctx context.Context, req resource.DeleteReq
 
 // ImportState imports a resource using ID from terraform import command by calling the Read method.
 func (r *IPInterfaceResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	tflog.Debug(ctx, fmt.Sprintf("import req a network ip interface resource: %#v", req))
+	idParts := strings.Split(req.ID, ",")
+	if len(idParts) != 3 || idParts[0] == "" || idParts[1] == "" || idParts[2] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: name,svm_name,cx_profile_name. Got: %q", req.ID),
+		)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("svm_name"), idParts[1])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[2])...)
 }
