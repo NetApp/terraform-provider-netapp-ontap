@@ -182,6 +182,7 @@ func (r *StorageVolumeSnapshotResource) Create(ctx context.Context, req resource
 // Read refreshes the Terraform state with the latest data.
 func (r *StorageVolumeSnapshotResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data *StorageVolumeSnapshotResourceModel
+
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
