@@ -64,6 +64,15 @@ func TestAccSvmResource(t *testing.T) {
 				Config:      testAccSvmResourceConfig("svm5", "carchi8py was here", "default"),
 				ExpectError: regexp.MustCompile("13434908"),
 			},
+			// Import and read
+			{
+				ResourceName:  "netapp-ontap_svm_resource.example",
+				ImportState:   true,
+				ImportStateId: fmt.Sprintf("%s,%s", "ansibleSVM", "cluster4"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_svm_resource.example", "name", "ansibleSVM"),
+				),
+			},
 		},
 	})
 }
@@ -94,9 +103,19 @@ resource "netapp-ontap_svm_resource" "example" {
   ipspace = "ansibleIpspace_newname"
   comment = "%s"
   snapshot_policy = "%s"
-  //subtype = "dp_destination"
+  subtype = "default"
   language = "en_us.utf_8"
-  aggregates = ["aggr2"]
-  max_volumes = "200"
+  aggregates = [
+    {
+      name = "aggr1"
+    },
+    {
+      name = "aggr2"
+    },
+    {
+      name = "aggr3"
+    },
+  ]
+  max_volumes = "unlimited"
 }`, host, admin, password, svm, comment, snapshotPolicy)
 }

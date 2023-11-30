@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -157,9 +158,25 @@ func (r *ExportPolicyResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	_, err = interfaces.GetExportPolicy(errorHandler, *client, data.ID.ValueString())
-	if err != nil {
-		return
+	if data.ID.ValueString() == "" {
+		filter := map[string]string{
+			"name":     data.Name.ValueString(),
+			"svm.name": data.SVMName.ValueString(),
+		}
+		exportPolicy, err := interfaces.GetNfsExportPolicyByName(errorHandler, *client, &filter)
+		if err != nil {
+			return
+		}
+		if exportPolicy == nil {
+			errorHandler.MakeAndReportError("No export policy found", fmt.Sprintf("Export Policy %s not found.", data.Name))
+			return
+		}
+		data.ID = types.StringValue(strconv.Itoa(exportPolicy.ID))
+	} else {
+		_, err = interfaces.GetExportPolicy(errorHandler, *client, data.ID.ValueString())
+		if err != nil {
+			return
+		}
 	}
 
 	// Save updated data into Terraform state
@@ -225,5 +242,16 @@ func (r *ExportPolicyResource) Delete(ctx context.Context, req resource.DeleteRe
 
 // ImportState imports a resource using ID from terraform import command by calling the Read method.
 func (r *ExportPolicyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	tflog.Debug(ctx, fmt.Sprintf("import req a nfs export policy resource: %#v", req))
+	idParts := strings.Split(req.ID, ",")
+	if len(idParts) != 3 || idParts[0] == "" || idParts[1] == "" || idParts[2] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: name,svm_name,cx_profile_name. Got: %q", req.ID),
+		)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("svm_name"), idParts[1])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[2])...)
 }

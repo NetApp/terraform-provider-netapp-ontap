@@ -2,10 +2,11 @@ package provider
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"os"
 	"regexp"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccNfsServiceResource(t *testing.T) {
@@ -16,7 +17,7 @@ func TestAccNfsServiceResource(t *testing.T) {
 			// Test error
 			{
 				Config:      testAccNfsServiceResourceConfig("non-existant", "false"),
-				ExpectError: regexp.MustCompile("svm non-existant not found."),
+				ExpectError: regexp.MustCompile("svm non-existant not found"),
 			},
 			// Create and read
 			{
@@ -32,6 +33,16 @@ func TestAccNfsServiceResource(t *testing.T) {
 				Config: testAccNfsServiceResourceConfig("carchi-test", "true"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service_resource.example", "svm_name", "carchi-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service_resource.example", "protocol.v3_enabled", "true"),
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service_resource.example", "protocol.v40_enabled", "true"),
+				),
+			},
+			// Import and read
+			{
+				ResourceName:  "netapp-ontap_protocols_nfs_service_resource.example",
+				ImportState:   true,
+				ImportStateId: fmt.Sprintf("%s,%s", "carchi-test", "cluster4"),
+				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service_resource.example", "protocol.v3_enabled", "true"),
 					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service_resource.example", "protocol.v40_enabled", "true"),
 				),

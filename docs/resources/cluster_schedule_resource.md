@@ -1,6 +1,6 @@
 ---
 page_title: "ONTAP: Cluster Schedule"
-subcategory: "cluster"
+subcategory: "Cluster"
 description: |-
   Cluster schedule resource
 ---
@@ -8,6 +8,10 @@ description: |-
 # Resource Cluster Schedule
 
 Create/Modify/Delete a job schedule in a cluster.
+
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
 
 ## Example Usage
 
@@ -64,4 +68,41 @@ Optional:
 - `weekdays` (Set of Number) List of cluster schedule weekdays
 
 ## Import
-Import is currently not support for this Resource.
+This Resource supports import, which allows you to import existing cluster job schedule into the state of this resoruce.
+Import require a unique ID composed of the schedule job name and cx_profile_name, separated by a comma.
+
+ id = `name`,`cx_profile_name`
+
+ ### Terraform Import
+
+ For example
+ ```shell
+  terraform import netapp-ontap_cluster_schedule_resource.example job1,cluster4
+ ```
+
+!> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
+
+### Terrafomr Import Block
+This requires Terraform 1.5 or higher, and will auto create the configuration for you
+
+First create the block
+```terraform
+import {
+  to = netapp-ontap_cluster_schedule_resource.example.schedulejob_import
+  id = "job1,cluster4"
+}
+```
+Next run, this will auto create the configuration for you
+```shell
+terraform plan -generate-config-out=generated.tf
+```
+This will generate a file called generated.tf, which will contain the configuration for the imported resource
+```terraform
+# __generated__ by Terraform
+# Please review these resources and move them into your main configuration files.
+# __generated__ by Terraform from "job1,cluster4"
+resource "netapp-ontap_cluster_schedule_resource.example" "schedulejob_import" {
+  cx_profile_name = "cluster4"
+  name       = "job1"
+}
+```

@@ -1,6 +1,6 @@
 ---
 page_title: "netapp-ontap_protocols_nfs_services_data_source Data Source - terraform-provider-netapp-ontap"
-subcategory: "nas"
+subcategory: "NAS"
 description: |-
   Retrieves list of NFSs configuration of SVMs.
 ---

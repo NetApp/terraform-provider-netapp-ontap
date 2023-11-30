@@ -1,6 +1,6 @@
 ---
 page_title: "netapp-ontap_name_services_dnss_data_source Data Source - terraform-provider-netapp-ontap"
-subcategory: "name-services"
+subcategory: "Name-Services"
 description: |-
   Retrieves the DNSs Configuration of SVMs.
 ---

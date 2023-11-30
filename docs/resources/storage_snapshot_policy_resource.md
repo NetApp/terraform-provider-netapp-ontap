@@ -1,6 +1,6 @@
 ---
 page_title: "ONTAP: Snapshot Policy"
-subcategory: "storage"
+subcategory: "Storage"
 description: |-
   SnapshotPolicy resource
 ---
@@ -13,6 +13,10 @@ Create/Modify/Delete a SnapshotPolicy resource
 * snapshot policy create
 * snapshot policy modify
 * snapshot policy delete
+
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
 
 ## Example Usage
 

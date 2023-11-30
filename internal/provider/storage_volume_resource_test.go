@@ -3,6 +3,7 @@ package provider
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -18,15 +19,15 @@ func TestAccStorageVolumeResource(t *testing.T) {
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Test non existant SVM
-			//{
-			//	Config:      testAccStorageVolumeResourceConfig("non-existant", "terraformTest4"),
-			//	ExpectError: regexp.MustCompile("2621462"),
-			//},
+			{
+				Config:      testAccStorageVolumeResourceConfig("non-existant", "terraformTest4"),
+				ExpectError: regexp.MustCompile("2621462"),
+			},
 			// test bad volume name
-			//{
-			//	Config:      testAccStorageVolumeResourceConfig("non-existant", "name-cant-have-dashes"),
-			//	ExpectError: regexp.MustCompile("917888"),
-			//,
+			{
+				Config:      testAccStorageVolumeResourceConfig("non-existant", "name-cant-have-dashes"),
+				ExpectError: regexp.MustCompile("917888"),
+			},
 			// Read testing
 			{
 				Config: testAccStorageVolumeResourceConfig("automation", "accVolume1"),
@@ -41,6 +42,15 @@ func TestAccStorageVolumeResource(t *testing.T) {
 					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "name", "accVolume1"),
 					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "nas.group_id", "10"),
 					resource.TestCheckNoResourceAttr("netapp-ontap_storage_volume_resource.example", "volname"),
+				),
+			},
+			// Test importing a resource
+			{
+				ResourceName:  "netapp-ontap_storage_volume_resource.example",
+				ImportState:   true,
+				ImportStateId: fmt.Sprintf("%s,%s,%s", "automation_root", "automation", "cluster5"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "name", "automation"),
 				),
 			},
 		},
