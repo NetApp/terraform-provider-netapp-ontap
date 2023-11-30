@@ -43,6 +43,11 @@ type ClusterPeersDataSourceModel struct {
 	Filter        *ClusterPeerDataSourceFilterModel `tfsdk:"filter"`
 }
 
+// ClusterPeerDataSourceFilterModel describes the data source data model for queries.
+type ClusterPeerDataSourceFilterModel struct {
+	Name types.String `tfsdk:"name"`
+}
+
 // Metadata returns the data source type name.
 func (d *ClusterPeersDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + d.config.name
@@ -65,10 +70,6 @@ func (d *ClusterPeersDataSource) Schema(ctx context.Context, req datasource.Sche
 						MarkdownDescription: "ClusterPeer name",
 						Optional:            true,
 					},
-					"svm_name": schema.StringAttribute{
-						MarkdownDescription: "ClusterPeer svm name",
-						Optional:            true,
-					},
 				},
 				Optional: true,
 			},
@@ -82,6 +83,68 @@ func (d *ClusterPeersDataSource) Schema(ctx context.Context, req datasource.Sche
 						"name": schema.StringAttribute{
 							MarkdownDescription: "ClusterPeer name",
 							Required:            true,
+						},
+						"remote": schema.SingleNestedAttribute{
+							MarkdownDescription: "Remote cluster",
+							Computed:            true,
+							Attributes: map[string]schema.Attribute{
+								"ip_addresses": schema.ListAttribute{
+									ElementType:         types.StringType,
+									MarkdownDescription: "List of IP addresses of remote cluster",
+									Computed:            true,
+								},
+								"name": schema.StringAttribute{
+									MarkdownDescription: "Name of remote cluster",
+									Computed:            true,
+								},
+							},
+						},
+						"status": schema.SingleNestedAttribute{
+							MarkdownDescription: "Status of cluster peer",
+							Computed:            true,
+							Attributes: map[string]schema.Attribute{
+								"state": schema.StringAttribute{
+									MarkdownDescription: "State of cluster peer",
+									Computed:            true,
+								},
+							},
+						},
+						"peer_applications": schema.ListAttribute{
+							ElementType:         types.StringType,
+							MarkdownDescription: "List of peer applications",
+							Computed:            true,
+						},
+						"encryption": schema.SingleNestedAttribute{
+							MarkdownDescription: "Encryption of cluster peer",
+							Computed:            true,
+							Attributes: map[string]schema.Attribute{
+								"proposed": schema.StringAttribute{
+									MarkdownDescription: "Proposed encryption of cluster peer",
+									Computed:            true,
+								},
+								"state": schema.StringAttribute{
+									MarkdownDescription: "State of encryption of cluster peer",
+									Computed:            true,
+								},
+							},
+						},
+						"ip_address": schema.StringAttribute{
+							MarkdownDescription: "IP address",
+							Computed:            true,
+						},
+						"ipspace": schema.SingleNestedAttribute{
+							MarkdownDescription: "Ipspace of cluster peer",
+							Computed:            true,
+							Attributes: map[string]schema.Attribute{
+								"name": schema.StringAttribute{
+									MarkdownDescription: "Name of ipspace of cluster peer",
+									Computed:            true,
+								},
+							},
+						},
+						"id": schema.StringAttribute{
+							MarkdownDescription: "ID of cluster peer",
+							Computed:            true,
 						},
 					},
 				},
@@ -127,23 +190,46 @@ func (d *ClusterPeersDataSource) Read(ctx context.Context, req datasource.ReadRe
 		return
 	}
 
-	var filter *interfaces.ClusterPeerGetDataModelONTAP = nil
+	var filter *interfaces.ClusterPeerDataSourceFilterModel = nil
 	if data.Filter != nil {
-		filter = &interfaces.ClusterPeerGetDataModelONTAP{
+		filter = &interfaces.ClusterPeerDataSourceFilterModel{
 			Name: data.Filter.Name.ValueString(),
 		}
 	}
-	if filter == nil {
-		filter = &interfaces.ClusterPeerGetDataModelONTAP{}
-	}
-	restInfo, err := interfaces.GetClusterPeerByName(errorHandler, *client, "this is a placeholder for the name")
+	restInfo, err := interfaces.GetClusterPeers(errorHandler, *client, filter)
 	if err != nil {
-		// error reporting done inside GetClusterPeers
 		return
 	}
-	if restInfo == nil {
-		// no cluster peers found
-		return
+
+	data.ClusterPeers = make([]ClusterPeerDataSourceModel, len(restInfo))
+	for index, record := range restInfo {
+		data.ClusterPeers[index] = ClusterPeerDataSourceModel{
+			CxProfileName: data.CxProfileName,
+			Name:          types.StringValue(record.Name),
+			ID:            types.StringValue(record.UUID),
+			Remote: &ClusterPeerDataSourceRemote{
+				IpAddresses: make([]types.String, len(record.Remote.IpAddress)),
+				Name:        types.StringValue(record.Remote.Name),
+			},
+			Status: &ClusterPeerDataSourceStatus{
+				State: types.StringValue(record.Status.State),
+			},
+			PeerApplications: make([]types.String, len(record.PeerApplications)),
+			Encryption: &ClusterPeerDataSourceEncryption{
+				Proposed: types.StringValue(record.Encryption.Propsed),
+				State:    types.StringValue(record.Encryption.State),
+			},
+			IpAddress: types.StringValue(record.IpAddress),
+			Ipspace: &ClusterPeerDataSourceIpspace{
+				Name: types.StringValue(record.Ipspace.Name),
+			},
+		}
+		for index, ipAddress := range record.Remote.IpAddress {
+			data.ClusterPeers[index].Remote.IpAddresses[index] = types.StringValue(ipAddress)
+		}
+		for index, peerApplication := range record.PeerApplications {
+			data.ClusterPeers[index].PeerApplications[index] = types.StringValue(peerApplication)
+		}
 	}
 
 	// Write logs using the tflog package

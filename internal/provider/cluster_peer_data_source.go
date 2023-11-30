@@ -49,11 +49,6 @@ type ClusterPeerDataSourceModel struct {
 	ID               types.String                     `tfsdk:"id"`
 }
 
-// ClusterPeerDataSourceFilterModel describes the data source data model for queries.
-type ClusterPeerDataSourceFilterModel struct {
-	Name types.String `tfsdk:"name"`
-}
-
 // ClusterPeerDataSourceRemote describes the data source data model for remote cluster.
 type ClusterPeerDataSourceRemote struct {
 	IpAddresses []types.String `tfsdk:"ip_addresses"`
