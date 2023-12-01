@@ -167,6 +167,8 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		NewClusterDataSource,
 		NewClusterLicensingLicenseDataSource,
 		NewClusterLicensingLicensesDataSource,
+		NewClusterPeerDataSource,
+		NewClusterPeersDataSource,
 		NewClusterScheduleDataSource,
 		NewClusterSchedulesDataSource,
 		NewExampleDataSource,
