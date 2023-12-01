@@ -30,14 +30,14 @@ type SecurityAccountDataSource struct {
 
 // SecurityAccountDataSourceModel describes the data source data model.
 type SecurityAccountDataSourceModel struct {
-	CxProfileName types.String                   `tfsdk:"cx_profile_name"`
-	Name          types.String                   `tfsdk:"name"`
-	Owner         *OwnerDataSourceModel          `tfsdk:"owner"`
-	Locked        types.Bool                     `tfsdk:"locked"`
-	Comment       types.String                   `tfsdk:"comment"`
-	Role          *RoleDataSourceModel           `tfsdk:"role"`
-	Scope         types.String                   `tfsdk:"scope"`
-	Applications  *[]ApplicationsDataSourceModel `tfsdk:"applications"`
+	CxProfileName types.String                  `tfsdk:"cx_profile_name"`
+	Name          types.String                  `tfsdk:"name"`
+	Owner         *OwnerDataSourceModel         `tfsdk:"owner"`
+	Locked        types.Bool                    `tfsdk:"locked"`
+	Comment       types.String                  `tfsdk:"comment"`
+	Role          *RoleDataSourceModel          `tfsdk:"role"`
+	Scope         types.String                  `tfsdk:"scope"`
+	Applications  []ApplicationsDataSourceModel `tfsdk:"applications"`
 }
 
 // ApplicationsDataSourceModel describes the data source data model.
@@ -204,6 +204,18 @@ func (d *SecurityAccountDataSource) Read(ctx context.Context, req datasource.Rea
 		Name: types.StringValue(restInfo.Role.Name),
 	}
 	data.Scope = types.StringValue(restInfo.Scope)
+	data.Applications = make([]ApplicationsDataSourceModel, len(restInfo.Applications))
+	for index, application := range restInfo.Applications {
+		data.Applications[index] = ApplicationsDataSourceModel{
+			Application:                types.StringValue(application.Application),
+			SecondAuthentiactionMethod: types.StringValue(application.SecondAuthenticationMethod),
+		}
+		var authenticationMethods []types.String
+		for _, authenticationMethod := range application.AuthenticationMethods {
+			authenticationMethods = append(authenticationMethods, types.StringValue(authenticationMethod))
+		}
+		data.Applications[index].AuthenticationMethods = &authenticationMethods
+	}
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
