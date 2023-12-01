@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
@@ -38,9 +37,9 @@ type SecurityAccountsDataSource struct {
 
 // SecurityAccountsDataSourceModel describes the data source data model.
 type SecurityAccountsDataSourceModel struct {
-	CxProfileName types.String                   `tfsdk:"cx_profile_name"`
-	SecurityAccounts   []SecurityAccountDataSourceModel      `tfsdk:"security_accounts"`
-	Filter        *SecurityAccountDataSourceFilterModel `tfsdk:"filter"`
+	CxProfileName    types.String                          `tfsdk:"cx_profile_name"`
+	SecurityAccounts []SecurityAccountDataSourceModel      `tfsdk:"security_accounts"`
+	Filter           *SecurityAccountDataSourceFilterModel `tfsdk:"filter"`
 }
 
 // Metadata returns the data source type name.
@@ -126,25 +125,8 @@ func (d *SecurityAccountsDataSource) Read(ctx context.Context, req datasource.Re
 		// error reporting done inside NewClient
 		return
 	}
-
-	var filter *interfaces.SecurityAccountGetDataModelONTAP = nil
-	if data.Filter != nil {
-		filter = &interfaces.SecurityAccountGetDataModelONTAP{
-			Name: data.Filter.Name.ValueString(),
-		}
-	}
-	restInfo, err := interfaces.GetSecurityAccounts(errorHandler, *client, filter)
-	if err != nil {
-		// error reporting done inside GetSecurityAccounts
+	if client == nil {
 		return
-	}
-
-	data.SecurityAccounts = make([]SecurityAccountDataSourceModel, len(restInfo))
-	for index, record := range restInfo {
-		data.SecurityAccounts[index] = SecurityAccountDataSourceModel{
-			CxProfileName: types.String(data.CxProfileName),
-			Name:          types.StringValue(record.Name),
-		}
 	}
 
 	// Write logs using the tflog package

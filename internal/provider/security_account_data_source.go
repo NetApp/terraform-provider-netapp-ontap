@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -11,13 +10,6 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
-
-// TODO:
-// copy this file to match you data source (should match internal/provider/security_account_data_source.go)
-// replace SecurityAccount with the name of the resource, following go conventions, eg IPInterface
-// replace security_account with the name of the resource, for logging purposes, eg ip_interface
-// make sure to create internal/interfaces/security_account.go too)
-// delete these 5 lines
 
 // Ensure provider defined types fully satisfy framework interfaces
 var _ datasource.DataSource = &SecurityAccountDataSource{}
@@ -38,9 +30,32 @@ type SecurityAccountDataSource struct {
 
 // SecurityAccountDataSourceModel describes the data source data model.
 type SecurityAccountDataSourceModel struct {
-	CxProfileName types.String `tfsdk:"cx_profile_name"`
-	Name          types.String `tfsdk:"name"`
-	SVMName       types.String `tfsdk:"svm_name"`
+	CxProfileName types.String                   `tfsdk:"cx_profile_name"`
+	Name          types.String                   `tfsdk:"name"`
+	Owner         *OwnerDataSourceModel          `tfsdk:"owner"`
+	Locked        types.Bool                     `tfsdk:"locked"`
+	Comment       types.String                   `tfsdk:"comment"`
+	Role          *RoleDataSourceModel           `tfsdk:"role"`
+	Scope         types.String                   `tfsdk:"scope"`
+	Applications  *[]ApplicationsDataSourceModel `tfsdk:"applications"`
+}
+
+// ApplicationsDataSourceModel describes the data source data model.
+type ApplicationsDataSourceModel struct {
+	Application                types.String    `tfsdk:"application"`
+	SecondAuthentiactionMethod types.String    `tfsdk:"second_authentication_method"`
+	AuthenticationMethods      *[]types.String `tfsdk:"authentication_methods"`
+}
+
+// RoleDataSourceModel describes the data source data model.
+type RoleDataSourceModel struct {
+	Name types.String `tfsdk:"name"`
+}
+
+// OwnerDataSourceModel describes the data source data model.
+type OwnerDataSourceModel struct {
+	Name    types.String `tfsdk:"name"`
+	OwnerID types.String `tfsdk:"uuid"`
 }
 
 // SecurityAccountDataSourceFilterModel describes the data source data model for queries.
@@ -69,9 +84,63 @@ func (d *SecurityAccountDataSource) Schema(ctx context.Context, req datasource.S
 				MarkdownDescription: "SecurityAccount name",
 				Required:            true,
 			},
-			"svm_name": schema.StringAttribute{
-				MarkdownDescription: "IPInterface svm name",
+			"owner": schema.SingleNestedAttribute{
+				MarkdownDescription: "SecurityAccount owner",
+				Computed:            true,
 				Optional:            true,
+				Attributes: map[string]schema.Attribute{
+					"name": schema.StringAttribute{
+						MarkdownDescription: "SecurityAccount owner name",
+						Required:            true,
+					},
+					"uuid": schema.StringAttribute{
+						MarkdownDescription: "SecurityAccount owner uuid",
+						Computed:            true,
+					},
+				},
+			},
+			"locked": schema.BoolAttribute{
+				MarkdownDescription: "SecurityAccount locked",
+				Computed:            true,
+			},
+			"comment": schema.StringAttribute{
+				MarkdownDescription: "SecurityAccount comment",
+				Computed:            true,
+			},
+			"role": schema.SingleNestedAttribute{
+				MarkdownDescription: "SecurityAccount role",
+				Computed:            true,
+				Attributes: map[string]schema.Attribute{
+					"name": schema.StringAttribute{
+						MarkdownDescription: "SecurityAccount role name",
+						Computed:            true,
+					},
+				},
+			},
+			"scope": schema.StringAttribute{
+				MarkdownDescription: "SecurityAccount scope",
+				Computed:            true,
+			},
+			"applications": schema.ListNestedAttribute{
+				MarkdownDescription: "SecurityAccount applications",
+				Computed:            true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"application": schema.StringAttribute{
+							MarkdownDescription: "SecurityAccount application",
+							Computed:            true,
+						},
+						"second_authentication_method": schema.StringAttribute{
+							MarkdownDescription: "SecurityAccount second authentication method",
+							Computed:            true,
+						},
+						"authentication_methods": schema.ListAttribute{
+							MarkdownDescription: "SecurityAccount authentication methods",
+							Computed:            true,
+							ElementType:         types.StringType,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -112,13 +181,29 @@ func (d *SecurityAccountDataSource) Read(ctx context.Context, req datasource.Rea
 		return
 	}
 
-	restInfo, err := interfaces.GetSecurityAccount(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString())
+	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.Owner.Name.ValueString())
+	if err != nil {
+		// error reporting done inside GetSvmByName
+		return
+	}
+
+	restInfo, err := interfaces.GetSecurityAccountByName(errorHandler, *client, data.Name.ValueString(), svm.UUID)
 	if err != nil {
 		// error reporting done inside GetSecurityAccount
 		return
 	}
 
 	data.Name = types.StringValue(restInfo.Name)
+	data.Owner = &OwnerDataSourceModel{
+		Name:    types.StringValue(restInfo.Owner.Name),
+		OwnerID: types.StringValue(restInfo.Owner.UUID),
+	}
+	data.Locked = types.BoolValue(restInfo.Locked)
+	data.Comment = types.StringValue(restInfo.Comment)
+	data.Role = &RoleDataSourceModel{
+		Name: types.StringValue(restInfo.Role.Name),
+	}
+	data.Scope = types.StringValue(restInfo.Scope)
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
