@@ -44,10 +44,10 @@ type SecurityAccountOwner struct {
 	UUID string `mapstructure:"uuid,omitempty"`
 }
 
-// SecurityAccountResourceBodyDataModelONTAP describes the body data model using go types for mapping.
-type SecurityAccountResourceBodyDataModelONTAP struct {
-	Name string `mapstructure:"name"`
-	SVM  svm    `mapstructure:"svm"`
+// SecurityAccountDataSourceFilterModel describes the data source filter data model.
+type SecurityAccountDataSourceFilterModel struct {
+	Name  string               `tfsdk:"name"`
+	Owner SecurityAccountOwner `tfsdk:"owner,omitempty"`
 }
 
 func GetSecurityAccountByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, ownerName string) (*SecurityAccountGetDataModelONTAP, error) {
@@ -65,5 +65,35 @@ func GetSecurityAccountByName(errorHandler *utils.ErrorHandler, r restclient.Res
 		return nil, errorHandler.MakeAndReportError("Error occurred when decoding security account", fmt.Sprintf("error on decoding security/account: %s, statusCode: %d, response %+v", error, statusCode, response))
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("security account: %+v", dataOntap))
+	return dataOntap, nil
+}
+
+func GetSecurityAccounts(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *SecurityAccountDataSourceFilterModel) ([]SecurityAccountGetDataModelONTAP, error) {
+	query := r.NewQuery()
+	query.Fields([]string{"name", "owner", "locked", "comment", "role", "scope", "applications"})
+	if filter != nil {
+		var filterMap map[string]interface{}
+		if error := mapstructure.Decode(filter, &filterMap); error != nil {
+			return nil, errorHandler.MakeAndReportError("Error occurred when decoding security account filter", fmt.Sprintf("error on decoding security/account filter: %s", error))
+		}
+		query.SetValues(filterMap)
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("security account filter: %+v", query))
+	statusCode, response, err := r.GetZeroOrMoreRecords("security/accounts", query, nil)
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("Error occurred when getting security accounts", fmt.Sprintf("error on get security/accounts: %s", err))
+	}
+	if response == nil {
+		return nil, errorHandler.MakeAndReportError("No Accounts found", fmt.Sprintf("No accounts found"))
+	}
+	var dataOntap []SecurityAccountGetDataModelONTAP
+	for _, info := range response {
+		var dataOntapItem SecurityAccountGetDataModelONTAP
+		if error := mapstructure.Decode(info, &dataOntapItem); error != nil {
+			return nil, errorHandler.MakeAndReportError("Error occurred when decoding security account", fmt.Sprintf("error on decoding security/account: %s, statusCode: %d, response %+v", error, statusCode, response))
+		}
+		dataOntap = append(dataOntap, dataOntapItem)
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("security accounts: %+v", dataOntap))
 	return dataOntap, nil
 }

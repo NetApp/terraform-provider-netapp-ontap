@@ -58,12 +58,6 @@ type OwnerDataSourceModel struct {
 	OwnerID types.String `tfsdk:"uuid"`
 }
 
-// SecurityAccountDataSourceFilterModel describes the data source data model for queries.
-type SecurityAccountDataSourceFilterModel struct {
-	Name    types.String `tfsdk:"name"`
-	SVMName types.String `tfsdk:"svm.name"`
-}
-
 // Metadata returns the data source type name.
 func (d *SecurityAccountDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + d.config.name

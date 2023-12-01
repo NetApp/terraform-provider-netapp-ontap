@@ -3,11 +3,11 @@ package provider
 import (
 	"context"
 	"fmt"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
@@ -42,6 +42,12 @@ type SecurityAccountsDataSourceModel struct {
 	Filter           *SecurityAccountDataSourceFilterModel `tfsdk:"filter"`
 }
 
+// SecurityAccountDataSourceFilterModel describes the data source data model for queries.
+type SecurityAccountDataSourceFilterModel struct {
+	Name    types.String `tfsdk:"name"`
+	SVMName types.String `tfsdk:"svm_name"`
+}
+
 // Metadata returns the data source type name.
 func (d *SecurityAccountsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + d.config.name
@@ -65,7 +71,7 @@ func (d *SecurityAccountsDataSource) Schema(ctx context.Context, req datasource.
 						Optional:            true,
 					},
 					"svm_name": schema.StringAttribute{
-						MarkdownDescription: "SecurityAccount svm name",
+						MarkdownDescription: "SecurityAccount svm name (Owner name)",
 						Optional:            true,
 					},
 				},
@@ -81,6 +87,63 @@ func (d *SecurityAccountsDataSource) Schema(ctx context.Context, req datasource.
 						"name": schema.StringAttribute{
 							MarkdownDescription: "SecurityAccount name",
 							Required:            true,
+						},
+						"owner": schema.SingleNestedAttribute{
+							MarkdownDescription: "SecurityAccount owner",
+							Computed:            true,
+							Attributes: map[string]schema.Attribute{
+								"name": schema.StringAttribute{
+									MarkdownDescription: "SecurityAccount owner name",
+									Computed:            true,
+								},
+								"uuid": schema.StringAttribute{
+									MarkdownDescription: "SecurityAccount owner uuid",
+									Computed:            true,
+								},
+							},
+						},
+						"locked": schema.BoolAttribute{
+							MarkdownDescription: "SecurityAccount locked",
+							Computed:            true,
+						},
+						"comment": schema.StringAttribute{
+							MarkdownDescription: "SecurityAccount comment",
+							Computed:            true,
+						},
+						"role": schema.SingleNestedAttribute{
+							MarkdownDescription: "SecurityAccount role",
+							Computed:            true,
+							Attributes: map[string]schema.Attribute{
+								"name": schema.StringAttribute{
+									MarkdownDescription: "SecurityAccount role name",
+									Computed:            true,
+								},
+							},
+						},
+						"scope": schema.StringAttribute{
+							MarkdownDescription: "SecurityAccount scope",
+							Computed:            true,
+						},
+						"applications": schema.ListNestedAttribute{
+							MarkdownDescription: "SecurityAccount applications",
+							Computed:            true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"application": schema.StringAttribute{
+										MarkdownDescription: "SecurityAccount application",
+										Computed:            true,
+									},
+									"second_authentication_method": schema.StringAttribute{
+										MarkdownDescription: "SecurityAccount second authentication method",
+										Computed:            true,
+									},
+									"authentication_methods": schema.ListAttribute{
+										MarkdownDescription: "SecurityAccount authentication methods",
+										Computed:            true,
+										ElementType:         types.StringType,
+									},
+								},
+							},
 						},
 					},
 				},
@@ -125,8 +188,57 @@ func (d *SecurityAccountsDataSource) Read(ctx context.Context, req datasource.Re
 		// error reporting done inside NewClient
 		return
 	}
-	if client == nil {
+
+	var filter *interfaces.SecurityAccountDataSourceFilterModel = nil
+	if data.Filter != nil {
+		if data.Filter.SVMName.IsNull() {
+			filter = &interfaces.SecurityAccountDataSourceFilterModel{
+				Name: data.Filter.Name.ValueString(),
+			}
+		} else {
+			filter = &interfaces.SecurityAccountDataSourceFilterModel{
+				Name: data.Filter.Name.ValueString(),
+				Owner: interfaces.SecurityAccountOwner{
+					Name: data.Filter.SVMName.ValueString(),
+				},
+			}
+		}
+
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("security account filter: %+v", filter))
+	restInfo, err := interfaces.GetSecurityAccounts(errorHandler, *client, filter)
+	if err != nil {
+		// error reporting done inside GetSecurityAccounts
 		return
+	}
+	data.SecurityAccounts = make([]SecurityAccountDataSourceModel, len(restInfo))
+	for index, record := range restInfo {
+		data.SecurityAccounts[index] = SecurityAccountDataSourceModel{
+			CxProfileName: data.CxProfileName,
+			Name:          types.StringValue(record.Name),
+			Owner: &OwnerDataSourceModel{
+				Name:    types.StringValue(record.Owner.Name),
+				OwnerID: types.StringValue(record.Owner.UUID),
+			},
+			Locked:  types.BoolValue(record.Locked),
+			Comment: types.StringValue(record.Comment),
+			Role: &RoleDataSourceModel{
+				Name: types.StringValue(record.Role.Name),
+			},
+			Scope:        types.StringValue(record.Scope),
+			Applications: make([]ApplicationsDataSourceModel, len(record.Applications)),
+		}
+		for i, application := range record.Applications {
+			data.SecurityAccounts[index].Applications[i] = ApplicationsDataSourceModel{
+				Application:                types.StringValue(application.Application),
+				SecondAuthentiactionMethod: types.StringValue(application.SecondAuthenticationMethod),
+			}
+			var authenticationMethods []types.String
+			for _, authenticationMethod := range application.AuthenticationMethods {
+				authenticationMethods = append(authenticationMethods, types.StringValue(authenticationMethod))
+			}
+			data.SecurityAccounts[index].Applications[i].AuthenticationMethods = &authenticationMethods
+		}
 	}
 
 	// Write logs using the tflog package
