@@ -46,7 +46,7 @@ func TestAccNFSExportPolicyRuleResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_protocols_nfs_export_policy_rule_resource.example1",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "1", "carchi-test", "default", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "1", "default", "carchi-test", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_export_policy_rule_resource.example1", "svm_name", "carchi-test"),
 					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_export_policy_rule_resource.example1", "export_policy_name", "default"),
