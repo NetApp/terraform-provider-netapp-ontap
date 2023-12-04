@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -354,6 +355,7 @@ func (r *ExportPolicyRuleResource) Read(ctx context.Context, req resource.ReadRe
 			return
 		}
 		exportPolicyID = strconv.Itoa(exportPolicy.ID)
+		data.ExportPolicyID = types.StringValue(strconv.Itoa(exportPolicy.ID))
 	} else {
 		exportPolicyID = data.ExportPolicyID.ValueString()
 	}
@@ -385,28 +387,18 @@ func (r *ExportPolicyRuleResource) Read(ctx context.Context, req resource.ReadRe
 	data.Protocols = protocols
 	data.Superuser = superuser
 
+	data.ID = types.StringValue(fmt.Sprintf("%s_%s_%s_%d", data.CxProfileName.ValueString(), data.SVMName.ValueString(), data.ExportPolicyName.ValueString(), data.Index.ValueInt64()))
+
 	for _, e := range restInfo.ClientsMatch {
 		clientsMatch = append(clientsMatch, types.StringValue(e.Match))
 	}
 	data.ClientsMatch = clientsMatch
-
-	if !data.AllowDeviceCreation.IsNull() {
-		data.AllowDeviceCreation = types.BoolValue(restInfo.AllowDeviceCreation)
-	}
-
-	if !data.AllowSuid.IsNull() {
-		data.AllowSuid = types.BoolValue(restInfo.AllowSuid)
-	}
-
-	if !data.ChownMode.IsNull() {
-		data.ChownMode = types.StringValue(restInfo.ChownMode)
-	}
-	if !data.NtfsUnixSecurity.IsNull() {
-		data.NtfsUnixSecurity = types.StringValue(restInfo.NtfsUnixSecurity)
-	}
-	if !data.AnonymousUser.IsNull() {
-		data.AnonymousUser = types.StringValue(restInfo.AnonymousUser)
-	}
+	// update optional params containg devaule values with updated values
+	data.AllowDeviceCreation = types.BoolValue(restInfo.AllowDeviceCreation)
+	data.AllowSuid = types.BoolValue(restInfo.AllowSuid)
+	data.ChownMode = types.StringValue(restInfo.ChownMode)
+	data.NtfsUnixSecurity = types.StringValue(restInfo.NtfsUnixSecurity)
+	data.AnonymousUser = types.StringValue(restInfo.AnonymousUser)
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -537,5 +529,18 @@ func (r *ExportPolicyRuleResource) Delete(ctx context.Context, req resource.Dele
 
 // ImportState imports a resource using ID from terraform import command by calling the Read method.
 func (r *ExportPolicyRuleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	tflog.Debug(ctx, fmt.Sprintf("import req a nfs export policy rule resource: %#v", req))
+	idParts := strings.Split(req.ID, ",")
+	if len(idParts) != 4 || idParts[0] == "" || idParts[1] == "" || idParts[2] == "" || idParts[3] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: index,export_policy_name,svm_name,cx_profile_name. Got: %q", req.ID),
+		)
+		return
+	}
+	index, _ := strconv.Atoi(idParts[0])
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("index"), index)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("export_policy_name"), idParts[1])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("svm_name"), idParts[2])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[3])...)
 }
