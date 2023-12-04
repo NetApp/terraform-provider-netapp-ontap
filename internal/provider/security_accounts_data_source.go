@@ -194,7 +194,11 @@ func (d *SecurityAccountsDataSource) Read(ctx context.Context, req datasource.Re
 		if data.Filter.SVMName.IsNull() {
 			filter = &interfaces.SecurityAccountDataSourceFilterModel{
 				Name: data.Filter.Name.ValueString(),
+				Owner: interfaces.SecurityAccountOwner{
+					Name: "*",
+				},
 			}
+			tflog.Debug(errorHandler.Ctx, fmt.Sprintf("if security account filter: %+v", filter))
 		} else {
 			filter = &interfaces.SecurityAccountDataSourceFilterModel{
 				Name: data.Filter.Name.ValueString(),
@@ -202,8 +206,8 @@ func (d *SecurityAccountsDataSource) Read(ctx context.Context, req datasource.Re
 					Name: data.Filter.SVMName.ValueString(),
 				},
 			}
+			tflog.Debug(errorHandler.Ctx, fmt.Sprintf("else security account filter: %+v", filter))
 		}
-
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("security account filter: %+v", filter))
 	restInfo, err := interfaces.GetSecurityAccounts(errorHandler, *client, filter)

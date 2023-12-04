@@ -40,14 +40,14 @@ type SecurityAccountRole struct {
 
 // SecurityAccountOwner describes the owner data model using go types for mapping.
 type SecurityAccountOwner struct {
-	Name string `mapstructure:"name"`
+	Name string `mapstructure:"name,omitempty"`
 	UUID string `mapstructure:"uuid,omitempty"`
 }
 
 // SecurityAccountDataSourceFilterModel describes the data source filter data model.
 type SecurityAccountDataSourceFilterModel struct {
-	Name  string               `tfsdk:"name"`
-	Owner SecurityAccountOwner `tfsdk:"owner,omitempty"`
+	Name  string               `mapstructure:"name"`
+	Owner SecurityAccountOwner `mapstructure:"owner,omitempty"`
 }
 
 func GetSecurityAccountByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, ownerName string) (*SecurityAccountGetDataModelONTAP, error) {
