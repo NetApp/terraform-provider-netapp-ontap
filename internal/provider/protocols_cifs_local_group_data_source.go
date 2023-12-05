@@ -46,7 +46,7 @@ type CifsLocalGroupDataSourceModel struct {
 	Members       []Member     `tfsdk:"members"`
 }
 
-// Member
+// Member describes the data source data model.
 type Member struct {
 	Name types.String `tfsdk:"name"`
 }
