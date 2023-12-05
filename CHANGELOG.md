@@ -1,6 +1,6 @@
 
 
-## 1.0.3
+## 1.0.3 (2023-12-05)
 * netapp-ontap_name_services_dns_resource: Fixed missing ID on create ([#99](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/63))
 
 ## 1.0.2 (2023-11-17)
