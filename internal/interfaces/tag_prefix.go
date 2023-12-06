@@ -28,8 +28,8 @@ type GoPrefixResourceBodyDataModelONTAP struct {
 	SVM  svm    `mapstructure:"svm"`
 }
 
-// GetGoPrefix to get tag_prefix info
-func GetGoPrefix(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, svmName string) (*GoPrefixGetDataModelONTAP, error) {
+// GetGoPrefixByName to get tag_prefix info
+func GetGoPrefixByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, svmName string) (*GoPrefixGetDataModelONTAP, error) {
 	api := "api_url"
 	query := r.NewQuery()
 	query.Set("name", name)
@@ -65,7 +65,7 @@ func GetGoAllPrefix(errorHandler *utils.ErrorHandler, r restclient.RestClient, f
 	if filter != nil {
 		var filterMap map[string]interface{}
 		if err := mapstructure.Decode(filter, &filterMap); err != nil {
-			return nil, errorHandler.MakeAndReportError("error encoding tag_prefix filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
+			return nil, errorHandler.MakeAndReportError("error encoding tag_all_prefix filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
 		}
 		query.SetValues(filterMap)
 	}
@@ -74,7 +74,7 @@ func GetGoAllPrefix(errorHandler *utils.ErrorHandler, r restclient.RestClient, f
 		err = fmt.Errorf("no response for GET %s", api)
 	}
 	if err != nil {
-		return nil, errorHandler.MakeAndReportError("error reading tag_prefix info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
+		return nil, errorHandler.MakeAndReportError("error reading tag_all_prefix info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
 	}
 
 	var dataONTAP []GoPrefixGetDataModelONTAP
@@ -86,7 +86,7 @@ func GetGoAllPrefix(errorHandler *utils.ErrorHandler, r restclient.RestClient, f
 		}
 		dataONTAP = append(dataONTAP, record)
 	}
-	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read tag_prefix data source: %#v", dataONTAP))
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read tag_all_prefix data source: %#v", dataONTAP))
 	return dataONTAP, nil
 }
 

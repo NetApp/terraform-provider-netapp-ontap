@@ -112,7 +112,7 @@ func (d *GoPrefixDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	restInfo, err := interfaces.GetGoPrefix(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString())
+	restInfo, err := interfaces.GetGoPrefixByName(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString())
 	if err != nil {
 		// error reporting done inside GetGoPrefix
 		return
