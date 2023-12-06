@@ -43,7 +43,7 @@ type GoAllPrefixDataSourceModel struct {
 	Filter        *GoAllPrefixDataSourceFilterModel `tfsdk:"filter"`
 }
 
-// GoPrefixDataSourceFilterModel describes the data source data model for queries.
+// GoAllPrefixDataSourceFilterModel describes the data source data model for queries.
 type GoAllPrefixDataSourceFilterModel struct {
 	Name    types.String `tfsdk:"name"`
 	SVMName types.String `tfsdk:"svm_name"`
