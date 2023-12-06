@@ -44,7 +44,7 @@ type CifsLocalUserResourceBodyDataModelONTAP struct {
 	SVM  svm    `mapstructure:"svm"`
 }
 
-// GetCifsLocalUser to get protocols_cifs_local_user info
+// GetCifsLocalUserByName to get protocols_cifs_local_user info
 func GetCifsLocalUserByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, svmName string) (*CifsLocalUserGetDataModelONTAP, error) {
 	api := "protocols/cifs/local-users"
 	query := r.NewQuery()

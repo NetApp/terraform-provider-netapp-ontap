@@ -35,6 +35,7 @@ type CifsLocalUserDataSourceFilterModel struct {
 	SVMName types.String `tfsdk:"svm_name"`
 }
 
+// CifsLocalUserDataSourceModel describes the data source data model.
 type CifsLocalUsersDataSourceModel struct {
 	CxProfileName  types.String                        `tfsdk:"cx_profile_name"`
 	CifsLocalUsers []CifsLocalUserDataSourceModel      `tfsdk:"protocols_cifs_local_users"`
