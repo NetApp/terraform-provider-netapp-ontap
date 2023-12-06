@@ -28,6 +28,12 @@ type GoPrefixResourceBodyDataModelONTAP struct {
 	SVM  svm    `mapstructure:"svm"`
 }
 
+// GoPrefixDataSourceFilterModel describes the data source data model for queries.
+type GoPrefixDataSourceFilterModel struct {
+	Name    string `mapstructure:"name"`
+	SVMName string `mapstructure:"svm.name"`
+}
+
 // GetGoPrefixByName to get tag_prefix info
 func GetGoPrefixByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, svmName string) (*GoPrefixGetDataModelONTAP, error) {
 	api := "api_url"
@@ -58,7 +64,7 @@ func GetGoPrefixByName(errorHandler *utils.ErrorHandler, r restclient.RestClient
 }
 
 // GetGoAllPrefix to get tag_prefix info for all resources matching a filter
-func GetGoAllPrefix(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *GoPrefixGetDataModelONTAP) ([]GoPrefixGetDataModelONTAP, error) {
+func GetGoAllPrefix(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *GoPrefixDataSourceFilterModel) ([]GoPrefixGetDataModelONTAP, error) {
 	api := "api_url"
 	query := r.NewQuery()
 	query.Fields([]string{"name", "svm.name", "scope"})
