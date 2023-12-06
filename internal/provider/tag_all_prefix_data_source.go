@@ -38,9 +38,15 @@ type GoAllPrefixDataSource struct {
 
 // GoAllPrefixDataSourceModel describes the data source data model.
 type GoAllPrefixDataSourceModel struct {
-	CxProfileName types.String                   `tfsdk:"cx_profile_name"`
-	GoAllPrefix   []GoPrefixDataSourceModel      `tfsdk:"tag_all_prefix"`
-	Filter        *GoPrefixDataSourceFilterModel `tfsdk:"filter"`
+	CxProfileName types.String                      `tfsdk:"cx_profile_name"`
+	GoAllPrefix   []GoPrefixDataSourceModel         `tfsdk:"tag_all_prefix"`
+	Filter        *GoAllPrefixDataSourceFilterModel `tfsdk:"filter"`
+}
+
+// GoPrefixDataSourceFilterModel describes the data source data model for queries.
+type GoAllPrefixDataSourceFilterModel struct {
+	Name    types.String `tfsdk:"name"`
+	SVMName types.String `tfsdk:"svm_name"`
 }
 
 // Metadata returns the data source type name.
@@ -127,9 +133,9 @@ func (d *GoAllPrefixDataSource) Read(ctx context.Context, req datasource.ReadReq
 		return
 	}
 
-	var filter *interfaces.GoPrefixGetDataModelONTAP = nil
+	var filter *interfaces.GoPrefixDataSourceFilterModel = nil
 	if data.Filter != nil {
-		filter = &interfaces.GoPrefixGetDataModelONTAP{
+		filter = &interfaces.GoPrefixDataSourceFilterModel{
 			Name: data.Filter.Name.ValueString(),
 		}
 	}
