@@ -46,13 +46,15 @@ type SecurityAccountOwner struct {
 
 // SecurityAccountDataSourceFilterModel describes the data source filter data model.
 type SecurityAccountDataSourceFilterModel struct {
-	Name  string               `mapstructure:"name"`
-	Owner SecurityAccountOwner `mapstructure:"owner,omitempty"`
+	Name  string                `mapstructure:"name"`
+	Owner *SecurityAccountOwner `mapstructure:"owner,omitempty"`
 }
 
 func GetSecurityAccountByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, ownerName string) (*SecurityAccountGetDataModelONTAP, error) {
 	query := r.NewQuery()
 	query.Fields([]string{"name", "owner", "locked", "comment", "role", "scope", "applications"})
+	query.Set("name", name)
+	query.Set("owner.name", ownerName)
 	statusCode, response, err := r.GetNilOrOneRecord("security/accounts/"+ownerName+"/"+name, query, nil)
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError("Error occurred when getting security account", fmt.Sprintf("error on get security/account: %s", err))
@@ -68,16 +70,10 @@ func GetSecurityAccountByName(errorHandler *utils.ErrorHandler, r restclient.Res
 	return dataOntap, nil
 }
 
-func GetSecurityAccounts(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *SecurityAccountDataSourceFilterModel) ([]SecurityAccountGetDataModelONTAP, error) {
+func GetSecurityAccounts(errorHandler *utils.ErrorHandler, r restclient.RestClient, svnName string, name string) ([]SecurityAccountGetDataModelONTAP, error) {
 	query := r.NewQuery()
 	query.Fields([]string{"name", "owner", "locked", "comment", "role", "scope", "applications"})
-	if filter != nil {
-		var filterMap map[string]interface{}
-		if error := mapstructure.Decode(filter, &filterMap); error != nil {
-			return nil, errorHandler.MakeAndReportError("Error occurred when decoding security account filter", fmt.Sprintf("error on decoding security/account filter: %s", error))
-		}
-		query.SetValues(filterMap)
-	}
+
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("security account filter: %+v", query))
 	statusCode, response, err := r.GetZeroOrMoreRecords("security/accounts", query, nil)
 	if err != nil {

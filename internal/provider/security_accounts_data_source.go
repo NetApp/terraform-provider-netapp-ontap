@@ -88,6 +88,10 @@ func (d *SecurityAccountsDataSource) Schema(ctx context.Context, req datasource.
 							MarkdownDescription: "SecurityAccount name",
 							Required:            true,
 						},
+						"id": schema.StringAttribute{
+							MarkdownDescription: "SecurityAccount id",
+							Computed:            true,
+						},
 						"owner": schema.SingleNestedAttribute{
 							MarkdownDescription: "SecurityAccount owner",
 							Computed:            true,
@@ -189,28 +193,7 @@ func (d *SecurityAccountsDataSource) Read(ctx context.Context, req datasource.Re
 		return
 	}
 
-	var filter *interfaces.SecurityAccountDataSourceFilterModel = nil
-	if data.Filter != nil {
-		if data.Filter.SVMName.IsNull() {
-			filter = &interfaces.SecurityAccountDataSourceFilterModel{
-				Name: data.Filter.Name.ValueString(),
-				Owner: interfaces.SecurityAccountOwner{
-					Name: "*",
-				},
-			}
-			tflog.Debug(errorHandler.Ctx, fmt.Sprintf("if security account filter: %+v", filter))
-		} else {
-			filter = &interfaces.SecurityAccountDataSourceFilterModel{
-				Name: data.Filter.Name.ValueString(),
-				Owner: interfaces.SecurityAccountOwner{
-					Name: data.Filter.SVMName.ValueString(),
-				},
-			}
-			tflog.Debug(errorHandler.Ctx, fmt.Sprintf("else security account filter: %+v", filter))
-		}
-	}
-	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("security account filter: %+v", filter))
-	restInfo, err := interfaces.GetSecurityAccounts(errorHandler, *client, filter)
+	restInfo, err := interfaces.GetSecurityAccounts(errorHandler, *client, data.Filter.SVMName.ValueString(), data.Filter.Name.ValueString())
 	if err != nil {
 		// error reporting done inside GetSecurityAccounts
 		return
@@ -220,6 +203,7 @@ func (d *SecurityAccountsDataSource) Read(ctx context.Context, req datasource.Re
 		data.SecurityAccounts[index] = SecurityAccountDataSourceModel{
 			CxProfileName: data.CxProfileName,
 			Name:          types.StringValue(record.Name),
+			ID:            types.StringValue(record.Name),
 			Owner: &OwnerDataSourceModel{
 				Name:    types.StringValue(record.Owner.Name),
 				OwnerID: types.StringValue(record.Owner.UUID),
