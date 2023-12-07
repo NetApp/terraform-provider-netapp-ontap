@@ -13,6 +13,9 @@ ENHANCEMENTS:
 * **netapp-ontap_svm_resource**: Add support for import ([#6](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/6))
 * **netapp-ontap_storage_volume_snapshot_resource**: Add support for import ([#42](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/42))
 * **netapp-ontap_cluster_schedule_resource**: Add support for import ([#31](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/31))
+* **netapp-ontap_snapmiror_policy**: Add support for import ([#38](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/38))
+* **netapp-ontap_networking_ip_interface_resource**: Add support for import ([#32](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/32))
+* **netapp-ontap_protocols_nfs_export_policy_rule_resource**: Add support for import ([#35](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/35))
 
 
 ## 1.0.2 (2023-11-17)

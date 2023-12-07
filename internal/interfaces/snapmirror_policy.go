@@ -130,7 +130,7 @@ func GetSnapmirrorPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClie
 }
 
 // GetSnapmirrorPolicyByName to get snapmirror policy info
-func GetSnapmirrorPolicyByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, svmName string) (*SnapmirrorPolicyGetDataModelONTAP, error) {
+func GetSnapmirrorPolicyByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, svmName string) (*SnapmirrorPolicyGetRawDataModelONTAP, error) {
 	api := "snapmirror/policies"
 	query := r.NewQuery()
 	query.Set("name", name)
@@ -141,7 +141,7 @@ func GetSnapmirrorPolicyByName(errorHandler *utils.ErrorHandler, r restclient.Re
 		query.Set("scope", "svm")
 	}
 	// TODO: copy_all_source_snapshots is 9.10 and up
-	query.Fields(([]string{"name", "svm.name", "type", "comment", "transfer_schedule", "network_compression_enabled", "retention", "identity_preservation", "copy_all_source_snapshots", "uuid"}))
+	query.Fields(([]string{"name", "svm.name", "type", "sync_type", "comment", "transfer_schedule", "network_compression_enabled", "retention", "identity_preservation", "copy_all_source_snapshots", "uuid"}))
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
 		err = fmt.Errorf("no response for GET %s", api)
@@ -150,7 +150,7 @@ func GetSnapmirrorPolicyByName(errorHandler *utils.ErrorHandler, r restclient.Re
 		return nil, errorHandler.MakeAndReportError("error reading snapmirror/policies info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
 	}
 
-	var dataONTAP SnapmirrorPolicyGetDataModelONTAP
+	var dataONTAP SnapmirrorPolicyGetRawDataModelONTAP
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
 			fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))

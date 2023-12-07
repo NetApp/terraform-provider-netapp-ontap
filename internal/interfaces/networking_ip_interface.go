@@ -69,7 +69,35 @@ type IPInterfaceDataSourceFilterModel struct {
 }
 
 // GetIPInterface to get ip_interface info
-func GetIPInterface(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, svmName string) (*IPInterfaceGetDataModelONTAP, error) {
+func GetIPInterface(errorHandler *utils.ErrorHandler, r restclient.RestClient, id string) (*IPInterfaceGetDataModelONTAP, error) {
+	api := "network/ip/interfaces" + "/" + id
+	query := r.NewQuery()
+	// if svmName == "" {
+	// 	query.Set("scope", "cluster")
+	// } else {
+	// 	query.Set("svm.name", svmName)
+	// 	query.Set("scope", "svm")
+	// }
+	query.Fields([]string{"name", "svm.name", "ip", "scope", "location"})
+	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading ip_interface info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
+	}
+
+	var dataONTAP IPInterfaceGetDataModelONTAP
+	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
+		return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
+			fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read ip_interface data source: %#v", dataONTAP))
+	return &dataONTAP, nil
+}
+
+// GetIPInterfaceByName to get ip_interface info
+func GetIPInterfaceByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, svmName string) (*IPInterfaceGetDataModelONTAP, error) {
 	api := "network/ip/interfaces"
 	query := r.NewQuery()
 	query.Set("name", name)
