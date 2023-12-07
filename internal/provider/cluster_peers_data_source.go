@@ -12,13 +12,6 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
-// TODO:
-// copy this file to match you data source (should match internal/provider/cluster_peer_data_source.go)
-// replace ClusterPeers with the name of the resource, following go conventions, eg IPInterfaces
-// replace cluster_peers with the name of the resource, for logging purposes, eg ip_interfaces
-// make sure to create internal/interfaces/cluster_peer.go too)
-// delete these 5 lines
-
 // Ensure provider defined types fully satisfy framework interfaces
 var _ datasource.DataSource = &ClusterPeersDataSource{}
 
@@ -149,7 +142,7 @@ func (d *ClusterPeersDataSource) Schema(ctx context.Context, req datasource.Sche
 					},
 				},
 				Computed:            true,
-				MarkdownDescription: "",
+				MarkdownDescription: "Cluster Peers",
 			},
 		},
 	}
