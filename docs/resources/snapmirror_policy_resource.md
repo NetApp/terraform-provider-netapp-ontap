@@ -119,4 +119,58 @@ Optional:
 - `prefix` (String) Specifies the prefix for the Snapshot copy name to be created as per the schedule
 
 ## Import
-Import is currently not support for this Resource.
+This resource supports import, which allows you to import existing snapmirror policy into the state of this resource.
+Import require a unique ID composed of the snapmirror policy name, svm name and connection profile, separated by a comma.
+
+id = `name`,`svm_name`,`cx_profile_name`
+
+### Terraform Import
+
+For example
+```shell
+ terraform import netapp-ontap_snapmirror_policy_resource.example test_name,svm1,cluster5
+```
+!> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
+
+### Terrafomr Import Block
+This requires Terraform 1.5 or higher, and will auto create the configuration for you
+
+First create the block
+```terraform
+import {
+  to = netapp-ontap_snapmirror_policy_resource.snapmirror_policy_import
+  id = "test_name,svm1,cluster4"
+}
+```
+Next run, this will auto create the configuration for you
+```shell
+terraform plan -generate-config-out=generated.tf
+```
+This will generate a file called generated.tf, which will contain the configuration for the imported resource
+```terraform
+# __generated__ by Terraform
+# Please review these resources and move them into your main configuration files.
+# __generated__ by Terraform from "svm1_root,svm1,cluster4"
+resource "netapp-ontap_snapmirror_policy_resource" "svm_import" {
+  comment = "testing import"
+  cx_profile_name = "cluster4"
+  name = "testImport"
+  copy_all_source_snapshots = false
+  copy_latest_source_snapshot = false
+  create_snapshot_on_source = false
+  identity_preservation = full
+  network_compression_enabled = false
+  retention = [
+    {
+      count = 4
+      creation_schedule_name = null
+      label = hi
+      prefix = null
+    }
+  ]
+  svm_name = ansibleSVM
+  sync_type = null
+  transfer_schedule_name = null
+  type = async
+}
+```
