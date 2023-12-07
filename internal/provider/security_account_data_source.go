@@ -38,6 +38,7 @@ type SecurityAccountDataSourceModel struct {
 	Role          *RoleDataSourceModel          `tfsdk:"role"`
 	Scope         types.String                  `tfsdk:"scope"`
 	Applications  []ApplicationsDataSourceModel `tfsdk:"applications"`
+	ID            types.String                  `tfsdk:"id"`
 }
 
 // ApplicationsDataSourceModel describes the data source data model.
@@ -77,6 +78,10 @@ func (d *SecurityAccountDataSource) Schema(ctx context.Context, req datasource.S
 			"name": schema.StringAttribute{
 				MarkdownDescription: "SecurityAccount name",
 				Required:            true,
+			},
+			"id": schema.StringAttribute{
+				MarkdownDescription: "SecurityAccount id",
+				Computed:            true,
 			},
 			"owner": schema.SingleNestedAttribute{
 				MarkdownDescription: "SecurityAccount owner",
@@ -188,6 +193,8 @@ func (d *SecurityAccountDataSource) Read(ctx context.Context, req datasource.Rea
 	}
 
 	data.Name = types.StringValue(restInfo.Name)
+	// There is no ID in the REST response, so we use the name as ID
+	data.ID = types.StringValue(restInfo.Name)
 	data.Owner = &OwnerDataSourceModel{
 		Name:    types.StringValue(restInfo.Owner.Name),
 		OwnerID: types.StringValue(restInfo.Owner.UUID),
