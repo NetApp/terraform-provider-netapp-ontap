@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -255,7 +256,12 @@ func (r *SnapmirrorPolicyResource) Read(ctx context.Context, req resource.ReadRe
 		return
 	}
 
-	restInfo, err := interfaces.GetSnapmirrorPolicy(errorHandler, *client, data.ID.ValueString())
+	var restInfo *interfaces.SnapmirrorPolicyGetRawDataModelONTAP
+	if data.ID.ValueString() != "" {
+		restInfo, err = interfaces.GetSnapmirrorPolicy(errorHandler, *client, data.ID.ValueString())
+	} else {
+		restInfo, err = interfaces.GetSnapmirrorPolicyByName(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString())
+	}
 	if err != nil {
 		// error reporting done inside GETSnapmirrorPolicy
 		return
@@ -269,10 +275,17 @@ func (r *SnapmirrorPolicyResource) Read(ctx context.Context, req resource.ReadRe
 	if restInfo.SyncType != "" {
 		data.SyncType = types.StringValue(restInfo.SyncType)
 	}
+	if restInfo.Comment != "" {
+		data.Comment = types.StringValue(restInfo.Comment)
+	}
+	if restInfo.IdentityPreservation != "" {
+		data.IdentityPreservation = types.StringValue(restInfo.IdentityPreservation)
+	}
 	data.CopyAllSourceSnapshots = types.BoolValue(restInfo.CopyAllSourceSnapshots)
 	data.NetworkCompressionEnabled = types.BoolValue(restInfo.NetworkCompressionEnabled)
 	data.CopyLatestSourceSnapshot = types.BoolValue(restInfo.CopyLatestSourceSnapshot)
 	data.CreateSnapshotOnSource = types.BoolValue(restInfo.CreateSnapshotOnSource)
+	data.ID = types.StringValue(restInfo.UUID)
 
 	// if len(restInfo.Retention) == 0 {
 	if restInfo.Retention == nil {
@@ -621,5 +634,17 @@ func (r *SnapmirrorPolicyResource) Delete(ctx context.Context, req resource.Dele
 
 // ImportState imports a resource using ID from terraform import command by calling the Read method.
 func (r *SnapmirrorPolicyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	idParts := strings.Split(req.ID, ",")
+
+	if len(idParts) != 3 || idParts[0] == "" || idParts[1] == "" || idParts[2] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: name,svm_name,cx_profile_name. Got: %q", req.ID),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("svm_name"), idParts[1])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[2])...)
 }
