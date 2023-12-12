@@ -1,2 +1,4 @@
 .idea/
 *.tfstate
+*.tfstate.backup
+*.DS_Store
