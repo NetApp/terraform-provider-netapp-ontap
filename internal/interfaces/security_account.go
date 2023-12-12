@@ -50,6 +50,7 @@ type SecurityAccountDataSourceFilterModel struct {
 	Owner *SecurityAccountOwner `mapstructure:"owner,omitempty"`
 }
 
+// GetSecurityAccountByName gets a security account by name.
 func GetSecurityAccountByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, ownerName string) (*SecurityAccountGetDataModelONTAP, error) {
 	query := r.NewQuery()
 	query.Fields([]string{"name", "owner", "locked", "comment", "role", "scope", "applications"})
@@ -70,6 +71,7 @@ func GetSecurityAccountByName(errorHandler *utils.ErrorHandler, r restclient.Res
 	return dataOntap, nil
 }
 
+// GetSecurityAccounts gets all security accounts.
 func GetSecurityAccounts(errorHandler *utils.ErrorHandler, r restclient.RestClient, svnName string, name string) ([]SecurityAccountGetDataModelONTAP, error) {
 	query := r.NewQuery()
 	query.Fields([]string{"name", "owner", "locked", "comment", "role", "scope", "applications"})
