@@ -93,6 +93,7 @@ if [ -d $example_dir ]; then
     echo "example dir $example_dir already exists"
 else
     provider_dir=../../provider
+    cd -
     echo "creating $example_dir"
     mkdir $example_dir
     cd $example_dir
