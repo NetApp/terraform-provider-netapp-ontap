@@ -164,9 +164,13 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 // DataSources defines the provider's data sources.
 func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
+		NewCifsLocalGroupDataSource,
+		NewCifsLocalGroupsDataSource,
 		NewClusterDataSource,
 		NewClusterLicensingLicenseDataSource,
 		NewClusterLicensingLicensesDataSource,
+		NewClusterPeerDataSource,
+		NewClusterPeersDataSource,
 		NewClusterScheduleDataSource,
 		NewClusterSchedulesDataSource,
 		NewExampleDataSource,

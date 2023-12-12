@@ -1,8 +1,15 @@
 ## 1.1.0 ()
 
+FEATURES:
+
+* **New Data Source:** `netapp_ontap_protocols_cifs_local_group_data_source` ([#54](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/54))
+* **New Data Source:** `netapp_ontap_protocols_cifs_local_groups_data_source` ([#54](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/54))
+* **New Data Source:** `netapp_ontap_cluster_peer_data_source` ([#50](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/50))
+* **New Data Source:** `netapp_ontap_cluster_peers_data_source` ([#50](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/50))
+
+
 ENHANCEMENTS:
 * **netapp-ontap_protocols_nfs_export_policy_resource**: Add support for import ([#34](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/34))
-
 * **netapp-ontap_cluster_licensing_license_resource**: Add support for import ([#30](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/30))
 * **netapp-ontap_storage_aggregate_resource**: Add support for import ([#39](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/39))
 * **netapp-ontap_storage_volume_resource**: Add support for import ([#41](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/41))
@@ -11,6 +18,9 @@ ENHANCEMENTS:
 * **netapp-ontap_storage_volume_snapshot_resource**: Add support for import ([#42](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/42))
 * **netapp-ontap_cluster_schedule_resource**: Add support for import ([#31](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/31))
 * **netapp-ontap_storage_snapshot_policy_resource**: Add support for import ([#40](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/40))
+* **netapp-ontap_snapmiror_policy**: Add support for import ([#38](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/38))
+* **netapp-ontap_networking_ip_interface_resource**: Add support for import ([#32](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/32))
+* **netapp-ontap_protocols_nfs_export_policy_rule_resource**: Add support for import ([#35](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/35))
 
 
 ## 1.0.2 (2023-11-17)
