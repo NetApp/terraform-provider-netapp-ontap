@@ -43,12 +43,6 @@ type GoPrefixDataSourceModel struct {
 	SVMName       types.String `tfsdk:"svm_name"`
 }
 
-// GoPrefixDataSourceFilterModel describes the data source data model for queries.
-type GoPrefixDataSourceFilterModel struct {
-	Name    types.String `tfsdk:"name"`
-	SVMName types.String `tfsdk:"svm.name"`
-}
-
 // Metadata returns the data source type name.
 func (d *GoPrefixDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + d.config.name
@@ -112,7 +106,7 @@ func (d *GoPrefixDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	restInfo, err := interfaces.GetGoPrefix(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString())
+	restInfo, err := interfaces.GetGoPrefixByName(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString())
 	if err != nil {
 		// error reporting done inside GetGoPrefix
 		return
