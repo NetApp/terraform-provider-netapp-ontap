@@ -145,7 +145,7 @@ func (d *IPInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 		return
 	}
 
-	restInfo, err := interfaces.GetIPInterface(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString())
+	restInfo, err := interfaces.GetIPInterfaceByName(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString())
 	if err != nil {
 		// error reporting done inside GetIPInterface
 		return
