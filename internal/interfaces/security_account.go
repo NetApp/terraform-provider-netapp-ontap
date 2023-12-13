@@ -8,12 +8,16 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
-// TODO:
-// copy this file to match you data source (should match internal/interfaces/security_account.go)
-// replace SecurityAccount with the name of the resource, following go conventions, eg IPInterface
-// replace security_account with the name of the resource, for logging purposes, eg ip_interface
-// replace api_url with API, eg ip/interfaces
-// delete these 5 lines
+type SecurityAccountResourceBodyDataModelONTAP struct {
+	Name                       string                   `mapstructure:"name"`
+	Applications               []map[string]interface{} `mapstructure:"applications,omitempty"`
+	Owner                      SecurityAccountOwner     `mapstructure:"owner,omitempty"`
+	Role                       SecurityAccountRole      `mapstructure:"role,omitempty"`
+	Password                   string                   `mapstructure:"password,omitempty"`
+	SecondAuthenticationMethod string                   `mapstructure:"second_authentication_method,omitempty"`
+	Comment                    string                   `mapstructure:"comment,omitempty"`
+	Locked                     bool                     `mapstructure:"locked,omitempty"`
+}
 
 // SecurityAccountGetDataModelONTAP describes the GET record data model using go types for mapping.
 type SecurityAccountGetDataModelONTAP struct {
@@ -55,10 +59,20 @@ func GetSecurityAccountByName(errorHandler *utils.ErrorHandler, r restclient.Res
 	query := r.NewQuery()
 	query.Fields([]string{"name", "owner", "locked", "comment", "role", "scope", "applications"})
 	query.Set("name", name)
-	query.Set("owner.name", ownerName)
-	statusCode, response, err := r.GetNilOrOneRecord("security/accounts/"+ownerName+"/"+name, query, nil)
-	if err != nil {
-		return nil, errorHandler.MakeAndReportError("Error occurred when getting security account", fmt.Sprintf("error on get security/account: %s", err))
+	var statusCode int
+	var response map[string]interface{}
+	var err error
+	if ownerName != "" {
+		query.Set("owner.name", ownerName)
+		statusCode, response, err = r.GetNilOrOneRecord("security/accounts/"+ownerName+"/"+name, query, nil)
+		if err != nil {
+			return nil, errorHandler.MakeAndReportError("Error occurred when getting security account", fmt.Sprintf("error on get security/account: %s", err))
+		}
+	} else {
+		statusCode, response, err = r.GetNilOrOneRecord("security/accounts", query, nil)
+		if err != nil {
+			return nil, errorHandler.MakeAndReportError("Error occurred when getting security account", fmt.Sprintf("error on get security/account: %s", err))
+		}
 	}
 	if response == nil {
 		return nil, errorHandler.MakeAndReportError("No Account found", fmt.Sprintf("No account with name: %s", name))
@@ -94,4 +108,34 @@ func GetSecurityAccounts(errorHandler *utils.ErrorHandler, r restclient.RestClie
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("security accounts: %+v", dataOntap))
 	return dataOntap, nil
+}
+
+func CreateSecurityAccount(errorHandler *utils.ErrorHandler, r restclient.RestClient, body SecurityAccountResourceBodyDataModelONTAP) (*SecurityAccountGetDataModelONTAP, error) {
+	api := "security/accounts"
+	var bodyMap map[string]interface{}
+	if err := mapstructure.Decode(body, &bodyMap); err != nil {
+		return nil, errorHandler.MakeAndReportError("Error occurred when decoding security account", fmt.Sprintf("error on decoding security/account: %s", err))
+	}
+	query := r.NewQuery()
+	query.Add("return_records", "true")
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("security account body: %+v", bodyMap))
+	statusCode, response, err := r.CallCreateMethod(api, query, bodyMap)
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("Error occurred when creating security account", fmt.Sprintf("error on create security/account: %s, statusCode: %d, response %+v", err, statusCode, response))
+	}
+	var dataOntap SecurityAccountGetDataModelONTAP
+	if err := mapstructure.Decode(response.Records[0], &dataOntap); err != nil {
+		return nil, errorHandler.MakeAndReportError("Error occurred when decoding security account", fmt.Sprintf("error on decoding security/account: %s, statusCode: %d, response %+v", err, statusCode, response))
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("security account: %+v", dataOntap))
+	return &dataOntap, nil
+}
+
+func DeleteSecurityAccount(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, ownerID string) error {
+	api := "security/accounts/" + ownerID + "/" + name
+	statusCode, _, err := r.CallDeleteMethod(api, nil, nil)
+	if err != nil {
+		return errorHandler.MakeAndReportError("Error occurred when deleting security account", fmt.Sprintf("error on delete security/account: %s, statusCode: %d", err, statusCode))
+	}
+	return nil
 }
