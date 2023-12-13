@@ -3,24 +3,15 @@ package provider
 import (
 	"context"
 	"fmt"
-
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
-
-// TODO:
-// copy this file to match you resource (should match internal/provider/security_account_resource.go)
-// replace SecurityAccount with the name of the resource, following go conventions, eg IPInterface
-// replace security_account with the name of the resource, for logging purposes, eg ip_interface
-// make sure to create internal/interfaces/security_account.go too)
-// delete these 5 lines
 
 // Ensure provider defined types fully satisfy framework interfaces
 var _ resource.Resource = &SecurityAccountResource{}
@@ -42,10 +33,34 @@ type SecurityAccountResource struct {
 
 // SecurityAccountResourceModel describes the resource data model.
 type SecurityAccountResourceModel struct {
-	CxProfileName types.String `tfsdk:"cx_profile_name"`
-	Name          types.String `tfsdk:"name"`
-	SVMName       types.String `tfsdk:"svm_name"` // if needed or relevant
-	UUID          types.String `tfsdk:"uuid"`
+	CxProfileName              types.String                `tfsdk:"cx_profile_name"`
+	Name                       types.String                `tfsdk:"name"`
+	ID                         types.String                `tfsdk:"id"`
+	OwnerID                    types.String                `tfsdk:"owner_id"`
+	Applications               []ApplicationsResourceModel `tfsdk:"applications"`
+	Owner                      *OwnerResourceModel         `tfsdk:"owner"`
+	Role                       *RoleResourceModel          `tfsdk:"role"`
+	Password                   types.String                `tfsdk:"password"`
+	SecondAuthenticationMethod types.String                `tfsdk:"second_authentication_method"`
+	Comment                    types.String                `tfsdk:"comment"`
+	Locked                     types.Bool                  `tfsdk:"locked"`
+}
+
+// ApplicationsResourceModel describes the resource data model.
+type ApplicationsResourceModel struct {
+	Application                types.String    `tfsdk:"application"`
+	SecondAuthentiactionMethod types.String    `tfsdk:"second_authentication_method"`
+	AuthenticationMethods      *[]types.String `tfsdk:"authentication_methods"`
+}
+
+// OwnerResourceModel describes the resource data model.
+type OwnerResourceModel struct {
+	Name types.String `tfsdk:"name"`
+}
+
+// RoleResourceModel describes the resource data model.
+type RoleResourceModel struct {
+	Name types.String `tfsdk:"name"`
 }
 
 // Metadata returns the resource type name.
@@ -68,16 +83,71 @@ func (r *SecurityAccountResource) Schema(ctx context.Context, req resource.Schem
 				MarkdownDescription: "SecurityAccount name",
 				Required:            true,
 			},
-			"svm_name": schema.StringAttribute{
-				MarkdownDescription: "SecurityAccount svm name",
+			"applications": schema.ListNestedAttribute{
+				MarkdownDescription: "List of applications",
+				Required:            true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"application": schema.StringAttribute{
+							MarkdownDescription: "Application name",
+							Required:            true,
+						},
+						"second_authentication_method": schema.StringAttribute{
+							MarkdownDescription: "Second authentication method",
+							Optional:            true,
+						},
+						"authentication_methods": schema.ListAttribute{
+							MarkdownDescription: "List of authentication methods",
+							Optional:            true,
+							ElementType:         types.StringType,
+						},
+					},
+				},
+			},
+			"owner": schema.SingleNestedAttribute{
+				MarkdownDescription: "Account owner",
+				Optional:            true,
+				Attributes: map[string]schema.Attribute{
+					"name": schema.StringAttribute{
+						MarkdownDescription: "Account owner name",
+						Optional:            true,
+					},
+				},
+			},
+			"owner_id": schema.StringAttribute{
+				MarkdownDescription: "Account owner uuid",
+				Computed:            true,
+			},
+			"role": schema.SingleNestedAttribute{
+				MarkdownDescription: "Account role",
+				Optional:            true,
+				Attributes: map[string]schema.Attribute{
+					"name": schema.StringAttribute{
+						MarkdownDescription: "Account role name",
+						Optional:            true,
+					},
+				},
+			},
+			"password": schema.StringAttribute{
+				MarkdownDescription: "Account password",
+				Optional:            true,
+				Sensitive:           true,
+			},
+			"second_authentication_method": schema.StringAttribute{
+				MarkdownDescription: "Second authentication method",
 				Optional:            true,
 			},
-			"uuid": schema.StringAttribute{
-				MarkdownDescription: "SecurityAccount UUID",
+			"comment": schema.StringAttribute{
+				MarkdownDescription: "Account comment",
+				Optional:            true,
+			},
+			"locked": schema.BoolAttribute{
+				MarkdownDescription: "Account locked",
+				Optional:            true,
+			},
+			"id": schema.StringAttribute{
+				MarkdownDescription: "SecurityAccount id",
 				Computed:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
 			},
 		},
 	}
@@ -117,14 +187,52 @@ func (r *SecurityAccountResource) Read(ctx context.Context, req resource.ReadReq
 		// error reporting done inside NewClient
 		return
 	}
+	tflog.Debug(ctx, fmt.Sprintf("read a resource: %#v", data))
+	var restInfo *interfaces.SecurityAccountGetDataModelONTAP
+	if data.Owner != nil && !data.Owner.Name.IsNull() {
+		svm, err := interfaces.GetSvmByName(errorHandler, *client, data.Owner.Name.ValueString())
+		if err != nil {
+			// error reporting done inside GetSvmByName
+			return
+		}
 
-	restInfo, err := interfaces.GetSecurityAccountByName(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString())
-	if err != nil {
-		// error reporting done inside GetSecurityAccount
-		return
+		restInfo, err = interfaces.GetSecurityAccountByName(errorHandler, *client, data.Name.ValueString(), svm.UUID)
+		if err != nil {
+			// error reporting done inside GetSecurityAccount
+			return
+		}
+	} else {
+		restInfo, err = interfaces.GetSecurityAccountByName(errorHandler, *client, data.Name.ValueString(), "")
+		if err != nil {
+			// error reporting done inside GetSecurityAccount
+			return
+		}
 	}
 
 	data.Name = types.StringValue(restInfo.Name)
+	// There is no ID in the REST response, so we use the name as ID
+	data.ID = types.StringValue(restInfo.Name)
+	data.Owner = &OwnerResourceModel{
+		Name: types.StringValue(restInfo.Owner.Name),
+	}
+	data.OwnerID = types.StringValue(restInfo.Owner.UUID)
+	data.Locked = types.BoolValue(restInfo.Locked)
+	data.Comment = types.StringValue(restInfo.Comment)
+	data.Role = &RoleResourceModel{
+		Name: types.StringValue(restInfo.Role.Name),
+	}
+	data.Applications = make([]ApplicationsResourceModel, len(restInfo.Applications))
+	for index, application := range restInfo.Applications {
+		data.Applications[index] = ApplicationsResourceModel{
+			Application:                types.StringValue(application.Application),
+			SecondAuthentiactionMethod: types.StringValue(application.SecondAuthenticationMethod),
+		}
+		var authenticationMethods []types.String
+		for _, authenticationMethod := range application.AuthenticationMethods {
+			authenticationMethods = append(authenticationMethods, types.StringValue(authenticationMethod))
+		}
+		data.Applications[index].AuthenticationMethods = &authenticationMethods
+	}
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
@@ -149,7 +257,44 @@ func (r *SecurityAccountResource) Create(ctx context.Context, req resource.Creat
 	}
 
 	body.Name = data.Name.ValueString()
-	// body.SVM.Name = data.SVMName.ValueString()
+	applications := []interfaces.SecurityAccountApplication{}
+	for _, item := range data.Applications {
+		var application interfaces.SecurityAccountApplication
+		application.Application = item.Application.ValueString()
+		if item.SecondAuthentiactionMethod.IsNull() {
+			application.SecondAuthenticationMethod = item.SecondAuthentiactionMethod.ValueString()
+		}
+		if item.AuthenticationMethods != nil {
+			application.AuthenticationMethods = make([]string, len(*item.AuthenticationMethods))
+			for index, authenticationMethod := range *item.AuthenticationMethods {
+				application.AuthenticationMethods[index] = authenticationMethod.ValueString()
+			}
+		}
+		applications = append(applications, application)
+	}
+	err := mapstructure.Decode(applications, &body.Applications)
+	if err != nil {
+		errorHandler.MakeAndReportError("error creating User applications", fmt.Sprintf("error on encoding copies info: %s, copies %#v", err, body.Applications))
+		return
+	}
+	if data.Owner != nil {
+		body.Owner.Name = data.Owner.Name.ValueString()
+	}
+	if data.Role != nil {
+		body.Role.Name = data.Role.Name.ValueString()
+	}
+	if data.Password.IsNull() {
+		body.Password = data.Password.ValueString()
+	}
+	if data.SecondAuthenticationMethod.IsNull() {
+		body.SecondAuthenticationMethod = data.SecondAuthenticationMethod.ValueString()
+	}
+	if data.Comment.IsNull() {
+		body.Comment = data.Comment.ValueString()
+	}
+	if data.Locked.IsNull() {
+		body.Locked = data.Locked.ValueBool()
+	}
 
 	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
@@ -162,7 +307,8 @@ func (r *SecurityAccountResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	data.UUID = types.StringValue(resource.UUID)
+	data.ID = types.StringValue(resource.Name)
+	data.OwnerID = types.StringValue(resource.Owner.UUID)
 
 	tflog.Trace(ctx, "created a resource")
 
@@ -203,12 +349,12 @@ func (r *SecurityAccountResource) Delete(ctx context.Context, req resource.Delet
 		return
 	}
 
-	if data.UUID.IsNull() {
-		errorHandler.MakeAndReportError("UUID is null", "security_account UUID is null")
+	if data.OwnerID.IsNull() {
+		errorHandler.MakeAndReportError("Owner UUID is null", "security_account Owner UUID is null")
 		return
 	}
 
-	err = interfaces.DeleteSecurityAccount(errorHandler, *client, data.UUID.ValueString())
+	err = interfaces.DeleteSecurityAccount(errorHandler, *client, data.Name.ValueString(), data.OwnerID.ValueString())
 	if err != nil {
 		return
 	}
