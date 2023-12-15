@@ -18,7 +18,7 @@ type CifsLocalGroupGetDataModelONTAP struct {
 	Members     []Member `mapstructure:"members,omitempty"`
 }
 
-// Member
+// Member describes the GET record data model using go types for mapping.
 type Member struct {
 	Name string `mapstructure:"name"`
 }

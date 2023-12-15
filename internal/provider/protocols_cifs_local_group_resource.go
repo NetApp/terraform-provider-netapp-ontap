@@ -36,7 +36,7 @@ type CifsLocalGroupResource struct {
 	config resourceOrDataSourceConfig
 }
 
-// Member describes the data source data model.
+// GroupMember describes the data source data model.
 type GroupMember struct {
 	Name types.String `tfsdk:"name"`
 }
