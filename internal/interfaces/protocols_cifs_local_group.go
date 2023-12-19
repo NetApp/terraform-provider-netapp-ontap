@@ -135,6 +135,7 @@ func CreateCifsLocalGroup(errorHandler *utils.ErrorHandler, r restclient.RestCli
 	if err := mapstructure.Decode(response.Records[0], &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError("error decoding protocols_cifs_local_group info", fmt.Sprintf("error on decode storage/protocols_cifs_local_groups info: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
+	// Create API does not return the ID of the record, so we need to read it again later
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Create protocols_cifs_local_group source - udata: %#v", dataONTAP))
 	return &dataONTAP, nil
 }
@@ -162,12 +163,8 @@ func UpdateCifsLocalGroup(errorHandler *utils.ErrorHandler, r restclient.RestCli
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError("error updating protocols_cifs_local_group", fmt.Sprintf("error on PUT %s: %s, statusCode %d", api, err, statusCode))
 	}
-	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("$$$$$$$Update response status=%v, response=%v", statusCode, response))
+	// Update API does not return a record, so we need to read it again later
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Update protocols_cifs_local_group resource - response status=%#v, response=%#v", statusCode, response))
 
-	// var dataONTAP CifsLocalGroupGetDataModelONTAP
-	// if err := mapstructure.Decode(response.Records[0], &dataONTAP); err != nil {
-	// 	return nil, errorHandler.MakeAndReportError("### error decoding protocols_cifs_local_group info", fmt.Sprintf("error on decode storage/protocols_cifs_local_groups info: %s, statusCode %d, response %#v", err, statusCode, response))
-	// }
-	// tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Update protocols_cifs_local_group source - udata: %#v", dataONTAP))
 	return nil, nil
 }

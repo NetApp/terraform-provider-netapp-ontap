@@ -49,8 +49,6 @@ type CifsLocalGroupResourceModel struct {
 	ID            types.String `tfsdk:"id"`
 	Description   types.String `tfsdk:"description"`
 	Members       types.Set    `tfsdk:"members"`
-	// Members       []GroupMember `tfsdk:"members"`
-	// Members []types.Object `tfsdk:"members"`
 }
 
 // Metadata returns the resource type name.
@@ -89,13 +87,9 @@ func (r *CifsLocalGroupResource) Schema(ctx context.Context, req resource.Schema
 						"name": schema.StringAttribute{
 							MarkdownDescription: "Cifs Local Group member",
 							Computed:            true,
-							// Optional:            true,
 						},
 					},
 				},
-				// PlanModifiers: []planmodifier.Set{
-				// 	setplanmodifier.UseStateForUnknown(),
-				// },
 			},
 			"id": schema.StringAttribute{
 				MarkdownDescription: "CifsLocalGroup ID",
@@ -127,10 +121,9 @@ func (r *CifsLocalGroupResource) Configure(ctx context.Context, req resource.Con
 // Read refreshes the Terraform state with the latest data.
 func (r *CifsLocalGroupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data CifsLocalGroupResourceModel
-	tflog.Debug(ctx, fmt.Sprintf("RRR read in get cifs local group resource: %#v", ctx))
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-	tflog.Debug(ctx, fmt.Sprintf("$$$ read after get cifs local group resource: %#v", data.Name))
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -161,24 +154,11 @@ func (r *CifsLocalGroupResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	// if !strings.Contains(data.Name.ValueString(), "\\") {
-	// 	// rawName in the format as XXXX/name in read response
-	// 	rawName := strings.Split(restInfo.Name, "\\")
-	// 	data.Name = types.StringValue(rawName[len(rawName)-1])
-	// }
 	if restInfo.Description != "" {
 		data.Description = types.StringValue(restInfo.Description)
 	}
-	// data.SVMName = types.StringValue(restInfo.SVM.Name)
-	// if len(restInfo.Members) > 0 {
+	data.SVMName = types.StringValue(restInfo.SVM.Name)
 
-	// comment out the code for memebers type []GroupMember
-	// data.Members = make([]GroupMember, len(restInfo.Members))
-	// for i, member := range restInfo.Members {
-	// 	data.Members[i].Name = types.StringValue(member.Name)
-	// }
-
-	// }
 	data.Members = memberSliceToLSet(ctx, restInfo.Members, &resp.Diagnostics)
 
 	// Write logs using the tflog package
@@ -189,31 +169,39 @@ func (r *CifsLocalGroupResource) Read(ctx context.Context, req resource.ReadRequ
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
+// attrTypes returns a map of the attribute types for the resource.
 func (o GroupMember) attrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"name": types.StringType,
 	}
 }
 
+// memberSliceToLSet converts a slice of GroupMember to a types.Set
 func memberSliceToLSet(ctx context.Context, membersSliceIn []interfaces.Member, diags *diag.Diagnostics) types.Set {
-	keys, d := types.SetValueFrom(ctx, types.ObjectType{AttrTypes: GroupMember{}.attrTypes()}, membersSliceIn)
+	members := make([]GroupMember, len(membersSliceIn))
+	for i, member := range membersSliceIn {
+		members[i].Name = types.StringValue(member.Name)
+	}
+
+	keys, d := types.SetValueFrom(ctx, types.ObjectType{AttrTypes: GroupMember{}.attrTypes()}, members)
 	diags.Append(d...)
+
 	return keys
 }
 
 // Create a resource and retrieve UUID
 func (r *CifsLocalGroupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data *CifsLocalGroupResourceModel
-	tflog.Debug(ctx, fmt.Sprintf("### create in get cifs local group resource: %#v", ctx))
+
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-	tflog.Debug(ctx, fmt.Sprintf("### create after get cifs local group resource: %#v", data.Name))
+
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	tflog.Debug(ctx, fmt.Sprintf("### create start cifs local group resource: %#v", data))
+
 	var body interfaces.CifsLocalGroupResourceBodyDataModelONTAP
 	body.Name = data.Name.ValueString()
 	body.SVM.Name = data.SVMName.ValueString()
@@ -232,7 +220,7 @@ func (r *CifsLocalGroupResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	// read the resource back to get the ID cause create doesn't return it
+	// read the resource back to get the ID cause create API does not return the record
 	restInfo, err := interfaces.GetCifsLocalGroupByName(errorHandler, *client, resource.Name, data.SVMName.ValueString())
 	if err != nil {
 		// error reporting done inside GetCifsLocalGroup
@@ -243,12 +231,10 @@ func (r *CifsLocalGroupResource) Create(ctx context.Context, req resource.Create
 
 	data.Members = memberSliceToLSet(ctx, restInfo.Members, &resp.Diagnostics)
 
-	tflog.Debug(ctx, fmt.Sprintf("### create set ID cifs local group resource: %#v", data))
 	tflog.Trace(ctx, "created a resource")
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-	tflog.Debug(ctx, fmt.Sprintf("### create end cifs local group resource: %#v", data))
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
@@ -295,7 +281,7 @@ func (r *CifsLocalGroupResource) Update(ctx context.Context, req resource.Update
 		return
 	}
 
-	// read the resource back to get the ID cause create doesn't return it
+	// read the resource back to get the ID cause create does not return the record
 	restInfo, err := interfaces.GetCifsLocalGroupByName(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString())
 	if err != nil {
 		// error reporting done inside GetCifsLocalGroup
