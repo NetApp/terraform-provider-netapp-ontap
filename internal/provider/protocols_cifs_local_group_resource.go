@@ -144,6 +144,10 @@ func (r *CifsLocalGroupResource) Read(ctx context.Context, req resource.ReadRequ
 	var restInfo *interfaces.CifsLocalGroupGetDataModelONTAP
 	if data.ID.IsNull() {
 		restInfo, err = interfaces.GetCifsLocalGroupByName(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString())
+		if restInfo == nil || err != nil {
+			// error reporting done inside GetCifsLocalGroup
+			return
+		}
 		data.ID = types.StringValue(restInfo.SID)
 	} else {
 		restInfo, err = interfaces.GetCifsLocalGroup(errorHandler, *client, svm.UUID, data.ID.ValueString())
