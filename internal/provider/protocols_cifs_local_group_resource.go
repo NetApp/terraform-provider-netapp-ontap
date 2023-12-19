@@ -118,6 +118,26 @@ func (r *CifsLocalGroupResource) Configure(ctx context.Context, req resource.Con
 	r.config.providerConfig = config
 }
 
+// attrTypes returns a map of the attribute types for the resource.
+func (o GroupMember) attrTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"name": types.StringType,
+	}
+}
+
+// memberSliceToSet converts a slice of GroupMember to a types.Set
+func memberSliceToSet(ctx context.Context, membersSliceIn []interfaces.Member, diags *diag.Diagnostics) types.Set {
+	members := make([]GroupMember, len(membersSliceIn))
+	for i, member := range membersSliceIn {
+		members[i].Name = types.StringValue(member.Name)
+	}
+
+	keys, d := types.SetValueFrom(ctx, types.ObjectType{AttrTypes: GroupMember{}.attrTypes()}, members)
+	diags.Append(d...)
+
+	return keys
+}
+
 // Read refreshes the Terraform state with the latest data.
 func (r *CifsLocalGroupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data CifsLocalGroupResourceModel
@@ -163,7 +183,7 @@ func (r *CifsLocalGroupResource) Read(ctx context.Context, req resource.ReadRequ
 	}
 	data.SVMName = types.StringValue(restInfo.SVM.Name)
 
-	data.Members = memberSliceToLSet(ctx, restInfo.Members, &resp.Diagnostics)
+	data.Members = memberSliceToSet(ctx, restInfo.Members, &resp.Diagnostics)
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
@@ -171,26 +191,6 @@ func (r *CifsLocalGroupResource) Read(ctx context.Context, req resource.ReadRequ
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-}
-
-// attrTypes returns a map of the attribute types for the resource.
-func (o GroupMember) attrTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"name": types.StringType,
-	}
-}
-
-// memberSliceToLSet converts a slice of GroupMember to a types.Set
-func memberSliceToLSet(ctx context.Context, membersSliceIn []interfaces.Member, diags *diag.Diagnostics) types.Set {
-	members := make([]GroupMember, len(membersSliceIn))
-	for i, member := range membersSliceIn {
-		members[i].Name = types.StringValue(member.Name)
-	}
-
-	keys, d := types.SetValueFrom(ctx, types.ObjectType{AttrTypes: GroupMember{}.attrTypes()}, members)
-	diags.Append(d...)
-
-	return keys
 }
 
 // Create a resource and retrieve UUID
@@ -233,7 +233,7 @@ func (r *CifsLocalGroupResource) Create(ctx context.Context, req resource.Create
 
 	data.ID = types.StringValue(restInfo.SID)
 
-	data.Members = memberSliceToLSet(ctx, restInfo.Members, &resp.Diagnostics)
+	data.Members = memberSliceToSet(ctx, restInfo.Members, &resp.Diagnostics)
 
 	tflog.Trace(ctx, "created a resource")
 
@@ -292,7 +292,7 @@ func (r *CifsLocalGroupResource) Update(ctx context.Context, req resource.Update
 		return
 	}
 
-	data.Members = memberSliceToLSet(ctx, restInfo.Members, &resp.Diagnostics)
+	data.Members = memberSliceToSet(ctx, restInfo.Members, &resp.Diagnostics)
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
