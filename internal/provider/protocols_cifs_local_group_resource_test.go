@@ -18,18 +18,18 @@ func TestAccCifsLocalGroupResource(t *testing.T) {
 				Config:      testAccCifsLocalGroupResourceConfigMissingVars("non-existant"),
 				ExpectError: regexp.MustCompile("Missing required argument"),
 			},
-			// // create with basic argument
-			// {
-			// 	Config: testAccCifsLocalGroupResourceConfig("ansibleSVM", "group1"),
-			// 	Check: resource.ComposeTestCheckFunc(
-			// 		// check name
-			// 		resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_local_group_resource.example1", "name", "group1"),
-			// 		// check svm_name
-			// 		resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_local_group_resource.example1", "svm_name", "ansibleSVM"),
-			// 		// check ID
-			// 		resource.TestCheckResourceAttrSet("netapp-ontap_protocols_cifs_local_group_resource.example1", "id"),
-			// 	),
-			// },
+			// create with basic argument
+			{
+				Config: testAccCifsLocalGroupResourceConfig("ansibleSVM", "group1"),
+				Check: resource.ComposeTestCheckFunc(
+					// check name
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_local_group_resource.example1", "name", "group1"),
+					// check svm_name
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_local_group_resource.example1", "svm_name", "ansibleSVM"),
+					// check ID
+					resource.TestCheckResourceAttrSet("netapp-ontap_protocols_cifs_local_group_resource.example1", "id"),
+				),
+			},
 			// update test
 			{
 				Config: testAccCifsLocalGroupResourceConfig("ansibleSVM", "newgroup"),
