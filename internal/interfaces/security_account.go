@@ -63,7 +63,6 @@ func GetSecurityAccountByName(errorHandler *utils.ErrorHandler, r restclient.Res
 	var response map[string]interface{}
 	var err error
 	if ownerName != "" {
-		query.Set("owner.name", ownerName)
 		statusCode, response, err = r.GetNilOrOneRecord("security/accounts/"+ownerName+"/"+name, query, nil)
 		if err != nil {
 			return nil, errorHandler.MakeAndReportError("Error occurred when getting security account", fmt.Sprintf("error on get security/account: %s", err))

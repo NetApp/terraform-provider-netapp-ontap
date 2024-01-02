@@ -11,13 +11,6 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
-// TODO:
-// copy this file to match you data source (should match internal/provider/security_account_data_source.go)
-// replace SecurityAccounts with the name of the resource, following go conventions, eg IPInterfaces
-// replace security_accounts with the name of the resource, for logging purposes, eg ip_interfaces
-// make sure to create internal/interfaces/security_account.go too)
-// delete these 5 lines
-
 // Ensure provider defined types fully satisfy framework interfaces
 var _ datasource.DataSource = &SecurityAccountsDataSource{}
 
