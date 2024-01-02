@@ -8,13 +8,6 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
-// TODO:
-// copy this file to match you data source (should match internal/interfaces/security_account.go)
-// replace SecurityAccount with the name of the resource, following go conventions, eg IPInterface
-// replace security_account with the name of the resource, for logging purposes, eg ip_interface
-// replace api_url with API, eg ip/interfaces
-// delete these 5 lines
-
 // SecurityAccountGetDataModelONTAP describes the GET record data model using go types for mapping.
 type SecurityAccountGetDataModelONTAP struct {
 	Name         string                       `mapstructure:"name"`
