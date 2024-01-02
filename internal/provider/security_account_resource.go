@@ -6,6 +6,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mitchellh/mapstructure"
@@ -85,7 +91,7 @@ func (r *SecurityAccountResource) Schema(ctx context.Context, req resource.Schem
 			},
 			"applications": schema.ListNestedAttribute{
 				MarkdownDescription: "List of applications",
-				Required:            true,
+				Optional:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"application": schema.StringAttribute{
@@ -95,6 +101,9 @@ func (r *SecurityAccountResource) Schema(ctx context.Context, req resource.Schem
 						"second_authentication_method": schema.StringAttribute{
 							MarkdownDescription: "Second authentication method",
 							Optional:            true,
+							Computed:            true,
+							Default:             stringdefault.StaticString("none"),
+							PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
 						},
 						"authentication_methods": schema.ListAttribute{
 							MarkdownDescription: "List of authentication methods",
@@ -111,6 +120,8 @@ func (r *SecurityAccountResource) Schema(ctx context.Context, req resource.Schem
 					"name": schema.StringAttribute{
 						MarkdownDescription: "Account owner name",
 						Optional:            true,
+						Computed:            true,
+						PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 					},
 				},
 			},
@@ -121,10 +132,12 @@ func (r *SecurityAccountResource) Schema(ctx context.Context, req resource.Schem
 			"role": schema.SingleNestedAttribute{
 				MarkdownDescription: "Account role",
 				Optional:            true,
+				PlanModifiers:       []planmodifier.Object{objectplanmodifier.UseStateForUnknown()},
 				Attributes: map[string]schema.Attribute{
 					"name": schema.StringAttribute{
 						MarkdownDescription: "Account role name",
 						Optional:            true,
+						PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 					},
 				},
 			},
@@ -144,6 +157,9 @@ func (r *SecurityAccountResource) Schema(ctx context.Context, req resource.Schem
 			"locked": schema.BoolAttribute{
 				MarkdownDescription: "Account locked",
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
+				PlanModifiers:       []planmodifier.Bool{boolplanmodifier.UseStateForUnknown()},
 			},
 			"id": schema.StringAttribute{
 				MarkdownDescription: "SecurityAccount id",
