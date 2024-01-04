@@ -119,6 +119,7 @@ func (d *SecurityAccountDataSource) Schema(ctx context.Context, req datasource.S
 			"scope": schema.StringAttribute{
 				MarkdownDescription: "SecurityAccount scope",
 				Computed:            true,
+				Optional:            true,
 			},
 			"applications": schema.ListNestedAttribute{
 				MarkdownDescription: "SecurityAccount applications",
@@ -179,17 +180,27 @@ func (d *SecurityAccountDataSource) Read(ctx context.Context, req datasource.Rea
 		// error reporting done inside NewClient
 		return
 	}
-
-	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.Owner.Name.ValueString())
-	if err != nil {
-		// error reporting done inside GetSvmByName
-		return
+	var svm *interfaces.SvmGetDataSourceModel
+	if data.Owner != nil {
+		svm, err = interfaces.GetSvmByName(errorHandler, *client, data.Owner.Name.ValueString())
+		if err != nil {
+			// error reporting done inside GetSvmByName
+			return
+		}
 	}
-
-	restInfo, err := interfaces.GetSecurityAccountByName(errorHandler, *client, data.Name.ValueString(), svm.UUID)
-	if err != nil {
-		// error reporting done inside GetSecurityAccount
-		return
+	var restInfo *interfaces.SecurityAccountGetDataModelONTAP
+	if svm == nil {
+		restInfo, err = interfaces.GetSecurityAccountByName(errorHandler, *client, data.Name.ValueString(), "")
+		if err != nil {
+			// error reporting done inside GetSecurityAccount
+			return
+		}
+	} else {
+		restInfo, err = interfaces.GetSecurityAccountByName(errorHandler, *client, data.Name.ValueString(), svm.UUID)
+		if err != nil {
+			// error reporting done inside GetSecurityAccount
+			return
+		}
 	}
 
 	data.Name = types.StringValue(restInfo.Name)
