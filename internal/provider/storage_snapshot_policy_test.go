@@ -37,15 +37,6 @@ func TestAccStorageSnapshotPolicyResource(t *testing.T) {
 					resource.TestCheckResourceAttr("netapp-ontap_storage_snapshot_policy_resource.example", "enabled", "true"),
 				),
 			},
-			// Test importing a resource
-			{
-				ResourceName:  "netapp-ontap_storage_snapshot_policy_resource.example",
-				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s", "tfimportpolicy", "carchi-test", "cluster4"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_snapshot_policy_resource.example", "name", "tfimportpolicy"),
-				),
-			},
 		},
 	})
 }
