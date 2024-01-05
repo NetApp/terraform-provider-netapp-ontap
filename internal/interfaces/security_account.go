@@ -8,6 +8,7 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
+// SecurityAccountResourceBodyDataModelONTAP describes the resource data model using go types for mapping.
 type SecurityAccountResourceBodyDataModelONTAP struct {
 	Name                       string                   `mapstructure:"name"`
 	Applications               []map[string]interface{} `mapstructure:"applications,omitempty"`
@@ -115,6 +116,7 @@ func GetSecurityAccounts(errorHandler *utils.ErrorHandler, r restclient.RestClie
 	return dataOntap, nil
 }
 
+// CreateSecurityAccount creates a security account.
 func CreateSecurityAccount(errorHandler *utils.ErrorHandler, r restclient.RestClient, body SecurityAccountResourceBodyDataModelONTAP) (*SecurityAccountGetDataModelONTAP, error) {
 	api := "security/accounts"
 	var bodyMap map[string]interface{}
@@ -136,6 +138,7 @@ func CreateSecurityAccount(errorHandler *utils.ErrorHandler, r restclient.RestCl
 	return &dataOntap, nil
 }
 
+// DeleteSecurityAccount deletes a security account.
 func DeleteSecurityAccount(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, ownerID string) error {
 	api := "security/accounts/" + ownerID + "/" + name
 	statusCode, _, err := r.CallDeleteMethod(api, nil, nil)
