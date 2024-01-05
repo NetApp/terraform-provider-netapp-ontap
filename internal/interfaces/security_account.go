@@ -88,6 +88,12 @@ func GetSecurityAccountByName(errorHandler *utils.ErrorHandler, r restclient.Res
 func GetSecurityAccounts(errorHandler *utils.ErrorHandler, r restclient.RestClient, svnName string, name string) ([]SecurityAccountGetDataModelONTAP, error) {
 	query := r.NewQuery()
 	query.Fields([]string{"name", "owner", "locked", "comment", "role", "scope", "applications"})
+	if svnName != "" {
+		query.Set("owner.name", svnName)
+	}
+	if name != "" {
+		query.Set("name", name)
+	}
 
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("security account filter: %+v", query))
 	statusCode, response, err := r.GetZeroOrMoreRecords("security/accounts", query, nil)
