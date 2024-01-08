@@ -9,17 +9,36 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
-// TODO:
-// copy this file to match you data source (should match internal/interfaces/storage_lun.go)
-// replace StorageLun with the name of the resource, following go conventions, eg IPInterface
-// replace storage_lun with the name of the resource, for logging purposes, eg ip_interface
-// replace api_url with API, eg ip/interfaces
-// delete these 5 lines
-
 // StorageLunGetDataModelONTAP describes the GET record data model using go types for mapping.
 type StorageLunGetDataModelONTAP struct {
-	Name string `mapstructure:"name"`
-	UUID string `mapstructure:"uuid"`
+	Name       string       `mapstructure:"name"`
+	UUID       string       `mapstructure:"uuid"`
+	SVMName    string       `mapstructure:"svm.name,omitempty"`
+	CreateTime string       `mapstructure:"create_time,omitempty"`
+	Location   LunLocation  `mapstructure:"location,omitempty"`
+	OSType     string       `mapstructure:"os_type,omitempty"`
+	QoSPolicy  LunQoSPolicy `mapstructure:"qos_policy,omitempty"`
+	Space      LunSpace     `mapstructure:"space,omitempty"`
+}
+
+type LunLocation struct {
+	LogicalUnit string    `mapstructure:"logical_unit,omitempty"`
+	Volume      LunVolume `mapstructure:"volume,omitempty"`
+}
+
+type LunVolume struct {
+	Name string `mapstructure:"name,omitempty"`
+	UUID string `mapstructure:"uuid,omitempty"`
+}
+
+type LunQoSPolicy struct {
+	Name string `mapstructure:"name,omitempty"`
+	UUID string `mapstructure:"uuid,omitempty"`
+}
+
+type LunSpace struct {
+	Size int64 `mapstructure:"size,omitempty"`
+	Used int64 `mapstructure:"used,omitempty"`
 }
 
 // StorageLunResourceBodyDataModelONTAP describes the body data model using go types for mapping.
@@ -41,7 +60,7 @@ func GetStorageLunByName(errorHandler *utils.ErrorHandler, r restclient.RestClie
 	query.Set("name", name)
 	query.Set("svm.name", svmName)
 	query.Set("location.volume.name", volumeName)
-	query.Fields([]string{"name", "svm.name", "ip", "scope"})
+	query.Fields([]string{"name", "svm.name", "create_time", "location", "os_type", "qos_policy", "space", "uuid"})
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
 		err = fmt.Errorf("no response for GET %s", api)
