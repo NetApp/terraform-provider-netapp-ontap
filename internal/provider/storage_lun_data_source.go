@@ -12,13 +12,6 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
-// TODO:
-// copy this file to match you data source (should match internal/provider/storage_lun_data_source.go)
-// replace StorageLun with the name of the resource, following go conventions, eg IPInterface
-// replace storage_lun with the name of the resource, for logging purposes, eg ip_interface
-// make sure to create internal/interfaces/storage_lun.go too)
-// delete these 5 lines
-
 // Ensure provider defined types fully satisfy framework interfaces
 var _ datasource.DataSource = &StorageLunDataSource{}
 
@@ -38,9 +31,39 @@ type StorageLunDataSource struct {
 
 // StorageLunDataSourceModel describes the data source data model.
 type StorageLunDataSourceModel struct {
-	CxProfileName types.String `tfsdk:"cx_profile_name"`
-	Name          types.String `tfsdk:"name"`
-	SVMName       types.String `tfsdk:"svm_name"`
+	CxProfileName types.String                       `tfsdk:"cx_profile_name"`
+	Name          types.String                       `tfsdk:"name"`
+	SVMName       types.String                       `tfsdk:"svm_name"`
+	CreationTime  types.String                       `tfsdk:"create_time"`
+	Location      StorageLunDataSourceLocationModel  `tfsdk:"location"`
+	OSType        types.String                       `tfsdk:"os_type"`
+	QoSPolicy     StorageLunDataSourceQoSPolicyModel `tfsdk:"qos_policy"`
+	Space         StorageLunDataSourceSpaceModel     `tfsdk:"space"`
+	ID            types.String                       `tfsdk:"id"`
+}
+
+// StorageLunDataSourceLocationModel describes the data source data model for queries.
+type StorageLunDataSourceLocationModel struct {
+	LogicalUnit types.String                    `tfsdk:"logical_unit"`
+	Volume      StorageLunDataSourceVolumeModel `tfsdk:"volume"`
+}
+
+// StorageLunDataSourceVolumeModel describes the data source data model for queries.
+type StorageLunDataSourceVolumeModel struct {
+	Name types.String `tfsdk:"name"`
+	UUID types.String `tfsdk:"uuid"`
+}
+
+// StorageLunDataSourceQoSPolicyModel describes the data source data model for queries.
+type StorageLunDataSourceQoSPolicyModel struct {
+	Name types.String `tfsdk:"name"`
+	UUID types.String `tfsdk:"uuid"`
+}
+
+// StorageLunDataSourceSpaceModel describes the data source data model for queries.
+type StorageLunDataSourceSpaceModel struct {
+	Size types.Number `tfsdk:"size"`
+	Used types.Number `tfsdk:"used"`
 }
 
 // Metadata returns the data source type name.
@@ -60,12 +83,68 @@ func (d *StorageLunDataSource) Schema(ctx context.Context, req datasource.Schema
 				Required:            true,
 			},
 			"name": schema.StringAttribute{
-				MarkdownDescription: "StorageLun name",
+				MarkdownDescription: "Name for lun",
 				Required:            true,
 			},
 			"svm_name": schema.StringAttribute{
-				MarkdownDescription: "IPInterface svm name",
-				Optional:            true,
+				MarkdownDescription: "svm name for lun",
+				Required:            true,
+			},
+			"create_time": schema.StringAttribute{
+				MarkdownDescription: "Time when the lun was created",
+				Computed:            true,
+			},
+			"location": schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"logical_unit": schema.StringAttribute{
+						MarkdownDescription: "Logical unit name",
+						Computed:            true,
+					},
+					"volume": schema.SingleNestedAttribute{
+						Attributes: map[string]schema.Attribute{
+							"name": schema.StringAttribute{
+								MarkdownDescription: "Volume name",
+								Required:            true,
+							},
+							"uuid": schema.StringAttribute{
+								MarkdownDescription: "Volume uuid",
+								Computed:            true,
+							},
+						},
+					},
+				},
+			},
+			"os_type": schema.StringAttribute{
+				MarkdownDescription: "OS type for lun",
+				Computed:            true,
+			},
+			"qos_policy": schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"name": schema.StringAttribute{
+						MarkdownDescription: "QoS policy name",
+						Computed:            true,
+					},
+					"uuid": schema.StringAttribute{
+						MarkdownDescription: "QoS policy uuid",
+						Computed:            true,
+					},
+				},
+			},
+			"space": schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"size": schema.NumberAttribute{
+						MarkdownDescription: "Size of the lun",
+						Computed:            true,
+					},
+					"used": schema.NumberAttribute{
+						MarkdownDescription: "Used space of the lun",
+						Computed:            true,
+					},
+				},
+			},
+			"id": schema.StringAttribute{
+				MarkdownDescription: "Lun uuid",
+				Computed:            true,
 			},
 		},
 	}
@@ -106,7 +185,7 @@ func (d *StorageLunDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		return
 	}
 
-	restInfo, err := interfaces.GetStorageLunByName(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString())
+	restInfo, err := interfaces.GetStorageLunByName(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString(), data.Location.Volume.Name.ValueString())
 	if err != nil {
 		// error reporting done inside GetStorageLun
 		return
