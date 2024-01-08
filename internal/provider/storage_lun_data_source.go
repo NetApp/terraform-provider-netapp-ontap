@@ -31,21 +31,21 @@ type StorageLunDataSource struct {
 
 // StorageLunDataSourceModel describes the data source data model.
 type StorageLunDataSourceModel struct {
-	CxProfileName types.String                       `tfsdk:"cx_profile_name"`
-	Name          types.String                       `tfsdk:"name"`
-	SVMName       types.String                       `tfsdk:"svm_name"`
-	CreationTime  types.String                       `tfsdk:"create_time"`
-	Location      StorageLunDataSourceLocationModel  `tfsdk:"location"`
-	OSType        types.String                       `tfsdk:"os_type"`
-	QoSPolicy     StorageLunDataSourceQoSPolicyModel `tfsdk:"qos_policy"`
-	Space         StorageLunDataSourceSpaceModel     `tfsdk:"space"`
-	ID            types.String                       `tfsdk:"id"`
+	CxProfileName types.String                        `tfsdk:"cx_profile_name"`
+	Name          types.String                        `tfsdk:"name"`
+	SVMName       types.String                        `tfsdk:"svm_name"`
+	CreationTime  types.String                        `tfsdk:"create_time"`
+	Location      *StorageLunDataSourceLocationModel  `tfsdk:"location"`
+	OSType        types.String                        `tfsdk:"os_type"`
+	QoSPolicy     *StorageLunDataSourceQoSPolicyModel `tfsdk:"qos_policy"`
+	Space         *StorageLunDataSourceSpaceModel     `tfsdk:"space"`
+	ID            types.String                        `tfsdk:"id"`
 }
 
 // StorageLunDataSourceLocationModel describes the data source data model for queries.
 type StorageLunDataSourceLocationModel struct {
-	LogicalUnit types.String                    `tfsdk:"logical_unit"`
-	Volume      StorageLunDataSourceVolumeModel `tfsdk:"volume"`
+	LogicalUnit types.String                     `tfsdk:"logical_unit"`
+	Volume      *StorageLunDataSourceVolumeModel `tfsdk:"volume"`
 }
 
 // StorageLunDataSourceVolumeModel describes the data source data model for queries.
@@ -62,8 +62,8 @@ type StorageLunDataSourceQoSPolicyModel struct {
 
 // StorageLunDataSourceSpaceModel describes the data source data model for queries.
 type StorageLunDataSourceSpaceModel struct {
-	Size types.Number `tfsdk:"size"`
-	Used types.Number `tfsdk:"used"`
+	Size types.Int64 `tfsdk:"size"`
+	Used types.Int64 `tfsdk:"used"`
 }
 
 // Metadata returns the data source type name.
@@ -95,12 +95,16 @@ func (d *StorageLunDataSource) Schema(ctx context.Context, req datasource.Schema
 				Computed:            true,
 			},
 			"location": schema.SingleNestedAttribute{
+				Computed: true,
+				Optional: true,
 				Attributes: map[string]schema.Attribute{
 					"logical_unit": schema.StringAttribute{
 						MarkdownDescription: "Logical unit name",
 						Computed:            true,
 					},
 					"volume": schema.SingleNestedAttribute{
+						Computed: true,
+						Optional: true,
 						Attributes: map[string]schema.Attribute{
 							"name": schema.StringAttribute{
 								MarkdownDescription: "Volume name",
@@ -119,6 +123,7 @@ func (d *StorageLunDataSource) Schema(ctx context.Context, req datasource.Schema
 				Computed:            true,
 			},
 			"qos_policy": schema.SingleNestedAttribute{
+				Computed: true,
 				Attributes: map[string]schema.Attribute{
 					"name": schema.StringAttribute{
 						MarkdownDescription: "QoS policy name",
@@ -131,12 +136,13 @@ func (d *StorageLunDataSource) Schema(ctx context.Context, req datasource.Schema
 				},
 			},
 			"space": schema.SingleNestedAttribute{
+				Computed: true,
 				Attributes: map[string]schema.Attribute{
-					"size": schema.NumberAttribute{
+					"size": schema.Int64Attribute{
 						MarkdownDescription: "Size of the lun",
 						Computed:            true,
 					},
-					"used": schema.NumberAttribute{
+					"used": schema.Int64Attribute{
 						MarkdownDescription: "Used space of the lun",
 						Computed:            true,
 					},
@@ -168,6 +174,7 @@ func (d *StorageLunDataSource) Configure(ctx context.Context, req datasource.Con
 
 // Read refreshes the Terraform state with the latest data.
 func (d *StorageLunDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	tflog.Debug(ctx, fmt.Sprintf("carchi7py read a data source"))
 	var data StorageLunDataSourceModel
 
 	// Read Terraform configuration data into the model
@@ -176,6 +183,8 @@ func (d *StorageLunDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("carchi7py read a data source: %#v", data))
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
@@ -191,7 +200,24 @@ func (d *StorageLunDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		return
 	}
 
+	tflog.Debug(ctx, fmt.Sprintf("carchi7py read a rest info source: %#v", restInfo))
 	data.Name = types.StringValue(restInfo.Name)
+	data.CreationTime = types.StringValue(restInfo.CreateTime)
+	data.Location.LogicalUnit = types.StringValue(restInfo.Location.LogicalUnit)
+	data.Location.Volume.Name = types.StringValue(restInfo.Location.Volume.Name)
+	data.Location.Volume.UUID = types.StringValue(restInfo.Location.Volume.UUID)
+	data.OSType = types.StringValue(restInfo.OSType)
+	if restInfo.QoSPolicy.Name != "" {
+		data.QoSPolicy.Name = types.StringValue(restInfo.QoSPolicy.Name)
+	}
+	if restInfo.QoSPolicy.UUID != "" {
+		data.QoSPolicy.UUID = types.StringValue(restInfo.QoSPolicy.UUID)
+	}
+	data.Space = &StorageLunDataSourceSpaceModel{
+		Size: types.Int64Value(restInfo.Space.Size),
+		Used: types.Int64Value(restInfo.Space.Used),
+	}
+	data.ID = types.StringValue(restInfo.UUID)
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
