@@ -35,16 +35,12 @@ type StorageLunDataSourceFilterModel struct {
 }
 
 // GetStorageLunByName to get storage_lun info
-func GetStorageLunByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, svmName string) (*StorageLunGetDataModelONTAP, error) {
-	api := "api_url"
+func GetStorageLunByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, svmName string, volumeName string) (*StorageLunGetDataModelONTAP, error) {
+	api := "storage/luns"
 	query := r.NewQuery()
 	query.Set("name", name)
-	if svmName == "" {
-		query.Set("scope", "cluster")
-	} else {
-		query.Set("svm.name", svmName)
-		query.Set("scope", "svm")
-	}
+	query.Set("svm.name", svmName)
+	query.Set("location.volume.name", volumeName)
 	query.Fields([]string{"name", "svm.name", "ip", "scope"})
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
