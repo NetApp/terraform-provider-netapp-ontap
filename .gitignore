@@ -2,3 +2,4 @@
 *.tfstate
 *.DS_Store
 *test/
+*.tfstate.backup
