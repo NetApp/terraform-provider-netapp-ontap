@@ -2,11 +2,12 @@
 
 org_dir=$(pwd)
 export TF_ACC=1
-#export TF_ACC_NETAPP_HOST="<Host1>"
-#export TF_ACC_NETAPP_HOST2="<host2>>"
-#export TF_ACC_NETAPP_USER="admin"
-#export TF_ACC_NETAPP_PASS="<password>"
-#export TF_ACC_NETAPP_LICENSE="<licensekey>"
+export TF_ACC_NETAPP_HOST="10.193.180.108"
+export TF_ACC_NETAPP_HOST2="10.193.176.186"
+export TF_ACC_NETAPP_HOST3="10.193.176.186"
+export TF_ACC_NETAPP_USER="admin"
+export TF_ACC_NETAPP_PASS="netapp1!"
+export TF_ACC_NETAPP_LICENSE="SMEXXDBBVAAAAAAAAAAAAAAAAAAA"
 
 rm -rf $org_dir/test
 mkdir $org_dir/test
