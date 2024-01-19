@@ -49,8 +49,9 @@ type StorageLunResourceBodyDataModelONTAP struct {
 
 // StorageLunDataSourceFilterModel describes the data source data model for queries.
 type StorageLunDataSourceFilterModel struct {
-	Name    string `mapstructure:"name"`
-	SVMName string `mapstructure:"svm.name"`
+	Name       string `mapstructure:"name"`
+	SVMName    string `mapstructure:"svm.name"`
+	VolumeName string `mapstructure:"location.volume.name"`
 }
 
 // GetStorageLunByName to get storage_lun info
@@ -80,15 +81,19 @@ func GetStorageLunByName(errorHandler *utils.ErrorHandler, r restclient.RestClie
 
 // GetStorageLuns to get storage_lun info for all resources matching a filter
 func GetStorageLuns(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *StorageLunDataSourceFilterModel) ([]StorageLunGetDataModelONTAP, error) {
-	api := "api_url"
+	api := "storage/luns"
 	query := r.NewQuery()
-	query.Fields([]string{"name", "svm.name", "scope"})
+	query.Fields([]string{"name", "svm.name", "create_time", "location", "os_type", "qos_policy", "space", "uuid"})
 	if filter != nil {
-		var filterMap map[string]interface{}
-		if err := mapstructure.Decode(filter, &filterMap); err != nil {
-			return nil, errorHandler.MakeAndReportError("error encoding storage_luns filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
+		if filter.Name != "" {
+			query.Add("name", filter.Name)
 		}
-		query.SetValues(filterMap)
+		if filter.SVMName != "" {
+			query.Add("svm.name", filter.SVMName)
+		}
+		if filter.VolumeName != "" {
+			query.Add("location.volume.name", filter.VolumeName)
+		}
 	}
 	statusCode, response, err := r.GetZeroOrMoreRecords(api, query, nil)
 	if err == nil && response == nil {
