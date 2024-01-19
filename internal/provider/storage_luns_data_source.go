@@ -12,13 +12,6 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
-// TODO:
-// copy this file to match you data source (should match internal/provider/storage_lun_data_source.go)
-// replace StorageLuns with the name of the resource, following go conventions, eg IPInterfaces
-// replace storage_luns with the name of the resource, for logging purposes, eg ip_interfaces
-// make sure to create internal/interfaces/storage_lun.go too)
-// delete these 5 lines
-
 // Ensure provider defined types fully satisfy framework interfaces
 var _ datasource.DataSource = &StorageLunsDataSource{}
 
@@ -39,14 +32,15 @@ type StorageLunsDataSource struct {
 // StorageLunsDataSourceModel describes the data source data model.
 type StorageLunsDataSourceModel struct {
 	CxProfileName types.String                      `tfsdk:"cx_profile_name"`
-	StorageLuns   []StorageLunDataSourceModel         `tfsdk:"storage_luns"`
+	StorageLuns   []StorageLunDataSourceModel       `tfsdk:"storage_luns"`
 	Filter        *StorageLunsDataSourceFilterModel `tfsdk:"filter"`
 }
 
 // StorageLunsDataSourceFilterModel describes the data source data model for queries.
 type StorageLunsDataSourceFilterModel struct {
-	Name    types.String `tfsdk:"name"`
-	SVMName types.String `tfsdk:"svm_name"`
+	Name       types.String `tfsdk:"name"`
+	SVMName    types.String `tfsdk:"svm_name"`
+	VolumeName types.String `tfsdk:"volume_name"`
 }
 
 // Metadata returns the data source type name.
@@ -75,6 +69,10 @@ func (d *StorageLunsDataSource) Schema(ctx context.Context, req datasource.Schem
 						MarkdownDescription: "StorageLun svm name",
 						Optional:            true,
 					},
+					"volume_name": schema.StringAttribute{
+						MarkdownDescription: "StorageLun volume name",
+						Optional:            true,
+					},
 				},
 				Optional: true,
 			},
@@ -83,11 +81,75 @@ func (d *StorageLunsDataSource) Schema(ctx context.Context, req datasource.Schem
 					Attributes: map[string]schema.Attribute{
 						"cx_profile_name": schema.StringAttribute{
 							MarkdownDescription: "Connection profile name",
-							Required:            true,
+							Computed:            true,
 						},
 						"name": schema.StringAttribute{
 							MarkdownDescription: "StorageLun name",
-							Required:            true,
+							Computed:            true,
+						},
+						"svm_name": schema.StringAttribute{
+							MarkdownDescription: "StorageLun svm name",
+							Computed:            true,
+						},
+						"create_time": schema.StringAttribute{
+							MarkdownDescription: "Time when the lun was created",
+							Computed:            true,
+						},
+						"location": schema.SingleNestedAttribute{
+							Computed: true,
+							Attributes: map[string]schema.Attribute{
+								"logical_unit": schema.StringAttribute{
+									MarkdownDescription: "Logical unit name",
+									Computed:            true,
+								},
+								"volume": schema.SingleNestedAttribute{
+									Computed: true,
+									Attributes: map[string]schema.Attribute{
+										"name": schema.StringAttribute{
+											MarkdownDescription: "Volume name",
+											Computed:            true,
+										},
+										"uuid": schema.StringAttribute{
+											MarkdownDescription: "Volume uuid",
+											Computed:            true,
+										},
+									},
+								},
+							},
+						},
+						"os_type": schema.StringAttribute{
+							MarkdownDescription: "OS type for lun",
+							Computed:            true,
+						},
+						"qos_policy": schema.SingleNestedAttribute{
+							Computed: true,
+							Attributes: map[string]schema.Attribute{
+								"name": schema.StringAttribute{
+									MarkdownDescription: "QoS policy name",
+									Computed:            true,
+								},
+								"uuid": schema.StringAttribute{
+									MarkdownDescription: "QoS policy uuid",
+									Computed:            true,
+								},
+							},
+						},
+						"space": schema.SingleNestedAttribute{
+							Computed: true,
+							Attributes: map[string]schema.Attribute{
+								"size": schema.Int64Attribute{
+									MarkdownDescription: "Size of lun in bytes",
+									Computed:            true,
+								},
+								"used": schema.Int64Attribute{
+									MarkdownDescription: "Used space of lun in bytes",
+									Computed:            true,
+								},
+							},
+						},
+						"id": schema.StringAttribute{
+							MarkdownDescription: "StorageLun UUID",
+							Computed:            true,
 						},
 					},
 				},
@@ -136,7 +198,9 @@ func (d *StorageLunsDataSource) Read(ctx context.Context, req datasource.ReadReq
 	var filter *interfaces.StorageLunDataSourceFilterModel = nil
 	if data.Filter != nil {
 		filter = &interfaces.StorageLunDataSourceFilterModel{
-			Name: data.Filter.Name.ValueString(),
+			Name:       data.Filter.Name.ValueString(),
+			SVMName:    data.Filter.SVMName.ValueString(),
+			VolumeName: data.Filter.VolumeName.ValueString(),
 		}
 	}
 	restInfo, err := interfaces.GetStorageLuns(errorHandler, *client, filter)
@@ -150,6 +214,25 @@ func (d *StorageLunsDataSource) Read(ctx context.Context, req datasource.ReadReq
 		data.StorageLuns[index] = StorageLunDataSourceModel{
 			CxProfileName: types.String(data.CxProfileName),
 			Name:          types.StringValue(record.Name),
+			SVMName:       types.StringValue(record.SVMName),
+			CreationTime:  types.StringValue(record.CreateTime),
+			Location: &StorageLunDataSourceLocationModel{
+				LogicalUnit: types.StringValue(record.Location.LogicalUnit),
+				Volume: &StorageLunDataSourceVolumeModel{
+					Name: types.StringValue(record.Location.Volume.Name),
+					UUID: types.StringValue(record.Location.Volume.UUID),
+				},
+			},
+			OSType: types.StringValue(record.OSType),
+			QoSPolicy: &StorageLunDataSourceQoSPolicyModel{
+				Name: types.StringValue(record.QoSPolicy.Name),
+				UUID: types.StringValue(record.QoSPolicy.UUID),
+			},
+			Space: &StorageLunDataSourceSpaceModel{
+				Size: types.Int64Value(record.Space.Size),
+				Used: types.Int64Value(record.Space.Used),
+			},
+			ID: types.StringValue(record.UUID),
 		}
 	}
 
