@@ -7,6 +7,8 @@ FEATURES:
 * **New Data Source:** `netapp_ontap_cluster_peers_data_source` ([#50](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/50))
 * **New Data Source:** `netapp-ontap_protocols_cifs_local_user_data_source` ([#55](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/55))
 * **New Data Source:** `netapp-ontap_protocols_cifs_local_users_data_source` ([#55](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/55))
+* **New Data Source:** `netapp-ontap_protocols_cifs_user_group_privilege_data_source` ([#57](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/57))
+* **New Data Source:** `netapp-ontap_protocols_cifs_user_group_privileges_data_source` ([#57](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/57))
 
 
 ENHANCEMENTS:
