@@ -12,13 +12,6 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
-// TODO:
-// copy this file to match you data source (should match internal/provider/protocols_cifs_user_group_privilege_data_source.go)
-// replace CifsUserGroupPrivileges with the name of the resource, following go conventions, eg IPInterfaces
-// replace protocols_cifs_user_group_privileges with the name of the resource, for logging purposes, eg ip_interfaces
-// make sure to create internal/interfaces/protocols_cifs_user_group_privilege.go too)
-// delete these 5 lines
-
 // Ensure provider defined types fully satisfy framework interfaces
 var _ datasource.DataSource = &CifsUserGroupPrivilegesDataSource{}
 

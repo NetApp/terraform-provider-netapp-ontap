@@ -9,13 +9,6 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
-// TODO:
-// copy this file to match you data source (should match internal/interfaces/protocols_cifs_user_group_privilege.go)
-// replace CifsUserGroupPrivilege with the name of the resource, following go conventions, eg IPInterface
-// replace protocols_cifs_user_group_privilege with the name of the resource, for logging purposes, eg ip_interface
-// replace api_url with API, eg ip/interfaces
-// delete these 5 lines
-
 // CifsUserGroupPrivilegeGetDataModelONTAP describes the GET record data model using go types for mapping.
 type CifsUserGroupPrivilegeGetDataModelONTAP struct {
 	Name string `mapstructure:"name"`
