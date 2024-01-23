@@ -37,7 +37,7 @@ type CifsLocalUserResource struct {
 	config resourceOrDataSourceConfig
 }
 
-// GroupMember describes the data source data model.
+// UserMember describes the data source data model.
 type UserMember struct {
 	Name types.String `tfsdk:"name"`
 }
@@ -144,8 +144,8 @@ func (o UserMember) attrTypes() map[string]attr.Type {
 	}
 }
 
-// memberSliceToSet converts a slice of UserMember to a types.Set
-func memberSliceToSet(ctx context.Context, membersSliceIn []interfaces.Membership, diags *diag.Diagnostics) types.Set {
+// membershipSliceToSet converts a slice of UserMember to a types.Set
+func membershipSliceToSet(ctx context.Context, membersSliceIn []interfaces.Membership, diags *diag.Diagnostics) types.Set {
 	members := make([]UserMember, len(membersSliceIn))
 	for i, member := range membersSliceIn {
 		members[i].Name = types.StringValue(member.Name)
@@ -200,7 +200,7 @@ func (r *CifsLocalUserResource) Read(ctx context.Context, req resource.ReadReque
 	}
 
 	data.SVMName = types.StringValue(svm.Name)
-	data.Membership = memberSliceToSet(ctx, restInfo.Membership, &resp.Diagnostics)
+	data.Membership = membershipSliceToSet(ctx, restInfo.Membership, &resp.Diagnostics)
 
 	// name in formate xxx\xxx from GET record
 	if !strings.Contains(restInfo.Name, "\\") {
@@ -277,7 +277,7 @@ func (r *CifsLocalUserResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 	data.ID = types.StringValue(restInfo.SID)
-	data.Membership = memberSliceToSet(ctx, restInfo.Membership, &resp.Diagnostics)
+	data.Membership = membershipSliceToSet(ctx, restInfo.Membership, &resp.Diagnostics)
 
 	tflog.Trace(ctx, "created a resource")
 
@@ -345,7 +345,7 @@ func (r *CifsLocalUserResource) Update(ctx context.Context, req resource.UpdateR
 		// error reporting done inside GetCifsLocalGroup
 		return
 	}
-	data.Membership = memberSliceToSet(ctx, restInfo.Membership, &resp.Diagnostics)
+	data.Membership = membershipSliceToSet(ctx, restInfo.Membership, &resp.Diagnostics)
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
