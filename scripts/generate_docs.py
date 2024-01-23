@@ -14,7 +14,9 @@ CATAGORYS = {
         "cluster_licensing_license_resource.md"],
     'nas': [
         "protocols_cifs_local_group_data_source.md",
+        "protocols_cifs_local_group_resource.md",
         "protocols_cifs_local_user_data_source.md",
+        "protocols_cifs_local_user_resource.md",
         "protocols_nfs_service_data_source.md",
         "protocols_nfs_service_resource.md",
         "protocols_nfs_export_policy_resource.md",
