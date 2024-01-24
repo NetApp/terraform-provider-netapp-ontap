@@ -7,9 +7,12 @@ FEATURES:
 * **New Data Source:** `netapp_ontap_cluster_peers_data_source` ([#50](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/50))
 * **New Data Source:** `netapp-ontap_protocols_cifs_local_user_data_source` ([#55](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/55))
 * **New Data Source:** `netapp-ontap_protocols_cifs_local_users_data_source` ([#55](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/55))
-* **New Resource:** `netapp-ontap_protocols_cifs_local_group_resource` ([#53](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/53))
+* **New Data Source** `netapp-ontap_security_account_data_source` ([#22](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/22))
+* **New Data Source** `netapp-ontap_security_accounts_data_source` ([#22](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/22))
 * **New Data Source:** `netapp-ontap_protocols_cifs_user_group_privilege_data_source` ([#57](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/57))
 * **New Data Source:** `netapp-ontap_protocols_cifs_user_group_privileges_data_source` ([#57](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/57))
+* **New Resource:** `netapp-ontap_protocols_cifs_local_group_resource` ([#53](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/53))
+
 
 ENHANCEMENTS:
 * **netapp-ontap_protocols_nfs_export_policy_resource**: Add support for import ([#34](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/34))
