@@ -18,6 +18,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
+	"strings"
 )
 
 // TODO:
@@ -193,14 +194,26 @@ func (r *SnapshotPolicyResource) Read(ctx context.Context, req resource.ReadRequ
 		// error reporting done inside NewClient
 		return
 	}
-	restInfo, err := interfaces.GetSnapshotPolicy(errorHandler, *client, data.ID.ValueString())
-	if err != nil {
-		// error reporting done inside GetSnapshotPolicy
-		return
-	}
-	if restInfo == nil {
-		errorHandler.MakeAndReportError("No snapshot policy found", fmt.Sprintf("snapshot policy  %s not found.", data.Name.ValueString()))
-		return
+	var restInfo *interfaces.SnapshotPolicyGetDataModelONTAP
+	if data.ID.ValueString() == "" {
+		restInfo, err = interfaces.GetSnapshotPolicyByName(errorHandler, *client, data.Name.ValueString())
+		if err != nil {
+			return
+		}
+		if restInfo == nil {
+			errorHandler.MakeAndReportError("No snapshot policy found", fmt.Sprintf("snapshot policy  %s not found.", data.Name.ValueString()))
+			return
+		}
+	} else {
+		restInfo, err = interfaces.GetSnapshotPolicy(errorHandler, *client, data.ID.ValueString())
+		if err != nil {
+			// error reporting done inside GetSnapshotPolicy
+			return
+		}
+		if restInfo == nil {
+			errorHandler.MakeAndReportError("No snapshot policy found", fmt.Sprintf("snapshot policy  %s not found.", data.Name.ValueString()))
+			return
+		}
 	}
 	data.Name = types.StringValue(restInfo.Name)
 	data.ID = types.StringValue(restInfo.UUID)
@@ -351,5 +364,15 @@ func (r *SnapshotPolicyResource) Delete(ctx context.Context, req resource.Delete
 
 // ImportState imports a resource using ID from terraform import command by calling the Read method.
 func (r *SnapshotPolicyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	idParts := strings.Split(req.ID, ",")
+	if len(idParts) != 3 || idParts[0] == "" || idParts[1] == "" || idParts[2] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: name,svm_name,cx_profile_name. Got: %q", req.ID),
+		)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("svm_name"), idParts[1])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[2])...)
 }
