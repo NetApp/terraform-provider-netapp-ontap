@@ -15,18 +15,19 @@ type CifsLocalGroupGetDataModelONTAP struct {
 	SID         string   `mapstructure:"sid"`
 	SVM         svm      `mapstructure:"svm"`
 	Description string   `mapstructure:"description"`
-	Members     []member `mapstructure:"members"`
+	Members     []Member `mapstructure:"members,omitempty"`
 }
 
-// member
-type member struct {
+// Member describes the GET record data model using go types for mapping.
+type Member struct {
 	Name string `mapstructure:"name"`
 }
 
 // CifsLocalGroupResourceBodyDataModelONTAP describes the body data model using go types for mapping.
 type CifsLocalGroupResourceBodyDataModelONTAP struct {
-	Name string `mapstructure:"name"`
-	SVM  svm    `mapstructure:"svm"`
+	Name        string `mapstructure:"name,omitempty"`
+	SVM         svm    `mapstructure:"svm,omitempty"`
+	Description string `mapstructure:"description,omitempty"`
 }
 
 // CifsLocalGroupDataSourceFilterModel describes the data source data model for queries.
@@ -91,4 +92,79 @@ func GetCifsLocalGroups(errorHandler *utils.ErrorHandler, r restclient.RestClien
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read protocols_cifs_local_groups data source: %#v", dataONTAP))
 	return dataONTAP, nil
+}
+
+// GetCifsLocalGroup to get protocols_cifs_local_group info
+func GetCifsLocalGroup(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmid string, sid string) (*CifsLocalGroupGetDataModelONTAP, error) {
+	api := "protocols/cifs/local-groups"
+	query := r.NewQuery()
+
+	query.Fields([]string{"name", "svm.name", "description", "members"})
+	statusCode, response, err := r.GetNilOrOneRecord(api+"/"+svmid+"/"+sid, query, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading protocols_cifs_local_group info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
+	}
+
+	var dataONTAP CifsLocalGroupGetDataModelONTAP
+	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
+		return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
+			fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read protocols_cifs_local_group data source: %#v", dataONTAP))
+	return &dataONTAP, nil
+}
+
+// CreateCifsLocalGroup to create protocols_cifs_local_group
+func CreateCifsLocalGroup(errorHandler *utils.ErrorHandler, r restclient.RestClient, body CifsLocalGroupResourceBodyDataModelONTAP) (*CifsLocalGroupGetDataModelONTAP, error) {
+	api := "protocols/cifs/local-groups"
+	var bodyMap map[string]interface{}
+	if err := mapstructure.Decode(body, &bodyMap); err != nil {
+		return nil, errorHandler.MakeAndReportError("error encoding protocols_cifs_local_group body", fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body))
+	}
+	query := r.NewQuery()
+	query.Add("return_records", "true")
+	statusCode, response, err := r.CallCreateMethod(api, query, bodyMap)
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error creating protocols_cifs_local_group", fmt.Sprintf("error on POST %s: %s, statusCode %d", api, err, statusCode))
+	}
+
+	var dataONTAP CifsLocalGroupGetDataModelONTAP
+	if err := mapstructure.Decode(response.Records[0], &dataONTAP); err != nil {
+		return nil, errorHandler.MakeAndReportError("error decoding protocols_cifs_local_group info", fmt.Sprintf("error on decode storage/protocols_cifs_local_groups info: %s, statusCode %d, response %#v", err, statusCode, response))
+	}
+	// Create API does not return the ID of the record, so we need to read it again later
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Create protocols_cifs_local_group source - udata: %#v", dataONTAP))
+	return &dataONTAP, nil
+}
+
+// DeleteCifsLocalGroup to delete protocols_cifs_local_group
+func DeleteCifsLocalGroup(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmid string, uuid string) error {
+	api := "protocols/cifs/local-groups"
+	statusCode, _, err := r.CallDeleteMethod(api+"/"+svmid+"/"+uuid, nil, nil)
+	if err != nil {
+		return errorHandler.MakeAndReportError("error deleting protocols_cifs_local_group", fmt.Sprintf("error on DELETE %s: %s, statusCode %d", api, err, statusCode))
+	}
+	return nil
+}
+
+// UpdateCifsLocalGroup to update protocols_cifs_local_group
+func UpdateCifsLocalGroup(errorHandler *utils.ErrorHandler, r restclient.RestClient, body CifsLocalGroupResourceBodyDataModelONTAP, svmid string, uuid string) (*CifsLocalGroupGetDataModelONTAP, error) {
+	api := "protocols/cifs/local-groups"
+	var bodyMap map[string]interface{}
+	if err := mapstructure.Decode(body, &bodyMap); err != nil {
+		return nil, errorHandler.MakeAndReportError("error encoding protocols_cifs_local_group body", fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body))
+	}
+	query := r.NewQuery()
+	query.Add("return_records", "true")
+	statusCode, response, err := r.CallUpdateMethod(api+"/"+svmid+"/"+uuid, query, bodyMap)
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error updating protocols_cifs_local_group", fmt.Sprintf("error on PUT %s: %s, statusCode %d", api, err, statusCode))
+	}
+	// Update API does not return a record, so we need to read it again later
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Update protocols_cifs_local_group resource - response status=%#v, response=%#v", statusCode, response))
+
+	return nil, nil
 }
