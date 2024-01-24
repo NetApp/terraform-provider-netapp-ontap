@@ -87,9 +87,9 @@ Required:
 - `name` (String) Some common schedules already defined in the system are hourly, daily, weekly, at 15 minute intervals, and at 5 minute intervals. Snapshot copy policies with custom schedules can be referenced
 
 ## Import
-This Resource supports import, which allows you to import existing storage snapshot policy into the state of this resoruce.
-Import require a unique ID composed of the snapshot policy name, svm_name and cx_profile_name, separated by a comma.
-id = `name`,`svm_name`,`cx_profile_name`
+ This Resource supports import, which allows you to import existing storage snapshot policy into the state of this resoruce.
+ Import require a unique ID composed of the snapshot policy name, svm_name and cx_profile_name, separated by a comma.
+ id = `name`,`svm_name`,`cx_profile_name`
 ### Terraform Import
 For example
  ```shell
