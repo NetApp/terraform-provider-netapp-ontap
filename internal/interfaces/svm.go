@@ -100,7 +100,7 @@ func GetSvmByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, nam
 	return dataONTAP, nil
 }
 
-// GetSvmByName to get svm info by name
+// GetSvmByNameIgnoreNotFound to get svm info by name
 func GetSvmByNameIgnoreNotFound(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string) (*SvmGetDataSourceModel, error) {
 	query := r.NewQuery()
 	query.Add("name", name)
