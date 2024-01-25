@@ -247,7 +247,9 @@ func (r *SecurityAccountResource) Read(ctx context.Context, req resource.ReadReq
 	data.Owner = objectValue
 	data.OwnerID = types.StringValue(restInfo.Owner.UUID)
 	data.Locked = types.BoolValue(restInfo.Locked)
-	data.Comment = types.StringValue(restInfo.Comment)
+	if restInfo.Comment != "" {
+		data.Comment = types.StringValue(restInfo.Comment)
+	}
 	elementTypes = map[string]attr.Type{
 		"name": types.StringType,
 	}
