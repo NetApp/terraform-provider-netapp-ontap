@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -13,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
@@ -44,7 +46,7 @@ type SecurityAccountResourceModel struct {
 	ID                         types.String                `tfsdk:"id"`
 	OwnerID                    types.String                `tfsdk:"owner_id"`
 	Applications               []ApplicationsResourceModel `tfsdk:"applications"`
-	Owner                      *OwnerResourceModel         `tfsdk:"owner"`
+	Owner                      types.Object                `tfsdk:"owner"`
 	Role                       *RoleResourceModel          `tfsdk:"role"`
 	Password                   types.String                `tfsdk:"password"`
 	SecondAuthenticationMethod types.String                `tfsdk:"second_authentication_method"`
@@ -116,12 +118,12 @@ func (r *SecurityAccountResource) Schema(ctx context.Context, req resource.Schem
 			"owner": schema.SingleNestedAttribute{
 				MarkdownDescription: "Account owner",
 				Optional:            true,
+				Computed:            true,
 				Attributes: map[string]schema.Attribute{
 					"name": schema.StringAttribute{
 						MarkdownDescription: "Account owner name",
 						Optional:            true,
 						Computed:            true,
-						PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 					},
 				},
 			},
@@ -205,32 +207,45 @@ func (r *SecurityAccountResource) Read(ctx context.Context, req resource.ReadReq
 	}
 	tflog.Debug(ctx, fmt.Sprintf("read a resource: %#v", data))
 	var restInfo *interfaces.SecurityAccountGetDataModelONTAP
-	if data.Owner != nil && !data.Owner.Name.IsNull() {
-		svm, err := interfaces.GetSvmByName(errorHandler, *client, data.Owner.Name.ValueString())
-		if err != nil {
-			// error reporting done inside GetSvmByName
-			return
-		}
-
-		restInfo, err = interfaces.GetSecurityAccountByName(errorHandler, *client, data.Name.ValueString(), svm.UUID)
+	if data.Owner.IsUnknown() {
+		restInfo, err = interfaces.GetSecurityAccountByName(errorHandler, *client, data.Name.ValueString(), "")
 		if err != nil {
 			// error reporting done inside GetSecurityAccount
 			return
 		}
 	} else {
-		restInfo, err = interfaces.GetSecurityAccountByName(errorHandler, *client, data.Name.ValueString(), "")
-		if err != nil {
-			// error reporting done inside GetSecurityAccount
-			return
+		svm, err := interfaces.GetSvmByNameIgnoreNotFound(errorHandler, *client, data.Owner.Attributes()["name"].String())
+		if err == nil && svm == nil {
+			// reset errorHandler so we don't fail in this case
+			restInfo, err = interfaces.GetSecurityAccountByName(errorHandler, *client, data.Name.ValueString(), "")
+			if err != nil {
+				// error reporting done inside GetSecurityAccount
+				return
+			}
+		} else {
+			restInfo, err = interfaces.GetSecurityAccountByName(errorHandler, *client, data.Name.ValueString(), svm.UUID)
+			if err != nil {
+				// error reporting done inside GetSecurityAccount
+				return
+			}
 		}
 	}
 
 	data.Name = types.StringValue(restInfo.Name)
 	// There is no ID in the REST response, so we use the name as ID
 	data.ID = types.StringValue(restInfo.Name)
-	data.Owner = &OwnerResourceModel{
-		Name: types.StringValue(restInfo.Owner.Name),
+	elementTypes := map[string]attr.Type{
+		"name": types.StringType,
 	}
+	elements := map[string]attr.Value{
+		"name": types.StringValue(restInfo.Owner.Name),
+	}
+	objectValue, diags := types.ObjectValue(elementTypes, elements)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+	}
+
+	data.Owner = objectValue
 	data.OwnerID = types.StringValue(restInfo.Owner.UUID)
 	data.Locked = types.BoolValue(restInfo.Locked)
 	data.Comment = types.StringValue(restInfo.Comment)
@@ -293,8 +308,14 @@ func (r *SecurityAccountResource) Create(ctx context.Context, req resource.Creat
 		errorHandler.MakeAndReportError("error creating User applications", fmt.Sprintf("error on encoding copies info: %s, copies %#v", err, body.Applications))
 		return
 	}
-	if data.Owner != nil {
-		body.Owner.Name = data.Owner.Name.ValueString()
+	if !data.Owner.IsUnknown() {
+		var owner OwnerResourceModel
+		diags := data.Owner.As(ctx, &owner, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		body.Owner.Name = owner.Name.ValueString()
 	}
 	if data.Role != nil {
 		body.Role.Name = data.Role.Name.ValueString()
@@ -322,6 +343,17 @@ func (r *SecurityAccountResource) Create(ctx context.Context, req resource.Creat
 	if err != nil {
 		return
 	}
+	elementTypes := map[string]attr.Type{
+		"name": types.StringType,
+	}
+	elements := map[string]attr.Value{
+		"name": types.StringValue(resource.Owner.Name),
+	}
+	objectValue, diags := types.ObjectValue(elementTypes, elements)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+	}
+	data.Owner = objectValue
 
 	data.ID = types.StringValue(resource.Name)
 	data.OwnerID = types.StringValue(resource.Owner.UUID)
