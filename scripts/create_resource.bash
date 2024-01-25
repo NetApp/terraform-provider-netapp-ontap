@@ -68,5 +68,5 @@ resource "netapp-ontap_${tag_prefix}_resource" "${tag_prefix}" {
 EOF
 fi
 
-echo "TODO: update internal/provider/provider.go to register new data source New${go_prefix}Resource"
+echo "TODO: update internal/provider/provider.go to register new resource New${go_prefix}Resource"
 echo "TODO: add Unit Tests"
