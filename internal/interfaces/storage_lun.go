@@ -21,21 +21,25 @@ type StorageLunGetDataModelONTAP struct {
 	Space      LunSpace     `mapstructure:"space,omitempty"`
 }
 
+// LunLocation describes the data model for location.
 type LunLocation struct {
 	LogicalUnit string    `mapstructure:"logical_unit,omitempty"`
 	Volume      LunVolume `mapstructure:"volume,omitempty"`
 }
 
+// LunVolume describes the data model for volume.
 type LunVolume struct {
 	Name string `mapstructure:"name,omitempty"`
 	UUID string `mapstructure:"uuid,omitempty"`
 }
 
+// LunQoSPolicy describes the data model for QoS policy.
 type LunQoSPolicy struct {
 	Name string `mapstructure:"name,omitempty"`
 	UUID string `mapstructure:"uuid,omitempty"`
 }
 
+// LunSpace describes the data model for space.
 type LunSpace struct {
 	Size int64 `mapstructure:"size,omitempty"`
 	Used int64 `mapstructure:"used,omitempty"`
