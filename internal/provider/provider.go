@@ -143,6 +143,8 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewAggregateResource,
+		NewCifsLocalGroupResource,
+		NewCifsLocalUserResource,
 		NewClusterLicensingLicenseResource,
 		NewClusterScheduleResource,
 		NewExampleResource,
@@ -168,6 +170,8 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		NewCifsLocalGroupsDataSource,
 		NewCifsLocalUserDataSource,
 		NewCifsLocalUsersDataSource,
+		NewCifsUserGroupPrivilegeDataSource,
+		NewCifsUserGroupPrivilegesDataSource,
 		NewClusterDataSource,
 		NewClusterLicensingLicenseDataSource,
 		NewClusterLicensingLicensesDataSource,
@@ -187,6 +191,8 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		NewNameServicesDNSDataSource,
 		NewNameServicesDNSsDataSource,
 		NewProtocolsNfsServiceDataSource,
+		NewSecurityAccountDataSource,
+		NewSecurityAccountsDataSource,
 		NewSnapmirrorDataSource,
 		NewSnapmirrorsDataSource,
 		NewSnapshotPoliciesDataSource,
