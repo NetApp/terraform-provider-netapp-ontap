@@ -132,7 +132,7 @@ func (r *SnapmirrorResource) Schema(ctx context.Context, req resource.SchemaRequ
 				Attributes: map[string]schema.Attribute{
 					"enabled": schema.BoolAttribute{
 						MarkdownDescription: "Enable this property to provision the destination endpoint",
-						Optional:            true,
+						Required:            true,
 					},
 				},
 			},
@@ -239,7 +239,6 @@ func (r *SnapmirrorResource) Create(ctx context.Context, req resource.CreateRequ
 
 	body.SourceEndPoint.Path = data.SourceEndPoint.Path.ValueString()
 	body.DestinationEndPoint.Path = data.DestinationEndPoint.Path.ValueString()
-	// body.CreateDestination.Enabled = data.CreateDestination.Enabled.ValueBool()
 	if data.SourceEndPoint.Cluster != nil {
 		if !data.SourceEndPoint.Cluster.Name.IsNull() {
 			body.SourceEndPoint.Cluster.Name = data.SourceEndPoint.Cluster.Name.ValueString()
