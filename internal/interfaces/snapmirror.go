@@ -103,7 +103,7 @@ func GetSnapmirrorByID(errorHandler *utils.ErrorHandler, r restclient.RestClient
 		err = fmt.Errorf("no response for GET %s", api)
 	}
 	if err != nil {
-		return nil, errorHandler.MakeAndReportError("error reading snapmirror info", fmt.Sprintf("error on GETTT %s: %s", api, err))
+		return nil, errorHandler.MakeAndReportError("error reading snapmirror info", fmt.Sprintf("error on GET %s: %s", api, err))
 	}
 	var rawDataONTAP SnapmirrorGetDataModelONTAP
 	if err := mapstructure.Decode(response, &rawDataONTAP); err != nil {
@@ -129,7 +129,7 @@ func GetSnapmirrorByDestinationPath(errorHandler *utils.ErrorHandler, r restclie
 		err = fmt.Errorf("no response for GET %s", api)
 	}
 	if err != nil {
-		return nil, errorHandler.MakeAndReportError("error reading snapmirror/relationships info", fmt.Sprintf("error on GETSS %s: %s, statusCode %d", api, err, statusCode))
+		return nil, errorHandler.MakeAndReportError("error reading snapmirror/relationships info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
 	}
 
 	var dataONTAP SnapmirrorDataSourceModel
@@ -171,7 +171,7 @@ func GetSnapmirrors(errorHandler *utils.ErrorHandler, r restclient.RestClient, f
 		err = fmt.Errorf("no response for GET %s", api)
 	}
 	if err != nil {
-		return nil, errorHandler.MakeAndReportError("error reading snapmirror/relationships info", fmt.Sprintf("error on GETXX %s: %s, statusCode %d", api, err, statusCode))
+		return nil, errorHandler.MakeAndReportError("error reading snapmirror/relationships info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
 	}
 
 	var dataONTAP []SnapmirrorDataSourceModel
