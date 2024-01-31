@@ -37,8 +37,12 @@ type StorageLunResource struct {
 type StorageLunResourceModel struct {
 	CxProfileName types.String `tfsdk:"cx_profile_name"`
 	Name          types.String `tfsdk:"name"`
-	SVMName       types.String `tfsdk:"svm_name"` // if needed or relevant
-	UUID          types.String `tfsdk:"uuid"`
+	SVMName       types.String `tfsdk:"svm_name"`
+	VolumeName    types.String `tfsdk:"volume_name"`
+	OSType        types.String `tfsdk:"os_type"`
+	Size          types.Int64  `tfsdk:"size"`
+	QoSPolicyName types.String `tfsdk:"qos_policy_name"`
+	ID            types.String `tfsdk:"uuid"`
 }
 
 // Metadata returns the resource type name.
@@ -58,14 +62,30 @@ func (r *StorageLunResource) Schema(ctx context.Context, req resource.SchemaRequ
 				Required:            true,
 			},
 			"name": schema.StringAttribute{
-				MarkdownDescription: "StorageLun name",
+				MarkdownDescription: "Lun name or location.logical_unit",
 				Required:            true,
 			},
 			"svm_name": schema.StringAttribute{
-				MarkdownDescription: "StorageLun svm name",
+				MarkdownDescription: "SVM name",
+				Required:            true,
+			},
+			"volume_name": schema.StringAttribute{
+				MarkdownDescription: "Volume name",
+				Required:            true,
+			},
+			"os_type": schema.StringAttribute{
+				MarkdownDescription: "OS type",
+				Required:            true,
+			},
+			"size": schema.Int64Attribute{
+				MarkdownDescription: "Size of the lun",
+				Required:            true,
+			},
+			"qos_policy_name": schema.StringAttribute{
+				MarkdownDescription: "QoS policy name",
 				Optional:            true,
 			},
-			"uuid": schema.StringAttribute{
+			"id": schema.StringAttribute{
 				MarkdownDescription: "StorageLun UUID",
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
@@ -111,13 +131,21 @@ func (r *StorageLunResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	restInfo, err := interfaces.GetStorageLunByName(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString())
+	restInfo, err := interfaces.GetStorageLunByName(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString(), data.VolumeName.ValueString()
 	if err != nil {
 		// error reporting done inside GetStorageLun
 		return
 	}
 
 	data.Name = types.StringValue(restInfo.Name)
+	data.ID = types.StringValue(restInfo.UUID)
+	data.SVMName = types.StringValue(restInfo.SVMName)
+	data.VolumeName = types.StringValue(restInfo.Location.Volume.Name)
+	data.OSType = types.StringValue(restInfo.OSType)
+	data.Size = types.Int64Value(restInfo.Space.Size)
+	if restInfo.QoSPolicy.Name != "" {
+		data.QoSPolicyName = types.StringValue(restInfo.QoSPolicy.Name)
+	}
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
