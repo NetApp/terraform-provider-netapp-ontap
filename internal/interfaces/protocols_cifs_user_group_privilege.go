@@ -11,16 +11,16 @@ import (
 
 // CifsUserGroupPrivilegeGetDataModelONTAP describes the GET record data model using go types for mapping.
 type CifsUserGroupPrivilegeGetDataModelONTAP struct {
-	Name string `mapstructure:"name"`
-	// UUID string `mapstructure:"uuid"`
+	Name       string   `mapstructure:"name"`
 	SVM        svm      `mapstructure:"svm"`
 	Privileges []string `mapstructure:"privileges"`
 }
 
 // CifsUserGroupPrivilegeResourceBodyDataModelONTAP describes the body data model using go types for mapping.
 type CifsUserGroupPrivilegeResourceBodyDataModelONTAP struct {
-	Name string `mapstructure:"name"`
-	SVM  svm    `mapstructure:"svm"`
+	Name       string   `mapstructure:"name,omitempty"`
+	SVM        svm      `mapstructure:"svm,omitempty"`
+	Privileges []string `mapstructure:"privileges"`
 }
 
 // CifsUserGroupPrivilegeDataSourceFilterModel describes the data source data model for queries.
@@ -111,11 +111,30 @@ func CreateCifsUserGroupPrivilege(errorHandler *utils.ErrorHandler, r restclient
 }
 
 // DeleteCifsUserGroupPrivilege to delete protocols_cifs_user_group_privilege
-func DeleteCifsUserGroupPrivilege(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) error {
+// func DeleteCifsUserGroupPrivilege(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmid string, name string) error {
+// 	api := "protocols/cifs/users-and-groups/privileges"
+// 	statusCode, _, err := r.CallUpdateMethod(api+"/"+svmid+"/"+name, nil, nil)
+// 	if err != nil {
+// 		return errorHandler.MakeAndReportError("error deleting protocols_cifs_user_group_privilege", fmt.Sprintf("error on DELETE %s: %s, statusCode %d", api, err, statusCode))
+// 	}
+// 	return nil
+// }
+
+// UpdateCifsUserGroupPrivilege to update protocols_cifs_user_group_privilege
+func UpdateCifsUserGroupPrivilege(errorHandler *utils.ErrorHandler, r restclient.RestClient, body CifsUserGroupPrivilegeResourceBodyDataModelONTAP, svmid string, name string) (*CifsUserGroupPrivilegeGetDataModelONTAP, error) {
 	api := "protocols/cifs/users-and-groups/privileges"
-	statusCode, _, err := r.CallDeleteMethod(api+"/"+uuid, nil, nil)
-	if err != nil {
-		return errorHandler.MakeAndReportError("error deleting protocols_cifs_user_group_privilege", fmt.Sprintf("error on DELETE %s: %s, statusCode %d", api, err, statusCode))
+	var bodyMap map[string]interface{}
+	if err := mapstructure.Decode(body, &bodyMap); err != nil {
+		return nil, errorHandler.MakeAndReportError("error encoding protocols_cifs_user_group_privilege body", fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body))
 	}
-	return nil
+	query := r.NewQuery()
+	query.Add("return_records", "true")
+	statusCode, response, err := r.CallUpdateMethod(api+"/"+svmid+"/"+name, query, bodyMap)
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error updating protocols_cifs_user_group_privilege", fmt.Sprintf("error on PUT %s: %s, statusCode %d", api, err, statusCode))
+	}
+	// Update API does not return a record, so we need to read it again later
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Update protocols_cifs_user_group_privilege resource - response status=%#v, response=%#v", statusCode, response))
+
+	return nil, nil
 }
