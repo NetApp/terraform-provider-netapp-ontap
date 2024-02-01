@@ -3,8 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -95,7 +93,6 @@ func (d *StorageLunDataSource) Schema(ctx context.Context, req datasource.Schema
 				ElementType:         types.StringType,
 				MarkdownDescription: "List of privileges",
 				Required:            true,
-				PlanModifiers:       []planmodifier.String{},
 			},
 			"create_time": schema.StringAttribute{
 				MarkdownDescription: "Time when the lun was created",
