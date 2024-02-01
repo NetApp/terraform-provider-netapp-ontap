@@ -47,8 +47,24 @@ type LunSpace struct {
 
 // StorageLunResourceBodyDataModelONTAP describes the body data model using go types for mapping.
 type StorageLunResourceBodyDataModelONTAP struct {
+	SVM       svm      `mapstructure:"svm"`
+	Locations location `mapstructure:"location"`
+	OsType    string   `mapstructure:"os_type"`
+	Space     space    `mapstructure:"space"`
+	QosPolicy string   `mapstructure:"qos_policy"`
+}
+
+type location struct {
+	Volume      volume `mapstructure:"volume"`
+	LogicalUnit string `mapstructure:"logical_unit"`
+}
+
+type volume struct {
 	Name string `mapstructure:"name"`
-	SVM  svm    `mapstructure:"svm"`
+}
+
+type space struct {
+	Size int64 `mapstructure:"size"`
 }
 
 // StorageLunDataSourceFilterModel describes the data source data model for queries.
@@ -122,13 +138,14 @@ func GetStorageLuns(errorHandler *utils.ErrorHandler, r restclient.RestClient, f
 
 // CreateStorageLun to create storage_lun
 func CreateStorageLun(errorHandler *utils.ErrorHandler, r restclient.RestClient, body StorageLunResourceBodyDataModelONTAP) (*StorageLunGetDataModelONTAP, error) {
-	api := "api_url"
+	api := "storage/luns"
 	var bodyMap map[string]interface{}
 	if err := mapstructure.Decode(body, &bodyMap); err != nil {
 		return nil, errorHandler.MakeAndReportError("error encoding storage_lun body", fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body))
 	}
 	query := r.NewQuery()
 	query.Add("return_records", "true")
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Create storage_lun source - body: %#v", bodyMap))
 	statusCode, response, err := r.CallCreateMethod(api, query, bodyMap)
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError("error creating storage_lun", fmt.Sprintf("error on POST %s: %s, statusCode %d", api, err, statusCode))
