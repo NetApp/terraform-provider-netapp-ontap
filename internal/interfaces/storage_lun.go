@@ -78,7 +78,7 @@ type StorageLunDataSourceFilterModel struct {
 func GetStorageLunByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, svmName string, volumeName string) (*StorageLunGetDataModelONTAP, error) {
 	api := "storage/luns"
 	query := r.NewQuery()
-	query.Set("name", name)
+	query.Set("location.logical_unit", name)
 	query.Set("svm.name", svmName)
 	query.Set("location.volume.name", volumeName)
 	query.Fields([]string{"name", "svm.name", "create_time", "location", "os_type", "qos_policy", "space", "uuid"})
@@ -161,7 +161,7 @@ func CreateStorageLun(errorHandler *utils.ErrorHandler, r restclient.RestClient,
 
 // DeleteStorageLun to delete storage_lun
 func DeleteStorageLun(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) error {
-	api := "api_url"
+	api := "storage/luns"
 	statusCode, _, err := r.CallDeleteMethod(api+"/"+uuid, nil, nil)
 	if err != nil {
 		return errorHandler.MakeAndReportError("error deleting storage_lun", fmt.Sprintf("error on DELETE %s: %s, statusCode %d", api, err, statusCode))
