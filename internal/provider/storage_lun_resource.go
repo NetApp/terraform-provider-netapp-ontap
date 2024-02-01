@@ -42,7 +42,7 @@ type StorageLunResourceModel struct {
 	OSType        types.String `tfsdk:"os_type"`
 	Size          types.Int64  `tfsdk:"size"`
 	QoSPolicyName types.String `tfsdk:"qos_policy_name"`
-	ID            types.String `tfsdk:"uuid"`
+	ID            types.String `tfsdk:"id"`
 }
 
 // Metadata returns the resource type name.
@@ -131,13 +131,13 @@ func (r *StorageLunResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	restInfo, err := interfaces.GetStorageLunByName(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString(), data.VolumeName.ValueString()
+	restInfo, err := interfaces.GetStorageLunByName(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString(), data.VolumeName.ValueString())
 	if err != nil {
 		// error reporting done inside GetStorageLun
 		return
 	}
 
-	data.Name = types.StringValue(restInfo.Name)
+	data.Name = types.StringValue(restInfo.Location.LogicalUnit)
 	data.ID = types.StringValue(restInfo.UUID)
 	data.SVMName = types.StringValue(restInfo.SVMName)
 	data.VolumeName = types.StringValue(restInfo.Location.Volume.Name)
@@ -169,8 +169,14 @@ func (r *StorageLunResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	body.Name = data.Name.ValueString()
-	// body.SVM.Name = data.SVMName.ValueString()
+	body.Locations.LogicalUnit = data.Name.ValueString()
+	body.Locations.Volume.Name = data.VolumeName.ValueString()
+	body.SVM.Name = data.SVMName.ValueString()
+	body.OsType = data.OSType.ValueString()
+	body.Space.Size = data.Size.ValueInt64()
+	if !data.QoSPolicyName.IsNull() {
+		body.QosPolicy = data.QoSPolicyName.ValueString()
+	}
 
 	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
@@ -183,7 +189,7 @@ func (r *StorageLunResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	data.UUID = types.StringValue(resource.UUID)
+	data.ID = types.StringValue(resource.UUID)
 
 	tflog.Trace(ctx, "created a resource")
 
@@ -224,12 +230,12 @@ func (r *StorageLunResource) Delete(ctx context.Context, req resource.DeleteRequ
 		return
 	}
 
-	if data.UUID.IsNull() {
+	if data.ID.IsNull() {
 		errorHandler.MakeAndReportError("UUID is null", "storage_lun UUID is null")
 		return
 	}
 
-	err = interfaces.DeleteStorageLun(errorHandler, *client, data.UUID.ValueString())
+	err = interfaces.DeleteStorageLun(errorHandler, *client, data.ID.ValueString())
 	if err != nil {
 		return
 	}
