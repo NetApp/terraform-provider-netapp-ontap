@@ -110,16 +110,6 @@ func CreateCifsUserGroupPrivilege(errorHandler *utils.ErrorHandler, r restclient
 	return &dataONTAP, nil
 }
 
-// DeleteCifsUserGroupPrivilege to delete protocols_cifs_user_group_privilege
-// func DeleteCifsUserGroupPrivilege(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmid string, name string) error {
-// 	api := "protocols/cifs/users-and-groups/privileges"
-// 	statusCode, _, err := r.CallUpdateMethod(api+"/"+svmid+"/"+name, nil, nil)
-// 	if err != nil {
-// 		return errorHandler.MakeAndReportError("error deleting protocols_cifs_user_group_privilege", fmt.Sprintf("error on DELETE %s: %s, statusCode %d", api, err, statusCode))
-// 	}
-// 	return nil
-// }
-
 // UpdateCifsUserGroupPrivilege to update protocols_cifs_user_group_privilege
 func UpdateCifsUserGroupPrivilege(errorHandler *utils.ErrorHandler, r restclient.RestClient, body CifsUserGroupPrivilegeResourceBodyDataModelONTAP, svmid string, name string) (*CifsUserGroupPrivilegeGetDataModelONTAP, error) {
 	api := "protocols/cifs/users-and-groups/privileges"
