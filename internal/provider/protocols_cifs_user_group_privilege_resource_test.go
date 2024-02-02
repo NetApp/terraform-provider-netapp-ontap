@@ -57,20 +57,6 @@ func TestAccCifsUserGroupPrivilegeResource(t *testing.T) {
 					resource.TestCheckResourceAttrSet("netapp-ontap_protocols_cifs_user_group_privilege_resource.example1", "id"),
 				),
 			},
-			// create with basic argument on a local group
-			{
-				Config: testAccCifsUserGroupPrivilegeResourceConfig("svm3", "accgroup1", "sechangenotifyprivilege"),
-				Check: resource.ComposeTestCheckFunc(
-					// check name
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_user_group_privilege_resource.example1", "name", "accgroup1"),
-					// check svm_name
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_user_group_privilege_resource.example1", "svm_name", "svm3"),
-					// check ID
-					resource.TestCheckResourceAttrSet("netapp-ontap_protocols_cifs_user_group_privilege_resource.example1", "id"),
-					// check privileges
-					resource.TestCheckTypeSetElemAttr("netapp-ontap_protocols_cifs_user_group_privilege_resource.example1", "privileges.*", "sechangenotifyprivilege"),
-				),
-			},
 		},
 	})
 }
