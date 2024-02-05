@@ -202,6 +202,8 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		NewSnapmirrorPoliciesDataSource,
 		NewStorageAggregateDataSource,
 		NewStorageAggregatesDataSource,
+		NewStorageLunDataSource,
+		NewStorageLunsDataSource,
 		NewStorageVolumeSnapshotDataSource,
 		NewStorageVolumeSnapshotsDataSource,
 		NewStorageVolumeDataSource,
