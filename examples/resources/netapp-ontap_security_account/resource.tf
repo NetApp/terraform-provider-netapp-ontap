@@ -6,5 +6,5 @@ resource "netapp-ontap_security_account_resource" "security_account" {
     application = "http"
     authentication_methods = ["password"]
   }]
-  password = "nhy6%TGB"
+  password = "P@ssw0rd"
 }
