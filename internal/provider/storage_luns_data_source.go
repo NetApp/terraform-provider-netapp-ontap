@@ -214,7 +214,7 @@ func (d *StorageLunsDataSource) Read(ctx context.Context, req datasource.ReadReq
 		data.StorageLuns[index] = StorageLunDataSourceModel{
 			CxProfileName: types.String(data.CxProfileName),
 			Name:          types.StringValue(record.Name),
-			SVMName:       types.StringValue(record.SVMName),
+			SVMName:       types.StringValue(record.SVM.Name),
 			CreationTime:  types.StringValue(record.CreateTime),
 			Location: &StorageLunDataSourceLocationModel{
 				LogicalUnit: types.StringValue(record.Location.LogicalUnit),

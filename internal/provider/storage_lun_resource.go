@@ -139,7 +139,7 @@ func (r *StorageLunResource) Read(ctx context.Context, req resource.ReadRequest,
 
 	data.Name = types.StringValue(restInfo.Location.LogicalUnit)
 	data.ID = types.StringValue(restInfo.UUID)
-	data.SVMName = types.StringValue(restInfo.SVMName)
+	data.SVMName = types.StringValue(restInfo.SVM.Name)
 	data.VolumeName = types.StringValue(restInfo.Location.Volume.Name)
 	data.OSType = types.StringValue(restInfo.OSType)
 	data.Size = types.Int64Value(restInfo.Space.Size)
