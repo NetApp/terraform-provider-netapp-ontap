@@ -144,6 +144,7 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 	return []func() resource.Resource{
 		NewAggregateResource,
 		NewCifsLocalGroupResource,
+		NewCifsLocalUserResource,
 		NewClusterLicensingLicenseResource,
 		NewClusterScheduleResource,
 		NewExampleResource,
@@ -202,6 +203,8 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		NewSnapmirrorPoliciesDataSource,
 		NewStorageAggregateDataSource,
 		NewStorageAggregatesDataSource,
+		NewStorageLunDataSource,
+		NewStorageLunsDataSource,
 		NewStorageVolumeSnapshotDataSource,
 		NewStorageVolumeSnapshotsDataSource,
 		NewStorageVolumeDataSource,
