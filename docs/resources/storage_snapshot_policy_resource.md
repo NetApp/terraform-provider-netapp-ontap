@@ -123,4 +123,3 @@ resource "netapp-ontap_storage_snapshot_policy_resource" "policy1_import" {
   svm_name   = "svm1"
 }
 ```
-
