@@ -16,13 +16,21 @@ func TestAccSnapmirrorResource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Test non existant Vol
 			{
-				Config:      testAccSnapmirrorResourceBasicConfig("snapmirror_dest_svm:testme", "snapmirror_source_svm:testme"),
+				Config:      testAccSnapmirrorResourceBasicConfig("snapmirror_dest_svm:testme", "snapmirror_source_svm:testme", "MirrorAllSnapshots"),
 				ExpectError: regexp.MustCompile("6619337"),
 			},
 			// Create snapmirror and read
 			{
-				Config: testAccSnapmirrorResourceBasicConfig("snapmirror_dest_svm:snap_dest", "snapmirror_source_svm:snap"),
+				Config: testAccSnapmirrorResourceBasicConfig("snapmirror_dest_svm:snap_dest", "snapmirror_source_svm:snap", "MirrorAllSnapshots"),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_resource.example", "destination_endpoint.path", "snapmirror_source_svm:snap"),
+				),
+			},
+			// Update a policy
+			{
+				Config: testAccSnapmirrorResourceBasicConfig("snapmirror_dest_svm:snap_dest", "snapmirror_source_svm:snap", "MirrorAndVault"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_resource.example", "policy.name", "MirrorAndVault"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_resource.example", "destination_endpoint.path", "snapmirror_source_svm:snap"),
 				),
 			},
@@ -30,7 +38,7 @@ func TestAccSnapmirrorResource(t *testing.T) {
 	})
 }
 
-func testAccSnapmirrorResourceBasicConfig(sourceEndpoint string, destinationEndpoint string) string {
+func testAccSnapmirrorResourceBasicConfig(sourceEndpoint string, destinationEndpoint string, policy string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST3")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS")
@@ -59,5 +67,8 @@ resource "netapp-ontap_snapmirror_resource" "example" {
   destination_endpoint = {
     path = "%s"
   }
-}`, host, admin, password, sourceEndpoint, destinationEndpoint)
+  policy = {
+	name = "%s"
+  }
+}`, host, admin, password, sourceEndpoint, destinationEndpoint, policy)
 }
