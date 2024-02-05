@@ -45,6 +45,7 @@ resource "netapp-ontap_snapmirror_resource" "snapmirror" {
 
 - `create_destination` (String) Snapmirror privision destination.
 - `initialize` (Boolean) Initializes the Snapmirror relationship. By default, it is set to 'true'.
+- `policy` (Attributes) (see [below for nested schema](#nestedatt--policy))
 
 ### Read-Only
 
@@ -79,6 +80,13 @@ Optional:
 Optional:
 
 - `name` (String) Snapmirror source cluster name
+
+<a id="nestedatt--policy"></a>
+### Nested Schema for `policy`
+
+Optional:
+
+- `name` (String) Snapmirror policy name
 
 <a id="nestedatt--cluster_destination"></a>
 ### Nested Schema for `cluster_destination`
