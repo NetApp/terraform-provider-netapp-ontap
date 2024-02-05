@@ -13,7 +13,7 @@ import (
 type StorageLunGetDataModelONTAP struct {
 	Name       string       `mapstructure:"name"`
 	UUID       string       `mapstructure:"uuid"`
-	SVMName    string       `mapstructure:"svm.name,omitempty"`
+	SVM        svm          `mapstructure:"svm,omitempty"`
 	CreateTime string       `mapstructure:"create_time,omitempty"`
 	Location   LunLocation  `mapstructure:"location,omitempty"`
 	OSType     string       `mapstructure:"os_type,omitempty"`
