@@ -145,6 +145,7 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		NewAggregateResource,
 		NewCifsLocalGroupResource,
 		NewCifsLocalUserResource,
+		NewCifsUserGroupPrivilegeResource,
 		NewClusterLicensingLicenseResource,
 		NewClusterScheduleResource,
 		NewExampleResource,
