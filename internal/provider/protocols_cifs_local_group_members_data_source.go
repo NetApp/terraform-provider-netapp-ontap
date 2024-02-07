@@ -29,7 +29,7 @@ type CifsLocalGroupMembersDataSource struct {
 	config resourceOrDataSourceConfig
 }
 
-// CifsLocalGroupMemberDataSourceModel describes the data source data model.
+// CifsLocalGroupMembersDataSourceModel describes the data source data model.
 type CifsLocalGroupMembersDataSourceModel struct {
 	CxProfileName types.String   `tfsdk:"cx_profile_name"`
 	GroupName     types.String   `tfsdk:"group_name"`
