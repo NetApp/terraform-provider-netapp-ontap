@@ -170,6 +170,8 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 	return []func() datasource.DataSource{
 		NewCifsLocalGroupDataSource,
 		NewCifsLocalGroupsDataSource,
+		NewCifsLocalGroupMemberDataSource,
+		NewCifsLocalGroupMembersDataSource,
 		NewCifsLocalUserDataSource,
 		NewCifsLocalUsersDataSource,
 		NewCifsUserGroupPrivilegeDataSource,

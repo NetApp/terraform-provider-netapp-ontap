@@ -13,6 +13,8 @@ FEATURES:
 * **New Data Source:** `netapp-ontap_protocols_cifs_user_group_privileges_data_source` ([#57](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/57))
 * **New Data Source:** `netapp-ontap_storage_lun_data_source` ([#12](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/12))
 * **New Data Source:** `netapp-ontap_storage_luns_data_source` ([#12](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/12))
+* **New Data Source:** `netapp_ontap_protocols_cifs_local_group_member_data_source` ([#122](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/122))
+* **New Data Source:** `netapp_ontap_protocols_cifs_local_group_members_data_source` ([#122](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/122))
 * **New Resource:** `netapp-ontap_protocols_cifs_local_group_resource` ([#53](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/53))
 * **New Resource:** `netapp-ontap_protocols_cifs_local_user_resource` ([#56](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/56))
 * **New Resource:** `netapp-ontap_protocols_cifs_user_group_privilege_resource` ([#58](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/58))
