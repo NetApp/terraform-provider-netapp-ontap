@@ -93,6 +93,7 @@ type SnapmirrorCluster struct {
 // SnapmirrorPolicy data model
 type SnapmirrorPolicy struct {
 	UUID string `mapstructure:"uuid"`
+	Name string `mapstructure:"name"`
 }
 
 // GetSnapmirrorByID ...
@@ -114,12 +115,12 @@ func GetSnapmirrorByID(errorHandler *utils.ErrorHandler, r restclient.RestClient
 }
 
 // GetSnapmirrorByDestinationPath to get snapmirror data source info by Destination Path
-func GetSnapmirrorByDestinationPath(errorHandler *utils.ErrorHandler, r restclient.RestClient, destinationPath string, version versionModelONTAP) (*SnapmirrorDataSourceModel, error) {
+func GetSnapmirrorByDestinationPath(errorHandler *utils.ErrorHandler, r restclient.RestClient, destinationPath string, version *versionModelONTAP) (*SnapmirrorDataSourceModel, error) {
 	api := "snapmirror/relationships"
 	query := r.NewQuery()
 	query.Add("destination.path", destinationPath)
 	fields := []string{"destination", "healthy", "source", "restore", "policy", "state"}
-	if version.Generation == 9 && version.Major > 10 {
+	if version != nil && version.Generation == 9 && version.Major > 10 {
 		fields = append(fields, "throttle", "group_type")
 	}
 	query.Fields(fields)

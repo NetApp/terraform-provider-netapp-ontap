@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
@@ -206,15 +207,24 @@ func (r *SnapmirrorResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	restInfo, err := interfaces.GetSnapmirrorByID(errorHandler, *client, data.ID.ValueString())
+	var restInfo *interfaces.SnapmirrorGetDataModelONTAP
+	var restInfoImport *interfaces.SnapmirrorDataSourceModel
+	if data.ID.ValueString() != "" {
+		restInfo, err = interfaces.GetSnapmirrorByID(errorHandler, *client, data.ID.ValueString())
+		data.ID = types.StringValue(restInfo.UUID)
+		data.Healthy = types.BoolValue(restInfo.Healthy)
+		data.State = types.StringValue(restInfo.State)
+	} else {
+		restInfoImport, err = interfaces.GetSnapmirrorByDestinationPath(errorHandler, *client, data.DestinationEndPoint.Path.ValueString(), nil)
+		data.ID = types.StringValue(restInfoImport.UUID)
+		data.Healthy = types.BoolValue(restInfoImport.Healthy)
+		data.State = types.StringValue(restInfoImport.State)
+		data.DestinationEndPoint.Path = types.StringValue(restInfoImport.Destination.Path)
+	}
 	if err != nil {
 		// error reporting done inside GetSnapmirrorByID
 		return
 	}
-
-	data.ID = types.StringValue(restInfo.UUID)
-	data.Healthy = types.BoolValue(restInfo.Healthy)
-	data.State = types.StringValue(restInfo.State)
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
@@ -409,5 +419,16 @@ func (r *SnapmirrorResource) Delete(ctx context.Context, req resource.DeleteRequ
 
 // ImportState imports a resource using ID from terraform import command by calling the Read method.
 func (r *SnapmirrorResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	idParts := strings.Split(req.ID, ",")
+
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: destination_path,cx_profile_name. Got: %q", req.ID),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("destination_endpoint").AtName("path"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[1])...)
 }

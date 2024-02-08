@@ -30,6 +30,7 @@ ENHANCEMENTS:
 * **netapp-ontap_cluster_schedule_resource**: Add support for import ([#31](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/31))
 * **netapp-ontap_storage_snapshot_policy_resource**: Add support for import ([#40](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/40))
 * **netapp-ontap_snapmirror_resource**: Add support for modify ([#45](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/45))
+* **netapp-ontap_snapmirror_resource**: Add support for import ([#37](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/37))
 * **netapp-ontap_snapmirror_policy**: Add support for import ([#38](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/38))
 * **netapp-ontap_networking_ip_interface_resource**: Add support for import ([#32](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/32))
 * **netapp-ontap_protocols_nfs_export_policy_rule_resource**: Add support for import ([#35](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/35))
