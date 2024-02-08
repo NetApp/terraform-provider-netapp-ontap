@@ -207,23 +207,25 @@ func (r *SnapmirrorResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	var restInfo *interfaces.SnapmirrorGetDataModelONTAP
-	var restInfoImport *interfaces.SnapmirrorDataSourceModel
 	if data.ID.ValueString() != "" {
-		restInfo, err = interfaces.GetSnapmirrorByID(errorHandler, *client, data.ID.ValueString())
+		restInfo, err := interfaces.GetSnapmirrorByID(errorHandler, *client, data.ID.ValueString())
+		if err != nil {
+			// error reporting done inside GetSnapmirrorByID
+			return
+		}
 		data.ID = types.StringValue(restInfo.UUID)
 		data.Healthy = types.BoolValue(restInfo.Healthy)
 		data.State = types.StringValue(restInfo.State)
 	} else {
-		restInfoImport, err = interfaces.GetSnapmirrorByDestinationPath(errorHandler, *client, data.DestinationEndPoint.Path.ValueString(), nil)
+		restInfoImport, err := interfaces.GetSnapmirrorByDestinationPath(errorHandler, *client, data.DestinationEndPoint.Path.ValueString(), nil)
+		if err != nil {
+			// error reporting done inside GetSnapmirrorByID
+			return
+		}
 		data.ID = types.StringValue(restInfoImport.UUID)
 		data.Healthy = types.BoolValue(restInfoImport.Healthy)
 		data.State = types.StringValue(restInfoImport.State)
 		data.DestinationEndPoint.Path = types.StringValue(restInfoImport.Destination.Path)
-	}
-	if err != nil {
-		// error reporting done inside GetSnapmirrorByID
-		return
 	}
 
 	// Write logs using the tflog package
