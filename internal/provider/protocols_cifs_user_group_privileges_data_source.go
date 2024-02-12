@@ -91,7 +91,7 @@ func (d *CifsUserGroupPrivilegesDataSource) Schema(ctx context.Context, req data
 							MarkdownDescription: "CifsUserGroupPrivilege svm name",
 							Required:            true,
 						},
-						"privileges": schema.ListAttribute{
+						"privileges": schema.SetAttribute{
 							ElementType:         types.StringType,
 							MarkdownDescription: "List of privileges",
 							Computed:            true,
