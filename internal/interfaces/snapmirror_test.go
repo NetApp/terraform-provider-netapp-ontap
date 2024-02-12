@@ -2,13 +2,15 @@ package interfaces
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"reflect"
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
-	"reflect"
-	"testing"
 )
 
 var snapmirrorRecord = SnapmirrorDataSourceModel{
@@ -67,6 +69,12 @@ var record911Snapmirror = SnapmirrorDataSourceModel{
 	},
 	GroupType: "string",
 	Throttle:  0,
+}
+
+var updateSnapmirrorBody = UpdateSnapmirrorResourceBodyDataModelONTAP{
+	Policy: Policy{
+		Name: "string",
+	},
 }
 
 var badRecordSnapmirror = struct{ Healthy int }{123}
@@ -131,7 +139,7 @@ func TestGetSnapmirrorByDestinationPath(t *testing.T) {
 			if err != nil {
 				panic(err)
 			}
-			got, err := GetSnapmirrorByDestinationPath(errorHandler, *r, "", versionModelONTAP{Generation: tt.gen, Major: tt.maj})
+			got, err := GetSnapmirrorByDestinationPath(errorHandler, *r, "", &versionModelONTAP{Generation: tt.gen, Major: tt.maj})
 			if err != nil {
 				fmt.Printf("err: %s\n", err)
 			}
@@ -224,6 +232,45 @@ func TestGetSnapmirrors(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetSnapmirrors() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUpdateSnapmirror(t *testing.T) {
+	errorHandler := utils.NewErrorHandler(context.Background(), &diag.Diagnostics{})
+	noRecords := restclient.RestResponse{NumRecords: 0, Records: []map[string]any{}}
+	genericError := errors.New("generic error for UT")
+	responses := map[string][]restclient.MockResponse{
+		"test_update_policy": {
+			{ExpectedMethod: "PATCH", ExpectedURL: "snapmirror/relationships/1234", StatusCode: 200, Response: noRecords, Err: nil},
+		},
+		"test_update_error_1": {
+			{ExpectedMethod: "PATCH", ExpectedURL: "snapmirror/relationships/1234", StatusCode: 200, Response: noRecords, Err: genericError},
+		},
+	}
+	tests := []struct {
+		name        string
+		responses   []restclient.MockResponse
+		requestbody any
+		wantErr     bool
+	}{
+		{name: "test_update_policy", responses: responses["test_update_policy"], requestbody: updateSnapmirrorBody, wantErr: false},
+		{name: "test_update_error_1", responses: responses["test_update_error_1"], requestbody: updateSnapmirrorPolicyErrorBody, wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := restclient.NewMockedRestClient(tt.responses)
+			if err != nil {
+				panic(err)
+			}
+			err = UpdateSnapmirror(errorHandler, *r, tt.requestbody, "string")
+			if err != nil {
+				fmt.Printf("err: %s\n", err)
+			}
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UpdateSnapmirror() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 		})
 	}
