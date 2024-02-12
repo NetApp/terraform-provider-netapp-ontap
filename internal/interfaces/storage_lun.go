@@ -47,24 +47,24 @@ type LunSpace struct {
 
 // StorageLunResourceBodyDataModelONTAP describes the body data model using go types for mapping.
 type StorageLunResourceBodyDataModelONTAP struct {
-	SVM       svm      `mapstructure:"svm"`
-	Locations location `mapstructure:"location"`
-	OsType    string   `mapstructure:"os_type"`
-	Space     space    `mapstructure:"space"`
-	QosPolicy string   `mapstructure:"qos_policy"`
+	SVM       svm      `mapstructure:"svm,omitempty"`
+	Locations location `mapstructure:"location,omitempty"`
+	OsType    string   `mapstructure:"os_type,omitempty"`
+	Space     space    `mapstructure:"space,omitempty"`
+	QosPolicy string   `mapstructure:"qos_policy,omitempty"`
 }
 
 type location struct {
-	Volume      volume `mapstructure:"volume"`
-	LogicalUnit string `mapstructure:"logical_unit"`
+	Volume      volume `mapstructure:"volume,omitempty"`
+	LogicalUnit string `mapstructure:"logical_unit,omitempty"`
 }
 
 type volume struct {
-	Name string `mapstructure:"name"`
+	Name string `mapstructure:"name,omitempty"`
 }
 
 type space struct {
-	Size int64 `mapstructure:"size"`
+	Size int64 `mapstructure:"size,omitempty"`
 }
 
 // StorageLunDataSourceFilterModel describes the data source data model for queries.
@@ -165,6 +165,22 @@ func DeleteStorageLun(errorHandler *utils.ErrorHandler, r restclient.RestClient,
 	statusCode, _, err := r.CallDeleteMethod(api+"/"+uuid, nil, nil)
 	if err != nil {
 		return errorHandler.MakeAndReportError("error deleting storage_lun", fmt.Sprintf("error on DELETE %s: %s, statusCode %d", api, err, statusCode))
+	}
+	return nil
+}
+
+// UpdateStorageLun to update storage_lun
+func UpdateStorageLun(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string, body StorageLunResourceBodyDataModelONTAP) error {
+	api := "storage/luns"
+	var bodyMap map[string]interface{}
+	if err := mapstructure.Decode(body, &bodyMap); err != nil {
+		return errorHandler.MakeAndReportError("error encoding storage_lun body", fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body))
+	}
+	query := r.NewQuery()
+	query.Add("return_records", "true")
+	statusCode, _, err := r.CallUpdateMethod(api+"/"+uuid, query, bodyMap)
+	if err != nil {
+		return errorHandler.MakeAndReportError("error updating storage_lun", fmt.Sprintf("error on Update %s: %s, statusCode %d", api, err, statusCode))
 	}
 	return nil
 }

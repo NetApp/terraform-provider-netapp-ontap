@@ -3,8 +3,9 @@ package provider
 import (
 	"context"
 	"fmt"
-
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"strings"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -199,17 +200,48 @@ func (r *StorageLunResource) Create(ctx context.Context, req resource.CreateRequ
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *StorageLunResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *StorageLunResourceModel
+	var plan, state *StorageLunResourceModel
 
 	// Read Terraform plan data into the model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	client, err := getRestClient(utils.NewErrorHandler(ctx, &resp.Diagnostics), r.config, plan.CxProfileName)
+	if err != nil {
+		// error reporting done inside NewClient
+		return
+	}
+
+	var request interfaces.StorageLunResourceBodyDataModelONTAP
+	if !plan.Name.Equal(state.Name) {
+		request.Locations.LogicalUnit = plan.Name.ValueString()
+	}
+	if !plan.VolumeName.Equal(state.VolumeName) {
+		request.Locations.Volume.Name = plan.VolumeName.ValueString()
+	}
+	if !plan.SVMName.Equal(state.SVMName) {
+		request.SVM.Name = plan.SVMName.ValueString()
+	}
+	if !plan.OSType.Equal(state.OSType) {
+		request.OsType = plan.OSType.ValueString()
+	}
+	if !plan.Size.Equal(state.Size) {
+		request.Space.Size = plan.Size.ValueInt64()
+	}
+	if !plan.QoSPolicyName.Equal(state.QoSPolicyName) {
+		request.QosPolicy = plan.QoSPolicyName.ValueString()
+	}
+	err = interfaces.UpdateStorageLun(errorHandler, *client, state.ID.ValueString(), request)
+	if err != nil {
+		return
+	}
 
 	// Save updated data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -244,5 +276,19 @@ func (r *StorageLunResource) Delete(ctx context.Context, req resource.DeleteRequ
 
 // ImportState imports a resource using ID from terraform import command by calling the Read method.
 func (r *StorageLunResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	tflog.Debug(ctx, fmt.Sprintf("import req an lun resource: %#v", req))
+	idParts := strings.Split(req.ID, ",")
+	if len(idParts) != 4 || idParts[0] == "" || idParts[1] == "" || idParts[2] == "" || idParts[3] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprint("Expected ID in the format 'name,volume_name,svm_name,cx_profile_name', got: ", req.ID),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("volume_name"), idParts[1])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("svm_name"), idParts[2])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[3])...)
+
 }
