@@ -3,7 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
-	"slices"
+	"reflect"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -301,7 +301,8 @@ func (r *SVMPeersResource) Update(ctx context.Context, req resource.UpdateReques
 		}
 	}
 
-	isEqual := slices.Equal(plan.Applications, state.Applications)
+	// isEqual := slices.Equal(plan.Applications, state.Applications)
+	isEqual := reflect.DeepEqual(plan.Applications, state.Applications)
 
 	if plan.Applications != nil && !isEqual {
 		var applications []string

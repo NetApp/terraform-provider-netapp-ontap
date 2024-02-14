@@ -46,7 +46,7 @@ func TestAccSvmPeersResource(t *testing.T) {
 		},
 	})
 }
-func testAccSvmPeersResourceConfig(svm, peer_svm, peer_cluster, applications string) string {
+func testAccSvmPeersResourceConfig(svm, peerSvm, peerCluster, applications string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST3")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS")
@@ -90,5 +90,5 @@ resource "netapp-ontap_svm_peers_resource" "example" {
     peer_cx_profile_name = "cluster3"
   }
   applications = ["%s"]
-}`, host, admin, password, host2, admin, password, svm, peer_svm, peer_cluster, applications)
+}`, host, admin, password, host2, admin, password, svm, peerSvm, peerCluster, applications)
 }
