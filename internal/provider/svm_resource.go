@@ -240,7 +240,6 @@ func (r *SvmResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	} else {
 		svm, err = interfaces.GetSvmByNameDataSource(errorHandler, *client, data.Name.ValueString())
 	}
-	// svm, err := interfaces.GetSvm(errorHandler, *client, data.ID.ValueString())
 	if err != nil {
 		return
 	}
@@ -253,7 +252,6 @@ func (r *SvmResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 
 	if len(svm.Aggregates) != 0 {
 		for _, v := range svm.Aggregates {
-			tflog.Debug(ctx, fmt.Sprintf("HIIIIIIIIII: %#v", v.Name))
 			aggr := Aggregate{}
 			aggr.Name = v.Name
 			aggregates = append(aggregates, aggr)
