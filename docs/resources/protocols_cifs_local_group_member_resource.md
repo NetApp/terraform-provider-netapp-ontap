@@ -14,7 +14,6 @@ Create/Read/Delete a member in a local group resource
 
 ### Related ONTAP commands
 ```commandline
-* vserver cifs users-and-groups local-group show-members
 * vserver cifs users-and-groups local-group add-members
 * vserver cifs users-and-groups local-group remove-members
 ```
