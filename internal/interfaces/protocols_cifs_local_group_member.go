@@ -18,7 +18,6 @@ type CifsLocalGroupMemberGetDataModelONTAP struct {
 // CifsLocalGroupMemberResourceBodyDataModelONTAP describes the body data model using go types for mapping.
 type CifsLocalGroupMemberResourceBodyDataModelONTAP struct {
 	Name string `mapstructure:"name"`
-	SVM  svm    `mapstructure:"svm"`
 }
 
 // CifsLocalGroupMemberDataSourceFilterModel describes the data source data model for queries.
@@ -79,8 +78,8 @@ func GetCifsLocalGroupMembers(errorHandler *utils.ErrorHandler, r restclient.Res
 }
 
 // CreateCifsLocalGroupMember to create protocols_cifs_local_group_member
-func CreateCifsLocalGroupMember(errorHandler *utils.ErrorHandler, r restclient.RestClient, body CifsLocalGroupMemberResourceBodyDataModelONTAP) (*CifsLocalGroupMemberGetDataModelONTAP, error) {
-	api := "protocols/cifs/local-groups/"
+func CreateCifsLocalGroupMember(errorHandler *utils.ErrorHandler, r restclient.RestClient, body CifsLocalGroupMemberResourceBodyDataModelONTAP, svmid string, groupid string) (*CifsLocalGroupMemberGetDataModelONTAP, error) {
+	api := "protocols/cifs/local-groups/" + svmid + "/" + groupid + "/members"
 	var bodyMap map[string]interface{}
 	if err := mapstructure.Decode(body, &bodyMap); err != nil {
 		return nil, errorHandler.MakeAndReportError("error encoding protocols_cifs_local_group_member body", fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body))
@@ -101,9 +100,13 @@ func CreateCifsLocalGroupMember(errorHandler *utils.ErrorHandler, r restclient.R
 }
 
 // DeleteCifsLocalGroupMember to delete protocols_cifs_local_group_member
-func DeleteCifsLocalGroupMember(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) error {
-	api := "protocols/cifs/local-groups/"
-	statusCode, _, err := r.CallDeleteMethod(api+"/"+uuid, nil, nil)
+func DeleteCifsLocalGroupMember(errorHandler *utils.ErrorHandler, r restclient.RestClient, body CifsLocalGroupMemberResourceBodyDataModelONTAP, svmid string, groupid string) error {
+	api := "protocols/cifs/local-groups/" + svmid + "/" + groupid + "/members"
+	var bodyMap map[string]interface{}
+	if err := mapstructure.Decode(body, &bodyMap); err != nil {
+		return errorHandler.MakeAndReportError("error encoding protocols_cifs_local_group_member body", fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body))
+	}
+	statusCode, _, err := r.CallDeleteMethod(api, nil, bodyMap)
 	if err != nil {
 		return errorHandler.MakeAndReportError("error deleting protocols_cifs_local_group_member", fmt.Sprintf("error on DELETE %s: %s, statusCode %d", api, err, statusCode))
 	}
