@@ -18,7 +18,7 @@ FEATURES:
 * **New Resource:** `netapp-ontap_protocols_cifs_local_group_resource` ([#53](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/53))
 * **New Resource:** `netapp-ontap_protocols_cifs_local_user_resource` ([#56](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/56))
 * **New Resource:** `netapp-ontap_protocols_cifs_user_group_privilege_resource` ([#58](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/58))
-
+* **New Resource:** `netapp-ontap_protocols_cifs_user_group_member_resource` ([#123](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/123))
 
 
 ENHANCEMENTS:
