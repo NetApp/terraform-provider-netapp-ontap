@@ -301,7 +301,6 @@ func (r *SVMPeersResource) Update(ctx context.Context, req resource.UpdateReques
 		}
 	}
 
-	// isEqual := slices.Equal(plan.Applications, state.Applications)
 	isEqual := reflect.DeepEqual(plan.Applications, state.Applications)
 
 	if plan.Applications != nil && !isEqual {

@@ -47,12 +47,12 @@ func TestAccSvmPeersResource(t *testing.T) {
 	})
 }
 func testAccSvmPeersResourceConfig(svm, peerSvm, peerCluster, applications string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST3")
+	host := os.Getenv("TF_ACC_NETAPP_HOST4")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	host2 := os.Getenv("TF_ACC_NETAPP_HOST2")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST2, TF_ACC_NETAPP_HOST3, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST2, TF_ACC_NETAPP_HOST4, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
