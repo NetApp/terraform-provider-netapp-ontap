@@ -24,12 +24,12 @@ func NewFlexcacheDataSource() datasource.DataSource {
 	}
 }
 
-// AggregateResource defines the resource implementation.
+// StorageFlexcacheDataSource implements the datasource interface and defines the data model for the resource.
 type StorageFlexcacheDataSource struct {
 	config resourceOrDataSourceConfig
 }
 
-// AggregateResourceModel describes the resource data model.
+// StorageFlexcacheDataSourceModel describes the resource data model.
 type StorageFlexcacheDataSourceModel struct {
 	CxProfileName            types.String `tfsdk:"cx_profile_name"`
 	Name                     types.String `tfsdk:"name"`
@@ -188,7 +188,7 @@ func (r *StorageFlexcacheDataSource) Configure(ctx context.Context, req datasour
 }
 
 // Read refreshes the Terraform state with the latest data.
-func (d *StorageFlexcacheDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (r *StorageFlexcacheDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data StorageFlexcacheDataSourceModel
 
 	// Read Terraform configuration data into the model
@@ -200,7 +200,7 @@ func (d *StorageFlexcacheDataSource) Read(ctx context.Context, req datasource.Re
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
-	client, err := getRestClient(errorHandler, d.config, data.CxProfileName)
+	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -214,9 +214,9 @@ func (d *StorageFlexcacheDataSource) Read(ctx context.Context, req datasource.Re
 		return
 	}
 
-	size, size_unit := interfaces.ByteFormat(int64(flexcache.Size))
+	size, sizeUnit := interfaces.ByteFormat(int64(flexcache.Size))
 	data.Size = types.Int64Value(int64(size))
-	data.SizeUnit = types.StringValue(size_unit)
+	data.SizeUnit = types.StringValue(sizeUnit)
 	data.JunctionPath = types.StringValue(flexcache.JunctionPath)
 	data.ConstituentsPerAggregate = types.Int64Value(int64(flexcache.ConstituentsPerAggregate))
 	data.DrCache = types.BoolValue(flexcache.DrCache)

@@ -17,7 +17,7 @@ import (
 // Ensure provider defined types fully satisfy framework interfaces
 var _ datasource.DataSource = &StorageFlexcachesDataSource{}
 
-// NewFlexcacheDataSource is a helper function to simplify the provider implementation.
+// NewFlexcachesDataSource is a helper function to simplify the provider implementation.
 func NewFlexcachesDataSource() datasource.DataSource {
 	return &StorageFlexcacheDataSource{
 		config: resourceOrDataSourceConfig{
@@ -26,18 +26,19 @@ func NewFlexcachesDataSource() datasource.DataSource {
 	}
 }
 
-// AggregateResource defines the resource implementation.
+// StorageFlexcachesDataSource defines the resource implementation.
 type StorageFlexcachesDataSource struct {
 	config resourceOrDataSourceConfig
 }
 
-// AggregateResourceModel describes the resource data model.
+// StorageFlexcachesDataSourceModel describes the resource data model.
 type StorageFlexcachesDataSourceModel struct {
 	CxProfileName     types.String                           `tfsdk:"cx_profile_name"`
 	StorageFlexcaches []StorageFlexcacheDataSourceModel      `tfsdk:"storage_flexcaches"`
 	Filter            *StorageFlexcacheDataSourceFilterModel `tfsdk:"filter"`
 }
 
+// StorageFlexcacheDataSourceModel describes the data source data model for queries.
 type StorageFlexcacheDataSourceFilterModel struct {
 	Name    types.String `tfsdk:"name"`
 	SVMName types.String `tfsdk:"svm_name"`
@@ -206,7 +207,7 @@ func (r *StorageFlexcachesDataSource) Configure(ctx context.Context, req datasou
 }
 
 // Read refreshes the Terraform state with the latest data.
-func (d *StorageFlexcachesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (r *StorageFlexcachesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data StorageFlexcachesDataSourceModel
 
 	// Read Terraform configuration data into the model
@@ -218,7 +219,7 @@ func (d *StorageFlexcachesDataSource) Read(ctx context.Context, req datasource.R
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
-	client, err := getRestClient(errorHandler, d.config, data.CxProfileName)
+	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
