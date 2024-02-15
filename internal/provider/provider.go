@@ -158,6 +158,7 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		NewStorageVolumeResource,
 		NewStorageVolumeSnapshotResource,
 		NewSvmResource,
+		NewStorageFlexcacheRsource,
 	}
 }
 
@@ -202,6 +203,8 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		NewStorageVolumesDataSource,
 		NewSvmDataSource,
 		NewSvmsDataSource,
+		NewFlexcacheDataSource,
+		NewFlexcachesDataSource,
 	}
 }
 

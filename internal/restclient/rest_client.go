@@ -248,11 +248,18 @@ func (r *RestClient) Wait(uuid string) (int, RestResponse, error) {
 		} else if job.State == "success" {
 			return statusCode, RestResponse{}, nil
 		} else {
-			if job.Error.Code != "" {
-				errorMessage := fmt.Errorf("fail to get job status. Error code: %s. Message: %s, Target: %s", job.Error.Code, job.Error.Message, job.Error.Target)
-				return statusCode, RestResponse{}, errorMessage
+			// if job struct ifself contains message and code, jobError struct might be empty. Vice versa.
+			if job.Error != (jobError{}) {
+				if job.Error.Code != "" {
+					errorMessage := fmt.Errorf("fail to get job status. Error code: %s. Message: %s, Target: %s", job.Error.Code, job.Error.Message, job.Error.Target)
+					return statusCode, RestResponse{}, errorMessage
+				}
+				return statusCode, RestResponse{}, fmt.Errorf("fail to get job status. Unknown error")
+			} else {
+				if job.Code != 0 {
+					return statusCode, RestResponse{}, fmt.Errorf("Job UUID %s failed. Error code: %d. Message: %s", uuid, job.Code, job.Message)
+				}
 			}
-			return statusCode, RestResponse{}, fmt.Errorf("fail to get job status. Unknown error")
 		}
 		time.Sleep(10 * time.Second)
 	}
@@ -262,8 +269,10 @@ func (r *RestClient) Wait(uuid string) (int, RestResponse, error) {
 
 // Job is ONTAP API job data structure
 type Job struct {
-	State string
-	Error jobError
+	State   string
+	Error   jobError
+	Code    int
+	Message string
 }
 
 type jobError struct {
