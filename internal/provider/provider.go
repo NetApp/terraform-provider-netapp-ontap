@@ -159,6 +159,7 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		NewSecurityAccountResource,
 		NewSnapmirrorResource,
 		NewSnapmirrorPolicyResource,
+		NewStorageLunResource,
 		NewSnapshotPolicyResource,
 		NewStorageVolumeResource,
 		NewStorageVolumeSnapshotResource,
