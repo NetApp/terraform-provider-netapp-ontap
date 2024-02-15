@@ -26,6 +26,7 @@ type StorageFlexcacheGetDataModelONTAP struct {
 	UUID                     string
 }
 
+// StorageFlexcacheResourceModel describes the resource data model.
 type StorageFlexcacheResourceModel struct {
 	Name                     string                    `mapstructure:"name,omitempty"`
 	SVM                      svm                       `mapstructure:"svm,omitempty"`
@@ -41,25 +42,30 @@ type StorageFlexcacheResourceModel struct {
 	Aggregates               []map[string]interface{}  `mapstructure:"aggregates,omitempty"`
 }
 
+// StorageFlexcacheGuarantee describes the guarantee data model of Guarantee within StorageFlexcacheResourceModel.
 type StorageFlexcacheGuarantee struct {
 	Type string `mapstructure:"type,omitempty"`
 }
 
+// StorageFlexcacheOrigin describes the origin data model of Origin within StorageFlexcacheResourceModel.
 type StorageFlexcacheOrigin struct {
 	Volume StorageFlexcacheVolume `mapstructure:"volume"`
 	SVM    StorageFlexcacheSVM    `mapstructure:"svm"`
 }
 
+// StorageFlexcacheVolume describes the volume data model of Volume within StorageFlexcacheOrigin.
 type StorageFlexcacheVolume struct {
 	Name string `mapstructure:"name,omitempty"`
 	ID   string `mapstructure:"uuid,omitempty"`
 }
 
+// StorageFlexcacheSVM describes the svm data model of SVM within StorageFlexcacheOrigin.
 type StorageFlexcacheSVM struct {
 	Name string `mapstructure:"name,omitempty"`
 	ID   string `mapstructure:"uuid,omitempty"`
 }
 
+// StorageFlexcacheAggregate describes the aggregate data model of Aggregate within StorageFlexcacheResourceModel.
 type StorageFlexcacheAggregate struct {
 	Name string `mapstructure:"name,omitempty"`
 	ID   string `mapstructure:"uuid,omitempty"`
@@ -71,7 +77,7 @@ type StorageFlexcacheDataSourceFilterModel struct {
 	SVMName string `mapstructure:"svm.name"`
 }
 
-// GetStorageFlexcacheByName to get flexcache info by name
+// GetStorageFlexcacheByName to get flexcache info by name.
 func GetStorageFlexcacheByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, svmName string) (*StorageFlexcacheGetDataModelONTAP, error) {
 	query := r.NewQuery()
 	query.Add("name", name)
@@ -144,6 +150,7 @@ func CreateStorageFlexcache(errorHandler *utils.ErrorHandler, r restclient.RestC
 
 }
 
+// DeleteStorageFlexcache to delete flexcache by id.
 func DeleteStorageFlexcache(errorHandler *utils.ErrorHandler, r restclient.RestClient, id string) error {
 	statusCode, _, err := r.CallDeleteMethod("storage/flexcache/flexcaches/"+id, nil, nil)
 	if err != nil {

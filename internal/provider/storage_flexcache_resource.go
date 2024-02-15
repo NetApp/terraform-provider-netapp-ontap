@@ -52,30 +52,36 @@ type StorageFlexcacheResourceModel struct {
 	Aggregates               types.Set    `tfsdk:"aggregates"`
 }
 
+// StorageFlexCacheResourceOrigin describes the origin data model of Origin within StorageFlexcacheResourceModel.
 type StorageFlexCacheResourceOrigin struct {
 	Volume types.Object `tfsdk:"volume"`
 	SVM    types.Object `tfsdk:"svm"`
 }
 
+// StorageFlexCacheResourceOriginVolume describes the volume data model of Volume within StorageFlexcacheOrigin.
 type StorageFlexCacheResourceOriginVolume struct {
 	Name types.String `tfsdk:"name"`
 	ID   types.String `tfsdk:"id"`
 }
 
+// StorageFlexCacheResourceOriginSVM describes the SVM data model of SVM within StorageFlexcacheOrigin.
 type StorageFlexCacheResourceOriginSVM struct {
 	Name types.String `tfsdk:"name"`
 	ID   types.String `tfsdk:"id"`
 }
 
+// StorageFlexCacheResourceOriginAggregate describes the aggregate data model of Aggregate within StorageFlexcacheResourceModel.
 type StorageFlexCacheResourceOriginAggregate struct {
 	Name types.String `tfsdk:"name"`
 	ID   types.String `tfsdk:"id"`
 }
 
+// StorageFlexCacheGuarantee describes the guarantee data model of Guarantee within StorageFlexcacheResourceModel.
 type StorageFlexCacheGuarantee struct {
 	GuaranteeType types.String `tfsdk:"type"`
 }
 
+// StorageFlexCachePrepopulate describes the prepopulate data model of Prepopulate within StorageFlexcacheResourceModel.
 type StorageFlexCachePrepopulate struct {
 	DirPaths        types.List `tfsdk:"dir_paths"`
 	ExcludeDirPaths types.List `tfsdk:"exclude_dir_paths"`
@@ -242,7 +248,7 @@ func (r *StorageFlexcacheResource) Schema(ctx context.Context, req resource.Sche
 }
 
 // Read refreshes the Terraform state with the latest data.
-func (d *StorageFlexcacheResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *StorageFlexcacheResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data StorageFlexcacheResourceModel
 
 	// Read Terraform configuration data into the model
@@ -254,7 +260,7 @@ func (d *StorageFlexcacheResource) Read(ctx context.Context, req resource.ReadRe
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
-	client, err := getRestClient(errorHandler, d.config, data.CxProfileName)
+	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -269,9 +275,9 @@ func (d *StorageFlexcacheResource) Read(ctx context.Context, req resource.ReadRe
 		return
 	}
 
-	size, size_unit := interfaces.ByteFormat(int64(flexcache.Size))
+	size, sizeUnit := interfaces.ByteFormat(int64(flexcache.Size))
 	data.Size = types.Int64Value(int64(size))
-	data.SizeUnit = types.StringValue(size_unit)
+	data.SizeUnit = types.StringValue(sizeUnit)
 	data.JunctionPath = types.StringValue(flexcache.JunctionPath)
 	data.ConstituentsPerAggregate = types.Int64Value(int64(flexcache.ConstituentsPerAggregate))
 	data.DrCache = types.BoolValue(flexcache.DrCache)

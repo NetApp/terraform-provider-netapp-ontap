@@ -255,10 +255,9 @@ func (r *RestClient) Wait(uuid string) (int, RestResponse, error) {
 					return statusCode, RestResponse{}, errorMessage
 				}
 				return statusCode, RestResponse{}, fmt.Errorf("fail to get job status. Unknown error")
-			} else {
-				if job.Code != 0 {
-					return statusCode, RestResponse{}, fmt.Errorf("Job UUID %s failed. Error code: %d. Message: %s", uuid, job.Code, job.Message)
-				}
+			}
+			if job.Code != 0 {
+				return statusCode, RestResponse{}, fmt.Errorf("Job UUID %s failed. Error code: %d. Message: %s", uuid, job.Code, job.Message)
 			}
 		}
 		time.Sleep(10 * time.Second)
