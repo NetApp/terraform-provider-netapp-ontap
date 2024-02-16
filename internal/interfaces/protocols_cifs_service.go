@@ -48,7 +48,7 @@ type SecurityDataModel struct {
 	TryLdapChannelBinding    bool     `mapstructure:"try_ldap_channel_binding"`
 	LdapReferralEnabled      bool     `mapstructure:"ldap_referral_enabled"`
 	EncryptDcConnection      bool     `mapstructure:"encrypt_dc_connection"`
-	UseStartTls              bool     `mapstructure:"use_start_tls"`
+	UseStartTLS              bool     `mapstructure:"use_start_tls"`
 	SessionSecurity          string   `mapstructure:"session_security"`
 	UseLdaps                 bool     `mapstructure:"use_ldaps"`
 }
