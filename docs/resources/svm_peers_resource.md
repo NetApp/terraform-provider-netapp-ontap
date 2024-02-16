@@ -19,9 +19,6 @@ Create/Modify/Delete a SVMPeer
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher
 
-~> **NOTE:** Amazon FSx for NetApp ONTAP is not supported
-
-
 
 ## Example Usage
 
