@@ -295,7 +295,7 @@ func (d *CifsServicesDataSource) Read(ctx context.Context, req datasource.ReadRe
 			TryLdapChannelBinding:    types.BoolValue(record.Security.TryLdapChannelBinding),
 			LdapReferralEnabled:      types.BoolValue(record.Security.LdapReferralEnabled),
 			EncryptDcConnection:      types.BoolValue(record.Security.EncryptDcConnection),
-			UseStartTls:              types.BoolValue(record.Security.UseStartTls),
+			UseStartTLS:              types.BoolValue(record.Security.UseStartTLS),
 			SessionSecurity:          types.StringValue(record.Security.SessionSecurity),
 			UseLdaps:                 types.BoolValue(record.Security.UseLdaps),
 		}

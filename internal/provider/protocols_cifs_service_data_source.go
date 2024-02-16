@@ -42,7 +42,7 @@ type CifsServiceDataSourceModel struct {
 	Security        *CifsSecurityDataSourceModel `tfsdk:"security"`
 }
 
-// AdDomain describes the ad_domain data model using go types for mapping.
+// AdDomainDataSourceModel describes the ad_domain data model using go types for mapping.
 type AdDomainDataSourceModel struct {
 	OrganizationalUnit types.String `tfsdk:"organizational_unit"`
 	User               types.String `tfsdk:"user"`
@@ -50,14 +50,14 @@ type AdDomainDataSourceModel struct {
 	Fqdn               types.String `tfsdk:"fqdn"`
 }
 
-// Netbios describes the netbios data model using go types for mapping.
+// NetbiosDataSourceModel describes the netbios data model using go types for mapping.
 type NetbiosDataSourceModel struct {
 	Enabled     types.Bool     `tfsdk:"enabled"`
 	Aliases     []types.String `tfsdk:"aliases"`
 	WinsServers []types.String `tfsdk:"wins_servers"`
 }
 
-// SecurityDataSourceModel describes the security data model using go types for mapping.
+// CifsSecurityDataSourceModel describes the security data model using go types for mapping.
 type CifsSecurityDataSourceModel struct {
 	RestrictAnonymous        types.String   `tfsdk:"restrict_anonymous"`
 	SmbSigning               types.Bool     `tfsdk:"smb_signing"`
@@ -68,7 +68,7 @@ type CifsSecurityDataSourceModel struct {
 	TryLdapChannelBinding    types.Bool     `tfsdk:"try_ldap_channel_binding"`
 	LdapReferralEnabled      types.Bool     `tfsdk:"ldap_referral_enabled"`
 	EncryptDcConnection      types.Bool     `tfsdk:"encrypt_dc_connection"`
-	UseStartTls              types.Bool     `tfsdk:"use_start_tls"`
+	UseStartTLS              types.Bool     `tfsdk:"use_start_tls"`
 	SessionSecurity          types.String   `tfsdk:"session_security"`
 	UseLdaps                 types.Bool     `tfsdk:"use_ldaps"`
 }
@@ -292,7 +292,7 @@ func (d *CifsServiceDataSource) Read(ctx context.Context, req datasource.ReadReq
 		TryLdapChannelBinding:    types.BoolValue(restInfo.Security.TryLdapChannelBinding),
 		LdapReferralEnabled:      types.BoolValue(restInfo.Security.LdapReferralEnabled),
 		EncryptDcConnection:      types.BoolValue(restInfo.Security.EncryptDcConnection),
-		UseStartTls:              types.BoolValue(restInfo.Security.UseStartTls),
+		UseStartTLS:              types.BoolValue(restInfo.Security.UseStartTLS),
 		SessionSecurity:          types.StringValue(restInfo.Security.SessionSecurity),
 		UseLdaps:                 types.BoolValue(restInfo.Security.UseLdaps),
 	}
