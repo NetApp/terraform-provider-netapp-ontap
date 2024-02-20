@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -90,10 +89,16 @@ func (d *StorageLunDataSource) Schema(ctx context.Context, req datasource.Schema
 				MarkdownDescription: "svm name for lun",
 				Required:            true,
 			},
+			"privileges": schema.ListAttribute{
+				ElementType:         types.StringType,
+				MarkdownDescription: "List of privileges",
+				Required:            true,
+			},
 			"create_time": schema.StringAttribute{
 				MarkdownDescription: "Time when the lun was created",
 				Computed:            true,
 			},
+
 			"location": schema.SingleNestedAttribute{
 				Computed: true,
 				Optional: true,

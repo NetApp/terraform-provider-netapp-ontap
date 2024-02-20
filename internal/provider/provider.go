@@ -144,6 +144,7 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 	return []func() resource.Resource{
 		NewAggregateResource,
 		NewCifsLocalGroupResource,
+		NewCifsLocalGroupMemberResource,
 		NewCifsLocalUserResource,
 		NewCifsUserGroupPrivilegeResource,
 		NewClusterLicensingLicenseResource,
@@ -158,6 +159,7 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		NewSecurityAccountResource,
 		NewSnapmirrorResource,
 		NewSnapmirrorPolicyResource,
+		NewStorageLunResource,
 		NewSnapshotPolicyResource,
 		NewStorageVolumeResource,
 		NewStorageVolumeSnapshotResource,
@@ -171,6 +173,8 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 	return []func() datasource.DataSource{
 		NewCifsLocalGroupDataSource,
 		NewCifsLocalGroupsDataSource,
+		NewCifsLocalGroupMemberDataSource,
+		NewCifsLocalGroupMembersDataSource,
 		NewCifsLocalUserDataSource,
 		NewCifsLocalUsersDataSource,
 		NewCifsUserGroupPrivilegeDataSource,
