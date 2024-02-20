@@ -234,7 +234,7 @@ func (d *SnapmirrorDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		return
 	}
 
-	restInfo, err := interfaces.GetSnapmirrorByDestinationPath(errorHandler, *client, data.Destination.Path.ValueString(), cluster.Version)
+	restInfo, err := interfaces.GetSnapmirrorByDestinationPath(errorHandler, *client, data.Destination.Path.ValueString(), &cluster.Version)
 	if err != nil {
 		// error reporting done inside GetSnapmirror
 		return

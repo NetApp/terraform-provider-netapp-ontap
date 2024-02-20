@@ -139,7 +139,7 @@ func TestGetSnapmirrorByDestinationPath(t *testing.T) {
 			if err != nil {
 				panic(err)
 			}
-			got, err := GetSnapmirrorByDestinationPath(errorHandler, *r, "", versionModelONTAP{Generation: tt.gen, Major: tt.maj})
+			got, err := GetSnapmirrorByDestinationPath(errorHandler, *r, "", &versionModelONTAP{Generation: tt.gen, Major: tt.maj})
 			if err != nil {
 				fmt.Printf("err: %s\n", err)
 			}

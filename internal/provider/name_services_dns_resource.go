@@ -86,6 +86,8 @@ func (r *NameServicesDNSResource) Schema(ctx context.Context, req resource.Schem
 	}
 }
 
+// create a function that add 2 numbers togehter
+
 // Configure adds the provider configured client to the resource.
 func (r *NameServicesDNSResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
