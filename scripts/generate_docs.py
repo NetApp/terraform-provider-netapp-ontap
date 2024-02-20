@@ -52,7 +52,8 @@ CATAGORYS = {
         "storage_volume_data_source.md",
         "storage_volume_snapshot_resource.md"],
     'support': [],
-    'svm': ["svm_resource.md"],
+    'svm': ["svm_resource.md",
+            "svm_peers_resource.md"],
 }
 
 
