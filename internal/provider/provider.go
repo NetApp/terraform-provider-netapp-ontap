@@ -164,6 +164,7 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		NewStorageVolumeResource,
 		NewStorageVolumeSnapshotResource,
 		NewSvmResource,
+		NewSVMPeersResource,
 	}
 }
 
