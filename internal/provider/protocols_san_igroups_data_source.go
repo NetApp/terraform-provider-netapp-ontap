@@ -3,13 +3,13 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
 // TODO:
@@ -38,9 +38,9 @@ type ProtocolsSanIgroupsDataSource struct {
 
 // ProtocolsSanIgroupsDataSourceModel describes the data source data model.
 type ProtocolsSanIgroupsDataSourceModel struct {
-	CxProfileName types.String                      `tfsdk:"cx_profile_name"`
-	ProtocolsSanIgroups   []ProtocolsSanIgroupDataSourceModel         `tfsdk:"protocols_san_igroups"`
-	Filter        *ProtocolsSanIgroupsDataSourceFilterModel `tfsdk:"filter"`
+	CxProfileName       types.String                              `tfsdk:"cx_profile_name"`
+	ProtocolsSanIgroups []ProtocolsSanIgroupDataSourceModel       `tfsdk:"protocols_san_igroups"`
+	Filter              *ProtocolsSanIgroupsDataSourceFilterModel `tfsdk:"filter"`
 }
 
 // ProtocolsSanIgroupsDataSourceFilterModel describes the data source data model for queries.
@@ -132,6 +132,15 @@ func (d *ProtocolsSanIgroupsDataSource) Read(ctx context.Context, req datasource
 		// error reporting done inside NewClient
 		return
 	}
+	cluster, err := interfaces.GetCluster(errorHandler, *client)
+	if err != nil {
+		// error reporting done inside GetCluster
+		return
+	}
+	if cluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", fmt.Sprintf("cluster not found"))
+		return
+	}
 
 	var filter *interfaces.ProtocolsSanIgroupDataSourceFilterModel = nil
 	if data.Filter != nil {
@@ -139,7 +148,8 @@ func (d *ProtocolsSanIgroupsDataSource) Read(ctx context.Context, req datasource
 			Name: data.Filter.Name.ValueString(),
 		}
 	}
-	restInfo, err := interfaces.GetProtocolsSanIgroups(errorHandler, *client, filter)
+
+	restInfo, err := interfaces.GetProtocolsSanIgroups(errorHandler, *client, filter, cluster.Version)
 	if err != nil {
 		// error reporting done inside GetProtocolsSanIgroups
 		return
@@ -150,7 +160,46 @@ func (d *ProtocolsSanIgroupsDataSource) Read(ctx context.Context, req datasource
 		data.ProtocolsSanIgroups[index] = ProtocolsSanIgroupDataSourceModel{
 			CxProfileName: types.String(data.CxProfileName),
 			Name:          types.StringValue(record.Name),
+			SVMName:       types.StringValue(record.SVM.Name),
+			Comment:       types.StringValue(record.Comment),
+			OsType:        types.StringValue(record.OsType),
+			Protocol:      types.StringValue(record.Protocol),
+			ID:            types.StringValue(record.UUID),
+			Portset: &ProtocolsSanIgroupDataSourcePortsetModel{
+				Name: types.StringValue(record.Portset.Name),
+				UUID: types.StringValue(record.Portset.UUID),
+			},
 		}
+		var initiators []ProtocolsSanIgroupDataSourceInitiatorModel
+		for _, initiator := range record.Initiators {
+			initiators = append(initiators, ProtocolsSanIgroupDataSourceInitiatorModel{
+				Name:    types.StringValue(initiator.Name),
+				Comment: types.StringValue(initiator.Comment),
+			})
+		}
+		data.ProtocolsSanIgroups[index].Initiators = initiators
+
+		var igroups []ProtocolsSanIgroupDataSourceIgroupModel
+		for _, igroup := range record.Igroups {
+			igroups = append(igroups, ProtocolsSanIgroupDataSourceIgroupModel{
+				Name:    types.StringValue(igroup.Name),
+				UUID:    types.StringValue(igroup.UUID),
+				Comment: types.StringValue(igroup.Comment),
+			})
+		}
+		data.ProtocolsSanIgroups[index].Igroups = igroups
+
+		var lunMaps []ProtocolsSanIgroupDataSourceLunMapModel
+		for _, lunMap := range record.LunMaps {
+			lunMaps = append(lunMaps, ProtocolsSanIgroupDataSourceLunMapModel{
+				LogicalUnitNumber: types.Int64Value(int64(lunMap.LogicalUnitNumber)),
+				Lun: ProtocolsSanIgroupDataSourceLunModel{
+					Name: types.StringValue(lunMap.Lun.Name),
+					UUID: types.StringValue(lunMap.Lun.UUID),
+				},
+			})
+		}
+		data.ProtocolsSanIgroups[index].LunMaps = lunMaps
 	}
 
 	// Write logs using the tflog package
