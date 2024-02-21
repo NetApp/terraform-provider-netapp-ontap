@@ -7,9 +7,6 @@ data "netapp-ontap_svm_peer_data_source" "svm_peer" {
     svm = {
       name = "acc_test"
     }
-    # cluster = {
-    #   name = "swenjuncluster-1"
-    # }
   }
 }
 
