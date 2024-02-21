@@ -86,8 +86,104 @@ func (d *ProtocolsSanIgroupsDataSource) Schema(ctx context.Context, req datasour
 							Required:            true,
 						},
 						"name": schema.StringAttribute{
-							MarkdownDescription: "ProtocolsSanIgroup name",
-							Required:            true,
+							MarkdownDescription: "The name of the initiator group.",
+							Optional:            true,
+						},
+						"svm_name": schema.StringAttribute{
+							MarkdownDescription: "The name of the SVM",
+							Optional:            true,
+						},
+						"comment": schema.StringAttribute{
+							MarkdownDescription: "Required ONTAP 9.9 or greater. Comment",
+							Computed:            true,
+						},
+						"igroups": schema.SetNestedAttribute{
+							MarkdownDescription: "Required ONTAP 9.9 or greater. The initiator groups that are members of the group.",
+							Computed:            true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"comment": schema.StringAttribute{
+										MarkdownDescription: "Comment",
+										Computed:            true,
+									},
+									"name": schema.StringAttribute{
+										MarkdownDescription: "Name",
+										Computed:            true,
+									},
+									"uuid": schema.StringAttribute{
+										MarkdownDescription: "UUID",
+										Computed:            true,
+									},
+								},
+							},
+						},
+						"initiators": schema.SetNestedAttribute{
+							MarkdownDescription: "Required ONTAP 9.9 or greater. The initiators that are members of the group or any group nested below this group.",
+							Computed:            true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"comment": schema.StringAttribute{
+										MarkdownDescription: "Comment",
+										Computed:            true,
+									},
+									"name": schema.StringAttribute{
+										MarkdownDescription: "Name",
+										Computed:            true,
+									},
+								},
+							},
+						},
+						"lun_maps": schema.SetNestedAttribute{
+							MarkdownDescription: "All LUN maps with which the initiator is associated.",
+							Computed:            true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"logical_unit_number": schema.Int64Attribute{
+										MarkdownDescription: "The logical unit number assigned to the LUN for initiators in the initiator group.",
+										Computed:            true,
+									},
+									"lun": schema.SingleNestedAttribute{
+										MarkdownDescription: "The LUN to which the initiator group is mapped",
+										Computed:            true,
+										Attributes: map[string]schema.Attribute{
+											"name": schema.StringAttribute{
+												MarkdownDescription: "The name of the LUN.",
+												Computed:            true,
+											},
+											"uuid": schema.StringAttribute{
+												MarkdownDescription: "The UUID of the LUN.",
+												Computed:            true,
+											},
+										},
+									},
+								},
+							},
+						},
+						"os_type": schema.StringAttribute{
+							MarkdownDescription: "The host operating system of the initiator group. All initiators in the group should be hosts of the same operating system.",
+							Computed:            true,
+						},
+						"portset": schema.SingleNestedAttribute{
+							MarkdownDescription: "Required ONTAP 9.9 or greater. The portset to which the initiator group is bound. Binding the initiator group to a portset restricts the initiators of the group to accessing mapped LUNs only through network interfaces in the portset.",
+							Computed:            true,
+							Attributes: map[string]schema.Attribute{
+								"name": schema.StringAttribute{
+									MarkdownDescription: "The name of the LUN.",
+									Computed:            true,
+								},
+								"uuid": schema.StringAttribute{
+									MarkdownDescription: "The UUID of the LUN.",
+									Computed:            true,
+								},
+							},
+						},
+						"protocol": schema.StringAttribute{
+							MarkdownDescription: "The protocols supported by the initiator group. This restricts the type of initiators that can be added to the initiator group.",
+							Computed:            true,
+						},
+						"id": schema.StringAttribute{
+							MarkdownDescription: "The UUID of the initiator group.",
+							Computed:            true,
 						},
 					},
 				},

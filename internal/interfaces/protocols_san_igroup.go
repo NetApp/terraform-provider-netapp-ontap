@@ -30,27 +30,32 @@ type ProtocolsSanIgroupGetDataModelONTAP struct {
 	Portset    Portset           `mapstructure:"portset"`
 }
 
+// IgroupsLunMap describes the data model for lun_maps.
 type IgroupsLunMap struct {
 	LogicalUnitNumber int                `mapstructure:"logical_unit_number"`
 	Lun               IgroupLunForLunMap `mapstructure:"lun"`
 }
 
+// IgroupLunForLunMap describes the data model for lun.
 type IgroupLunForLunMap struct {
 	Name string `mapstructure:"name"`
 	UUID string `mapstructure:"uuid"`
 }
 
+// IgroupLun describes the data model for igroup.
 type IgroupLun struct {
 	Name    string `mapstructure:"name"`
 	UUID    string `mapstructure:"uuid"`
 	Comment string `mapstructure:"comment"`
 }
 
+// IgroupInitiator describes the data model for initiator.
 type IgroupInitiator struct {
 	Name    string `mapstructure:"name"`
 	Comment string `mapstructure:"comment"`
 }
 
+// Portset describes the data model for portset.
 type Portset struct {
 	Name string `mapstructure:"name"`
 	UUID string `mapstructure:"uuid"`
@@ -96,6 +101,7 @@ func GetProtocolsSanIgroupByName(errorHandler *utils.ErrorHandler, r restclient.
 	return &dataONTAP, nil
 }
 
+// GetProtocolsSanIgroups to get protocols_san_igroup info for all resources matching a filter
 func GetProtocolsSanIgroups(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *ProtocolsSanIgroupDataSourceFilterModel, version versionModelONTAP) ([]ProtocolsSanIgroupGetDataModelONTAP, error) {
 	api := "protocols/san/igroups"
 	query := r.NewQuery()
@@ -128,7 +134,7 @@ func GetProtocolsSanIgroups(errorHandler *utils.ErrorHandler, r restclient.RestC
 				fmt.Sprintf("error: %s, statusCode %d, info %#v", err, statusCode, info))
 		}
 		dataONTAP = append(dataONTAP, record)
-	
+
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read protocols_san_igroup data source: %#v", dataONTAP))
 	return dataONTAP, nil
