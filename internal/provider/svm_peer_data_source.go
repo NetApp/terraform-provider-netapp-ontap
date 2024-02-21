@@ -29,6 +29,7 @@ type SVMPeerDataSource struct {
 	config resourceOrDataSourceConfig
 }
 
+// SVMPeerDataSourceModel defines the peer data source model.
 type SVMPeerDataSourceModel struct {
 	CxProfileName types.String   `tfsdk:"cx_profile_name"`
 	Applications  []types.String `tfsdk:"applications"`
