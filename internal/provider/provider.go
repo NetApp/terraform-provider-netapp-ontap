@@ -163,8 +163,8 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		NewSnapshotPolicyResource,
 		NewStorageVolumeResource,
 		NewStorageVolumeSnapshotResource,
-		NewSvmResource,
 		NewSVMPeersResource,
+		NewSvmResource,
 	}
 }
 
@@ -217,6 +217,8 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		NewStorageVolumesDataSource,
 		NewSvmDataSource,
 		NewSvmsDataSource,
+		NewSVMPeerDataSource,
+		NewSVMPeersDataSource,
 	}
 }
 
