@@ -5,12 +5,12 @@ data "netapp-ontap_svm_peers_data_source" "svm_peers" {
       name = "acc*"
     }
     peer = {
-      # svm = {
-      #   name = "acc*"
-      # }
-      # cluster = {
-      #   name = "swenjuncluster-1"
-      # }
+      svm = {
+        name = "acc*"
+      }
+      cluster = {
+        name = "abc-1"
+      }
     }
   }
 }
