@@ -129,6 +129,7 @@ func GetStorageFlexcaches(errorHandler *utils.ErrorHandler, r restclient.RestCli
 	return dataONTAP, nil
 }
 
+// CreateStorageFlexcache creates flexcache.
 // POST API returns result, but does not include the attributes that are not set. Make a spearate GET call to get all attributes.
 func CreateStorageFlexcache(errorHandler *utils.ErrorHandler, r restclient.RestClient, data StorageFlexcacheResourceModel) error {
 	var body map[string]interface{}

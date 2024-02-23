@@ -17,7 +17,7 @@ import (
 // Ensure provider defined types fully satisfy framework interfaces
 var _ datasource.DataSource = &StorageFlexcachesDataSource{}
 
-// NewFlexcachesDataSource is a helper function to simplify the provider implementation.
+// NewStorageFlexcachesDataSource is a helper function to simplify the provider implementation.
 func NewStorageFlexcachesDataSource() datasource.DataSource {
 	return &StorageFlexcacheDataSource{
 		config: resourceOrDataSourceConfig{
