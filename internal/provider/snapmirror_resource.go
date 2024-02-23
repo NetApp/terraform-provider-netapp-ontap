@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
@@ -43,6 +44,7 @@ type SnapmirrorResourceModel struct {
 	SourceEndPoint      *EndPoint          `tfsdk:"source_endpoint"`
 	DestinationEndPoint *EndPoint          `tfsdk:"destination_endpoint"`
 	CreateDestination   *CreateDestination `tfsdk:"create_destination"`
+	Policy              *Policy            `tfsdk:"policy"`
 	Initialize          types.Bool         `tfsdk:"initialize"`
 	Healthy             types.Bool         `tfsdk:"healthy"`
 	State               types.String       `tfsdk:"state"`
@@ -62,6 +64,11 @@ type CreateDestination struct {
 
 // Cluster describes Cluster data model.
 type Cluster struct {
+	Name types.String `tfsdk:"name"`
+}
+
+// Policy describes Policy data model.
+type Policy struct {
 	Name types.String `tfsdk:"name"`
 }
 
@@ -121,7 +128,7 @@ func (r *SnapmirrorResource) Schema(ctx context.Context, req resource.SchemaRequ
 				},
 			},
 			"create_destination": schema.SingleNestedAttribute{
-				MarkdownDescription: "Snapmirror privision destination",
+				MarkdownDescription: "Snapmirror provision destination",
 				Optional:            true,
 				Attributes: map[string]schema.Attribute{
 					"enabled": schema.BoolAttribute{
@@ -144,6 +151,16 @@ func (r *SnapmirrorResource) Schema(ctx context.Context, req resource.SchemaRequ
 			"state": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+			},
+			"policy": schema.SingleNestedAttribute{
+				MarkdownDescription: "policy details",
+				Optional:            true,
+				Attributes: map[string]schema.Attribute{
+					"name": schema.StringAttribute{
+						MarkdownDescription: "policy name",
+						Required:            true,
+					},
+				},
 			},
 			"id": schema.StringAttribute{
 				Computed: true,
@@ -190,15 +207,26 @@ func (r *SnapmirrorResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	restInfo, err := interfaces.GetSnapmirrorByID(errorHandler, *client, data.ID.ValueString())
-	if err != nil {
-		// error reporting done inside GetSnapmirrorByID
-		return
+	if data.ID.ValueString() != "" {
+		restInfo, err := interfaces.GetSnapmirrorByID(errorHandler, *client, data.ID.ValueString())
+		if err != nil {
+			// error reporting done inside GetSnapmirrorByID
+			return
+		}
+		data.ID = types.StringValue(restInfo.UUID)
+		data.Healthy = types.BoolValue(restInfo.Healthy)
+		data.State = types.StringValue(restInfo.State)
+	} else {
+		restInfoImport, err := interfaces.GetSnapmirrorByDestinationPath(errorHandler, *client, data.DestinationEndPoint.Path.ValueString(), nil)
+		if err != nil {
+			// error reporting done inside GetSnapmirrorByID
+			return
+		}
+		data.ID = types.StringValue(restInfoImport.UUID)
+		data.Healthy = types.BoolValue(restInfoImport.Healthy)
+		data.State = types.StringValue(restInfoImport.State)
+		data.DestinationEndPoint.Path = types.StringValue(restInfoImport.Destination.Path)
 	}
-
-	data.ID = types.StringValue(restInfo.UUID)
-	data.Healthy = types.BoolValue(restInfo.Healthy)
-	data.State = types.StringValue(restInfo.State)
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
@@ -238,6 +266,11 @@ func (r *SnapmirrorResource) Create(ctx context.Context, req resource.CreateRequ
 			body.CreateDestination.Enabled = data.CreateDestination.Enabled.ValueBool()
 		}
 	}
+	if data.Policy != nil {
+		if !data.Policy.Name.IsNull() {
+			body.Policy.Name = data.Policy.Name.ValueString()
+		}
+	}
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
@@ -252,6 +285,7 @@ func (r *SnapmirrorResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 	tflog.Debug(ctx, fmt.Sprintf("create snapmirror resource: %#v", resource))
 
+	data.ID = types.StringValue(resource.UUID)
 	restInfo, err := interfaces.GetSnapmirrorByID(errorHandler, *client, data.ID.ValueString())
 	if err != nil {
 		// error reporting done inside GetSnapmirror
@@ -260,7 +294,6 @@ func (r *SnapmirrorResource) Create(ctx context.Context, req resource.CreateRequ
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read snapmirror info: %#v", restInfo))
 	data.Healthy = types.BoolValue(restInfo.Healthy)
 	data.State = types.StringValue(restInfo.State)
-	data.ID = types.StringValue(resource.UUID)
 
 	if data.Initialize.ValueBool() && data.State.ValueString() == "uninitialized" {
 		time.Sleep(3 * time.Second)
@@ -292,24 +325,68 @@ func (r *SnapmirrorResource) Create(ctx context.Context, req resource.CreateRequ
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *SnapmirrorResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan SnapmirrorResourceModel
-	var state SnapmirrorResourceModel
+	var plan, state *SnapmirrorResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	// Read Terraform state data in to the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	// License updates are not supported
-	err := errorHandler.MakeAndReportError("Update not supported for snapmirror", "Update not supported for snapmirror")
+
+	client, err := getRestClient(errorHandler, r.config, state.CxProfileName)
+	if err != nil {
+		// error reporting done inside NewClient
+		return
+	}
+
+	// Update the resource
+	var body interfaces.UpdateSnapmirrorResourceBodyDataModelONTAP
+
+	body.SourceEndPoint.Path = plan.SourceEndPoint.Path.ValueString()
+	body.DestinationEndPoint.Path = plan.DestinationEndPoint.Path.ValueString()
+	body.State = plan.State.ValueString()
+	if plan.SourceEndPoint.Cluster != nil {
+		if !plan.SourceEndPoint.Cluster.Name.IsNull() {
+			body.SourceEndPoint.Cluster.Name = plan.SourceEndPoint.Cluster.Name.ValueString()
+		}
+	}
+	if plan.DestinationEndPoint.Cluster != nil {
+		if !plan.DestinationEndPoint.Cluster.Name.IsNull() {
+			body.DestinationEndPoint.Cluster.Name = plan.DestinationEndPoint.Cluster.Name.ValueString()
+		}
+	}
+	if plan.Policy != nil {
+		if !plan.Policy.Name.IsNull() {
+			body.Policy.Name = plan.Policy.Name.ValueString()
+		}
+	}
+
+	err = interfaces.UpdateSnapmirror(errorHandler, *client, body, plan.ID.ValueString())
 	if err != nil {
 		return
 	}
+
+	restInfo, err := interfaces.GetSnapmirrorByID(errorHandler, *client, plan.ID.ValueString())
+	if err != nil {
+		return
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read snapmirror info: %#v", restInfo))
+	// Update the computed parameters
+	plan.Healthy = types.BoolValue(restInfo.Healthy)
+	plan.State = types.StringValue(restInfo.State)
+
+	tflog.Debug(ctx, fmt.Sprintf("updated a snapmirror resource: UUID=%s", plan.ID))
+
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -344,5 +421,16 @@ func (r *SnapmirrorResource) Delete(ctx context.Context, req resource.DeleteRequ
 
 // ImportState imports a resource using ID from terraform import command by calling the Read method.
 func (r *SnapmirrorResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	idParts := strings.Split(req.ID, ",")
+
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: destination_path,cx_profile_name. Got: %q", req.ID),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("destination_endpoint").AtName("path"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[1])...)
 }
