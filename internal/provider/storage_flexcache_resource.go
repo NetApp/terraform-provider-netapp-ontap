@@ -390,6 +390,7 @@ func (r *StorageFlexcacheResource) Read(ctx context.Context, req resource.ReadRe
 
 }
 
+// Create creates a new flexcache volume
 func (r *StorageFlexcacheResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data *StorageFlexcacheResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -546,9 +547,9 @@ func (r *StorageFlexcacheResource) Create(ctx context.Context, req resource.Crea
 		errorHandler.MakeAndReportError("No flexcache found", fmt.Sprintf("flexcache %s not found.", data.Name))
 		return
 	}
-	size, size_unit := interfaces.ByteFormat(int64(flexcache.Size))
+	size, sizeUnit := interfaces.ByteFormat(int64(flexcache.Size))
 	data.Size = types.Int64Value(int64(size))
-	data.SizeUnit = types.StringValue(size_unit)
+	data.SizeUnit = types.StringValue(sizeUnit)
 	data.JunctionPath = types.StringValue(flexcache.JunctionPath)
 	data.ConstituentsPerAggregate = types.Int64Value(int64(flexcache.ConstituentsPerAggregate))
 	data.DrCache = types.BoolValue(flexcache.DrCache)
@@ -663,6 +664,7 @@ func (r *StorageFlexcacheResource) Create(ctx context.Context, req resource.Crea
 
 }
 
+// Delete removes the flexcache volume
 func (r *StorageFlexcacheResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data *StorageFlexcacheResourceModel
 
@@ -691,6 +693,7 @@ func (r *StorageFlexcacheResource) Delete(ctx context.Context, req resource.Dele
 	}
 }
 
+// Update updates the flexcache volume
 // If not specified in PATCH, prepopulate.recurse is default to true.
 // prepopulate.dir_paths is requried.
 func (r *StorageFlexcacheResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
