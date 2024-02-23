@@ -143,6 +143,10 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewAggregateResource,
+		NewCifsLocalGroupResource,
+		NewCifsLocalGroupMemberResource,
+		NewCifsLocalUserResource,
+		NewCifsUserGroupPrivilegeResource,
 		NewClusterLicensingLicenseResource,
 		NewClusterScheduleResource,
 		NewExampleResource,
@@ -152,13 +156,16 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		NewIPRouteResource,
 		NewNameServicesDNSResource,
 		NewProtocolsNfsServiceResource,
+		NewSecurityAccountResource,
 		NewSnapmirrorResource,
 		NewSnapmirrorPolicyResource,
+		NewStorageLunResource,
 		NewSnapshotPolicyResource,
+		NewStorageFlexcacheRsource,
 		NewStorageVolumeResource,
 		NewStorageVolumeSnapshotResource,
 		NewSvmResource,
-		NewStorageFlexcacheRsource,
+		NewSVMPeersResource,
 	}
 }
 
@@ -167,8 +174,14 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 	return []func() datasource.DataSource{
 		NewCifsLocalGroupDataSource,
 		NewCifsLocalGroupsDataSource,
+		NewCifsLocalGroupMemberDataSource,
+		NewCifsLocalGroupMembersDataSource,
 		NewCifsLocalUserDataSource,
 		NewCifsLocalUsersDataSource,
+		NewCifsServiceDataSource,
+		NewCifsServicesDataSource,
+		NewCifsUserGroupPrivilegeDataSource,
+		NewCifsUserGroupPrivilegesDataSource,
 		NewClusterDataSource,
 		NewClusterLicensingLicenseDataSource,
 		NewClusterLicensingLicensesDataSource,
@@ -188,6 +201,8 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		NewNameServicesDNSDataSource,
 		NewNameServicesDNSsDataSource,
 		NewProtocolsNfsServiceDataSource,
+		NewSecurityAccountDataSource,
+		NewSecurityAccountsDataSource,
 		NewSnapmirrorDataSource,
 		NewSnapmirrorsDataSource,
 		NewSnapshotPoliciesDataSource,
@@ -197,14 +212,16 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		NewSnapmirrorPoliciesDataSource,
 		NewStorageAggregateDataSource,
 		NewStorageAggregatesDataSource,
+		NewStorageFlexcacheDataSource,
+		NewStorageFlexcachesDataSource,
+		NewStorageLunDataSource,
+		NewStorageLunsDataSource,
 		NewStorageVolumeSnapshotDataSource,
 		NewStorageVolumeSnapshotsDataSource,
 		NewStorageVolumeDataSource,
 		NewStorageVolumesDataSource,
 		NewSvmDataSource,
 		NewSvmsDataSource,
-		NewFlexcacheDataSource,
-		NewFlexcachesDataSource,
 	}
 }
 

@@ -14,7 +14,14 @@ CATAGORYS = {
         "cluster_licensing_license_resource.md"],
     'nas': [
         "protocols_cifs_local_group_data_source.md",
+        "protocols_cifs_local_group_resource.md",
+        "protocols_cifs_local_group_member_data_source.md",
+        "protocols_cifs_local_group_member_resource.md",
         "protocols_cifs_local_user_data_source.md",
+        "protocols_cifs_local_user_resource.md",
+        "protocols_cifs_service_data_source.md",
+        "protocols_cifs_user_group_privilege_data_source.md",
+        "protocols_cifs_user_group_privilege_resource.md",
         "protocols_nfs_service_data_source.md",
         "protocols_nfs_service_resource.md",
         "protocols_nfs_export_policy_resource.md",
@@ -46,7 +53,8 @@ CATAGORYS = {
         "storage_volume_data_source.md",
         "storage_volume_snapshot_resource.md"],
     'support': [],
-    'svm': ["svm_resource.md"],
+    'svm': ["svm_resource.md",
+            "svm_peers_resource.md"],
 }
 
 

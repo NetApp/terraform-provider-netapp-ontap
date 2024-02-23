@@ -60,7 +60,7 @@ else
     link_if_exist ../../provider/variables.tf
     link_if_exist ../../provider/terraform.tfvars
     cat > resource.tf << EOF
-reource "netapp-ontap_${tag_prefix}_resource" "${tag_prefix}" {
+resource "netapp-ontap_${tag_prefix}_resource" "${tag_prefix}" {
   # required to know which system to interface with
   cx_profile_name = "cluster1"
   name = "testme"
@@ -68,5 +68,5 @@ reource "netapp-ontap_${tag_prefix}_resource" "${tag_prefix}" {
 EOF
 fi
 
-echo "TODO: update internal/provider/provider.go to register new data source New${go_prefix}Resource"
+echo "TODO: update internal/provider/provider.go to register new resource New${go_prefix}Resource"
 echo "TODO: add Unit Tests"

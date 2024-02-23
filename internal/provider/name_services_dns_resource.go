@@ -86,6 +86,8 @@ func (r *NameServicesDNSResource) Schema(ctx context.Context, req resource.Schem
 	}
 }
 
+// create a function that add 2 numbers togehter
+
 // Configure adds the provider configured client to the resource.
 func (r *NameServicesDNSResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
@@ -188,10 +190,11 @@ func (r *NameServicesDNSResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	_, err = interfaces.CreateNameServicesDNS(errorHandler, *client, body)
+	dns, err := interfaces.CreateNameServicesDNS(errorHandler, *client, body)
 	if err != nil {
 		return
 	}
+	data.ID = types.StringValue(dns.SVM.UUID)
 
 	tflog.Trace(ctx, "created a resource")
 
