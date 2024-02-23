@@ -177,6 +177,8 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		NewCifsLocalGroupMembersDataSource,
 		NewCifsLocalUserDataSource,
 		NewCifsLocalUsersDataSource,
+		NewCifsServiceDataSource,
+		NewCifsServicesDataSource,
 		NewCifsUserGroupPrivilegeDataSource,
 		NewCifsUserGroupPrivilegesDataSource,
 		NewClusterDataSource,
