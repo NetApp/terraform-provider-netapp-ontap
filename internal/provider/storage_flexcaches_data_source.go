@@ -18,7 +18,7 @@ import (
 var _ datasource.DataSource = &StorageFlexcachesDataSource{}
 
 // NewFlexcachesDataSource is a helper function to simplify the provider implementation.
-func NewFlexcachesDataSource() datasource.DataSource {
+func NewStorageFlexcachesDataSource() datasource.DataSource {
 	return &StorageFlexcacheDataSource{
 		config: resourceOrDataSourceConfig{
 			name: "storage_flexcaches_data_source",
