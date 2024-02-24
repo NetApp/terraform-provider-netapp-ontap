@@ -42,7 +42,6 @@ type StorageFlexcacheDataSourceModel struct {
 	DrCache                  types.Bool   `tfsdk:"dr_cache"`
 	Guarantee                types.Object `tfsdk:"guarantee"`
 	GlobalFileLockingEnabled types.Bool   `tfsdk:"global_file_locking_enabled"`
-	Prepopulate              types.Object `tfsdk:"prepopulate"`
 	UseTieredAggregate       types.Bool   `tfsdk:"use_tiered_aggregate"`
 	Aggregates               types.Set    `tfsdk:"aggregates"`
 	ID                       types.String `tfsdk:"id"`
