@@ -19,7 +19,7 @@ var _ datasource.DataSource = &StorageFlexcachesDataSource{}
 
 // NewStorageFlexcachesDataSource is a helper function to simplify the provider implementation.
 func NewStorageFlexcachesDataSource() datasource.DataSource {
-	return &StorageFlexcacheDataSource{
+	return &StorageFlexcachesDataSource{
 		config: resourceOrDataSourceConfig{
 			name: "storage_flexcaches_data_source",
 		},
@@ -74,6 +74,8 @@ func (r *StorageFlexcachesDataSource) Schema(ctx context.Context, req datasource
 				Optional: true,
 			},
 			"storage_flexcaches": schema.ListNestedAttribute{
+				Computed:            true,
+				MarkdownDescription: "",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"cx_profile_name": schema.StringAttribute{
@@ -253,6 +255,20 @@ func (r *StorageFlexcachesDataSource) Read(ctx context.Context, req datasource.R
 		data.StorageFlexcaches[index].GlobalFileLockingEnabled = types.BoolValue(record.GlobalFileLockingEnabled)
 		data.StorageFlexcaches[index].UseTieredAggregate = types.BoolValue(record.UseTieredAggregate)
 		data.StorageFlexcaches[index].ID = types.StringValue(record.UUID)
+
+		//guarantee
+		elementTypes := map[string]attr.Type{
+			"type": types.StringType,
+		}
+		elements := map[string]attr.Value{
+			"type": types.StringValue(record.Guarantee.Type),
+		}
+		objectValue, diags := types.ObjectValue(elementTypes, elements)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		data.StorageFlexcaches[index].Guarantee = objectValue
 
 		//origin
 		setElements := []attr.Value{}
