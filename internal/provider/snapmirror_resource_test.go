@@ -43,6 +43,7 @@ func TestAccSnapmirrorResource(t *testing.T) {
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_resource.example", "destination_endpoint.path", "snapmirror_source_svm:snap3"),
 				),
 			},
+			// Delete testing automatically occurs in TestCase
 		},
 	})
 }
