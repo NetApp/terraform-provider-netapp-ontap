@@ -38,7 +38,7 @@ type StorageFlexcachesDataSourceModel struct {
 	Filter            *StorageFlexcacheDataSourceFilterModel `tfsdk:"filter"`
 }
 
-// StorageFlexcacheDataSourceModel describes the data source data model for queries.
+// StorageFlexcacheDataSourceFilterModel describes the data source data model for queries.
 type StorageFlexcacheDataSourceFilterModel struct {
 	Name    types.String `tfsdk:"name"`
 	SVMName types.String `tfsdk:"svm_name"`
