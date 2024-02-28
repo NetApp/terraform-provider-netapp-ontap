@@ -253,7 +253,7 @@ func (d *CifsServiceDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 	data.Name = types.StringValue(restInfo.Name)
 	data.SVMName = types.StringValue(restInfo.SVM.Name)
-	if len(restInfo.Comment) == 0 {
+	if len(restInfo.Comment) != 0 {
 		data.Comment = types.StringValue(restInfo.Comment)
 	}
 	data.Enabled = types.BoolValue(restInfo.Enabled)
@@ -267,7 +267,7 @@ func (d *CifsServiceDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 	aliases := make([]types.String, len(restInfo.Netbios.Aliases))
 	for i, alias := range restInfo.Netbios.Aliases {
-		data.Netbios.Aliases[i] = types.StringValue(alias)
+		aliases[i] = types.StringValue(alias)
 	}
 	winsServers := make([]types.String, len(restInfo.Netbios.WinsServers))
 	for i, winsServer := range restInfo.Netbios.WinsServers {
