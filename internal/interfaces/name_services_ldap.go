@@ -39,7 +39,7 @@ type NameServicesLDAPDataSourceFilterModel struct {
 	SVMName string `mapstructure:"svm.name"`
 }
 
-// GetNameServicesLDAPByName to get name_services_ldap info
+// GetNameServicesLDAPBySVMName to get name_services_ldap info
 func GetNameServicesLDAPBySVMName(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmName string) (*NameServicesLDAPGetDataModelONTAP, error) {
 	api := "name-services/ldap"
 	query := r.NewQuery()
