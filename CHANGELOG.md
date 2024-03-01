@@ -15,6 +15,8 @@ FEATURES:
 * **New Data Source:** `netapp-ontap_storage_luns_data_source` ([#12](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/12))
 * **New Data Source:** `netapp_ontap_protocols_cifs_local_group_member_data_source` ([#122](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/122))
 * **New Data Source:** `netapp_ontap_protocols_cifs_local_group_members_data_source` ([#122](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/122))
+* **New Data Source:** `netapp-ontap_svm_peer_data_source` ([#52](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/52))
+* **New Data Source:** `netapp-ontap_svm_peers_data_source` ([#52](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/52))
 * **New Data Source:** `netapp_ontap_protocols_cifs_server_data_source` ([#24](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/24))
 * **New Data Source:** `netapp_ontap_protocols_cifs_servers_data_source` ([#24](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/24))
 * **New Data Source:** `netapp_ontap_storage_flexcache_data_source` ([#47](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/47))

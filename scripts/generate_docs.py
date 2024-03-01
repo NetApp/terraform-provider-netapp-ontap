@@ -55,7 +55,9 @@ CATAGORYS = {
         "storage_flexcache_resource.md"],
     'support': [],
     'svm': ["svm_resource.md",
-            "svm_peers_resource.md"],
+            "svm_peers_resource.md",
+            "svm_peer_data_source.md",
+            "svm_peers_data_source.md",],
 }
 
 
