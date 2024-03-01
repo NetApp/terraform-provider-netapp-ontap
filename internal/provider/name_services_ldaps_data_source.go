@@ -38,7 +38,9 @@ type NameServicesLDAPsDataSourceModel struct {
 
 // NameServicesLDAPsDataSourceFilterModel describes the data source data model for queries.
 type NameServicesLDAPsDataSourceFilterModel struct {
-	SVMName types.String `tfsdk:"svm_name"`
+	SVMName      types.String `tfsdk:"svm_name"`
+	BaseScope    types.String `tfsdk:"base_scope"`
+	MinBindLevel types.String `tfsdk:"min_bind_level"`
 }
 
 // Metadata returns the data source type name.
@@ -63,6 +65,14 @@ func (d *NameServicesLDAPsDataSource) Schema(ctx context.Context, req datasource
 						MarkdownDescription: "NameServicesLDAP svm name",
 						Optional:            true,
 					},
+					"min_bind_level": schema.StringAttribute{
+						MarkdownDescription: "The minimum bind authentication level",
+						Optional:            true,
+					},
+					"base_scope": schema.StringAttribute{
+						MarkdownDescription: "Specifies the default search scope for LDAP queries",
+						Optional:            true,
+					},
 				},
 				Optional: true,
 			},
@@ -71,11 +81,11 @@ func (d *NameServicesLDAPsDataSource) Schema(ctx context.Context, req datasource
 					Attributes: map[string]schema.Attribute{
 						"cx_profile_name": schema.StringAttribute{
 							MarkdownDescription: "Connection profile name",
-							Required:            true,
+							Computed:            true,
 						},
 						"svm_name": schema.StringAttribute{
 							MarkdownDescription: "IPInterface svm name",
-							Required:            true,
+							Computed:            true,
 						},
 						"servers": schema.SetAttribute{
 							ElementType:         types.StringType,
@@ -186,7 +196,9 @@ func (d *NameServicesLDAPsDataSource) Read(ctx context.Context, req datasource.R
 	var filter *interfaces.NameServicesLDAPDataSourceFilterModel = nil
 	if data.Filter != nil {
 		filter = &interfaces.NameServicesLDAPDataSourceFilterModel{
-			SVMName: data.Filter.SVMName.ValueString(),
+			SVMName:      data.Filter.SVMName.ValueString(),
+			MinBindLevel: data.Filter.MinBindLevel.ValueString(),
+			BaseScope:    data.Filter.BaseScope.ValueString(),
 		}
 	}
 	restInfo, err := interfaces.GetNameServicesLDAPs(errorHandler, *client, filter)
@@ -222,6 +234,7 @@ func (d *NameServicesLDAPsDataSource) Read(ctx context.Context, req datasource.R
 			LDAPSEnabled:       types.BoolValue(record.LDAPSEnabled),
 			Servers:            servers,
 			Schema:             types.StringValue(record.Schema),
+			SVMName:            types.StringValue(record.SVM.Name),
 		}
 	}
 
