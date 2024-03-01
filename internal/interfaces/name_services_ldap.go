@@ -11,22 +11,22 @@ import (
 
 // NameServicesLDAPGetDataModelONTAP describes the GET record data model using go types for mapping.
 type NameServicesLDAPGetDataModelONTAP struct {
-	SVMName            string   `mapstructure:"svm.name"`
-	Servers            []string `mapstructure:"servers"`
-	Schema             string   `mapstructure:"schema"`
-	AdDomain           string   `mapstructure:"ad_domain,omitempty"`
-	BaseDN             string   `mapstructure:"base_dn,omitempty"`
-	BaseScope          string   `mapstructure:"base_scope,omitempty"`
-	BindDN             string   `mapstructure:"bind_dn,omitempty"`
-	BindAsCIFSServer   bool     `mapstructure:"bind_as_cifs_server,omitempty"`
-	PreferredADServers []string `mapstructure:"preferred_ad_servers,omitempty"`
-	Port               int64    `mapstructure:"port,omitempty"`
-	QueryTimeout       int64    `mapstructure:"query_timeout,omitempty"`
-	MinBindLevel       string   `mapstructure:"min_bind_level,omitempty"`
-	UseStartTLS        bool     `mapstructure:"use_start_tls,omitempty"`
-	ReferralEnabled    bool     `mapstructure:"referral_enabled,omitempty"`
-	SessionSecurity    string   `mapstructure:"session_security,omitempty"`
-	LDAPSEnabled       bool     `mapstructure:"ldaps_enabled,omitempty"`
+	SVM                SvmDataModelONTAP `mapstructure:"svm"`
+	Servers            []string          `mapstructure:"servers"`
+	Schema             string            `mapstructure:"schema"`
+	AdDomain           string            `mapstructure:"ad_domain,omitempty"`
+	BaseDN             string            `mapstructure:"base_dn,omitempty"`
+	BaseScope          string            `mapstructure:"base_scope,omitempty"`
+	BindDN             string            `mapstructure:"bind_dn,omitempty"`
+	BindAsCIFSServer   bool              `mapstructure:"bind_as_cifs_server,omitempty"`
+	PreferredADServers []string          `mapstructure:"preferred_ad_servers,omitempty"`
+	Port               int64             `mapstructure:"port,omitempty"`
+	QueryTimeout       int64             `mapstructure:"query_timeout,omitempty"`
+	MinBindLevel       string            `mapstructure:"min_bind_level,omitempty"`
+	UseStartTLS        bool              `mapstructure:"use_start_tls,omitempty"`
+	ReferralEnabled    bool              `mapstructure:"referral_enabled,omitempty"`
+	SessionSecurity    string            `mapstructure:"session_security,omitempty"`
+	LDAPSEnabled       bool              `mapstructure:"ldaps_enabled,omitempty"`
 }
 
 // NameServicesLDAPResourceBodyDataModelONTAP describes the body data model using go types for mapping.
@@ -36,7 +36,9 @@ type NameServicesLDAPResourceBodyDataModelONTAP struct {
 
 // NameServicesLDAPDataSourceFilterModel describes the data source data model for queries.
 type NameServicesLDAPDataSourceFilterModel struct {
-	SVMName string `mapstructure:"svm.name"`
+	SVMName      string `mapstructure:"svm.name"`
+	MinBindLevel string `mapstructure:"min_bind_level"`
+	BaseScope    string `mapstructure:"base_scope"`
 }
 
 // GetNameServicesLDAPBySVMName to get name_services_ldap info
