@@ -39,7 +39,7 @@ func TestAccClusterPeersResource(t *testing.T) {
 		},
 	})
 }
-func testAccClusterPeersResourceConfig(remote_ip, source_ip string) string {
+func testAccClusterPeersResourceConfig(remotIP, sourceIP string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST2")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS")
@@ -79,5 +79,5 @@ resource "netapp-ontap_cluster_peers_resource" "example" {
   peer_cx_profile_name = "cluster3"
   passphrase = "12345678"
   peer_applications = ["snapmirror"]
-}`, host, admin, password, host2, admin, password, remote_ip, source_ip)
+}`, host, admin, password, host2, admin, password, remotIP, sourceIP)
 }

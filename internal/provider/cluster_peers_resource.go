@@ -52,7 +52,7 @@ type ClusterPeersResourceModel struct {
 	ID                 types.String   `tfsdk:"id"`
 }
 
-// SVM describes SVM data model.
+// Remote describes Remote data model.
 type Remote struct {
 	IPAddresses []types.String `tfsdk:"ip_addresses"`
 }
