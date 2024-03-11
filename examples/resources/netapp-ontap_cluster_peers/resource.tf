@@ -3,10 +3,10 @@ resource "netapp-ontap_cluster_peers_resource" "cluster_peers" {
   cx_profile_name = "cluster3"
   # name = "testme"
   remote = {
-    ip_addresses = ["10.193.180.110"]
+    ip_addresses = ["10.10.10.10"]
   }
   source_details = {
-    ip_addresses = ["10.193.176.189"]
+    ip_addresses = ["10.10.10.11"]
   }
   peer_cx_profile_name = "cluster2"
   # generate_passphrase = true
