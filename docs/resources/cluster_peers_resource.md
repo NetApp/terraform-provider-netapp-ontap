@@ -113,12 +113,12 @@ resource "netapp-ontap_cluster_peers_resource.example" "cluster_peers_import" {
   peer_cx_profile_name = "cluster2"
   remote = {
     ip_addresses = [
-    "10.193.180.110"
+    "10.10.10.10"
     ]
   }
   source_details = {
     ip_addresses = [
-    "10.193.176.189"
+    "10.10.10.11"
     ]
   }
   state = "pending"
