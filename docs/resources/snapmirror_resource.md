@@ -15,6 +15,11 @@ Create/Modify/Delete a snapmirror resource
 * snapmirror modify
 * snapmirror delete
 
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
+
+~> **NOTE:** Amazon FSx for NetApp ONTAP is not supported
+
 ## Example Usage
 ```
 # Create a snapmirror
