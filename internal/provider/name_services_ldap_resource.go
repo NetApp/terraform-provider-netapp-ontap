@@ -212,7 +212,7 @@ func (r *NameServicesLDAPResource) Schema(ctx context.Context, req resource.Sche
 				Optional:            true,
 			},
 			"id": schema.StringAttribute{
-				MarkdownDescription: "NameServicesLDAP UUID",
+				MarkdownDescription: "NameServicesLDAP ID",
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
