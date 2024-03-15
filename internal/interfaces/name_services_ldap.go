@@ -11,27 +11,46 @@ import (
 
 // NameServicesLDAPGetDataModelONTAP describes the GET record data model using go types for mapping.
 type NameServicesLDAPGetDataModelONTAP struct {
-	SVM                SvmDataModelONTAP `mapstructure:"svm"`
-	Servers            []string          `mapstructure:"servers"`
-	Schema             string            `mapstructure:"schema"`
-	AdDomain           string            `mapstructure:"ad_domain,omitempty"`
-	BaseDN             string            `mapstructure:"base_dn,omitempty"`
-	BaseScope          string            `mapstructure:"base_scope,omitempty"`
-	BindDN             string            `mapstructure:"bind_dn,omitempty"`
-	BindAsCIFSServer   bool              `mapstructure:"bind_as_cifs_server,omitempty"`
-	PreferredADServers []string          `mapstructure:"preferred_ad_servers,omitempty"`
-	Port               int64             `mapstructure:"port,omitempty"`
-	QueryTimeout       int64             `mapstructure:"query_timeout,omitempty"`
-	MinBindLevel       string            `mapstructure:"min_bind_level,omitempty"`
-	UseStartTLS        bool              `mapstructure:"use_start_tls,omitempty"`
-	ReferralEnabled    bool              `mapstructure:"referral_enabled,omitempty"`
-	SessionSecurity    string            `mapstructure:"session_security,omitempty"`
-	LDAPSEnabled       bool              `mapstructure:"ldaps_enabled,omitempty"`
+	SVM                  SvmDataModelONTAP `mapstructure:"svm"`
+	Servers              []string          `mapstructure:"servers"`
+	Schema               string            `mapstructure:"schema"`
+	AdDomain             string            `mapstructure:"ad_domain,omitempty"`
+	BaseDN               string            `mapstructure:"base_dn"`
+	BaseScope            string            `mapstructure:"base_scope"`
+	BindDN               string            `mapstructure:"bind_dn,omitempty"`
+	BindAsCIFSServer     bool              `mapstructure:"bind_as_cifs_server"`
+	PreferredADServers   []string          `mapstructure:"preferred_ad_servers,omitempty"`
+	Port                 int64             `mapstructure:"port"`
+	QueryTimeout         int64             `mapstructure:"query_timeout"`
+	MinBindLevel         string            `mapstructure:"min_bind_level"`
+	UseStartTLS          bool              `mapstructure:"use_start_tls"`
+	ReferralEnabled      bool              `mapstructure:"referral_enabled"`
+	SessionSecurity      string            `mapstructure:"session_security"`
+	LDAPSEnabled         bool              `mapstructure:"ldaps_enabled"`
+	BindPassword         string            `mapstructure:"bind_password,omitempty"`
+	SkipConfigValidation bool              `mapstructure:"skip_config_validation,omitempty"`
 }
 
 // NameServicesLDAPResourceBodyDataModelONTAP describes the body data model using go types for mapping.
 type NameServicesLDAPResourceBodyDataModelONTAP struct {
-	SVM svm `mapstructure:"svm"`
+	SVM                  svm      `mapstructure:"svm"`
+	Servers              []string `mapstructure:"servers,omitempty"`
+	Schema               string   `mapstructure:"schema,omitempty"`
+	AdDomain             string   `mapstructure:"ad_domain,omitempty"`
+	BaseDN               string   `mapstructure:"base_dn,omitempty"`
+	BaseScope            string   `mapstructure:"base_scope,omitempty"`
+	BindDN               string   `mapstructure:"bind_dn,omitempty"`
+	BindAsCIFSServer     bool     `mapstructure:"bind_as_cifs_server,omitempty"`
+	BindPassword         string   `mapstructure:"bind_password,omitempty"`
+	PreferredADServers   []string `mapstructure:"preferred_ad_servers,omitempty"`
+	Port                 int64    `mapstructure:"port,omitempty"`
+	QueryTimeout         int64    `mapstructure:"query_timeout,omitempty"`
+	MinBindLevel         string   `mapstructure:"min_bind_level,omitempty"`
+	UseStartTLS          bool     `mapstructure:"use_start_tls,omitempty"`
+	ReferralEnabled      bool     `mapstructure:"referral_enabled,omitempty"`
+	SessionSecurity      string   `mapstructure:"session_security,omitempty"`
+	LDAPSEnabled         bool     `mapstructure:"ldaps_enabled,omitempty"`
+	SkipConfigValidation bool     `mapstructure:"skip_config_validation,omitempty"`
 }
 
 // NameServicesLDAPDataSourceFilterModel describes the data source data model for queries.
@@ -105,9 +124,31 @@ func GetNameServicesLDAPs(errorHandler *utils.ErrorHandler, r restclient.RestCli
 	return dataONTAP, nil
 }
 
+// GetNameServicesLDAPBySVMID to get name_services_ldap info
+func GetNameServicesLDAPBySVMID(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmID string) (*NameServicesLDAPGetDataModelONTAP, error) {
+	api := "name-services/ldap" + "/" + svmID
+
+	statusCode, response, err := r.GetNilOrOneRecord(api, nil, nil)
+
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading name_services_ldap info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
+	}
+
+	var dataONTAP NameServicesLDAPGetDataModelONTAP
+	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
+		return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
+			fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read name_services_ldap data source: %#v", dataONTAP))
+	return &dataONTAP, nil
+}
+
 // CreateNameServicesLDAP to create name_services_ldap
 func CreateNameServicesLDAP(errorHandler *utils.ErrorHandler, r restclient.RestClient, body NameServicesLDAPResourceBodyDataModelONTAP) (*NameServicesLDAPGetDataModelONTAP, error) {
-	api := "api_url"
+	api := "name-services/ldap"
 	var bodyMap map[string]interface{}
 	if err := mapstructure.Decode(body, &bodyMap); err != nil {
 		return nil, errorHandler.MakeAndReportError("error encoding name_services_ldap body", fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body))
@@ -128,11 +169,27 @@ func CreateNameServicesLDAP(errorHandler *utils.ErrorHandler, r restclient.RestC
 }
 
 // DeleteNameServicesLDAP to delete name_services_ldap
-func DeleteNameServicesLDAP(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) error {
-	api := "api_url"
-	statusCode, _, err := r.CallDeleteMethod(api+"/"+uuid, nil, nil)
+func DeleteNameServicesLDAP(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmid string) error {
+	api := "name-services/ldap"
+	statusCode, _, err := r.CallDeleteMethod(api+"/"+svmid, nil, nil)
 	if err != nil {
 		return errorHandler.MakeAndReportError("error deleting name_services_ldap", fmt.Sprintf("error on DELETE %s: %s, statusCode %d", api, err, statusCode))
+	}
+	return nil
+}
+
+// UpdateNameServicesLDAP to update name_services_ldap
+func UpdateNameServicesLDAP(errorHandler *utils.ErrorHandler, r restclient.RestClient, body NameServicesLDAPResourceBodyDataModelONTAP, svmid string) error {
+	api := "name-services/ldap"
+	var bodyMap map[string]interface{}
+	if err := mapstructure.Decode(body, &bodyMap); err != nil {
+		return errorHandler.MakeAndReportError("error encoding name_services_ldap body", fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body))
+	}
+	query := r.NewQuery()
+	query.Add("return_records", "true")
+	statusCode, _, err := r.CallUpdateMethod(api+"/"+svmid, query, bodyMap)
+	if err != nil {
+		return errorHandler.MakeAndReportError("error updating name_services_ldap", fmt.Sprintf("error on PUT %s: %s, statusCode %d", api, err, statusCode))
 	}
 	return nil
 }
