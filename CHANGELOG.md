@@ -44,7 +44,7 @@ ENHANCEMENTS:
 * **netapp-ontap_snapmirror_policy**: Add support for import ([#38](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/38))
 * **netapp-ontap_networking_ip_interface_resource**: Add support for import ([#32](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/32))
 * **netapp-ontap_protocols_nfs_export_policy_rule_resource**: Add support for import ([#35](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/35))
-
+* **netapp-ontap_networking_ip_route_resource**: Add support for import ([#33](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/33))
 
 
 ## 1.0.3 (2023-12-05)
