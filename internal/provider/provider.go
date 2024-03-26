@@ -199,6 +199,8 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		NewIPRoutesDataSource,
 		NewNameServicesDNSDataSource,
 		NewNameServicesDNSsDataSource,
+		NewProtocolsCIFSShareDataSource,
+		NewProtocolsCIFSSharesDataSource,
 		NewProtocolsNfsServiceDataSource,
 		NewProtocolsNfsServicesDataSource,
 		NewProtocolsSanIgroupDataSource,
