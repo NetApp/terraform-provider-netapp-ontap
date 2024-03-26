@@ -10,16 +10,15 @@ import (
 )
 
 // CifsServiceGetDataModelONTAP describes the GET record data model using go types for mapping.
-type CifsServiceGetDataModelONTAP struct {
+type CifsServiceDataModelONTAP struct {
 	Name            string            `mapstructure:"name"`
 	SVM             svm               `mapstructure:"svm"`
 	DefaultUnixUser string            `mapstructure:"default_unix_user"`
-	Enabled         bool              `mapstructure:"enabled,omitempty"`
+	Enabled         bool              `mapstructure:"enabled"`
 	Comment         string            `mapstructure:"comment,omitempty"`
 	AdDomain        AdDomainDataModel `mapstructure:"ad_domain,omitempty"`
 	Netbios         NetbiosDataModel  `mapstructure:"netbios,omitempty"`
 	Security        SecurityDataModel `mapstructure:"security,omitempty"`
-	//UUID string `mapstructure:"uuid"`
 }
 
 // AdDomainDataModel describes the ad_domain data model using go types for mapping.
@@ -42,15 +41,16 @@ type SecurityDataModel struct {
 	RestrictAnonymous        string   `mapstructure:"restrict_anonymous,omitempty"`
 	SmbSigning               bool     `mapstructure:"smb_signing"`
 	SmbEncryption            bool     `mapstructure:"smb_encryption"`
-	AdvertisedKdcEncryptions []string `mapstructure:"advertised_kdc_encryptions,omitempty"`
+	KdcEncryption            bool     `mapstructure:"kdc_encryption,omitempty"`
 	LmCompatibilityLevel     string   `mapstructure:"lm_compatibility_level,omitempty"`
-	AesNetlogonEnabled       bool     `mapstructure:"aes_netlogon_enabled" `
-	TryLdapChannelBinding    bool     `mapstructure:"try_ldap_channel_binding"`
-	LdapReferralEnabled      bool     `mapstructure:"ldap_referral_enabled"`
-	EncryptDcConnection      bool     `mapstructure:"encrypt_dc_connection"`
-	UseStartTLS              bool     `mapstructure:"use_start_tls"`
+	AesNetlogonEnabled       bool     `mapstructure:"aes_netlogon_enabled"`
+	TryLdapChannelBinding    bool     `mapstructure:"try_ldap_channel_binding,omitempty"`
+	LdapReferralEnabled      bool     `mapstructure:"ldap_referral_enabled,omitempty"`
+	EncryptDcConnection      bool     `mapstructure:"encrypt_dc_connection,omitempty"`
+	UseStartTLS              bool     `mapstructure:"use_start_tls,omitempty"`
 	SessionSecurity          string   `mapstructure:"session_security,omitempty"`
-	UseLdaps                 bool     `mapstructure:"use_ldaps"`
+	UseLdaps                 bool     `mapstructure:"use_ldaps,omitempty"`
+	AdvertisedKdcEncryptions []string `mapstructure:"advertised_kdc_encryptions,omitempty"`
 }
 
 // CifsServiceResourceBodyDataModelONTAP describes the body data model using go types for mapping.
@@ -65,6 +65,11 @@ type CifsServiceResourceBodyDataModelONTAP struct {
 	DefaultUnixUser string            `mapstructure:"default_unix_user,omitempty"`
 }
 
+// CifsServiceResourceDeleteBodyDataModelONTAP
+type CifsServiceResourceDeleteBodyDataModelONTAP struct {
+	AdDomain AdDomainDataModel `mapstructure:"ad_domain"`
+}
+
 // CifsServiceDataSourceFilterModel describes the data source data model for queries.
 type CifsServiceDataSourceFilterModel struct {
 	Name    string `mapstructure:"name"`
@@ -72,7 +77,7 @@ type CifsServiceDataSourceFilterModel struct {
 }
 
 // GetCifsServiceByName to get protocols_cifs_service info
-func GetCifsServiceByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string) (*CifsServiceGetDataModelONTAP, error) {
+func GetCifsServiceByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string) (*CifsServiceDataModelONTAP, error) {
 	api := "protocols/cifs/services"
 	query := r.NewQuery()
 	query.Set("name", name)
@@ -86,7 +91,7 @@ func GetCifsServiceByName(errorHandler *utils.ErrorHandler, r restclient.RestCli
 		return nil, errorHandler.MakeAndReportError("error reading protocols_cifs_service info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
 	}
 
-	var dataONTAP CifsServiceGetDataModelONTAP
+	var dataONTAP CifsServiceDataModelONTAP
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
 			fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
@@ -96,7 +101,7 @@ func GetCifsServiceByName(errorHandler *utils.ErrorHandler, r restclient.RestCli
 }
 
 // GetCifsServices to get protocols_cifs_service info for all resources matching a filter
-func GetCifsServices(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *CifsServiceDataSourceFilterModel) ([]CifsServiceGetDataModelONTAP, error) {
+func GetCifsServices(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *CifsServiceDataSourceFilterModel) ([]CifsServiceDataModelONTAP, error) {
 	api := "protocols/cifs/services"
 	query := r.NewQuery()
 	query.Fields([]string{"name", "svm.name", "default_unix_user", "comment", "enabled", "security", "ad_domain", "netbios"})
@@ -116,9 +121,9 @@ func GetCifsServices(errorHandler *utils.ErrorHandler, r restclient.RestClient, 
 		return nil, errorHandler.MakeAndReportError("error reading protocols_cifs_services info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
 	}
 
-	var dataONTAP []CifsServiceGetDataModelONTAP
+	var dataONTAP []CifsServiceDataModelONTAP
 	for _, info := range response {
-		var record CifsServiceGetDataModelONTAP
+		var record CifsServiceDataModelONTAP
 		if err := mapstructure.Decode(info, &record); err != nil {
 			return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
 				fmt.Sprintf("error: %s, statusCode %d, info %#v", err, statusCode, info))
@@ -130,12 +135,13 @@ func GetCifsServices(errorHandler *utils.ErrorHandler, r restclient.RestClient, 
 }
 
 // CreateCifsService to create protocols_cifs_service
-func CreateCifsService(errorHandler *utils.ErrorHandler, r restclient.RestClient, force bool, body CifsServiceResourceBodyDataModelONTAP) (*CifsServiceGetDataModelONTAP, error) {
+func CreateCifsService(errorHandler *utils.ErrorHandler, r restclient.RestClient, force bool, body CifsServiceResourceBodyDataModelONTAP) (*CifsServiceDataModelONTAP, error) {
 	api := "protocols/cifs/services"
 	var bodyMap map[string]interface{}
 	if err := mapstructure.Decode(body, &bodyMap); err != nil {
 		return nil, errorHandler.MakeAndReportError("error encoding protocols_cifs_service body", fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body))
 	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("######Create protocols_cifs_service source - body: %#v", body))
 	query := r.NewQuery()
 	query.Add("return_records", "true")
 	if force {
@@ -146,7 +152,7 @@ func CreateCifsService(errorHandler *utils.ErrorHandler, r restclient.RestClient
 		return nil, errorHandler.MakeAndReportError("error creating protocols_cifs_service", fmt.Sprintf("error on POST %s: %s, statusCode %d", api, err, statusCode))
 	}
 
-	var dataONTAP CifsServiceGetDataModelONTAP
+	var dataONTAP CifsServiceDataModelONTAP
 	if err := mapstructure.Decode(response.Records[0], &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError("error decoding protocols_cifs_service info", fmt.Sprintf("error on decode storage/protocols_cifs_services info: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
@@ -155,7 +161,7 @@ func CreateCifsService(errorHandler *utils.ErrorHandler, r restclient.RestClient
 }
 
 // DeleteCifsService to delete protocols_cifs_service
-func DeleteCifsService(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmid string, force bool, body AdDomainDataModel) error {
+func DeleteCifsService(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmid string, force bool, body CifsServiceResourceDeleteBodyDataModelONTAP) error {
 	api := "protocols/cifs/services"
 	var bodyMap map[string]interface{}
 	if err := mapstructure.Decode(body, &bodyMap); err != nil {
