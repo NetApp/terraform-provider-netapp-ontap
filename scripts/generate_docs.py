@@ -52,6 +52,8 @@ CATAGORYS = {
         "storage_volume_resource.md",
         "storage_volume_data_source.md",
         "storage_volume_snapshot_resource.md",
+        "storage_flexcache_data_source.md",
+        "storage_flexcaches_data_source.md",
         "storage_flexcache_resource.md"],
     'support': [],
     'svm': ["svm_resource.md",
