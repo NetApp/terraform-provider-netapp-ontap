@@ -32,6 +32,15 @@ func TestAccStorageFlexcacheResource(t *testing.T) {
 					resource.TestCheckNoResourceAttr("netapp-ontap_storage_flexcache_resource.example", "volname"),
 				),
 			},
+			// Test importing a resource
+			{
+				ResourceName:  "netapp-ontap_storage_flexcache_resource.example",
+				ImportState:   true,
+				ImportStateId: fmt.Sprintf("%s,%s,%s", "accFlexcache", "automation", "cluster4"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_storage_flexcache_resource.example", "name", "accFlexcache"),
+				),
+			},
 		},
 	})
 }
