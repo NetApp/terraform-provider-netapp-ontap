@@ -48,8 +48,25 @@ type Acls struct {
 
 // ProtocolsCIFSShareResourceBodyDataModelONTAP describes the body data model using go types for mapping.
 type ProtocolsCIFSShareResourceBodyDataModelONTAP struct {
-	Name string `mapstructure:"name"`
-	SVM  svm    `mapstructure:"svm"`
+	Name                  string `mapstructure:"name"`
+	SVM                   svm    `mapstructure:"svm"`
+	Acls                  []Acls `mapstructure:"acls"`
+	ChangeNotify          bool   `mapstructure:"change_notify"`
+	Comment               string `mapstructure:"comment"`
+	ContinuouslyAvailable bool   `mapstructure:"continuously_available"`
+	DirUmask              int64  `mapstructure:"dir_umask"`
+	Encryption            bool   `mapstructure:"encryption"`
+	FileUmask             int64  `mapstructure:"file_umask"`
+	ForceGroupForCreate   string `mapstructure:"force_group_for_create"`
+	HomeDirectory         bool   `mapstructure:"home_directory"`
+	NamespaceCaching      bool   `mapstructure:"namespace_caching"`
+	NoStrictSecurity      bool   `mapstructure:"no_strict_security"`
+	OfflineFiles          string `mapstructure:"offline_files"`
+	Oplocks               bool   `mapstructure:"oplocks"`
+	Path                  string `mapstructure:"path"`
+	ShowSnapshot          bool   `mapstructure:"show_snapshot"`
+	UnixSymlink           string `mapstructure:"unix_symlink"`
+	VscanProfile          string `mapstructure:"vscan_profile"`
 }
 
 // ProtocolsCIFSShareDataSourceFilterModel describes the data source data model for queries.
