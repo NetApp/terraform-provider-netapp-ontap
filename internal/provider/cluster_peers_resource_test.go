@@ -64,7 +64,7 @@ provider "netapp-ontap" {
 		hostname = "%s"
 		username = "%s"
 		password = "%s"
-		validate_certs = false
+		validate_certs = true
 	},
   ]
 }
