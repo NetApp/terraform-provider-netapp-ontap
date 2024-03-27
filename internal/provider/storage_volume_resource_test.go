@@ -30,7 +30,7 @@ func TestAccStorageVolumeResource(t *testing.T) {
 			},
 			// Read testing
 			{
-				Config: testAccStorageVolumeResourceConfig("automation", "accVolume1"),
+				Config: testAccStorageVolumeResourceConfig("acc_test", "accVolume1"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "name", "accVolume1"),
 					resource.TestCheckNoResourceAttr("netapp-ontap_storage_volume_resource.example", "volname"),
@@ -48,7 +48,7 @@ func TestAccStorageVolumeResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_storage_volume_resource.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s", "automation_root", "automation", "cluster5"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s", "acc_test_root", "acc_test", "cluster5"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "name", "automation"),
 				),
@@ -61,10 +61,10 @@ func testAccStorageVolumeResourceConfig(svm, volName string) string {
 	if host == "" || admin == "" || password == "" {
 		host = os.Getenv("TF_ACC_NETAPP_HOST2")
 		admin = os.Getenv("TF_ACC_NETAPP_USER")
-		password = os.Getenv("TF_ACC_NETAPP_PASS")
+		password = os.Getenv("TF_ACC_NETAPP_PASS2")
 	}
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -85,14 +85,10 @@ resource "netapp-ontap_storage_volume_resource" "example" {
   name = "%s"
   svm_name = "%s"
   aggregates = [
-	{name = "aggr1"}
+	{name = "acc_test"}
 ]
   space_guarantee = "none"
   snapshot_policy = "default-1weekly"
-  encryption = true
-  snaplock = {
-    type = "non_snaplock"
-  }
   space = {
 	size = 30
 	size_unit = "mb"
@@ -120,10 +116,10 @@ func testAccStorageVolumeResourceConfigUpdate(svm, volName string) string {
 	if host == "" || admin == "" || password == "" {
 		host = os.Getenv("TF_ACC_NETAPP_HOST2")
 		admin = os.Getenv("TF_ACC_NETAPP_USER")
-		password = os.Getenv("TF_ACC_NETAPP_PASS")
+		password = os.Getenv("TF_ACC_NETAPP_PASS2")
 	}
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -144,14 +140,10 @@ resource "netapp-ontap_storage_volume_resource" "example" {
   name = "%s"
   svm_name = "%s"
   aggregates = [
-	{name = "aggr1"}
+	{name = "acc_test"}
 ]
   space_guarantee = "none"
   snapshot_policy = "default-1weekly"
-  encryption = true
-  snaplock = {
-    type = "non_snaplock"
-  }
   space = {
 	size = 30
 	size_unit = "mb"

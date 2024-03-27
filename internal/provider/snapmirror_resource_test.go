@@ -16,14 +16,14 @@ func TestAccSnapmirrorResource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Test non existant Vol
 			{
-				Config:      testAccSnapmirrorResourceBasicConfig("snapmirror_dest_svm:testme", "snapmirror_source_svm:testme"),
+				Config:      testAccSnapmirrorResourceBasicConfig("snapmirror_dest_svm:testme", "snapmirror_dest_svm:testme"),
 				ExpectError: regexp.MustCompile("6619337"),
 			},
 			// Create snapmirror and read
 			{
-				Config: testAccSnapmirrorResourceBasicConfig("snapmirror_dest_svm:snap_dest", "snapmirror_source_svm:snap"),
+				Config: testAccSnapmirrorResourceBasicConfig("snapmirror_dest_svm:snap_dest3", "snapmirror_dest_svm:snap_dest2"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_resource.example", "destination_endpoint.path", "snapmirror_source_svm:snap"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_resource.example", "destination_endpoint.path", "snapmirror_dest_svm:snap_dest2"),
 				),
 			},
 			// Update a policy
@@ -38,9 +38,9 @@ func TestAccSnapmirrorResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_snapmirror_resource.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s", "snapmirror_source_svm:snap3", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s", "snapmirror_dest_svm:snap_dest2", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_resource.example", "destination_endpoint.path", "snapmirror_source_svm:snap3"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_resource.example", "destination_endpoint.path", "snapmirror_dest_svm:snap_dest2"),
 				),
 			},
 			// Delete testing automatically occurs in TestCase
@@ -49,11 +49,11 @@ func TestAccSnapmirrorResource(t *testing.T) {
 }
 
 func testAccSnapmirrorResourceBasicConfig(sourceEndpoint string, destinationEndpoint string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST3")
+	host := os.Getenv("TF_ACC_NETAPP_HOST4")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST3, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST4, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -81,11 +81,11 @@ resource "netapp-ontap_snapmirror_resource" "example" {
 }
 
 func testAccSnapmirrorResourceUpdateConfig(sourceEndpoint string, destinationEndpoint string, policy string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST3")
+	host := os.Getenv("TF_ACC_NETAPP_HOST4")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST3, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST4, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`

@@ -27,6 +27,7 @@ jobs:
           TF_ACC_NETAPP_HOST4: ${{ secrets.TF_ACC_NETAPP_HOST4 }}
           TF_ACC_NETAPP_USER: ${{ secrets.TF_ACC_NETAPP_USER }}
           TF_ACC_NETAPP_PASS: ${{ secrets.TF_ACC_NETAPP_PASS }}
+          TF_ACC_NETAPP_PASS2: ${{ secrets.TF_ACC_NETAPP_PASS2 }}
           TF_ACC_NETAPP_LICENSE: ${{ secrets.TF_ACC_NETAPP_LICENSE }}
 
         run: |

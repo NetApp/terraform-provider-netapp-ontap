@@ -31,9 +31,9 @@ func TestAccClusterPeersResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_cluster_peers_resource.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s", "vinaykuscluster-1", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s", "acc_test_cluster2", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_cluster_peers_resource.example", "name", "vinaykuscluster-1"),
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_peers_resource.example", "name", "acc_test_cluster2"),
 				),
 			},
 		},
@@ -43,9 +43,10 @@ func testAccClusterPeersResourceConfig(remotIP, sourceIP string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST2")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS")
+	password2 := os.Getenv("TF_ACC_NETAPP_PASS2")
 	host2 := os.Getenv("TF_ACC_NETAPP_HOST")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST2, TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST2, TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, TF_ACC_NETAPP_PASS and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -79,5 +80,5 @@ resource "netapp-ontap_cluster_peers_resource" "example" {
   peer_cx_profile_name = "cluster3"
   passphrase = "12345678"
   peer_applications = ["snapmirror"]
-}`, host, admin, password, host2, admin, password, remotIP, sourceIP)
+}`, host, admin, password2, host2, admin, password, remotIP, sourceIP)
 }
