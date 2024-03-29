@@ -32,6 +32,7 @@ jobs:
           fi
 
       - name: Create comments
+        if: failure()
         uses: actions/github-script@v5
         with:
           script: |
