@@ -16,6 +16,7 @@ jobs:
           fetch-depth: 0
 
       - name: Check for "## Example Usage"
+        id: check
         run: |
           FILES=$(git diff --name-only --diff-filter=A origin/${{ github.base_ref }} | grep '\.md$')
           MISSING=""
@@ -25,9 +26,11 @@ jobs:
             fi
           done
           if [ -n "$MISSING" ]; then
+            echo "::set-output name=missing::$MISSING"
             echo -e "The following files are missing '## Example Usage':$MISSING"
             exit 1
           fi
+
       - name: Create comment
         if: failure()
         uses: actions/github-script@v5
