@@ -1,0 +1,28 @@
+name: Check Documentation
+
+on:
+  pull_request:
+    paths:
+      - 'docs/data-sources/*.md'
+      - 'docs/resources/*.md'
+
+jobs:
+  check-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Check for "## Example Usage"
+        run: |
+          FILES=$(git diff --name-only --diff-filter=A origin/${{ github.base_ref }} | grep '\.md$')
+          MISSING=""
+          for FILE in $FILES; do
+            if ! grep -q '## Example Usage' "$FILE"; then
+              MISSING="$MISSING\n$FILE"
+            fi
+          done
+          if [ -n "$MISSING" ]; then
+            echo -e "The following files are missing '## Example Usage':$MISSING"
+            exit 1
+          fi
