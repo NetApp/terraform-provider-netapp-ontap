@@ -9,7 +9,7 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
-// CifsServiceGetDataModelONTAP describes the GET record data model using go types for mapping.
+// CifsServiceDataModelONTAP describes the GET record data model using go types for mapping.
 type CifsServiceDataModelONTAP struct {
 	Name            string            `mapstructure:"name"`
 	SVM             svm               `mapstructure:"svm"`
@@ -65,7 +65,7 @@ type CifsServiceResourceBodyDataModelONTAP struct {
 	DefaultUnixUser string            `mapstructure:"default_unix_user,omitempty"`
 }
 
-// CifsServiceResourceDeleteBodyDataModelONTAP
+// CifsServiceResourceDeleteBodyDataModelONTAP describe the body data model for delete using go types for mapping.
 type CifsServiceResourceDeleteBodyDataModelONTAP struct {
 	AdDomain AdDomainDataModel `mapstructure:"ad_domain"`
 }
