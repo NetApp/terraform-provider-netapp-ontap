@@ -28,3 +28,16 @@ jobs:
             echo -e "The following files are missing '## Example Usage':$MISSING"
             exit 1
           fi
+      - name: Create comment
+        if: failure()
+        uses: actions/github-script@v5
+        with:
+          script: |
+            const issue_number = context.payload.pull_request.number;
+            const message = `The following files are missing '## Example Usage':\n${{ steps.check.outputs.missing }}`;
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue_number,
+              body: message
+            });
