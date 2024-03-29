@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
@@ -14,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
@@ -47,17 +48,19 @@ type CifsServiceResource struct {
 
 // CifsServiceResourceModel describes the resource data model.
 type CifsServiceResourceModel struct {
-	CxProfileName   types.String               `tfsdk:"cx_profile_name"`
-	Name            types.String               `tfsdk:"name"`
-	SVMName         types.String               `tfsdk:"svm_name"`
-	AdDomain        *AdDomainResourceModel     `tfsdk:"ad_domain"`
-	Netbios         *CifsNetbiosResourceModel  `tfsdk:"netbios"`
-	Security        *CifsSecurityResourceModel `tfsdk:"security"`
-	Comment         types.String               `tfsdk:"comment"`
-	DefaultUnixUser types.String               `tfsdk:"default_unix_user"`
-	Enabled         types.Bool                 `tfsdk:"enabled"`
-	Force           types.Bool                 `tfsdk:"force"`
-	ID              types.String               `tfsdk:"id"`
+	CxProfileName types.String           `tfsdk:"cx_profile_name"`
+	Name          types.String           `tfsdk:"name"`
+	SVMName       types.String           `tfsdk:"svm_name"`
+	AdDomain      *AdDomainResourceModel `tfsdk:"ad_domain"`
+	// Netbios         *CifsNetbiosResourceModel  `tfsdk:"netbios"`
+	Netbios types.Object `tfsdk:"netbios"`
+	//Security        *CifsSecurityResourceModel `tfsdk:"security"`
+	Security        types.Object `tfsdk:"security"`
+	Comment         types.String `tfsdk:"comment"`
+	DefaultUnixUser types.String `tfsdk:"default_unix_user"`
+	Enabled         types.Bool   `tfsdk:"enabled"`
+	Force           types.Bool   `tfsdk:"force"`
+	ID              types.String `tfsdk:"id"`
 }
 
 // AdDomainResourceModel describes the ad_domain data model using go types for mapping.
@@ -185,15 +188,7 @@ func (r *CifsServiceResource) Schema(ctx context.Context, req resource.SchemaReq
 				Optional:            true,
 				Computed:            true,
 				MarkdownDescription: "Netbios",
-				Default: objectdefault.StaticValue(types.ObjectValueMust(
-					map[string]attr.Type{
-						"enabled": types.BoolType,
-					},
-					map[string]attr.Value{
-						"enabled": types.BoolValue(false),
-					},
-				)),
-				PlanModifiers: []planmodifier.Object{objectplanmodifier.UseStateForUnknown()},
+				PlanModifiers:       []planmodifier.Object{objectplanmodifier.UseStateForUnknown()},
 				Attributes: map[string]schema.Attribute{
 					"enabled": schema.BoolAttribute{
 						Computed: true,
@@ -229,35 +224,10 @@ func (r *CifsServiceResource) Schema(ctx context.Context, req resource.SchemaReq
 				Computed:            true,
 				MarkdownDescription: "Security",
 				PlanModifiers:       []planmodifier.Object{objectplanmodifier.UseStateForUnknown()},
-				Default: objectdefault.StaticValue(types.ObjectValueMust(
-					map[string]attr.Type{
-						"restrict_anonymous":       types.StringType,
-						"smb_signing":              types.BoolType,
-						"smb_encryption":           types.BoolType,
-						"kdc_encryption":           types.BoolType,
-						"lm_compatibility_level":   types.StringType,
-						"try_ldap_channel_binding": types.BoolType,
-						"ldap_referral_enabled":    types.BoolType,
-						"encrypt_dc_connection":    types.BoolType,
-						"session_security":         types.StringType,
-					},
-					map[string]attr.Value{
-						"restrict_anonymous":       types.StringValue("no_enumeration"),
-						"smb_signing":              types.BoolValue(false),
-						"smb_encryption":           types.BoolValue(false),
-						"kdc_encryption":           types.BoolValue(false),
-						"lm_compatibility_level":   types.StringValue("lm_ntlm_ntlmv2_krb"),
-						"try_ldap_channel_binding": types.BoolValue(true),
-						"ldap_referral_enabled":    types.BoolValue(false),
-						"encrypt_dc_connection":    types.BoolValue(false),
-						"session_security":         types.StringValue("none"),
-					},
-				)),
 				Attributes: map[string]schema.Attribute{
 					"restrict_anonymous": schema.StringAttribute{
 						Computed:            true,
 						Optional:            true,
-						Default:             stringdefault.StaticString("no_enumeration"),
 						MarkdownDescription: "Specifies what level of access an anonymous user is granted",
 						PlanModifiers: []planmodifier.String{
 							stringplanmodifier.UseStateForUnknown(),
@@ -269,7 +239,6 @@ func (r *CifsServiceResource) Schema(ctx context.Context, req resource.SchemaReq
 					"smb_signing": schema.BoolAttribute{
 						Computed: true,
 						Optional: true,
-						Default:  booldefault.StaticBool(false),
 						PlanModifiers: []planmodifier.Bool{
 							boolplanmodifier.UseStateForUnknown(),
 						},
@@ -278,7 +247,6 @@ func (r *CifsServiceResource) Schema(ctx context.Context, req resource.SchemaReq
 					"smb_encryption": schema.BoolAttribute{
 						Computed: true,
 						Optional: true,
-						Default:  booldefault.StaticBool(false),
 						PlanModifiers: []planmodifier.Bool{
 							boolplanmodifier.UseStateForUnknown(),
 						},
@@ -287,7 +255,6 @@ func (r *CifsServiceResource) Schema(ctx context.Context, req resource.SchemaReq
 					"kdc_encryption": schema.BoolAttribute{
 						Computed: true,
 						Optional: true,
-						Default:  booldefault.StaticBool(false),
 						PlanModifiers: []planmodifier.Bool{
 							boolplanmodifier.UseStateForUnknown(),
 						},
@@ -301,28 +268,25 @@ func (r *CifsServiceResource) Schema(ctx context.Context, req resource.SchemaReq
 					"lm_compatibility_level": schema.StringAttribute{
 						Optional:            true,
 						Computed:            true,
-						Default:             stringdefault.StaticString("lm_ntlm_ntlmv2_krb"),
 						MarkdownDescription: "CIFS server minimum security level",
 						PlanModifiers: []planmodifier.String{
 							stringplanmodifier.UseStateForUnknown(),
 						},
 						Validators: []validator.String{
-							stringvalidator.OneOf("lm_ntlm_ntlmv2_krb", "lm_ntlm_ntlmv2_krb", "lm_ntlm_ntlmv2_krb", "krb"),
+							stringvalidator.OneOf("lm_ntlm_ntlmv2_krb", "ntlm_ntlmv2_krb", "ntlmv2_krb", "krb"),
 						},
 					},
 					"aes_netlogon_enabled": schema.BoolAttribute{
 						Computed: true,
 						Optional: true,
-						Default:  booldefault.StaticBool(false),
-						// PlanModifiers: []planmodifier.Bool{
-						// 	boolplanmodifier.UseStateForUnknown(),
-						// },
+						PlanModifiers: []planmodifier.Bool{
+							boolplanmodifier.UseStateForUnknown(),
+						},
 						MarkdownDescription: "An AES session key is enabled for the Netlogon channel (9.10)",
 					},
 					"try_ldap_channel_binding": schema.BoolAttribute{
 						Computed: true,
 						Optional: true,
-						Default:  booldefault.StaticBool(true),
 						PlanModifiers: []planmodifier.Bool{
 							boolplanmodifier.UseStateForUnknown(),
 						},
@@ -331,7 +295,6 @@ func (r *CifsServiceResource) Schema(ctx context.Context, req resource.SchemaReq
 					"ldap_referral_enabled": schema.BoolAttribute{
 						Computed: true,
 						Optional: true,
-						Default:  booldefault.StaticBool(false),
 						PlanModifiers: []planmodifier.Bool{
 							boolplanmodifier.UseStateForUnknown(),
 						},
@@ -340,30 +303,36 @@ func (r *CifsServiceResource) Schema(ctx context.Context, req resource.SchemaReq
 					"encrypt_dc_connection": schema.BoolAttribute{
 						Computed:            true,
 						Optional:            true,
-						Default:             booldefault.StaticBool(false),
 						MarkdownDescription: "Encryption is required for domain controller connections (9.8)",
 						PlanModifiers: []planmodifier.Bool{
 							boolplanmodifier.UseStateForUnknown(),
 						},
 					},
 					"use_start_tls": schema.BoolAttribute{
-						Optional:            true,
+						Optional: true,
+						Computed: true,
+						PlanModifiers: []planmodifier.Bool{
+							boolplanmodifier.UseStateForUnknown(),
+						},
 						MarkdownDescription: "Specifies whether or not to use SSL/TLS for allowing secure LDAP communication with Active Directory LDAP servers (9.10)",
 					},
 					"session_security": schema.StringAttribute{
 						Optional:            true,
 						Computed:            true,
-						Default:             stringdefault.StaticString("none"),
 						MarkdownDescription: "Client session security for AD LDAP connections (9.10)",
-						// PlanModifiers: []planmodifier.String{
-						// 	stringplanmodifier.UseStateForUnknown(),
-						// },
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
 						Validators: []validator.String{
 							stringvalidator.OneOf("none", "sign", "seal"),
 						},
 					},
 					"use_ldaps": schema.BoolAttribute{
-						Optional:            true,
+						Optional: true,
+						Computed: true,
+						PlanModifiers: []planmodifier.Bool{
+							boolplanmodifier.UseStateForUnknown(),
+						},
 						MarkdownDescription: "Specifies whether or not to use use LDAPS for secure Active Directory LDAP connections by using the TLS/SSL protocols (9.10)",
 					},
 					"advertised_kdc_encryptions": schema.SetAttribute{
@@ -404,9 +373,15 @@ func (r *CifsServiceResource) Configure(ctx context.Context, req resource.Config
 	r.config.providerConfig = config
 }
 
-// stringSliceToSet converts a slice of GroupMember to a types.Set
-func stringSliceToSet(ctx context.Context, stringsSliceIn []string, diags *diag.Diagnostics) types.Set {
-	keys, d := types.SetValueFrom(ctx, types.StringType, stringsSliceIn)
+// stringSliceToSet converts a slice of strings to a types.Set
+func stringSliceToSet(ctx context.Context, stringsSliceIn []string, diags *diag.Diagnostics, toLower bool) types.Set {
+	words := stringsSliceIn
+	if toLower {
+		for i, word := range stringsSliceIn {
+			words[i] = strings.ToLower(word)
+		}
+	}
+	keys, d := types.SetValueFrom(ctx, types.StringType, words)
 	diags.Append(d...)
 
 	return keys
@@ -437,7 +412,7 @@ func (r *CifsServiceResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 	if restInfo == nil {
-		errorHandler.MakeAndReportError("No CIFS service found", "CIFS service not found.")
+		errorHandler.MakeAndReportError("No CIFS service found", fmt.Sprintf("CIFS service %s not found.", data.Name.ValueString()))
 		return
 	}
 	data.Name = types.StringValue(strings.ToLower(restInfo.Name))
@@ -447,35 +422,67 @@ func (r *CifsServiceResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 	data.Enabled = types.BoolValue(restInfo.Enabled)
 	data.DefaultUnixUser = types.StringValue(restInfo.DefaultUnixUser)
+
 	data.AdDomain = &AdDomainResourceModel{
 		OrganizationalUnit: types.StringValue(restInfo.AdDomain.OrganizationalUnit),
 		// use the same values as in the state for both user and password since they cannot be read by API
-		User:     data.AdDomain.User,
-		Password: data.AdDomain.Password,
-		Fqdn:     types.StringValue(restInfo.AdDomain.Fqdn),
+		User:     types.StringValue(data.AdDomain.User.ValueString()),
+		Password: types.StringValue(data.AdDomain.Password.ValueString()),
+		Fqdn:     types.StringValue(strings.ToLower(restInfo.AdDomain.Fqdn)),
 	}
 
-	data.Netbios = &CifsNetbiosResourceModel{
-		Enabled:     types.BoolValue(restInfo.Netbios.Enabled),
-		Aliases:     stringSliceToSet(ctx, restInfo.Netbios.Aliases, &resp.Diagnostics),
-		WinsServers: stringSliceToSet(ctx, restInfo.Netbios.WinsServers, &resp.Diagnostics),
+	elementTypes := map[string]attr.Type{
+		"enabled":      types.BoolType,
+		"aliases":      types.SetType{ElemType: types.StringType},
+		"wins_servers": types.SetType{ElemType: types.StringType},
+	}
+	elements := map[string]attr.Value{
+		"enabled":      types.BoolValue(restInfo.Netbios.Enabled),
+		"aliases":      stringSliceToSet(ctx, restInfo.Netbios.Aliases, &resp.Diagnostics, true),
+		"wins_servers": stringSliceToSet(ctx, restInfo.Netbios.WinsServers, &resp.Diagnostics, false),
+	}
+	objectValue, diags := types.ObjectValue(elementTypes, elements)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+	}
+	data.Netbios = objectValue
+
+	elementTypes = map[string]attr.Type{
+		"restrict_anonymous":         types.StringType,
+		"smb_signing":                types.BoolType,
+		"smb_encryption":             types.BoolType,
+		"kdc_encryption":             types.BoolType,
+		"lm_compatibility_level":     types.StringType,
+		"try_ldap_channel_binding":   types.BoolType,
+		"ldap_referral_enabled":      types.BoolType,
+		"encrypt_dc_connection":      types.BoolType,
+		"session_security":           types.StringType,
+		"aes_netlogon_enabled":       types.BoolType,
+		"use_ldaps":                  types.BoolType,
+		"use_start_tls":              types.BoolType,
+		"advertised_kdc_encryptions": types.SetType{ElemType: types.StringType},
 	}
 
-	data.Security = &CifsSecurityResourceModel{
-		RestrictAnonymous:        types.StringValue(restInfo.Security.RestrictAnonymous),
-		SmbSigning:               types.BoolValue(restInfo.Security.SmbSigning),
-		SmbEncryption:            types.BoolValue(restInfo.Security.SmbEncryption),
-		KdcEncryption:            types.BoolValue(restInfo.Security.KdcEncryption),
-		LmCompatibilityLevel:     types.StringValue(restInfo.Security.LmCompatibilityLevel),
-		AesNetlogonEnabled:       types.BoolValue(restInfo.Security.AesNetlogonEnabled),
-		TryLdapChannelBinding:    types.BoolValue(restInfo.Security.TryLdapChannelBinding),
-		LdapReferralEnabled:      types.BoolValue(restInfo.Security.LdapReferralEnabled),
-		EncryptDcConnection:      types.BoolValue(restInfo.Security.EncryptDcConnection),
-		UseStartTLS:              types.BoolValue(restInfo.Security.UseStartTLS),
-		SessionSecurity:          types.StringValue(restInfo.Security.SessionSecurity),
-		UseLdaps:                 types.BoolValue(restInfo.Security.UseLdaps),
-		AdvertisedKdcEncryptions: stringSliceToSet(ctx, restInfo.Security.AdvertisedKdcEncryptions, &resp.Diagnostics),
+	elements = map[string]attr.Value{
+		"restrict_anonymous":         types.StringValue(restInfo.Security.RestrictAnonymous),
+		"smb_signing":                types.BoolValue(restInfo.Security.SmbSigning),
+		"smb_encryption":             types.BoolValue(restInfo.Security.SmbEncryption),
+		"kdc_encryption":             types.BoolValue(restInfo.Security.KdcEncryption),
+		"lm_compatibility_level":     types.StringValue(restInfo.Security.LmCompatibilityLevel),
+		"try_ldap_channel_binding":   types.BoolValue(restInfo.Security.TryLdapChannelBinding),
+		"ldap_referral_enabled":      types.BoolValue(restInfo.Security.LdapReferralEnabled),
+		"encrypt_dc_connection":      types.BoolValue(restInfo.Security.EncryptDcConnection),
+		"session_security":           types.StringValue(restInfo.Security.SessionSecurity),
+		"aes_netlogon_enabled":       types.BoolValue(restInfo.Security.AesNetlogonEnabled),
+		"use_ldaps":                  types.BoolValue(restInfo.Security.UseLdaps),
+		"use_start_tls":              types.BoolValue(restInfo.Security.UseStartTLS),
+		"advertised_kdc_encryptions": stringSliceToSet(ctx, restInfo.Security.AdvertisedKdcEncryptions, &resp.Diagnostics, false),
 	}
+	objectValue, diags = types.ObjectValue(elementTypes, elements)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+	}
+	data.Security = objectValue
 
 	// Set the ID
 	data.ID = types.StringValue(fmt.Sprintf("%s_%s_%s", data.CxProfileName.ValueString(), data.SVMName.ValueString(), data.Name.ValueString()))
@@ -510,7 +517,17 @@ func (r *CifsServiceResource) Create(ctx context.Context, req resource.CreateReq
 		// error reporting done inside NewClient
 		return
 	}
-
+	cluster, err := interfaces.GetCluster(errorHandler, *client)
+	if err != nil {
+		// error reporting done inside GetCluster
+		return
+	}
+	if cluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", fmt.Sprintf("Cluster %s not found.", data.CxProfileName.ValueString()))
+		return
+	}
+	clusterVersion := strconv.Itoa(cluster.Version.Generation) + "." + strconv.Itoa(cluster.Version.Major)
+	var errors []string
 	// Create the resource
 	body.AdDomain.Fqdn = data.AdDomain.Fqdn.ValueString()
 	body.AdDomain.User = data.AdDomain.User.ValueString()
@@ -522,7 +539,6 @@ func (r *CifsServiceResource) Create(ctx context.Context, req resource.CreateReq
 
 	// default value
 	body.Enabled = data.Enabled.ValueBool()
-	tflog.Debug(ctx, fmt.Sprintf("\n\n***Create protocols_cifs_service source - body enabled: %#v", body.Enabled))
 
 	if !data.DefaultUnixUser.IsNull() {
 		body.DefaultUnixUser = data.DefaultUnixUser.ValueString()
@@ -531,25 +547,21 @@ func (r *CifsServiceResource) Create(ctx context.Context, req resource.CreateReq
 		body.Comment = data.Comment.ValueString()
 	}
 
-	if data.Netbios != nil {
-		tflog.Debug(ctx, "\n===netbios root is not nil")
-		if !data.Netbios.Enabled.IsNull() {
-			tflog.Debug(ctx, "\t====netbios enable has value")
-			body.Netbios.Enabled = data.Netbios.Enabled.ValueBool()
+	if !data.Netbios.IsUnknown() {
+		var netbios CifsNetbiosResourceModel
+		diags := data.Netbios.As(ctx, &netbios, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
 		}
-		if !data.Netbios.Aliases.IsNull() {
-			tflog.Debug(ctx, "\t====netbios aliases has value")
-			//tflog.Debug(ctx, fmt.Sprintf("##netbios aliases - body: %#v", data.Netbios.Aliases))
-			aliases := data.Netbios.Aliases.Elements()
-			body.Netbios.Aliases = make([]string, len(aliases))
-			for i, e := range aliases {
-				body.Netbios.Aliases[i] = e.String()
+		body.Netbios.Enabled = netbios.Enabled.ValueBool()
+		if !netbios.Aliases.IsNull() {
+			for _, e := range netbios.Aliases.Elements() {
+				body.Netbios.Aliases = append(body.Netbios.Aliases, e.(basetypes.StringValue).ValueString())
 			}
 		}
-		if !data.Netbios.WinsServers.IsNull() {
-			tflog.Debug(ctx, "\t====netbios winservers has value")
-			//tflog.Debug(ctx, fmt.Sprintf("##netbios aliases - body: %#v", data.Netbios.WinsServers))
-			windowServers := data.Netbios.WinsServers.Elements()
+		if !netbios.WinsServers.IsNull() {
+			windowServers := netbios.WinsServers.Elements()
 			body.Netbios.WinsServers = make([]string, len(windowServers))
 			for i, e := range windowServers {
 				body.Netbios.WinsServers[i] = e.String()
@@ -557,34 +569,97 @@ func (r *CifsServiceResource) Create(ctx context.Context, req resource.CreateReq
 		}
 	}
 
-	if data.Security != nil {
-		tflog.Debug(ctx, "\n===security root is not nil")
-		body.Security.RestrictAnonymous = data.Security.RestrictAnonymous.ValueString()
-		body.Security.SmbSigning = data.Security.SmbSigning.ValueBool()
-		body.Security.SmbEncryption = data.Security.SmbEncryption.ValueBool()
-		body.Security.KdcEncryption = data.Security.KdcEncryption.ValueBool()
-		body.Security.LmCompatibilityLevel = data.Security.LmCompatibilityLevel.ValueString()
-		body.Security.AesNetlogonEnabled = data.Security.AesNetlogonEnabled.ValueBool()
-		body.Security.TryLdapChannelBinding = data.Security.TryLdapChannelBinding.ValueBool()
-		body.Security.LdapReferralEnabled = data.Security.LdapReferralEnabled.ValueBool()
-		body.Security.EncryptDcConnection = data.Security.EncryptDcConnection.ValueBool()
-		body.Security.UseStartTLS = data.Security.UseStartTLS.ValueBool()
-		body.Security.SessionSecurity = data.Security.SessionSecurity.ValueString()
-		if !data.Security.UseLdaps.IsNull() {
-			tflog.Debug(ctx, "\t====security useldap is not nil")
-			body.Security.UseLdaps = data.Security.UseLdaps.ValueBool()
+	if !data.Security.IsUnknown() {
+		var security CifsSecurityResourceModel
+		diags := data.Security.As(ctx, &security, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
 		}
-		if !data.Security.AdvertisedKdcEncryptions.IsNull() {
-			tflog.Debug(ctx, "\t====security advertise kd encryptions is not nil")
-			advertisedKdcEncryptions := data.Security.AdvertisedKdcEncryptions.Elements()
-			body.Security.AdvertisedKdcEncryptions = make([]string, len(advertisedKdcEncryptions))
-			for i, e := range advertisedKdcEncryptions {
-				body.Security.AdvertisedKdcEncryptions[i] = e.String()
+		body.Security.RestrictAnonymous = security.RestrictAnonymous.ValueString()
+		body.Security.SmbSigning = security.SmbSigning.ValueBool()
+		body.Security.SmbEncryption = security.SmbEncryption.ValueBool()
+		// kdc_encryption is only supported in 9.12 and earlier
+		if !security.KdcEncryption.IsNull() {
+			if CompareVersions(clusterVersion, "9.12") <= 0 {
+				body.Security.KdcEncryption = security.KdcEncryption.ValueBool()
+			} else {
+				errors = append(errors, "kdc_encryption")
+			}
+		}
+		if !security.LmCompatibilityLevel.IsNull() {
+			if CompareVersions(clusterVersion, "9.8") >= 0 {
+				body.Security.LmCompatibilityLevel = security.LmCompatibilityLevel.ValueString()
+			} else {
+				errors = append(errors, "lm_compatibility_level")
+			}
+		}
+		if !security.AesNetlogonEnabled.IsNull() {
+			if CompareVersions(clusterVersion, "9.10") >= 0 {
+				body.Security.AesNetlogonEnabled = security.AesNetlogonEnabled.ValueBool()
+			} else {
+				errors = append(errors, "aes_netlogon_enabled")
+			}
+		}
+		if !security.TryLdapChannelBinding.IsNull() {
+			if CompareVersions(clusterVersion, "9.10") >= 0 {
+				body.Security.TryLdapChannelBinding = security.TryLdapChannelBinding.ValueBool()
+			} else {
+				errors = append(errors, "try_ldap_channel_binding")
+			}
+		}
+		if !security.LdapReferralEnabled.IsNull() {
+			if CompareVersions(clusterVersion, "9.10") >= 0 {
+				body.Security.LdapReferralEnabled = security.LdapReferralEnabled.ValueBool()
+			} else {
+				errors = append(errors, "ldap_referral_enabled")
+			}
+		}
+		if !security.EncryptDcConnection.IsNull() {
+			if CompareVersions(clusterVersion, "9.8") >= 0 {
+				body.Security.EncryptDcConnection = security.EncryptDcConnection.ValueBool()
+			} else {
+				errors = append(errors, "encrypt_dc_connection")
+			}
+		}
+		if !security.UseStartTLS.IsNull() {
+			if CompareVersions(clusterVersion, "9.10") >= 0 {
+				body.Security.UseStartTLS = security.UseStartTLS.ValueBool()
+			} else {
+				errors = append(errors, "use_start_tls")
+			}
+		}
+		if !security.SessionSecurity.IsNull() {
+			if CompareVersions(clusterVersion, "9.10") >= 0 {
+				body.Security.SessionSecurity = security.SessionSecurity.ValueString()
+			} else {
+				errors = append(errors, "session_security")
+			}
+		}
+		if !security.UseLdaps.IsNull() {
+			if CompareVersions(clusterVersion, "9.10") >= 0 {
+				body.Security.UseLdaps = security.UseLdaps.ValueBool()
+			} else {
+				errors = append(errors, "use_ldaps")
+			}
+		}
+		if !security.AdvertisedKdcEncryptions.IsNull() {
+			if CompareVersions(clusterVersion, "9.12") >= 0 {
+				advertisedKdcEncryptions := security.AdvertisedKdcEncryptions.Elements()
+				body.Security.AdvertisedKdcEncryptions = make([]string, len(advertisedKdcEncryptions))
+				for i, e := range advertisedKdcEncryptions {
+					body.Security.AdvertisedKdcEncryptions[i] = e.String()
+				}
+			} else {
+				errors = append(errors, "advertised_kdc_encryptions")
 			}
 		}
 	}
-
-	tflog.Debug(ctx, fmt.Sprintf("##Create protocols_cifs_service source - body: %#v", body))
+	if len(errors) > 0 {
+		errorsString := strings.Join(errors, ", ")
+		tflog.Error(ctx, fmt.Sprintf("The following Variables are not supported with current version: %#v", errorsString))
+		return
+	}
 	_, err = interfaces.CreateCifsService(errorHandler, *client, data.Force.ValueBool(), body)
 	if err != nil {
 		return
@@ -598,181 +673,232 @@ func (r *CifsServiceResource) Create(ctx context.Context, req resource.CreateReq
 		// error reporting done inside GetCifsService
 		return
 	}
-
-	//data.Name = types.StringValue(strings.ToLower(restInfo.Name))
-	//data.SVMName = types.StringValue(restInfo.SVM.Name)
-	// if len(restInfo.Comment) != 0 {
-	// 	data.Comment = types.StringValue(restInfo.Comment)
-	// }
+	if restInfo == nil {
+		errorHandler.MakeAndReportError("No CIFS service found", "CIFS service not found.")
+		return
+	}
 	data.Enabled = types.BoolValue(restInfo.Enabled)
-	tflog.Debug(ctx, fmt.Sprintf("**Create protocols_cifs_service source - after query enable: %#v", data))
 	data.DefaultUnixUser = types.StringValue(restInfo.DefaultUnixUser)
+	var fqdn types.String
+	if strings.EqualFold(data.AdDomain.Fqdn.ValueString(), restInfo.AdDomain.Fqdn) {
+		fqdn = types.StringValue(data.AdDomain.Fqdn.ValueString())
+	}
 	data.AdDomain = &AdDomainResourceModel{
 		OrganizationalUnit: types.StringValue(restInfo.AdDomain.OrganizationalUnit),
 		// use the same values as in the state for both user and password since they cannot be read by API
 		User:     data.AdDomain.User,
 		Password: data.AdDomain.Password,
-		Fqdn:     types.StringValue(restInfo.AdDomain.Fqdn),
+		Fqdn:     fqdn,
 	}
 
-	data.Netbios = &CifsNetbiosResourceModel{
-		Enabled:     types.BoolValue(restInfo.Netbios.Enabled),
-		Aliases:     stringSliceToSet(ctx, restInfo.Netbios.Aliases, &resp.Diagnostics),
-		WinsServers: stringSliceToSet(ctx, restInfo.Netbios.WinsServers, &resp.Diagnostics),
+	elementTypes := map[string]attr.Type{
+		"enabled":      types.BoolType,
+		"aliases":      types.SetType{ElemType: types.StringType},
+		"wins_servers": types.SetType{ElemType: types.StringType},
+	}
+	elements := map[string]attr.Value{
+		"enabled":      types.BoolValue(restInfo.Netbios.Enabled),
+		"aliases":      stringSliceToSet(ctx, restInfo.Netbios.Aliases, &resp.Diagnostics, true),
+		"wins_servers": stringSliceToSet(ctx, restInfo.Netbios.WinsServers, &resp.Diagnostics, false),
+	}
+	objectValue, diags := types.ObjectValue(elementTypes, elements)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+	}
+	data.Netbios = objectValue
+
+	elementTypes = map[string]attr.Type{
+		"restrict_anonymous":         types.StringType,
+		"smb_signing":                types.BoolType,
+		"smb_encryption":             types.BoolType,
+		"kdc_encryption":             types.BoolType,
+		"lm_compatibility_level":     types.StringType,
+		"try_ldap_channel_binding":   types.BoolType,
+		"ldap_referral_enabled":      types.BoolType,
+		"encrypt_dc_connection":      types.BoolType,
+		"session_security":           types.StringType,
+		"aes_netlogon_enabled":       types.BoolType,
+		"use_ldaps":                  types.BoolType,
+		"use_start_tls":              types.BoolType,
+		"advertised_kdc_encryptions": types.SetType{ElemType: types.StringType},
 	}
 
-	data.Security = &CifsSecurityResourceModel{
-		RestrictAnonymous:        types.StringValue(restInfo.Security.RestrictAnonymous),
-		SmbSigning:               types.BoolValue(restInfo.Security.SmbSigning),
-		SmbEncryption:            types.BoolValue(restInfo.Security.SmbEncryption),
-		KdcEncryption:            types.BoolValue(restInfo.Security.KdcEncryption),
-		LmCompatibilityLevel:     types.StringValue(restInfo.Security.LmCompatibilityLevel),
-		AesNetlogonEnabled:       types.BoolValue(restInfo.Security.AesNetlogonEnabled),
-		TryLdapChannelBinding:    types.BoolValue(restInfo.Security.TryLdapChannelBinding),
-		LdapReferralEnabled:      types.BoolValue(restInfo.Security.LdapReferralEnabled),
-		EncryptDcConnection:      types.BoolValue(restInfo.Security.EncryptDcConnection),
-		UseStartTLS:              types.BoolValue(restInfo.Security.UseStartTLS),
-		SessionSecurity:          types.StringValue(restInfo.Security.SessionSecurity),
-		UseLdaps:                 types.BoolValue(restInfo.Security.UseLdaps),
-		AdvertisedKdcEncryptions: stringSliceToSet(ctx, restInfo.Security.AdvertisedKdcEncryptions, &resp.Diagnostics),
+	elements = map[string]attr.Value{
+		"restrict_anonymous":         types.StringValue(restInfo.Security.RestrictAnonymous),
+		"smb_signing":                types.BoolValue(restInfo.Security.SmbSigning),
+		"smb_encryption":             types.BoolValue(restInfo.Security.SmbEncryption),
+		"kdc_encryption":             types.BoolValue(restInfo.Security.KdcEncryption),
+		"lm_compatibility_level":     types.StringValue(restInfo.Security.LmCompatibilityLevel),
+		"try_ldap_channel_binding":   types.BoolValue(restInfo.Security.TryLdapChannelBinding),
+		"ldap_referral_enabled":      types.BoolValue(restInfo.Security.LdapReferralEnabled),
+		"encrypt_dc_connection":      types.BoolValue(restInfo.Security.EncryptDcConnection),
+		"session_security":           types.StringValue(restInfo.Security.SessionSecurity),
+		"aes_netlogon_enabled":       types.BoolValue(restInfo.Security.AesNetlogonEnabled),
+		"use_ldaps":                  types.BoolValue(restInfo.Security.UseLdaps),
+		"use_start_tls":              types.BoolValue(restInfo.Security.UseStartTLS),
+		"advertised_kdc_encryptions": stringSliceToSet(ctx, restInfo.Security.AdvertisedKdcEncryptions, &resp.Diagnostics, false),
 	}
+	objectValue, diags = types.ObjectValue(elementTypes, elements)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+	}
+	data.Security = objectValue
+
 	tflog.Trace(ctx, "created a resource")
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-// Check if two slices of strings are equal
-func stringSlicesEqual(a, b []string) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i, v := range a {
-		if v != b[i] {
-			return false
-		}
-	}
-	return true
-}
-
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *CifsServiceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *CifsServiceResourceModel
-	var dataOld *CifsServiceResourceModel
+	var plan *CifsServiceResourceModel
+	var state *CifsServiceResourceModel
 
 	// Read Terraform plan data into the model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 	// Read Terraform prior state data into the model
-	resp.Diagnostics.Append(req.State.Get(ctx, &dataOld)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := getRestClient(errorHandler, r.config, plan.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
 	}
 
-	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.SVMName.ValueString())
+	svm, err := interfaces.GetSvmByName(errorHandler, *client, plan.SVMName.ValueString())
 	if err != nil {
 		return
 	}
+	cluster, err := interfaces.GetCluster(errorHandler, *client)
+	if err != nil {
+		// error reporting done inside GetCluster
+		return
+	}
+	if cluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", fmt.Sprintf("Cluster not found."))
+		return
+	}
+	clusterVersion := strconv.Itoa(cluster.Version.Generation) + "." + strconv.Itoa(cluster.Version.Major)
 
 	var body interfaces.CifsServiceResourceBodyDataModelONTAP
 	// check if the name is changed
-	if !data.Name.Equal(dataOld.Name) {
+	if !plan.Name.Equal(state.Name) {
 		// rename a server should be in stop state
-		body.Name = data.Name.ValueString()
+		body.Name = plan.Name.ValueString()
 	}
-	body.Enabled = data.Enabled.ValueBool()
+	body.Enabled = plan.Enabled.ValueBool()
 
-	if !data.AdDomain.Fqdn.Equal(dataOld.AdDomain.Fqdn) {
-		body.AdDomain.Fqdn = data.AdDomain.Fqdn.ValueString()
+	if !plan.AdDomain.Fqdn.Equal(state.AdDomain.Fqdn) {
+		body.AdDomain.Fqdn = plan.AdDomain.Fqdn.ValueString()
 	}
-	if !data.AdDomain.User.Equal(dataOld.AdDomain.User) {
-		body.AdDomain.User = data.AdDomain.User.ValueString()
+	if !plan.AdDomain.User.Equal(state.AdDomain.User) {
+		body.AdDomain.User = plan.AdDomain.User.ValueString()
 	}
-	if !data.AdDomain.Password.Equal(dataOld.AdDomain.Password) {
-		body.AdDomain.Password = data.AdDomain.Password.ValueString()
-	}
-
-	if !data.AdDomain.OrganizationalUnit.Equal(dataOld.AdDomain.OrganizationalUnit) {
-		body.AdDomain.OrganizationalUnit = data.AdDomain.OrganizationalUnit.ValueString()
-	}
-	if !data.Comment.Equal(dataOld.Comment) {
-		body.Comment = data.Comment.ValueString()
+	if !plan.AdDomain.Password.Equal(state.AdDomain.Password) {
+		body.AdDomain.Password = plan.AdDomain.Password.ValueString()
 	}
 
-	if !data.DefaultUnixUser.Equal(dataOld.DefaultUnixUser) {
-		body.DefaultUnixUser = data.DefaultUnixUser.ValueString()
+	if !plan.AdDomain.OrganizationalUnit.Equal(state.AdDomain.OrganizationalUnit) {
+		body.AdDomain.OrganizationalUnit = plan.AdDomain.OrganizationalUnit.ValueString()
 	}
-	// var aliases, winservers []string
+	if !plan.Comment.Equal(state.Comment) {
+		body.Comment = plan.Comment.ValueString()
+	}
 
-	// if !data.Netbios.Enabled.Equal(dataOld.Netbios.Enabled) {
-	// 	body.Netbios.Enabled = data.Netbios.Enabled.ValueBool()
-	// }
-	// for _, e := range data.Netbios.Aliases {
-	// 	aliases = append(aliases, e.ValueString())
-	// }
-	// body.Netbios.Aliases = aliases
-	// for _, e := range data.Netbios.WinsServers {
-	// 	winservers = append(winservers, e.ValueString())
-	// }
-	// body.Netbios.WinsServers = winservers
+	if !plan.DefaultUnixUser.Equal(state.DefaultUnixUser) {
+		body.DefaultUnixUser = plan.DefaultUnixUser.ValueString()
+	}
 
-	// body.Netbios.Enabled = data.Netbios.Enabled.ValueBool()
+	if !plan.Netbios.IsUnknown() {
+		if !plan.Netbios.Equal(state.Netbios) {
+			var netbios CifsNetbiosResourceModel
+			diags := plan.Netbios.As(ctx, &netbios, basetypes.ObjectAsOptions{})
+			if diags.HasError() {
+				resp.Diagnostics.Append(diags...)
+				return
+			}
+			if !netbios.Enabled.IsUnknown() {
+				body.Netbios.Enabled = netbios.Enabled.ValueBool()
+			}
+			if !netbios.Aliases.IsUnknown() {
+				for _, e := range netbios.Aliases.Elements() {
+					body.Netbios.Aliases = append(body.Netbios.Aliases, e.(basetypes.StringValue).ValueString())
+				}
+			}
+			if !netbios.WinsServers.IsUnknown() {
+				for _, e := range netbios.WinsServers.Elements() {
+					body.Netbios.WinsServers = append(body.Netbios.WinsServers, e.(basetypes.StringValue).ValueString())
+				}
+			}
+		}
+	}
 
-	// if data.Security != nil {
-	// 	if !data.Security.KdcEncryption.Equal(dataOld.Security.KdcEncryption) {
-	// 		body.Security.KdcEncryption = data.Security.KdcEncryption.ValueBool()
-	// 	}
-
-	// 	if !data.Security.RestrictAnonymous.Equal(dataOld.Security.RestrictAnonymous) {
-	// 		body.Security.RestrictAnonymous = data.Security.RestrictAnonymous.ValueString()
-	// 	}
-	// 	if !data.Security.SmbSigning.Equal(dataOld.Security.SmbSigning) {
-	// 		body.Security.SmbSigning = data.Security.SmbSigning.ValueBool()
-	// 	}
-	// 	if !data.Security.SmbEncryption.Equal(dataOld.Security.SmbEncryption) {
-	// 		body.Security.SmbEncryption = data.Security.SmbEncryption.ValueBool()
-	// 	}
-	// 	if !data.Security.LmCompatibilityLevel.Equal(dataOld.Security.LmCompatibilityLevel) {
-	// 		body.Security.LmCompatibilityLevel = data.Security.LmCompatibilityLevel.ValueString()
-	// 	}
-	// 	if !data.Security.AesNetlogonEnabled.Equal(dataOld.Security.AesNetlogonEnabled) {
-	// 		body.Security.AesNetlogonEnabled = data.Security.AesNetlogonEnabled.ValueBool()
-	// 	}
-	// 	if !data.Security.TryLdapChannelBinding.Equal(dataOld.Security.TryLdapChannelBinding) {
-	// 		body.Security.TryLdapChannelBinding = data.Security.TryLdapChannelBinding.ValueBool()
-	// 	}
-	// 	if !data.Security.LdapReferralEnabled.Equal(dataOld.Security.LdapReferralEnabled) {
-	// 		body.Security.LdapReferralEnabled = data.Security.LdapReferralEnabled.ValueBool()
-	// 	}
-	// 	if !data.Security.EncryptDcConnection.Equal(dataOld.Security.EncryptDcConnection) {
-	// 		body.Security.EncryptDcConnection = data.Security.EncryptDcConnection.ValueBool()
-	// 	}
-	// 	if !data.Security.UseStartTLS.Equal(dataOld.Security.UseStartTLS) {
-	// 		body.Security.UseStartTLS = data.Security.UseStartTLS.ValueBool()
-	// 	}
-	// 	if !data.Security.SessionSecurity.Equal(dataOld.Security.SessionSecurity) {
-	// 		body.Security.SessionSecurity = data.Security.SessionSecurity.ValueString()
-	// 	}
-	// 	if !data.Security.UseLdaps.Equal(dataOld.Security.UseLdaps) {
-	// 		body.Security.UseLdaps = data.Security.UseLdaps.ValueBool()
-	// 	}
-	// }
-
-	err = interfaces.UpdateCifsService(errorHandler, *client, svm.UUID, data.Force.ValueBool(), body)
+	if !plan.Security.IsUnknown() {
+		if !plan.Security.Equal(state.Security) {
+			var security CifsSecurityResourceModel
+			diags := plan.Security.As(ctx, &security, basetypes.ObjectAsOptions{})
+			if diags.HasError() {
+				resp.Diagnostics.Append(diags...)
+				return
+			}
+			if !security.KdcEncryption.IsUnknown() && CompareVersions(clusterVersion, "9.12") < 0 {
+				body.Security.KdcEncryption = security.KdcEncryption.ValueBool()
+			}
+			if !security.RestrictAnonymous.IsUnknown() {
+				body.Security.RestrictAnonymous = security.RestrictAnonymous.ValueString()
+			}
+			if !security.SmbSigning.IsUnknown() {
+				body.Security.SmbSigning = security.SmbSigning.ValueBool()
+			}
+			if !security.SmbEncryption.IsUnknown() {
+				body.Security.SmbEncryption = security.SmbEncryption.ValueBool()
+			}
+			if !security.EncryptDcConnection.IsUnknown() && CompareVersions(clusterVersion, "9.8") >= 0 {
+				body.Security.EncryptDcConnection = security.EncryptDcConnection.ValueBool()
+			}
+			if !security.LmCompatibilityLevel.IsUnknown() && CompareVersions(clusterVersion, "9.8") >= 0 {
+				body.Security.LmCompatibilityLevel = security.LmCompatibilityLevel.ValueString()
+			}
+			if !security.AesNetlogonEnabled.IsUnknown() && CompareVersions(clusterVersion, "9.10") >= 0 {
+				body.Security.AesNetlogonEnabled = security.AesNetlogonEnabled.ValueBool()
+			}
+			if !security.LdapReferralEnabled.IsUnknown() && CompareVersions(clusterVersion, "9.10") >= 0 {
+				body.Security.LdapReferralEnabled = security.LdapReferralEnabled.ValueBool()
+			}
+			if !security.SessionSecurity.IsUnknown() && CompareVersions(clusterVersion, "9.10") >= 0 {
+				body.Security.SessionSecurity = security.SessionSecurity.ValueString()
+			}
+			if !security.TryLdapChannelBinding.IsUnknown() && CompareVersions(clusterVersion, "9.10") >= 0 {
+				body.Security.TryLdapChannelBinding = security.TryLdapChannelBinding.ValueBool()
+			}
+			if !security.UseLdaps.IsUnknown() && CompareVersions(clusterVersion, "9.10") >= 0 {
+				body.Security.UseLdaps = security.UseLdaps.ValueBool()
+			}
+			if !security.UseStartTLS.IsUnknown() && CompareVersions(clusterVersion, "9.10") >= 0 {
+				body.Security.UseStartTLS = security.UseStartTLS.ValueBool()
+			}
+			if !security.AdvertisedKdcEncryptions.IsUnknown() && CompareVersions(clusterVersion, "9.12") >= 0 {
+				for _, e := range security.AdvertisedKdcEncryptions.Elements() {
+					body.Security.AdvertisedKdcEncryptions = append(body.Security.AdvertisedKdcEncryptions, e.(basetypes.StringValue).ValueString())
+				}
+			}
+		}
+	}
+	tflog.Debug(ctx, fmt.Sprintf("##Update protocols_cifs_service source - body: %#v", body))
+	err = interfaces.UpdateCifsService(errorHandler, *client, svm.UUID, plan.Force.ValueBool(), body)
 	if err != nil {
 		return
 	}
 	// Save updated data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
