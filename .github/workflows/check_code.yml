@@ -25,6 +25,11 @@ jobs:
             done < <(grep -n 'TODO' "$FILE" | cut -f1 -d:)
           done
           echo "::set-output name=todo_lines::$TODO_LINES"
+          if [ -n "$TODO_LINES" ]; then
+            echo "Found TODO comments in the following files:"
+            echo "$TODO_LINES"
+            exit 1
+          fi
 
       - name: Create comments
         uses: actions/github-script@v5
