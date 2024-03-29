@@ -48,19 +48,17 @@ type CifsServiceResource struct {
 
 // CifsServiceResourceModel describes the resource data model.
 type CifsServiceResourceModel struct {
-	CxProfileName types.String           `tfsdk:"cx_profile_name"`
-	Name          types.String           `tfsdk:"name"`
-	SVMName       types.String           `tfsdk:"svm_name"`
-	AdDomain      *AdDomainResourceModel `tfsdk:"ad_domain"`
-	// Netbios         *CifsNetbiosResourceModel  `tfsdk:"netbios"`
-	Netbios types.Object `tfsdk:"netbios"`
-	//Security        *CifsSecurityResourceModel `tfsdk:"security"`
-	Security        types.Object `tfsdk:"security"`
-	Comment         types.String `tfsdk:"comment"`
-	DefaultUnixUser types.String `tfsdk:"default_unix_user"`
-	Enabled         types.Bool   `tfsdk:"enabled"`
-	Force           types.Bool   `tfsdk:"force"`
-	ID              types.String `tfsdk:"id"`
+	CxProfileName   types.String           `tfsdk:"cx_profile_name"`
+	Name            types.String           `tfsdk:"name"`
+	SVMName         types.String           `tfsdk:"svm_name"`
+	AdDomain        *AdDomainResourceModel `tfsdk:"ad_domain"`
+	Netbios         types.Object           `tfsdk:"netbios"`
+	Security        types.Object           `tfsdk:"security"`
+	Comment         types.String           `tfsdk:"comment"`
+	DefaultUnixUser types.String           `tfsdk:"default_unix_user"`
+	Enabled         types.Bool             `tfsdk:"enabled"`
+	Force           types.Bool             `tfsdk:"force"`
+	ID              types.String           `tfsdk:"id"`
 }
 
 // AdDomainResourceModel describes the ad_domain data model using go types for mapping.
@@ -945,14 +943,16 @@ func (r *CifsServiceResource) Delete(ctx context.Context, req resource.DeleteReq
 func (r *CifsServiceResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	tflog.Debug(ctx, fmt.Sprintf("import req a protocols cifs service resource: %#v", req))
 	idParts := strings.Split(req.ID, ",")
-	if len(idParts) != 3 || idParts[0] == "" || idParts[1] == "" || idParts[2] == "" {
+	if len(idParts) != 5 || idParts[0] == "" || idParts[1] == "" || idParts[2] == "" || idParts[3] == "" || idParts[4] == "" {
 		resp.Diagnostics.AddError(
 			"Unexpected Import Identifier",
-			fmt.Sprintf("Expected import identifier with format: name,svm_name,cx_profile_name. Got: %q", req.ID),
+			fmt.Sprintf("Expected import identifier with format: name,svm_name,cx_profile_name,ad_domain.user,ad_domain.password. Got: %q", req.ID),
 		)
 		return
 	}
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[0])...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("svm_name"), idParts[1])...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[2])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("ad_domain").AtName("user"), idParts[3])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("ad_domain").AtName("password"), idParts[4])...)
 }
