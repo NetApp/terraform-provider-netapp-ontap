@@ -58,7 +58,7 @@ jobs:
           FILES=$(git diff --name-only --diff-filter=A origin/${{ github.base_ref }} | grep '\.md$')
           MISSING=""
           for FILE in $FILES; do
-            if ! grep -q 'subcategory:.\+' "$FILE"; then
+            if ! grep -q 'subcategory: .\+' "$FILE"; then
               MISSING="$MISSING\n$FILE"
             fi
           done
