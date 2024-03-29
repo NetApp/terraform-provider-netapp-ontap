@@ -141,7 +141,7 @@ func CreateCifsService(errorHandler *utils.ErrorHandler, r restclient.RestClient
 	if err := mapstructure.Decode(body, &bodyMap); err != nil {
 		return nil, errorHandler.MakeAndReportError("error encoding protocols_cifs_service body", fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body))
 	}
-	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("######Create protocols_cifs_service source - body: %#v", body))
+
 	query := r.NewQuery()
 	query.Add("return_records", "true")
 	if force {
