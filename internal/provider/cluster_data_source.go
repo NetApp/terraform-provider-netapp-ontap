@@ -24,8 +24,6 @@ func NewClusterDataSource() datasource.DataSource {
 	}
 }
 
-// TODO - Add the data source implementation here
-
 // ClusterDataSource defines the data source implementation.
 type ClusterDataSource struct {
 	config resourceOrDataSourceConfig
@@ -127,7 +125,6 @@ func (d *ClusterDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	// TODO: world domnication
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
