@@ -38,6 +38,12 @@ type SVMPeerDataSourceModel struct {
 	State        string   `mapstructure:"state"`
 }
 
+// SVMPeerDataSourceFilterModel describes the data source data model for queries.
+type SVMPeerDataSourceFilterModel struct {
+	SVM  SVM  `mapstructure:"svm"`
+	Peer Peer `mapstructure:"peer"`
+}
+
 // SVM describes the resource data model.
 type SVM struct {
 	Name string `mapstructure:"name"`
@@ -47,6 +53,12 @@ type SVM struct {
 type Peer struct {
 	Cluster Cluster `mapstructure:"cluster"`
 	SVM     SVM     `mapstructure:"svm"`
+}
+
+// PeerData describes the body data model using go types for mapping.
+type PeerData struct {
+	Cluster *Cluster `mapstructure:"cluster"`
+	SVM     *SVM     `mapstructure:"svm"`
 }
 
 // SVMPeersGetDataModelONTAP describes the GET record data model using go types for mapping.
@@ -102,6 +114,48 @@ func GetSVMPeersBySVMNameAndPeerSvmName(errorHandler *utils.ErrorHandler, r rest
 	return &dataONTAP, nil
 }
 
+// GetSvmPeersByName to get data source list svm info
+func GetSvmPeersByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *SVMPeerDataSourceFilterModel) ([]SVMPeerDataSourceModel, error) {
+	api := "svm/peers"
+	query := r.NewQuery()
+	fields := []string{"svm", "peer", "name", "applications", "state"}
+	query.Fields(fields)
+
+	if filter != nil {
+		if filter.Peer != (Peer{}) {
+			if filter.Peer.Cluster != (Cluster{}) {
+				query.Set("peer.cluster.name", filter.Peer.Cluster.Name)
+			}
+			if filter.Peer.SVM != (SVM{}) {
+				query.Set("peer.svm.name", filter.Peer.SVM.Name)
+			}
+		}
+		if filter.SVM != (SVM{}) {
+			query.Set("svm.name", filter.SVM.Name)
+		}
+	}
+
+	statusCode, response, err := r.GetZeroOrMoreRecords(api, query, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading svm peers info", fmt.Sprintf("error on GET svm/peers: %s, statusCode %d", err, statusCode))
+	}
+
+	var dataONTAP []SVMPeerDataSourceModel
+	for _, info := range response {
+		var record SVMPeerDataSourceModel
+		if err := mapstructure.Decode(info, &record); err != nil {
+			return nil, errorHandler.MakeAndReportError("failed to decode response from GET svm peers", fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
+		}
+		dataONTAP = append(dataONTAP, record)
+	}
+
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read svm peers info: %#v", dataONTAP))
+	return dataONTAP, nil
+}
+
 // CreateSVMPeers to create svm_peers
 func CreateSVMPeers(errorHandler *utils.ErrorHandler, r restclient.RestClient, body SVMPeerResourceModel) (*SVMPeersGetDataModelONTAP, error) {
 	api := "svm/peers"
@@ -125,7 +179,7 @@ func CreateSVMPeers(errorHandler *utils.ErrorHandler, r restclient.RestClient, b
 	return &dataONTAP, nil
 }
 
-// UpdateSVMPeers updates Snapmirror
+// UpdateSVMPeers updates svm peers
 func UpdateSVMPeers(errorHandler *utils.ErrorHandler, r restclient.RestClient, data any, uuid string) error {
 	api := "svm/peers/" + uuid
 	var body map[string]interface{}
