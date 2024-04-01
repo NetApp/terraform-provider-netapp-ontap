@@ -8,13 +8,17 @@ description: |-
 
 # Resource Snapmirror
 
-Create/Delete a snapmirror resource
-
-~> **NOTE:** This module currently does not support modifying an existing snapmirror relationship.  This will be added in a future release.
+Create/Modify/Delete a snapmirror resource
 
 ### Related ONTAP commands
 * snapmirror create
+* snapmirror modify
 * snapmirror delete
+
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
+
+~> **NOTE:** Amazon FSx for NetApp ONTAP is not supported
 
 ## Example Usage
 ```

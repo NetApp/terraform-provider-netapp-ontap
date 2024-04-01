@@ -12,13 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// TODO:
-// copy this file to match you data source (should match internal/provider/protocols_san_igroup_data_source.go)
-// replace ProtocolsSanIgroups with the name of the resource, following go conventions, eg IPInterfaces
-// replace protocols_san_igroups with the name of the resource, for logging purposes, eg ip_interfaces
-// make sure to create internal/interfaces/protocols_san_igroup.go too)
-// delete these 5 lines
-
 // Ensure provider defined types fully satisfy framework interfaces
 var _ datasource.DataSource = &ProtocolsSanIgroupsDataSource{}
 
@@ -241,7 +234,8 @@ func (d *ProtocolsSanIgroupsDataSource) Read(ctx context.Context, req datasource
 	var filter *interfaces.ProtocolsSanIgroupDataSourceFilterModel = nil
 	if data.Filter != nil {
 		filter = &interfaces.ProtocolsSanIgroupDataSourceFilterModel{
-			Name: data.Filter.Name.ValueString(),
+			Name:    data.Filter.Name.ValueString(),
+			SVMName: data.Filter.SVMName.ValueString(),
 		}
 	}
 

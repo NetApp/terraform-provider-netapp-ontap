@@ -148,6 +148,7 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		NewCifsLocalUserResource,
 		NewCifsUserGroupPrivilegeResource,
 		NewClusterLicensingLicenseResource,
+		NewClusterPeersResource,
 		NewClusterScheduleResource,
 		NewExampleResource,
 		NewExportPolicyResource,
@@ -155,8 +156,10 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		NewIPInterfaceResource,
 		NewIPRouteResource,
 		NewNameServicesDNSResource,
+		NewNameServicesLDAPResource,
 		NewProtocolsNfsServiceResource,
 		NewProtocolsSanIgroupResource,
+		NewProtocolsSanLunMapsResource,
 		NewSecurityAccountResource,
 		NewSnapmirrorResource,
 		NewSnapmirrorPolicyResource,
@@ -164,8 +167,8 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		NewSnapshotPolicyResource,
 		NewStorageVolumeResource,
 		NewStorageVolumeSnapshotResource,
-		NewSvmResource,
 		NewSVMPeersResource,
+		NewSvmResource,
 	}
 }
 
@@ -200,6 +203,8 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		NewIPRoutesDataSource,
 		NewNameServicesDNSDataSource,
 		NewNameServicesDNSsDataSource,
+		NewNameServicesLDAPDataSource,
+		NewNameServicesLDAPsDataSource,
 		NewProtocolsNfsServiceDataSource,
 		NewProtocolsNfsServicesDataSource,
 		NewProtocolsSanIgroupDataSource,
@@ -222,6 +227,8 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		NewStorageVolumesDataSource,
 		NewSvmDataSource,
 		NewSvmsDataSource,
+		NewSVMPeerDataSource,
+		NewSVMPeersDataSource,
 	}
 }
 

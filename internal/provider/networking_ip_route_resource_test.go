@@ -2,10 +2,11 @@ package provider
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"os"
 	"regexp"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccNetworkingIpRouteResource(t *testing.T) {
@@ -39,6 +40,15 @@ func TestAccNetworkingIpRouteResource(t *testing.T) {
 					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_route_resource.example", "svm_name", "ansibleSVM"),
 					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_route_resource.example", "destination.address", "10.10.10.254"),
 					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_route_resource.example", "destination.netmask", "20"),
+				),
+			},
+			// Import and read
+			{
+				ResourceName:  "netapp-ontap_networking_ip_route_resource.example",
+				ImportState:   true,
+				ImportStateId: fmt.Sprintf("%s,%s,%s", "carchi-test", "10.10.10.254", "cluster4"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_route_resource.example", "svm_name", "carchi-test"),
 				),
 			},
 		},

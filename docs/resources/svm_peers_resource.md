@@ -53,7 +53,7 @@ resource "netapp-ontap_svm_peers_resource" "example" {
 
 ### Read-Only
 
-- `id` (String) svm peeer identifier
+- `id` (String) svm peer identifier
 
 <a id="nestedatt--peer"></a>
 ### Nested Schema for `peer`

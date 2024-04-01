@@ -30,6 +30,8 @@ CATAGORYS = {
     'name-services': [
         "name_services_dns_data_source.md",
         "name_services_dns_resource.md"
+        "name_services_ldap_data_source.md",
+        "name_services_ldap_resource.md",
     ],
 
     'ndmp': [],
@@ -54,7 +56,9 @@ CATAGORYS = {
         "storage_volume_snapshot_resource.md"],
     'support': [],
     'svm': ["svm_resource.md",
-            "svm_peers_resource.md"],
+            "svm_peers_resource.md",
+            "svm_peer_data_source.md",
+            "svm_peers_data_source.md",],
 }
 
 
