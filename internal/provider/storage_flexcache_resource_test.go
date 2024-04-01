@@ -76,14 +76,14 @@ resource "netapp-ontap_storage_flexcache_resource" "example" {
   origins = [
     {
       volume = {
-        name = "vol1"
+        name = "acc_test_storage_flexcache_origin_volume"
       },
       svm = {
-        name = "automation"
+        name = "acc_test"
       }
     }
   ]
-  size = 400
+  size = 200
   size_unit = "mb"
   guarantee = {
     type = "none"
@@ -92,7 +92,7 @@ resource "netapp-ontap_storage_flexcache_resource" "example" {
   global_file_locking_enabled = false
   aggregates = [
     {
-      name = "aggr1"
+      name = "acc_test"
     }
   ]
 }`, host, admin, password, volName, svm)
