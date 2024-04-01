@@ -62,8 +62,9 @@ func testAccCifsServiceResourceConfig(name string, svmName string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST_CIFS")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS_CIFS")
+	cifspassword := os.Getenv("TF_ACC_NETAPP_CIFS_ADDOMAIN_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST_CIFS, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS_CIFS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST_CIFS, TF_ACC_NETAPP_USER, TF_ACC_NETAPP_PASS_CIFS and TF_ACC_NETAPP_CIFS_ADDOMAIN_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -84,19 +85,20 @@ resource "netapp-ontap_protocols_cifs_service_resource" "example" {
 	name = "%s"
 	ad_domain = {
 		fqdn = "mytfdomain.com"
-		user = "administrator"
-		password = "Ab0xB@wks!"
+		user = "cifstest"
+		password = "%s"
 	}
 }
-`, host, admin, password, svmName, name)
+`, host, admin, password, svmName, name, cifspassword)
 }
 
 func testAccCifsServiceResourceUpdateConfig(name string, svmName string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST_CIFS")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS_CIFS")
+	cifspassword := os.Getenv("TF_ACC_NETAPP_CIFS_ADDOMAIN_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST_CIFS, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS_CIFS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST_CIFS, TF_ACC_NETAPP_USER, TF_ACC_NETAPP_PASS_CIFS and TF_ACC_NETAPP_CIFS_ADDOMAIN_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -117,12 +119,12 @@ resource "netapp-ontap_protocols_cifs_service_resource" "example" {
 	name = "%s"
 	ad_domain = {
 		fqdn = "mytfdomain.com"
-		user = "administrator"
-		password = "Ab0xB@wks!"
+		user = "cifstest"
+		password = "%s"
 	}
 	security = {
 		lm_compatibility_level = "ntlm_ntlmv2_krb"
 	}
 }
-`, host, admin, password, svmName, name)
+`, host, admin, password, svmName, name, cifspassword)
 }

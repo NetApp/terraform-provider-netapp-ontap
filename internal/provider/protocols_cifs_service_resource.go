@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
@@ -524,7 +523,6 @@ func (r *CifsServiceResource) Create(ctx context.Context, req resource.CreateReq
 		errorHandler.MakeAndReportError("No cluster found", fmt.Sprintf("Cluster %s not found.", data.CxProfileName.ValueString()))
 		return
 	}
-	clusterVersion := strconv.Itoa(cluster.Version.Generation) + "." + strconv.Itoa(cluster.Version.Major)
 	var errors []string
 	// Create the resource
 	body.AdDomain.Fqdn = data.AdDomain.Fqdn.ValueString()
@@ -579,70 +577,70 @@ func (r *CifsServiceResource) Create(ctx context.Context, req resource.CreateReq
 		body.Security.SmbEncryption = security.SmbEncryption.ValueBool()
 		// kdc_encryption is only supported in 9.12 and earlier
 		if !security.KdcEncryption.IsNull() {
-			if CompareVersions(clusterVersion, "9.12") <= 0 {
+			if cluster.Version.Generation == 9 && cluster.Version.Major < 12 {
 				body.Security.KdcEncryption = security.KdcEncryption.ValueBool()
 			} else {
 				errors = append(errors, "kdc_encryption")
 			}
 		}
 		if !security.LmCompatibilityLevel.IsNull() {
-			if CompareVersions(clusterVersion, "9.8") >= 0 {
+			if cluster.Version.Generation == 9 && cluster.Version.Major >= 8 {
 				body.Security.LmCompatibilityLevel = security.LmCompatibilityLevel.ValueString()
 			} else {
 				errors = append(errors, "lm_compatibility_level")
 			}
 		}
 		if !security.AesNetlogonEnabled.IsNull() {
-			if CompareVersions(clusterVersion, "9.10") >= 0 {
+			if cluster.Version.Generation == 9 && cluster.Version.Major >= 10 {
 				body.Security.AesNetlogonEnabled = security.AesNetlogonEnabled.ValueBool()
 			} else {
 				errors = append(errors, "aes_netlogon_enabled")
 			}
 		}
 		if !security.TryLdapChannelBinding.IsNull() {
-			if CompareVersions(clusterVersion, "9.10") >= 0 {
+			if cluster.Version.Generation == 9 && cluster.Version.Major >= 10 {
 				body.Security.TryLdapChannelBinding = security.TryLdapChannelBinding.ValueBool()
 			} else {
 				errors = append(errors, "try_ldap_channel_binding")
 			}
 		}
 		if !security.LdapReferralEnabled.IsNull() {
-			if CompareVersions(clusterVersion, "9.10") >= 0 {
+			if cluster.Version.Generation == 9 && cluster.Version.Major >= 10 {
 				body.Security.LdapReferralEnabled = security.LdapReferralEnabled.ValueBool()
 			} else {
 				errors = append(errors, "ldap_referral_enabled")
 			}
 		}
 		if !security.EncryptDcConnection.IsNull() {
-			if CompareVersions(clusterVersion, "9.8") >= 0 {
+			if cluster.Version.Generation == 9 && cluster.Version.Major >= 8 {
 				body.Security.EncryptDcConnection = security.EncryptDcConnection.ValueBool()
 			} else {
 				errors = append(errors, "encrypt_dc_connection")
 			}
 		}
 		if !security.UseStartTLS.IsNull() {
-			if CompareVersions(clusterVersion, "9.10") >= 0 {
+			if cluster.Version.Generation == 9 && cluster.Version.Major >= 10 {
 				body.Security.UseStartTLS = security.UseStartTLS.ValueBool()
 			} else {
 				errors = append(errors, "use_start_tls")
 			}
 		}
 		if !security.SessionSecurity.IsNull() {
-			if CompareVersions(clusterVersion, "9.10") >= 0 {
+			if cluster.Version.Generation == 9 && cluster.Version.Major >= 10 {
 				body.Security.SessionSecurity = security.SessionSecurity.ValueString()
 			} else {
 				errors = append(errors, "session_security")
 			}
 		}
 		if !security.UseLdaps.IsNull() {
-			if CompareVersions(clusterVersion, "9.10") >= 0 {
+			if cluster.Version.Generation == 9 && cluster.Version.Major >= 10 {
 				body.Security.UseLdaps = security.UseLdaps.ValueBool()
 			} else {
 				errors = append(errors, "use_ldaps")
 			}
 		}
 		if !security.AdvertisedKdcEncryptions.IsNull() {
-			if CompareVersions(clusterVersion, "9.12") >= 0 {
+			if cluster.Version.Generation == 9 && cluster.Version.Major >= 12 {
 				advertisedKdcEncryptions := security.AdvertisedKdcEncryptions.Elements()
 				body.Security.AdvertisedKdcEncryptions = make([]string, len(advertisedKdcEncryptions))
 				for i, e := range advertisedKdcEncryptions {
@@ -781,10 +779,9 @@ func (r *CifsServiceResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 	if cluster == nil {
-		errorHandler.MakeAndReportError("No cluster found", fmt.Sprintf("Cluster not found."))
+		errorHandler.MakeAndReportError("No cluster found", fmt.Sprintf("Cluster %s not found.", plan.CxProfileName.ValueString()))
 		return
 	}
-	clusterVersion := strconv.Itoa(cluster.Version.Generation) + "." + strconv.Itoa(cluster.Version.Major)
 
 	var body interfaces.CifsServiceResourceBodyDataModelONTAP
 	// check if the name is changed
@@ -847,7 +844,7 @@ func (r *CifsServiceResource) Update(ctx context.Context, req resource.UpdateReq
 				resp.Diagnostics.Append(diags...)
 				return
 			}
-			if !security.KdcEncryption.IsUnknown() && CompareVersions(clusterVersion, "9.12") < 0 {
+			if !security.KdcEncryption.IsUnknown() && cluster.Version.Generation == 9 && cluster.Version.Major < 12 {
 				body.Security.KdcEncryption = security.KdcEncryption.ValueBool()
 			}
 			if !security.RestrictAnonymous.IsUnknown() {
@@ -859,31 +856,31 @@ func (r *CifsServiceResource) Update(ctx context.Context, req resource.UpdateReq
 			if !security.SmbEncryption.IsUnknown() {
 				body.Security.SmbEncryption = security.SmbEncryption.ValueBool()
 			}
-			if !security.EncryptDcConnection.IsUnknown() && CompareVersions(clusterVersion, "9.8") >= 0 {
+			if !security.EncryptDcConnection.IsUnknown() && cluster.Version.Generation == 9 && cluster.Version.Major >= 8 {
 				body.Security.EncryptDcConnection = security.EncryptDcConnection.ValueBool()
 			}
-			if !security.LmCompatibilityLevel.IsUnknown() && CompareVersions(clusterVersion, "9.8") >= 0 {
+			if !security.LmCompatibilityLevel.IsUnknown() && cluster.Version.Generation == 9 && cluster.Version.Major >= 8 {
 				body.Security.LmCompatibilityLevel = security.LmCompatibilityLevel.ValueString()
 			}
-			if !security.AesNetlogonEnabled.IsUnknown() && CompareVersions(clusterVersion, "9.10") >= 0 {
+			if !security.AesNetlogonEnabled.IsUnknown() && cluster.Version.Generation == 9 && cluster.Version.Major >= 10 {
 				body.Security.AesNetlogonEnabled = security.AesNetlogonEnabled.ValueBool()
 			}
-			if !security.LdapReferralEnabled.IsUnknown() && CompareVersions(clusterVersion, "9.10") >= 0 {
+			if !security.LdapReferralEnabled.IsUnknown() && cluster.Version.Generation == 9 && cluster.Version.Major >= 10 {
 				body.Security.LdapReferralEnabled = security.LdapReferralEnabled.ValueBool()
 			}
-			if !security.SessionSecurity.IsUnknown() && CompareVersions(clusterVersion, "9.10") >= 0 {
+			if !security.SessionSecurity.IsUnknown() && cluster.Version.Generation == 9 && cluster.Version.Major >= 10 {
 				body.Security.SessionSecurity = security.SessionSecurity.ValueString()
 			}
-			if !security.TryLdapChannelBinding.IsUnknown() && CompareVersions(clusterVersion, "9.10") >= 0 {
+			if !security.TryLdapChannelBinding.IsUnknown() && cluster.Version.Generation == 9 && cluster.Version.Major >= 10 {
 				body.Security.TryLdapChannelBinding = security.TryLdapChannelBinding.ValueBool()
 			}
-			if !security.UseLdaps.IsUnknown() && CompareVersions(clusterVersion, "9.10") >= 0 {
+			if !security.UseLdaps.IsUnknown() && cluster.Version.Generation == 9 && cluster.Version.Major >= 10 {
 				body.Security.UseLdaps = security.UseLdaps.ValueBool()
 			}
-			if !security.UseStartTLS.IsUnknown() && CompareVersions(clusterVersion, "9.10") >= 0 {
+			if !security.UseStartTLS.IsUnknown() && cluster.Version.Generation == 9 && cluster.Version.Major >= 10 {
 				body.Security.UseStartTLS = security.UseStartTLS.ValueBool()
 			}
-			if !security.AdvertisedKdcEncryptions.IsUnknown() && CompareVersions(clusterVersion, "9.12") >= 0 {
+			if !security.AdvertisedKdcEncryptions.IsUnknown() && cluster.Version.Generation == 9 && cluster.Version.Major >= 12 {
 				for _, e := range security.AdvertisedKdcEncryptions.Elements() {
 					body.Security.AdvertisedKdcEncryptions = append(body.Security.AdvertisedKdcEncryptions, e.(basetypes.StringValue).ValueString())
 				}

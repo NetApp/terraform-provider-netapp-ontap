@@ -180,7 +180,7 @@ func DeleteCifsService(errorHandler *utils.ErrorHandler, r restclient.RestClient
 
 // UpdateCifsService to update protocols_cifs_service
 func UpdateCifsService(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmid string, force bool, body CifsServiceResourceBodyDataModelONTAP) error {
-	api := "protocols/cifs/services" + "/" + svmid
+	api := "protocols/cifs/services/" + svmid
 	var bodyMap map[string]interface{}
 	if err := mapstructure.Decode(body, &bodyMap); err != nil {
 		return errorHandler.MakeAndReportError("error encoding protocols_cifs_service body", fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body))

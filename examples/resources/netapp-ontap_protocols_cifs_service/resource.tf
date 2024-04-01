@@ -6,7 +6,7 @@ resource "netapp-ontap_protocols_cifs_service_resource" "protocols_cifs_service"
   ad_domain = {
     fqdn = "mytfdomain.com"
     organizational_unit = "CN=Computers"
-    user = "administrator"
-    password = "Ab0xB@wks!"
+    user = "cifstest"
+    password = "xxxxxx"
   }
 }
