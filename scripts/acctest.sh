@@ -6,6 +6,7 @@ export TF_ACC=1
 #export TF_ACC_NETAPP_HOST2="<host2>>"
 #export TF_ACC_NETAPP_USER="admin"
 #export TF_ACC_NETAPP_PASS="<password>"
+#export TF_ACC_NETAPP_PASS2="<password>"
 #export TF_ACC_NETAPP_LICENSE="<licensekey>"
 
 rm -rf $org_dir/test

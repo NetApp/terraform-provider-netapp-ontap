@@ -3,6 +3,8 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
@@ -163,19 +165,33 @@ func (r *IPRouteResource) Read(ctx context.Context, req resource.ReadRequest, re
 		return
 	}
 	if cluster == nil {
-		errorHandler.MakeAndReportError("No cluster found", fmt.Sprintf("No Cluster found"))
+		errorHandler.MakeAndReportError("No cluster found", "No Cluster found")
 		return
 	}
-	restInfo, err := interfaces.GetIPRoute(errorHandler, *client, data.Destination.Address.ValueString(), data.SVMName.ValueString(), data.Gateway.ValueString(), cluster.Version)
-	if err != nil {
-		// error reporting done inside GetIPInterface
-		return
+
+	var restInfo *interfaces.IPRouteGetDataModelONTAP
+	if data.Destination != nil {
+		restInfo, err = interfaces.GetIPRoute(errorHandler, *client, data.Destination.Address.ValueString(), data.SVMName.ValueString(), data.Gateway.ValueString(), cluster.Version)
+		if err != nil {
+			// error reporting done inside GetIPInterface
+			return
+		}
+	} else {
+		restInfo, err = interfaces.GetIPRouteByGatewayAndSVM(errorHandler, *client, data.SVMName.ValueString(), data.Gateway.ValueString(), cluster.Version)
+		if err != nil {
+			// error reporting done inside GetIPInterface
+			return
+		}
 	}
+
 	if restInfo == nil {
 		errorHandler.MakeAndReportError("No IP Route found", fmt.Sprintf("No IP Route %s found", data.Destination.Address.ValueString()))
 		return
 	}
 
+	if data.Destination == nil {
+		data.Destination = &DestinationDataSourceModel{}
+	}
 	data.Destination.Address = types.StringValue(restInfo.Destination.Address)
 	data.Destination.Netmask = types.StringValue(restInfo.Destination.Netmask)
 	data.Gateway = types.StringValue(restInfo.Gateway)
@@ -253,7 +269,7 @@ func (r *IPRouteResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	tflog.Error(ctx, fmt.Sprintf("Update not supported by REST API for IP Routes"))
+	tflog.Error(ctx, "Update not supported by REST API for IP Routes")
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -291,5 +307,17 @@ func (r *IPRouteResource) Delete(ctx context.Context, req resource.DeleteRequest
 
 // ImportState imports a resource using ID from terraform import command by calling the Read method.
 func (r *IPRouteResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	idParts := strings.Split(req.ID, ",")
+
+	if len(idParts) != 3 || idParts[0] == "" || idParts[1] == "" || idParts[2] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: svm_name,gateway,cx_profile_name. Got: %q", req.ID),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("svm_name"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("gateway"), idParts[1])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[2])...)
 }
