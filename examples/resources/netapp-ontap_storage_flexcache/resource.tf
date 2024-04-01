@@ -1,15 +1,15 @@
 resource "netapp-ontap_storage_flexcache_resource" "storage_flexcache" {
   # required to know which system to interface with
-  cx_profile_name = "cluster5"
+  cx_profile_name = "cluster4"
   name = "fc10"
-  svm_name = "automation"
+  svm_name = "acc_test"
   origins = [
     {
       volume = {
-        name = "vol1"
+        name = "acc_test_storage_flexcache_origin_volume"
       },
       svm = {
-        name = "automation"
+        name = "acc_test"
       }
     }
   ]
@@ -22,7 +22,7 @@ resource "netapp-ontap_storage_flexcache_resource" "storage_flexcache" {
   global_file_locking_enabled = false
   aggregates = [
     {
-      name = "aggr1"
+      name = "acc_test"
     }
   ]
 }
