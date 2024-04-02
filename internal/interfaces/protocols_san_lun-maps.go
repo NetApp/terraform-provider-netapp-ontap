@@ -17,13 +17,13 @@ type ProtocolsSanLunMapsGetDataModelONTAP struct {
 	Lun               Lun    `mapstructure:"lun"`
 }
 
-// igroup describes the resource data model.
+// IGroup describes the resource data model.
 type IGroup struct {
 	Name string `mapstructure:"name,omitempty"`
 	UUID string `mapstructure:"uuid,omitempty"`
 }
 
-// lun describes the resource data model.
+// Lun describes the resource data model.
 type Lun struct {
 	Name string `mapstructure:"name,omitempty"`
 	UUID string `mapstructure:"uuid,omitempty"`
