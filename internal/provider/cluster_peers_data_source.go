@@ -209,7 +209,7 @@ func (d *ClusterPeersDataSource) Read(ctx context.Context, req datasource.ReadRe
 			},
 			PeerApplications: make([]types.String, len(record.PeerApplications)),
 			Encryption: &ClusterPeerDataSourceEncryption{
-				Proposed: types.StringValue(record.Encryption.Propsed),
+				Proposed: types.StringValue(record.Encryption.Proposed),
 				State:    types.StringValue(record.Encryption.State),
 			},
 			IPAddress: types.StringValue(record.IPAddress),
