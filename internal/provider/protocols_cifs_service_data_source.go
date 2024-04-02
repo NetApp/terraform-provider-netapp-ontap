@@ -62,7 +62,7 @@ type CifsSecurityDataSourceModel struct {
 	RestrictAnonymous        types.String   `tfsdk:"restrict_anonymous"`
 	SmbSigning               types.Bool     `tfsdk:"smb_signing"`
 	SmbEncryption            types.Bool     `tfsdk:"smb_encryption"`
-	AdvertisedKdcEncryptions []types.String `tfsdk:"advertised_kdc_encryptions"`
+	KdcEncryption            types.Bool     `tfsdk:"kdc_encryption"`
 	LmCompatibilityLevel     types.String   `tfsdk:"lm_compatibility_level"`
 	AesNetlogonEnabled       types.Bool     `tfsdk:"aes_netlogon_enabled"`
 	TryLdapChannelBinding    types.Bool     `tfsdk:"try_ldap_channel_binding"`
@@ -71,6 +71,7 @@ type CifsSecurityDataSourceModel struct {
 	UseStartTLS              types.Bool     `tfsdk:"use_start_tls"`
 	SessionSecurity          types.String   `tfsdk:"session_security"`
 	UseLdaps                 types.Bool     `tfsdk:"use_ldaps"`
+	AdvertisedKdcEncryptions []types.String `tfsdk:"advertised_kdc_encryptions"`
 }
 
 // Metadata returns the data source type name.
@@ -155,10 +156,9 @@ func (d *CifsServiceDataSource) Schema(ctx context.Context, req datasource.Schem
 				Computed:            true,
 				MarkdownDescription: "Security",
 				Attributes: map[string]schema.Attribute{
-					"advertised_kdc_encryptions": schema.ListAttribute{
+					"kdc_encryption": schema.BoolAttribute{
 						Computed:            true,
-						MarkdownDescription: "Specify the encryption type to use",
-						ElementType:         types.StringType,
+						MarkdownDescription: "Specifies whether AES-128 and AES-256 encryption is enabled for all Kerberos-based communication with the Active Directory KDC",
 					},
 					"restrict_anonymous": schema.StringAttribute{
 						Computed:            true,
@@ -203,6 +203,11 @@ func (d *CifsServiceDataSource) Schema(ctx context.Context, req datasource.Schem
 					"use_ldaps": schema.BoolAttribute{
 						Computed:            true,
 						MarkdownDescription: "Specifies whether or not to use use LDAPS for secure Active Directory LDAP connections by using the TLS/SSL protocols",
+					},
+					"advertised_kdc_encryptions": schema.SetAttribute{
+						Computed:            true,
+						MarkdownDescription: "List of encryption types that are advertised to the KDC",
+						ElementType:         types.StringType,
 					},
 				},
 			},
@@ -253,7 +258,7 @@ func (d *CifsServiceDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 	data.Name = types.StringValue(restInfo.Name)
 	data.SVMName = types.StringValue(restInfo.SVM.Name)
-	if len(restInfo.Comment) == 0 {
+	if len(restInfo.Comment) != 0 {
 		data.Comment = types.StringValue(restInfo.Comment)
 	}
 	data.Enabled = types.BoolValue(restInfo.Enabled)
@@ -265,28 +270,25 @@ func (d *CifsServiceDataSource) Read(ctx context.Context, req datasource.ReadReq
 		Fqdn:               types.StringValue(restInfo.AdDomain.Fqdn),
 	}
 
-	aliases := make([]types.String, len(restInfo.Netbios.Aliases))
-	for i, alias := range restInfo.Netbios.Aliases {
-		data.Netbios.Aliases[i] = types.StringValue(alias)
-	}
-	winsServers := make([]types.String, len(restInfo.Netbios.WinsServers))
-	for i, winsServer := range restInfo.Netbios.WinsServers {
-		winsServers[i] = types.StringValue(winsServer)
-	}
+	// aliases := make([]types.String, len(restInfo.Netbios.Aliases))
+	// for i, alias := range restInfo.Netbios.Aliases {
+	// 	aliases[i] = types.StringValue(alias)
+	// }
+	// winsServers := make([]types.String, len(restInfo.Netbios.WinsServers))
+	// for i, winsServer := range restInfo.Netbios.WinsServers {
+	// 	winsServers[i] = types.StringValue(winsServer)
+	// }
 	data.Netbios = &NetbiosDataSourceModel{
 		Enabled:     types.BoolValue(restInfo.Netbios.Enabled),
-		Aliases:     aliases,
-		WinsServers: winsServers,
+		Aliases:     flattenTypesStringList(restInfo.Netbios.Aliases),
+		WinsServers: flattenTypesStringList(restInfo.Netbios.WinsServers),
 	}
-	advertisedKdcEncryptions := make([]types.String, len(restInfo.Security.AdvertisedKdcEncryptions))
-	for i, encryption := range restInfo.Security.AdvertisedKdcEncryptions {
-		advertisedKdcEncryptions[i] = types.StringValue(encryption)
-	}
+
 	data.Security = &CifsSecurityDataSourceModel{
 		RestrictAnonymous:        types.StringValue(restInfo.Security.RestrictAnonymous),
 		SmbSigning:               types.BoolValue(restInfo.Security.SmbSigning),
 		SmbEncryption:            types.BoolValue(restInfo.Security.SmbEncryption),
-		AdvertisedKdcEncryptions: advertisedKdcEncryptions,
+		KdcEncryption:            types.BoolValue(restInfo.Security.KdcEncryption),
 		LmCompatibilityLevel:     types.StringValue(restInfo.Security.LmCompatibilityLevel),
 		AesNetlogonEnabled:       types.BoolValue(restInfo.Security.AesNetlogonEnabled),
 		TryLdapChannelBinding:    types.BoolValue(restInfo.Security.TryLdapChannelBinding),
@@ -295,6 +297,7 @@ func (d *CifsServiceDataSource) Read(ctx context.Context, req datasource.ReadReq
 		UseStartTLS:              types.BoolValue(restInfo.Security.UseStartTLS),
 		SessionSecurity:          types.StringValue(restInfo.Security.SessionSecurity),
 		UseLdaps:                 types.BoolValue(restInfo.Security.UseLdaps),
+		AdvertisedKdcEncryptions: flattenTypesStringList(restInfo.Security.AdvertisedKdcEncryptions),
 	}
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
