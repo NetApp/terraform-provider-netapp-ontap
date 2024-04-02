@@ -142,7 +142,7 @@ func GetProtocolsCIFSShares(errorHandler *utils.ErrorHandler, r restclient.RestC
 
 // CreateProtocolsCIFSShare to create protocols_cifs_share
 func CreateProtocolsCIFSShare(errorHandler *utils.ErrorHandler, r restclient.RestClient, body ProtocolsCIFSShareResourceBodyDataModelONTAP) (*ProtocolsCIFSShareGetDataModelONTAP, error) {
-	api := "api_url"
+	api := "/protocols/cifs/shares"
 	var bodyMap map[string]interface{}
 	if err := mapstructure.Decode(body, &bodyMap); err != nil {
 		return nil, errorHandler.MakeAndReportError("error encoding protocols_cifs_share body", fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body))
@@ -164,7 +164,7 @@ func CreateProtocolsCIFSShare(errorHandler *utils.ErrorHandler, r restclient.Res
 
 // DeleteProtocolsCIFSShare to delete protocols_cifs_share
 func DeleteProtocolsCIFSShare(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) error {
-	api := "api_url"
+	api := "/protocols/cifs/shares/{svm.uuid}/{name}"
 	statusCode, _, err := r.CallDeleteMethod(api+"/"+uuid, nil, nil)
 	if err != nil {
 		return errorHandler.MakeAndReportError("error deleting protocols_cifs_share", fmt.Sprintf("error on DELETE %s: %s, statusCode %d", api, err, statusCode))
