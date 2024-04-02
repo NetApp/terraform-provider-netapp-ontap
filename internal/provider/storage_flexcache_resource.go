@@ -286,7 +286,7 @@ func (r *StorageFlexcacheResource) Read(ctx context.Context, req resource.ReadRe
 	data.DrCache = types.BoolValue(flexcache.DrCache)
 	data.GlobalFileLockingEnabled = types.BoolValue(flexcache.GlobalFileLockingEnabled)
 	data.UseTieredAggregate = types.BoolValue(flexcache.UseTieredAggregate)
-
+	data.ID = types.StringValue(flexcache.UUID)
 	elementTypes := map[string]attr.Type{
 		"type": types.StringType,
 	}
