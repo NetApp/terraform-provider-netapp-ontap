@@ -51,7 +51,7 @@ func TestAccSnapmirrorResource(t *testing.T) {
 func testAccSnapmirrorResourceBasicConfig(sourceEndpoint string, destinationEndpoint string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST4")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
 		fmt.Println("TF_ACC_NETAPP_HOST4, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
@@ -83,7 +83,7 @@ resource "netapp-ontap_snapmirror_resource" "example" {
 func testAccSnapmirrorResourceUpdateConfig(sourceEndpoint string, destinationEndpoint string, policy string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST4")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
 		fmt.Println("TF_ACC_NETAPP_HOST4, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
