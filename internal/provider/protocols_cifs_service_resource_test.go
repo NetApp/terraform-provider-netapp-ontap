@@ -40,7 +40,7 @@ func TestAccCifsServiceResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_protocols_cifs_service_resource.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s,%s,%s", "TFCIFS", "tfsvm", "clustercifs", "administrator", "Ab0xB@wks!"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s,%s,%s", "TFCIFS", "tfsvm", "clustercifs", "cifstest", os.Getenv("TF_ACC_NETAPP_CIFS_ADDOMAIN_PASS")),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_service_resource.example", "name", "TFCIFS"),
 					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_service_resource.example", "svm_name", "tfsvm"),
