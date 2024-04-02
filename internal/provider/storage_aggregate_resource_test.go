@@ -63,6 +63,6 @@ resource "netapp-ontap_storage_aggregate_resource" "example" {
 	cx_profile_name = "cluster4"
 	node = "%s"
 	name = "acc_test_aggr"
-	disk_count = 5
+	disk_count = 3
 }`, host, admin, password, node)
 }
