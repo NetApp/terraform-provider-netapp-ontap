@@ -31,7 +31,7 @@ jobs:
           TF_ACC_NETAPP_PASS2: ${{ secrets.TF_ACC_NETAPP_PASS2 }}
           TF_ACC_NETAPP_PASS_CIFS: ${{ secrets.TF_ACC_NETAPP_PASS_CIFS }}
           TF_ACC_NETAPP_LICENSE: ${{ secrets.TF_ACC_NETAPP_LICENSE }}
-
+          TF_ACC_NETAPP_CIFS_ADDOMAIN_PASS: ${{ secrets.TF_ACC_NETAPP_CIFS_ADDOMAIN_PASS }}
         run: |
           export GOFLAGS=-buildvcs=false
           export TF_ACC=1
