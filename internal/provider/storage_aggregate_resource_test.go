@@ -41,7 +41,7 @@ func TestAccStorageAggregateResource(t *testing.T) {
 func testAccStorageAggregateResourceConfig(node string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST2")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS")
+	password := os.Getenv("TF_ACC_NETAPP_PASS2")
 	if host == "" || admin == "" || password == "" {
 		fmt.Println("TF_ACC_NETAPP_HOST2, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
