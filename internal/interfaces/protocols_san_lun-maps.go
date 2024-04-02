@@ -13,18 +13,18 @@ import (
 type ProtocolsSanLunMapsGetDataModelONTAP struct {
 	SVM               svm    `mapstructure:"svm"`
 	LogicalUnitNumber int    `mapstructure:"logical_unit_number"`
-	IGroup            igroup `mapstructure:"igroup"`
-	Lun               lun    `mapstructure:"lun"`
+	IGroup            IGroup `mapstructure:"igroup"`
+	Lun               Lun    `mapstructure:"lun"`
 }
 
 // igroup describes the resource data model.
-type igroup struct {
+type IGroup struct {
 	Name string `mapstructure:"name,omitempty"`
 	UUID string `mapstructure:"uuid,omitempty"`
 }
 
 // lun describes the resource data model.
-type lun struct {
+type Lun struct {
 	Name string `mapstructure:"name,omitempty"`
 	UUID string `mapstructure:"uuid,omitempty"`
 }
@@ -32,15 +32,50 @@ type lun struct {
 // ProtocolsSanLunMapsResourceBodyDataModelONTAP describes the body data model using go types for mapping.
 type ProtocolsSanLunMapsResourceBodyDataModelONTAP struct {
 	SVM               svm    `mapstructure:"svm"`
-	IGroup            igroup `mapstructure:"igroup"`
-	Lun               lun    `mapstructure:"lun"`
+	IGroup            IGroup `mapstructure:"igroup"`
+	Lun               Lun    `mapstructure:"lun"`
 	LogicalUnitNumber int    `mapstructure:"logical_unit_number,omitempty"`
 }
 
 // ProtocolsSanLunMapsDataSourceFilterModel describes the data source data model for queries.
 type ProtocolsSanLunMapsDataSourceFilterModel struct {
-	Name    string `mapstructure:"name"`
-	SVMName string `mapstructure:"svm.name"`
+	Lun    Lun    `mapstructure:"lun"`
+	SVM    SVM    `mapstructure:"svm"`
+	IGroup IGroup `mapstructure:"igroup"`
+}
+
+// GetProtocolsSanLunMaps to get protocols_san_lun-maps info
+func GetProtocolsSanLunMaps(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *ProtocolsSanLunMapsDataSourceFilterModel) ([]ProtocolsSanLunMapsGetDataModelONTAP, error) {
+	api := "/protocols/san/lun-maps"
+	query := r.NewQuery()
+	query.Fields([]string{"svm.name", "igroup.name", "igroup.uuid", "lun.name", "lun.uuid", "logical_unit_number"})
+	if filter != nil {
+		var filterMap map[string]interface{}
+		if err := mapstructure.Decode(filter, &filterMap); err != nil {
+			return nil, errorHandler.MakeAndReportError("error encoding /protocols/san/lun-maps filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
+		}
+		query.SetValues(filterMap)
+	}
+
+	statusCode, response, err := r.GetZeroOrMoreRecords(api, query, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading protocols_san_lun-maps info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
+	}
+
+	var dataONTAP []ProtocolsSanLunMapsGetDataModelONTAP
+	for _, info := range response {
+		var record ProtocolsSanLunMapsGetDataModelONTAP
+		if err := mapstructure.Decode(info, &record); err != nil {
+			return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
+				fmt.Sprintf("error: %s, statusCode %d, info %#v", err, statusCode, info))
+		}
+		dataONTAP = append(dataONTAP, record)
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read protocols_san_lun-maps data source: %#v", dataONTAP))
+	return dataONTAP, nil
 }
 
 // GetProtocolsSanLunMapsByName to get protocols_san_lun-maps info
