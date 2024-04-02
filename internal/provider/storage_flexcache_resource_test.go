@@ -49,7 +49,7 @@ func testAccStorageFlexcacheResourceConfig(svm, volName string) string {
 	if host == "" || admin == "" || password == "" {
 		host = os.Getenv("TF_ACC_NETAPP_HOST2")
 		admin = os.Getenv("TF_ACC_NETAPP_USER")
-		password = os.Getenv("TF_ACC_NETAPP_PASS")
+		password = os.Getenv("TF_ACC_NETAPP_PASS2")
 	}
 	if host == "" || admin == "" || password == "" {
 		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
