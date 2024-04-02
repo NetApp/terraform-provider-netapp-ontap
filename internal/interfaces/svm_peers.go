@@ -179,7 +179,7 @@ func CreateSVMPeers(errorHandler *utils.ErrorHandler, r restclient.RestClient, b
 	return &dataONTAP, nil
 }
 
-// UpdateSVMPeers updates Snapmirror
+// UpdateSVMPeers updates svm peers
 func UpdateSVMPeers(errorHandler *utils.ErrorHandler, r restclient.RestClient, data any, uuid string) error {
 	api := "svm/peers/" + uuid
 	var body map[string]interface{}
