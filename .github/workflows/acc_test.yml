@@ -9,6 +9,8 @@ jobs:
     concurrency:
       group: ONTAP-ACC
       cancel-in-progress: false
+    # because Dependabot dosn't get access to secrets, and we don't need it to run our ACC TEST, let skip them for that user
+    if: ${{ github.actor != 'dependabot[bot]' }}
     steps:
       - uses: actions/checkout@v3
 
@@ -23,10 +25,13 @@ jobs:
           TF_ACC_NETAPP_HOST2: ${{ secrets.TF_ACC_NETAPP_HOST2 }}
           TF_ACC_NETAPP_HOST3: ${{ secrets.TF_ACC_NETAPP_HOST3 }}
           TF_ACC_NETAPP_HOST4: ${{ secrets.TF_ACC_NETAPP_HOST4 }}
+          TF_ACC_NETAPP_HOST_CIFS: ${{ secrets.TF_ACC_NETAPP_HOST_CIFS }}
           TF_ACC_NETAPP_USER: ${{ secrets.TF_ACC_NETAPP_USER }}
           TF_ACC_NETAPP_PASS: ${{ secrets.TF_ACC_NETAPP_PASS }}
+          TF_ACC_NETAPP_PASS2: ${{ secrets.TF_ACC_NETAPP_PASS2 }}
+          TF_ACC_NETAPP_PASS_CIFS: ${{ secrets.TF_ACC_NETAPP_PASS_CIFS }}
           TF_ACC_NETAPP_LICENSE: ${{ secrets.TF_ACC_NETAPP_LICENSE }}
-
+          TF_ACC_NETAPP_CIFS_ADDOMAIN_PASS: ${{ secrets.TF_ACC_NETAPP_CIFS_ADDOMAIN_PASS }}
         run: |
           export GOFLAGS=-buildvcs=false
           export TF_ACC=1
