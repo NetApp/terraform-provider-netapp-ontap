@@ -40,6 +40,7 @@ type ProtocolsCIFSShareGetDataModelONTAP struct {
 	VscanProfile          string `mapstructure:"vscan_profile"`
 }
 
+// Acls describes the acls data model using go types for mapping.
 type Acls struct {
 	Permission  string `mapstructure:"permission"`
 	Type        string `mapstructure:"type"`
