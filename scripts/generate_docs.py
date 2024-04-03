@@ -20,6 +20,7 @@ CATAGORYS = {
         "protocols_cifs_local_user_data_source.md",
         "protocols_cifs_local_user_resource.md",
         "protocols_cifs_service_data_source.md",
+        "protocols_cifs_service_resource.md",
         "protocols_cifs_share_data_source.md",
         "protocols_cifs_shares_data_source.md",
         "protocols_cifs_user_group_privilege_data_source.md",
@@ -32,6 +33,8 @@ CATAGORYS = {
     'name-services': [
         "name_services_dns_data_source.md",
         "name_services_dns_resource.md"
+        "name_services_ldap_data_source.md",
+        "name_services_ldap_resource.md",
     ],
 
     'ndmp': [],

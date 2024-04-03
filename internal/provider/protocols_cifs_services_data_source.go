@@ -128,12 +128,12 @@ func (d *CifsServicesDataSource) Schema(ctx context.Context, req datasource.Sche
 									Computed:            true,
 									MarkdownDescription: "NetBios name service (NBNS) is enabled for the CIFS",
 								},
-								"aliases": schema.ListAttribute{
+								"aliases": schema.SetAttribute{
 									Computed:            true,
 									MarkdownDescription: "list of one or more NetBIOS aliases for the CIFS server",
 									ElementType:         types.StringType,
 								},
-								"wins_servers": schema.ListAttribute{
+								"wins_servers": schema.SetAttribute{
 									Computed:            true,
 									MarkdownDescription: "list of Windows Internet Name Server (WINS) addresses that manage and map the NetBIOS name of the CIFS server to their network IP addresses. The IP addresses must be IPv4 addresses.",
 									ElementType:         types.StringType,
@@ -144,10 +144,9 @@ func (d *CifsServicesDataSource) Schema(ctx context.Context, req datasource.Sche
 							Computed:            true,
 							MarkdownDescription: "Security",
 							Attributes: map[string]schema.Attribute{
-								"advertised_kdc_encryptions": schema.ListAttribute{
+								"kdc_encryption": schema.BoolAttribute{
 									Computed:            true,
-									MarkdownDescription: "Specify the encryption type to use",
-									ElementType:         types.StringType,
+									MarkdownDescription: "Specifies whether AES-128 and AES-256 encryption is enabled for all Kerberos-based communication with the Active Directory KDC",
 								},
 								"restrict_anonymous": schema.StringAttribute{
 									Computed:            true,
@@ -192,6 +191,11 @@ func (d *CifsServicesDataSource) Schema(ctx context.Context, req datasource.Sche
 								"use_ldaps": schema.BoolAttribute{
 									Computed:            true,
 									MarkdownDescription: "Specifies whether or not to use use LDAPS for secure Active Directory LDAP connections by using the TLS/SSL protocols",
+								},
+								"advertised_kdc_encryptions": schema.SetAttribute{
+									Computed:            true,
+									MarkdownDescription: "List of encryption types that are advertised to the KDC",
+									ElementType:         types.StringType,
 								},
 							},
 						},
@@ -262,14 +266,14 @@ func (d *CifsServicesDataSource) Read(ctx context.Context, req datasource.ReadRe
 			DefaultUnixUser: types.StringValue(record.DefaultUnixUser),
 			Comment:         types.StringValue(record.Comment),
 		}
-		aliases := make([]types.String, len(record.Netbios.Aliases))
-		for i, alias := range record.Netbios.Aliases {
-			aliases[i] = types.StringValue(alias)
-		}
-		winsServers := make([]types.String, len(record.Netbios.WinsServers))
-		for i, winsServer := range record.Netbios.WinsServers {
-			winsServers[i] = types.StringValue(winsServer)
-		}
+		// aliases := make([]types.String, len(record.Netbios.Aliases))
+		// for i, alias := range record.Netbios.Aliases {
+		// 	aliases[i] = types.StringValue(alias)
+		// }
+		// winsServers := make([]types.String, len(record.Netbios.WinsServers))
+		// for i, winsServer := range record.Netbios.WinsServers {
+		// 	winsServers[i] = types.StringValue(winsServer)
+		// }
 		data.CifsServices[index].AdDomain = &AdDomainDataSourceModel{
 			OrganizationalUnit: types.StringValue(record.AdDomain.OrganizationalUnit),
 			User:               types.StringValue(record.AdDomain.User),
@@ -278,15 +282,11 @@ func (d *CifsServicesDataSource) Read(ctx context.Context, req datasource.ReadRe
 		}
 		data.CifsServices[index].Netbios = &NetbiosDataSourceModel{
 			Enabled:     types.BoolValue(record.Netbios.Enabled),
-			Aliases:     aliases,
-			WinsServers: winsServers,
-		}
-		advertisedKdcEncryptions := make([]types.String, len(record.Security.AdvertisedKdcEncryptions))
-		for i, encryption := range record.Security.AdvertisedKdcEncryptions {
-			advertisedKdcEncryptions[i] = types.StringValue(encryption)
+			Aliases:     flattenTypesStringList(record.Netbios.Aliases),
+			WinsServers: flattenTypesStringList(record.Netbios.WinsServers),
 		}
 		data.CifsServices[index].Security = &CifsSecurityDataSourceModel{
-			AdvertisedKdcEncryptions: advertisedKdcEncryptions,
+			KdcEncryption:            types.BoolValue(record.Security.KdcEncryption),
 			RestrictAnonymous:        types.StringValue(record.Security.RestrictAnonymous),
 			SmbSigning:               types.BoolValue(record.Security.SmbSigning),
 			SmbEncryption:            types.BoolValue(record.Security.SmbEncryption),
@@ -298,6 +298,7 @@ func (d *CifsServicesDataSource) Read(ctx context.Context, req datasource.ReadRe
 			UseStartTLS:              types.BoolValue(record.Security.UseStartTLS),
 			SessionSecurity:          types.StringValue(record.Security.SessionSecurity),
 			UseLdaps:                 types.BoolValue(record.Security.UseLdaps),
+			AdvertisedKdcEncryptions: flattenTypesStringList(record.Security.AdvertisedKdcEncryptions),
 		}
 	}
 
