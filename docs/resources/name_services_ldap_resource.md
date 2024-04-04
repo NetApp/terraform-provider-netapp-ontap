@@ -55,12 +55,12 @@ resource "netapp-ontap_name_services_ldap_resource" "name_services_ldap_examp2" 
 - `bind_as_cifs_server` (Boolean) Specifies whether or not CIFS server's credentials are used to bind to the LDAP server
 - `bind_dn` (String) Specifies the user that binds to the LDAP servers
 - `bind_password` (String, Sensitive) Specifies the bind password for the LDAP servers
-- `ldaps_enabled` (Boolean) Specifies whether or not LDAPS is enabled
+- `ldaps_enabled` (Boolean) Specifies whether or not LDAPS is enabled. Only support ONTAP 9.9.1 or highter.
 - `min_bind_level` (String) The minimum bind authentication level
 - `port` (Number) The port used to connect to the LDAP Servers
 - `preferred_ad_servers` (Set of String) This parameter specifies a list of LDAP servers preferred over discovered servers
-- `query_timeout` (Number) Specifies the timeout for LDAP queries
-- `referral_enabled` (Boolean) Specifies whether or not LDAP referral is enabled
+- `query_timeout` (Number) Specifies the timeout for LDAP queries. Only support ONTAP 9.9.1 or highter.
+- `referral_enabled` (Boolean) Specifies whether or not LDAP referral is enabled. Only support ONTAP 9.9.1 or highter.
 - `schema` (String) The name of the schema template used by the SVM
 - `servers` (Set of String) List of LDAP servers used for this client configuration
 - `session_security` (String) Specifies the level of security to be used for LDAP communications
