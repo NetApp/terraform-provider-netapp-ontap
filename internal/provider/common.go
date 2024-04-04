@@ -1,8 +1,9 @@
 package provider
 
 import (
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // NameResourceModel Name module for names

@@ -9,3 +9,4 @@ variable "password" {
 variable "validate_certs" {
     type = bool
 }
+
