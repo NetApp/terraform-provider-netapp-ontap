@@ -49,6 +49,9 @@ ENHANCEMENTS:
 * **netapp-ontap_protocols_nfs_export_policy_rule_resource**: Add support for import ([#35](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/35))
 * **netapp-ontap_networking_ip_route_resource**: Add support for import ([#33](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/33))
 
+BUG FIXES:
+* **netapp-ontap_protocols_nfs_service**: Fixed issue with version check failing for minor versions
+
 
 ## 1.0.3 (2023-12-05)
 * netapp-ontap_name_services_dns_resource: Fixed missing ID on create ([#99](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/63))
