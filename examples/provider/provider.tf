@@ -28,14 +28,21 @@ provider "netapp-ontap" {
     },
     {
       name = "cluster3"
-      hostname = "10.193.176.159"
+      hostname = "********159"
       username = var.username
       password = var.password
       validate_certs = var.validate_certs
     },
     {
       name = "cluster4"
-      hostname = "10.193.180.108"
+      hostname = "********108"
+      username = var.username
+      password = var.password
+      validate_certs = var.validate_certs
+    },
+    {
+      name = "clustercifs"
+      hostname = "********189"
       username = var.username
       password = var.password
       validate_certs = var.validate_certs
