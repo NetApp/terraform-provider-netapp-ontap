@@ -25,13 +25,6 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
-// TODO:
-// copy this file to match you resource (should match internal/provider/protocols_nfs_service_resource.go)
-// replace ProtocolsNfsService with the name of the resource, following go conventions, eg IPInterface
-// replace protocols_nfs_service with the name of the resource, for logging purposes, eg ip_interface
-// make sure to create internal/interfaces/protocols_nfs_service.go too)
-// delete these 5 lines
-
 // Ensure provider defined types fully satisfy framework interfaces
 var _ resource.Resource = &ProtocolsNfsServiceResource{}
 var _ resource.ResourceWithImportState = &ProtocolsNfsServiceResource{}
