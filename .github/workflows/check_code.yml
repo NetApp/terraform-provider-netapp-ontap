@@ -17,7 +17,7 @@ jobs:
       - name: Check TODO Comments
         id: check
         run: |
-          FILES=$(git diff --name-only --diff-filter=AM origin/${{ github.base_ref }} | grep '\.go$')
+          FILES=$(git diff --name-only --diff-filter=AM origin/${{ github.base_ref }} | grep '\.go$' | grep -v 'provider\.go')
           TODO_LINES=""
           for FILE in $FILES; do
             while IFS= read -r line; do

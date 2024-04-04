@@ -105,8 +105,7 @@ func (r *ProtocolsSanLunMapsResource) Schema(ctx context.Context, req resource.S
 				MarkdownDescription: "If no value is provided, ONTAP assigns the lowest available value",
 				Optional:            true,
 				Computed:            true,
-				// Default:             int64default.StaticInt64(0),
-				PlanModifiers: []planmodifier.Int64{int64planmodifier.RequiresReplace()},
+				PlanModifiers:       []planmodifier.Int64{int64planmodifier.RequiresReplace()},
 			},
 			"id": schema.StringAttribute{
 				MarkdownDescription: "ProtocolsSanLunMaps igroup and lun UUID",

@@ -18,7 +18,7 @@ Create/Read/Delete a member in a local group resource
 * vserver cifs users-and-groups local-group remove-members
 ```
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+* On-perm ONTAP system 9.10 or higher
 
 ## Example Usage
 
@@ -39,7 +39,7 @@ resource "netapp-ontap_protocols_cifs_local_group_member_resource" "protocols_ci
 - `cx_profile_name` (String) Connection profile name
 - `svm_name` (String) CifsLocalGroupMember svm name
 - `group_name` (String) CifsLocalGroupMember name
-- `member` (String) Member name
+- `member` (String) Member name. Local user, Active Directory user, or Active Directory group which is a member of the specified local group.
 
 ### Read-Only
 
