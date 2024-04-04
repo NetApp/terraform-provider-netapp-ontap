@@ -26,6 +26,7 @@ type ONTAPProvider struct {
 }
 
 // ConnectionProfileModel associate a connection profile with a name
+// TODO: augment address with hostname, ...
 type ConnectionProfileModel struct {
 	Name          types.String `tfsdk:"name"`
 	Hostname      types.String `tfsdk:"hostname"`
