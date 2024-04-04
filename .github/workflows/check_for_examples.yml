@@ -1,0 +1,83 @@
+name: Check Documentation
+
+on:
+  pull_request:
+    paths:
+      - 'docs/data-sources/*.md'
+      - 'docs/resources/*.md'
+
+jobs:
+  check-example-usage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Check for "## Example Usage"
+        id: check
+        run: |
+          FILES=$(git diff --name-only --diff-filter=AM origin/${{ github.base_ref }} | grep '\.md$' | grep -v 'CHANGELOG\.md$')
+          MISSING=""
+          for FILE in $FILES; do
+            if ! grep -q '## Example Usage' "$FILE"; then
+              MISSING="$MISSING\n$FILE"
+            fi
+          done
+          if [ -n "$MISSING" ]; then
+            echo "::set-output name=missing::$MISSING"
+            echo -e "The following files are missing '## Example Usage':$MISSING"
+            exit 1
+          fi
+
+      - name: Create comment
+        if: failure()
+        uses: actions/github-script@v5
+        with:
+          script: |
+            const issue_number = context.payload.pull_request.number;
+            const message = `The following files are missing '## Example Usage':\n${{ steps.check.outputs.missing }}`;
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue_number,
+              body: message
+            });
+  check-subcategory:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Check for "subcategory:"
+        id: check
+        run: |
+          FILES=$(git diff --name-only --diff-filter=AM origin/${{ github.base_ref }} | grep '\.md$'| grep -v 'CHANGELOG\.md$')
+          MISSING=""
+          for FILE in $FILES; do
+            if ! grep -q 'subcategory: .\+' "$FILE"; then
+              MISSING="$MISSING\n$FILE"
+            fi
+          done
+          if [ -n "$MISSING" ]; then
+            echo "::set-output name=missing::$MISSING"
+            echo -e "The following files are missing a string after 'subcategory:':$MISSING"
+            exit 1
+          fi
+
+      - name: Create comment
+        if: failure()
+        uses: actions/github-script@v5
+        with:
+          script: |
+            const issue_number = context.payload.pull_request.number;
+            const message = `The following files don't have a subcategory':\n${{ steps.check.outputs.missing }}`;
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue_number,
+              body: message
+            });

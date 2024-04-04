@@ -39,9 +39,9 @@ func TestAccSvmPeersResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_svm_peers_resource.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "acc_test_peer", "acc_test", "swenjuncluster-1", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "snapmirror_dest_dp", "snapmirror_dest_svm", "swenjuncluster-1", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_svm_peers_resource.example", "svm.name", "acc_test_peer"),
+					resource.TestCheckResourceAttr("netapp-ontap_svm_peers_resource.example", "svm.name", "snapmirror_dest_dp"),
 				),
 			},
 		},

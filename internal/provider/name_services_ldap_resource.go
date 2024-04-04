@@ -104,7 +104,7 @@ func (r *NameServicesLDAPResource) Schema(ctx context.Context, req resource.Sche
 				},
 			},
 			"ldaps_enabled": schema.BoolAttribute{
-				MarkdownDescription: "Specifies whether or not LDAPS is enabled",
+				MarkdownDescription: "Specifies whether or not LDAPS is enabled (9.9)",
 				Optional:            true,
 				Computed:            true,
 				PlanModifiers: []planmodifier.Bool{
@@ -163,14 +163,6 @@ func (r *NameServicesLDAPResource) Schema(ctx context.Context, req resource.Sche
 					boolplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"referral_enabled": schema.BoolAttribute{
-				MarkdownDescription: "Specifies whether or not LDAP referral is enabled",
-				Optional:            true,
-				Computed:            true,
-				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.UseStateForUnknown(),
-				},
-			},
 			"ad_domain": schema.StringAttribute{
 				MarkdownDescription: "Specifies the name of the Active Directory domain used to discover LDAP servers for use by this client",
 				Optional:            true,
@@ -178,14 +170,6 @@ func (r *NameServicesLDAPResource) Schema(ctx context.Context, req resource.Sche
 					stringvalidator.ConflictsWith(path.Expressions{
 						path.MatchRoot("servers"),
 					}...),
-				},
-			},
-			"bind_as_cifs_server": schema.BoolAttribute{
-				MarkdownDescription: "Specifies whether or not CIFS server's credentials are used to bind to the LDAP server",
-				Optional:            true,
-				Computed:            true,
-				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"base_scope": schema.StringAttribute{
@@ -199,8 +183,24 @@ func (r *NameServicesLDAPResource) Schema(ctx context.Context, req resource.Sche
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
+			"referral_enabled": schema.BoolAttribute{
+				MarkdownDescription: "Specifies whether or not LDAP referral is enabled (9.9)",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"bind_as_cifs_server": schema.BoolAttribute{
+				MarkdownDescription: "Specifies whether or not CIFS server's credentials are used to bind to the LDAP server (9.9)",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
+			},
 			"query_timeout": schema.Int64Attribute{
-				MarkdownDescription: "Specifies the timeout for LDAP queries",
+				MarkdownDescription: "Specifies the timeout for LDAP queries in seconds (9.9)",
 				Optional:            true,
 				Computed:            true,
 				PlanModifiers: []planmodifier.Int64{
@@ -208,7 +208,7 @@ func (r *NameServicesLDAPResource) Schema(ctx context.Context, req resource.Sche
 				},
 			},
 			"skip_config_validation": schema.BoolAttribute{
-				MarkdownDescription: "Specifies whether or not to skip the validation of the LDAP configuration",
+				MarkdownDescription: "Specifies whether or not to skip the validation of the LDAP configuration (9.9)",
 				Optional:            true,
 			},
 			"id": schema.StringAttribute{
@@ -331,6 +331,16 @@ func (r *NameServicesLDAPResource) Create(ctx context.Context, req resource.Crea
 		// error reporting done inside NewClient
 		return
 	}
+	cluster, err := interfaces.GetCluster(errorHandler, *client)
+	if err != nil {
+		// error reporting done inside GetCluster
+		return
+	}
+	if cluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", fmt.Sprintf("Cluster %s not found.", data.CxProfileName.ValueString()))
+		return
+	}
+	var errors []string
 
 	body.SVM.Name = data.SVMName.ValueString()
 	if data.Servers != nil {
@@ -354,7 +364,11 @@ func (r *NameServicesLDAPResource) Create(ctx context.Context, req resource.Crea
 		body.BindDN = data.BindDN.ValueString()
 	}
 	if !data.BindAsCIFSServer.IsNull() {
-		body.BindAsCIFSServer = data.BindAsCIFSServer.ValueBool()
+		if cluster.Version.Generation == 9 && cluster.Version.Major >= 9 {
+			body.BindAsCIFSServer = data.BindAsCIFSServer.ValueBool()
+		} else {
+			errors = append(errors, "bind_as_cifs_server")
+		}
 	}
 	if !data.BindPassword.IsNull() {
 		body.BindPassword = data.BindPassword.ValueString()
@@ -368,7 +382,11 @@ func (r *NameServicesLDAPResource) Create(ctx context.Context, req resource.Crea
 		body.Port = data.Port.ValueInt64()
 	}
 	if !data.QueryTimeout.IsNull() {
-		body.QueryTimeout = data.QueryTimeout.ValueInt64()
+		if cluster.Version.Generation == 9 && cluster.Version.Major >= 9 {
+			body.QueryTimeout = data.QueryTimeout.ValueInt64()
+		} else {
+			errors = append(errors, "query_timeout")
+		}
 	}
 	if !data.MinBindLevel.IsNull() {
 		body.MinBindLevel = data.MinBindLevel.ValueString()
@@ -377,17 +395,36 @@ func (r *NameServicesLDAPResource) Create(ctx context.Context, req resource.Crea
 		body.UseStartTLS = data.UseStartTLS.ValueBool()
 	}
 	if !data.ReferralEnabled.IsNull() {
-		body.ReferralEnabled = data.ReferralEnabled.ValueBool()
+		if cluster.Version.Generation == 9 && cluster.Version.Major >= 9 {
+			body.ReferralEnabled = data.ReferralEnabled.ValueBool()
+		} else {
+			errors = append(errors, "referral_enabled")
+		}
 	}
 	if !data.SessionSecurity.IsNull() {
 		body.SessionSecurity = data.SessionSecurity.ValueString()
 	}
 	if !data.LDAPSEnabled.IsNull() {
-		body.LDAPSEnabled = data.LDAPSEnabled.ValueBool()
+		if cluster.Version.Generation == 9 && cluster.Version.Major >= 9 {
+			body.LDAPSEnabled = data.LDAPSEnabled.ValueBool()
+		} else {
+			errors = append(errors, "ldaps_enabled")
+		}
 	}
 	if !data.SkipConfigValidation.IsNull() {
-		body.SkipConfigValidation = data.SkipConfigValidation.ValueBool()
+		if cluster.Version.Generation == 9 && cluster.Version.Major >= 9 {
+			body.SkipConfigValidation = data.SkipConfigValidation.ValueBool()
+		} else {
+			errors = append(errors, "skip_config_validation")
+		}
 	}
+
+	if len(errors) > 0 {
+		errorsString := strings.Join(errors, ", ")
+		tflog.Error(ctx, fmt.Sprintf("The following Variables are not supported with current version: %#v", errorsString))
+		return
+	}
+
 	resource, err := interfaces.CreateNameServicesLDAP(errorHandler, *client, body)
 	if err != nil {
 		return
@@ -443,7 +480,16 @@ func (r *NameServicesLDAPResource) Update(ctx context.Context, req resource.Upda
 	if err != nil {
 		return
 	}
-
+	cluster, err := interfaces.GetCluster(errorHandler, *client)
+	if err != nil {
+		// error reporting done inside GetCluster
+		return
+	}
+	if cluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", fmt.Sprintf("Cluster %s not found.", data.CxProfileName.ValueString()))
+		return
+	}
+	var errors []string
 	var request interfaces.NameServicesLDAPResourceBodyDataModelONTAP
 	// The update API body can include all the fields, so set all the fields
 	for _, server := range data.Servers {
@@ -460,14 +506,42 @@ func (r *NameServicesLDAPResource) Update(ctx context.Context, req resource.Upda
 		request.PreferredADServers = append(request.PreferredADServers, adserver.ValueString())
 	}
 	request.Port = data.Port.ValueInt64()
-	request.QueryTimeout = data.QueryTimeout.ValueInt64()
+	if data.QueryTimeout.IsNull() {
+		if cluster.Version.Generation == 9 && cluster.Version.Major >= 9 {
+			request.QueryTimeout = data.QueryTimeout.ValueInt64()
+		} else {
+			errors = append(errors, "query_timeout")
+		}
+	}
 	request.MinBindLevel = data.MinBindLevel.ValueString()
 	request.UseStartTLS = data.UseStartTLS.ValueBool()
-	request.ReferralEnabled = data.ReferralEnabled.ValueBool()
+	if data.ReferralEnabled.IsNull() {
+		if cluster.Version.Generation == 9 && cluster.Version.Major >= 9 {
+			request.ReferralEnabled = data.ReferralEnabled.ValueBool()
+		} else {
+			errors = append(errors, "referral_enabled")
+		}
+	}
 	request.SessionSecurity = data.SessionSecurity.ValueString()
-	request.LDAPSEnabled = data.LDAPSEnabled.ValueBool()
-	request.SkipConfigValidation = data.SkipConfigValidation.ValueBool()
-
+	if data.LDAPSEnabled.IsNull() {
+		if cluster.Version.Generation == 9 && cluster.Version.Major >= 9 {
+			request.LDAPSEnabled = data.LDAPSEnabled.ValueBool()
+		} else {
+			errors = append(errors, "ldaps_enabled")
+		}
+	}
+	if !data.SkipConfigValidation.IsNull() {
+		if cluster.Version.Generation == 9 && cluster.Version.Major >= 9 {
+			request.SkipConfigValidation = data.SkipConfigValidation.ValueBool()
+		} else {
+			errors = append(errors, "skip_config_validation")
+		}
+	}
+	if len(errors) > 0 {
+		errorsString := strings.Join(errors, ", ")
+		tflog.Error(ctx, fmt.Sprintf("The following Variables are not supported with current version: %#v", errorsString))
+		return
+	}
 	// Update the resource
 	err = interfaces.UpdateNameServicesLDAP(errorHandler, *client, request, data.ID.ValueString())
 	if err != nil {
