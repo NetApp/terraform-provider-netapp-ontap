@@ -72,7 +72,7 @@ func (r *CifsLocalGroupResource) Schema(ctx context.Context, req resource.Schema
 				Required:            true,
 			},
 			"svm_name": schema.StringAttribute{
-				MarkdownDescription: "CifsLocalGroup svm name",
+				MarkdownDescription: "The svm name that owns the CIFS local group",
 				Required:            true,
 			},
 			"description": schema.StringAttribute{
