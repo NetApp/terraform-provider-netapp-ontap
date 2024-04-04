@@ -37,7 +37,7 @@ resource "netapp-ontap_protocols_cifs_local_group_resource" "example" {
 
 - `cx_profile_name` (String) Connection profile name
 - `name` (String) CifsLocalGroup name
-- `svm_name` (String) CifsLocalGroup svm name
+- `svm_name` (String) The svm name that owns the CIFS local group
 
 ### Optional
 
@@ -45,7 +45,7 @@ resource "netapp-ontap_protocols_cifs_local_group_resource" "example" {
 
 ### Read-Only
 
-- `id` (String) CifsLocalGroup ID
+- `id` (String) Cifs Local Group SID. The security ID of the local group.
 - `members` (Attributes Set) Cifs Local Group members (see [below for nested schema](#nestedatt--members))
 
 <a id="nestedatt--members"></a>
