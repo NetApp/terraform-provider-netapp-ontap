@@ -111,7 +111,7 @@ func (r *CifsLocalUserResource) Schema(ctx context.Context, req resource.SchemaR
 				MarkdownDescription: "CifsLocalUser account disabled",
 			},
 			"id": schema.StringAttribute{
-				MarkdownDescription: "CifsLocalUser UUID",
+				MarkdownDescription: "CifsLocalUser SID",
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),

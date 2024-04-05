@@ -208,7 +208,7 @@ func (d *ClusterPeerDataSource) Read(ctx context.Context, req datasource.ReadReq
 		data.PeerApplications[index] = types.StringValue(peerApplication)
 	}
 	data.Encryption = &ClusterPeerDataSourceEncryption{
-		Proposed: types.StringValue(restInfo.Encryption.Propsed),
+		Proposed: types.StringValue(restInfo.Encryption.Proposed),
 		State:    types.StringValue(restInfo.Encryption.State),
 	}
 	data.IPAddress = types.StringValue(restInfo.IPAddress)

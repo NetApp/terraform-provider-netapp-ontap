@@ -3,6 +3,8 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
@@ -13,8 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"strconv"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -24,13 +24,6 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
-
-// TODO:
-// copy this file to match you resource (should match internal/provider/protocols_nfs_service_resource.go)
-// replace ProtocolsNfsService with the name of the resource, following go conventions, eg IPInterface
-// replace protocols_nfs_service with the name of the resource, for logging purposes, eg ip_interface
-// make sure to create internal/interfaces/protocols_nfs_service.go too)
-// delete these 5 lines
 
 // Ensure provider defined types fully satisfy framework interfaces
 var _ resource.Resource = &ProtocolsNfsServiceResource{}
@@ -577,7 +570,6 @@ func (r *ProtocolsNfsServiceResource) Create(ctx context.Context, req resource.C
 		// error reporting done inside GetCluster
 		return
 	}
-	clusterVersion := strconv.Itoa(cluster.Version.Generation) + "." + strconv.Itoa(cluster.Version.Major)
 	var errors []string
 
 	if !data.Enabled.IsNull() {
@@ -623,36 +615,36 @@ func (r *ProtocolsNfsServiceResource) Create(ctx context.Context, req resource.C
 		}
 	}
 	if data.Root != nil {
-		if !data.Root.IgnoreNtACL.IsNull() && clusterVersion > "9.10" {
+		if !data.Root.IgnoreNtACL.IsNull() && cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
 			body.Root.IgnoreNtACL = data.Root.IgnoreNtACL.ValueBool()
-		} else if !data.Root.IgnoreNtACL.IsNull() && clusterVersion <= "9.10" {
+		} else {
 			errors = append(errors, "root.ignore_nt_acl")
 		}
-		if !data.Root.SkipWritePermissionCheck.IsNull() && clusterVersion > "9.10" {
+		if !data.Root.SkipWritePermissionCheck.IsNull() && cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
 			body.Root.SkipWritePermissionCheck = data.Root.SkipWritePermissionCheck.ValueBool()
-		} else if !data.Root.SkipWritePermissionCheck.IsNull() && clusterVersion <= "9.10" {
+		} else {
 			errors = append(errors, "root.skip_write_permission_check")
 		}
 	}
 	if data.Security != nil {
-		if !data.Security.ChownMode.IsNull() && clusterVersion > "9.10" {
+		if !data.Security.ChownMode.IsNull() && cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
 			body.Security.ChownMode = data.Security.ChownMode.ValueString()
-		} else if !data.Security.ChownMode.IsNull() && clusterVersion <= "9.10" {
+		} else {
 			errors = append(errors, "security.chown_mode")
 		}
-		if !data.Security.NtACLDisplayPermission.IsNull() && clusterVersion > "9.10" {
+		if !data.Security.NtACLDisplayPermission.IsNull() && cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
 			body.Security.NtACLDisplayPermission = data.Security.NtACLDisplayPermission.ValueBool()
-		} else if !data.Security.NtACLDisplayPermission.IsNull() && clusterVersion <= "9.10" {
+		} else {
 			errors = append(errors, "security.nt_acl_display_permission")
 		}
-		if !data.Security.NtfsUnixSecurity.IsNull() && clusterVersion > "9.10" {
+		if !data.Security.NtfsUnixSecurity.IsNull() && cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
 			body.Security.NtfsUnixSecurity = data.Security.NtfsUnixSecurity.ValueString()
-		} else if !data.Security.NtfsUnixSecurity.IsNull() && clusterVersion <= "9.10" {
+		} else {
 			errors = append(errors, "security.ntfs_unix_security")
 		}
-		if !data.Security.RpcsecContextIdel.IsNull() && clusterVersion > "9.10" {
+		if !data.Security.RpcsecContextIdel.IsNull() && cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
 			body.Security.RpcsecContextIdel = data.Security.RpcsecContextIdel.ValueInt64()
-		} else if !data.Security.RpcsecContextIdel.IsNull() && clusterVersion <= "9.10" {
+		} else {
 			errors = append(errors, "security.rpcsec_context_idle")
 		}
 	}
@@ -663,9 +655,9 @@ func (r *ProtocolsNfsServiceResource) Create(ctx context.Context, req resource.C
 		if !data.Transport.TCPEnabled.IsNull() {
 			body.Transport.TCP = data.Transport.TCPEnabled.ValueBool()
 		}
-		if !data.Transport.TCPMaxXferSize.IsNull() && clusterVersion > "9.10" {
+		if !data.Transport.TCPMaxXferSize.IsNull() && cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
 			body.Transport.TCPMaxXferSize = data.Transport.TCPMaxXferSize.ValueInt64()
-		} else if !data.Transport.TCPMaxXferSize.IsNull() && clusterVersion <= "9.10" {
+		} else {
 			errors = append(errors, "transport.tcp_max_transfer_size")
 		}
 		if !data.Transport.UDPEnabled.IsNull() {
@@ -676,19 +668,19 @@ func (r *ProtocolsNfsServiceResource) Create(ctx context.Context, req resource.C
 		body.VstorageEnabled = data.VstorageEnabled.ValueBool()
 	}
 	if data.Windows != nil {
-		if !data.Windows.DefaultUser.IsNull() && clusterVersion > "9.10" {
+		if !data.Windows.DefaultUser.IsNull() && cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
 			body.Windows.DefaultUser = data.Windows.DefaultUser.ValueString()
-		} else if !data.Windows.DefaultUser.IsNull() && clusterVersion <= "9.10" {
+		} else {
 			errors = append(errors, "windows.default_user")
 		}
-		if !data.Windows.MapUnknownUIDToDefaultUser.IsNull() && clusterVersion > "9.10" {
+		if !data.Windows.MapUnknownUIDToDefaultUser.IsNull() && cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
 			body.Windows.MapUnknownUIDToDefaultUser = data.Windows.MapUnknownUIDToDefaultUser.ValueBool()
-		} else if !data.Windows.MapUnknownUIDToDefaultUser.IsNull() && clusterVersion <= "9.10" {
+		} else {
 			errors = append(errors, "windows.map_unknown_uid_to_default_user")
 		}
-		if !data.Windows.V3MsDosClientEnabled.IsNull() && clusterVersion > "9.10" {
+		if !data.Windows.V3MsDosClientEnabled.IsNull() && cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
 			body.Windows.V3MsDosClientEnabled = data.Windows.V3MsDosClientEnabled.ValueBool()
-		} else if !data.Windows.V3MsDosClientEnabled.IsNull() && clusterVersion <= "9.10" {
+		} else {
 			errors = append(errors, "windows.v3_ms_dos_client_enabled")
 		}
 	}
@@ -756,7 +748,6 @@ func (r *ProtocolsNfsServiceResource) Update(ctx context.Context, req resource.U
 		errorHandler.MakeAndReportError("No cluster found", fmt.Sprintf("Cluster not found."))
 		return
 	}
-	clusterVersion := strconv.Itoa(cluster.Version.Generation) + "." + strconv.Itoa(cluster.Version.Major)
 	var request interfaces.ProtocolsNfsServiceGetDataModelONTAP
 	var errors []string
 	if !data.Enabled.IsNull() {
@@ -802,36 +793,36 @@ func (r *ProtocolsNfsServiceResource) Update(ctx context.Context, req resource.U
 		}
 	}
 	if data.Root != nil {
-		if !data.Root.IgnoreNtACL.IsNull() && clusterVersion > "9.10" {
+		if !data.Root.IgnoreNtACL.IsNull() && cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
 			request.Root.IgnoreNtACL = data.Root.IgnoreNtACL.ValueBool()
-		} else if !data.Root.IgnoreNtACL.IsNull() && clusterVersion <= "9.10" {
+		} else {
 			errors = append(errors, "root.ignore_nt_acl")
 		}
-		if !data.Root.SkipWritePermissionCheck.IsNull() && clusterVersion > "9.10" {
+		if !data.Root.SkipWritePermissionCheck.IsNull() && cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
 			request.Root.SkipWritePermissionCheck = data.Root.SkipWritePermissionCheck.ValueBool()
-		} else if !data.Root.SkipWritePermissionCheck.IsNull() && clusterVersion <= "9.10" {
+		} else {
 			errors = append(errors, "root.skip_write_permission_check")
 		}
 	}
 	if data.Security != nil {
-		if !data.Security.ChownMode.IsNull() && clusterVersion > "9.10" {
+		if !data.Security.ChownMode.IsNull() && cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
 			request.Security.ChownMode = data.Security.ChownMode.ValueString()
-		} else if !data.Security.ChownMode.IsNull() && clusterVersion <= "9.10" {
+		} else {
 			errors = append(errors, "security.chown_mode")
 		}
-		if !data.Security.NtACLDisplayPermission.IsNull() && clusterVersion > "9.10" {
+		if !data.Security.NtACLDisplayPermission.IsNull() && cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
 			request.Security.NtACLDisplayPermission = data.Security.NtACLDisplayPermission.ValueBool()
-		} else if !data.Security.NtACLDisplayPermission.IsNull() && clusterVersion <= "9.10" {
+		} else {
 			errors = append(errors, "security.nt_acl_display_permission")
 		}
-		if !data.Security.NtfsUnixSecurity.IsNull() && clusterVersion > "9.10" {
+		if !data.Security.NtfsUnixSecurity.IsNull() && cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
 			request.Security.NtfsUnixSecurity = data.Security.NtfsUnixSecurity.ValueString()
-		} else if !data.Security.NtfsUnixSecurity.IsNull() && clusterVersion <= "9.10" {
+		} else {
 			errors = append(errors, "security.ntfs_unix_security")
 		}
-		if !data.Security.RpcsecContextIdel.IsNull() && clusterVersion > "9.10" {
+		if !data.Security.RpcsecContextIdel.IsNull() && cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
 			request.Security.RpcsecContextIdel = data.Security.RpcsecContextIdel.ValueInt64()
-		} else if !data.Security.RpcsecContextIdel.IsNull() && clusterVersion <= "9.10" {
+		} else {
 			errors = append(errors, "security.rpcsec_context_idle")
 		}
 	}
@@ -842,9 +833,9 @@ func (r *ProtocolsNfsServiceResource) Update(ctx context.Context, req resource.U
 		if !data.Transport.TCPEnabled.IsNull() {
 			request.Transport.TCP = data.Transport.TCPEnabled.ValueBool()
 		}
-		if !data.Transport.TCPMaxXferSize.IsNull() && clusterVersion > "9.10" {
+		if !data.Transport.TCPMaxXferSize.IsNull() && cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
 			request.Transport.TCPMaxXferSize = data.Transport.TCPMaxXferSize.ValueInt64()
-		} else if !data.Transport.TCPMaxXferSize.IsNull() && clusterVersion <= "9.10" {
+		} else {
 			errors = append(errors, "transport.tcp_max_transfer_size")
 		}
 		if !data.Transport.UDPEnabled.IsNull() {
@@ -855,19 +846,19 @@ func (r *ProtocolsNfsServiceResource) Update(ctx context.Context, req resource.U
 		request.VstorageEnabled = data.VstorageEnabled.ValueBool()
 	}
 	if data.Windows != nil {
-		if !data.Windows.DefaultUser.IsNull() && clusterVersion > "9.10" {
+		if !data.Windows.DefaultUser.IsNull() && cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
 			request.Windows.DefaultUser = data.Windows.DefaultUser.ValueString()
-		} else if !data.Windows.DefaultUser.IsNull() && clusterVersion <= "9.10" {
+		} else {
 			errors = append(errors, "windows.default_user")
 		}
-		if !data.Windows.MapUnknownUIDToDefaultUser.IsNull() && clusterVersion > "9.10" {
+		if !data.Windows.MapUnknownUIDToDefaultUser.IsNull() && cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
 			request.Windows.MapUnknownUIDToDefaultUser = data.Windows.MapUnknownUIDToDefaultUser.ValueBool()
-		} else if !data.Windows.MapUnknownUIDToDefaultUser.IsNull() && clusterVersion <= "9.10" {
+		} else {
 			errors = append(errors, "windows.map_unknown_uid_to_default_user")
 		}
-		if !data.Windows.V3MsDosClientEnabled.IsNull() && clusterVersion > "9.10" {
+		if !data.Windows.V3MsDosClientEnabled.IsNull() && cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
 			request.Windows.V3MsDosClientEnabled = data.Windows.V3MsDosClientEnabled.ValueBool()
-		} else if !data.Windows.V3MsDosClientEnabled.IsNull() && clusterVersion <= "9.10" {
+		} else {
 			errors = append(errors, "windows.v3_ms_dos_client_enabled")
 		}
 	}
@@ -927,7 +918,7 @@ func (r *ProtocolsNfsServiceResource) ImportState(ctx context.Context, req resou
 	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
 		resp.Diagnostics.AddError(
 			"Unexpected Import Identifier",
-			fmt.Sprintf("Expected import identifier with format: attr_one,attr_two. Got: %q", req.ID),
+			fmt.Sprintf("Expected import identifier with format: svm_name,cx_profile_name. Got: %q", req.ID),
 		)
 		return
 	}

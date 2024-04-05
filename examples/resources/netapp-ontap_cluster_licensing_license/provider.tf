@@ -7,7 +7,6 @@ terraform {
   }
 }
 
-
 provider "netapp-ontap" {
   # A connection profile defines how to interface with an ONTAP cluster or svm.
   # At least one is required.
