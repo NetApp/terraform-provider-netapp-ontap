@@ -23,6 +23,8 @@ FEATURES:
 * **New Data Source:** `netapp_ontap_storage_flexcaches_data_source` ([#47](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/47))
 * **New Data Source:** `netapp-ontap_name_services_ldap_data_source` ([#26](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/26))
 * **New Data Source:** `netapp-ontap_name_services_ldaps_data_source` ([#26](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/26))
+* **New Data Source:** `netapp-ontap_protocols_cifs_share_data_source` ([#28](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/28))
+* **New Data Source:** `netapp-ontap_protocols_cifs_shares_data_source` ([#28](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/28))
 * **New Data Source:** `netapp-ontap_protocols_san_lun-map_data_source` ([#14](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/14))
 * **New Data Source:** `netapp-ontap_protocols_san_lun-maps_data_source` ([#14](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/14))
 * **New Resource:** `netapp-ontap_protocols_cifs_local_group_resource` ([#53](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/53))
@@ -30,12 +32,8 @@ FEATURES:
 * **New Resource:** `netapp-ontap_protocols_cifs_user_group_privilege_resource` ([#58](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/58))
 * **New Resource:** `netapp-ontap_svm_peers_resource` ([#51](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/51))
 * **New Resource:** `netapp-ontap_protocols_cifs_user_group_member_resource` ([#123](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/123))
-<<<<<<< HEAD
 * **New Resource:** `netapp-ontap_storage_flexcache_resource` ([#46](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/46))
-* **New Resource:** `netapp-protocols_san_lun-maps_resource` ([#13](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/13))
-=======
 * **New Resource:** `netapp-ontap_protocols_san_lun-maps_resource` ([#13](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/13))
->>>>>>> 08705260ad53b105d048877da271567bc286b2fb
 * **New Resource:** `netapp-ontap_name_services_ldap_resource` ([#25](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/25))
 * **New Resource:** `netapp-ontap_protocols_cifs_service_resource` ([#23](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/23))
 
