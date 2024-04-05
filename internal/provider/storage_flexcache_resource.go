@@ -407,12 +407,15 @@ func (r *StorageFlexcacheResource) Create(ctx context.Context, req resource.Crea
 		return
 	}
 	var request interfaces.StorageFlexcacheResourceModel
-	if _, ok := interfaces.POW2BYTEMAP[data.SizeUnit.ValueString()]; !ok {
-		errorHandler.MakeAndReportError("error creating flexcache", fmt.Sprintf("invalid input for size_unit: %s, required one of: bytes, b, kb, mb, gb, tb, pb, eb, zb, yb", data.SizeUnit.ValueString()))
-		return
+	if !data.SizeUnit.IsUnknown() {
+		if _, ok := interfaces.POW2BYTEMAP[data.SizeUnit.ValueString()]; !ok {
+			errorHandler.MakeAndReportError("error creating flexcache", fmt.Sprintf("invalid input for size_unit: %s, required one of: bytes, b, kb, mb, gb, tb, pb, eb, zb, yb", data.SizeUnit.ValueString()))
+			return
+		}
 	}
-
-	request.Size = int(data.Size.ValueInt64()) * interfaces.POW2BYTEMAP[data.SizeUnit.ValueString()]
+	if !data.Size.IsUnknown() {
+		request.Size = int(data.Size.ValueInt64()) * interfaces.POW2BYTEMAP[data.SizeUnit.ValueString()]
+	}
 	request.Name = data.Name.ValueString()
 	request.SVM.Name = data.SvmName.ValueString()
 	if !data.JunctionPath.IsUnknown() {
