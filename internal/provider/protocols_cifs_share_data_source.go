@@ -15,13 +15,6 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
-// TODO:
-// copy this file to match you data source (should match internal/provider/protocols_cifs_share_data_source.go)
-// replace ProtocolsCIFSShare with the name of the resource, following go conventions, eg IPInterface
-// replace protocols_cifs_share with the name of the resource, for logging purposes, eg ip_interface
-// make sure to create internal/interfaces/protocols_cifs_share.go too)
-// delete these 5 lines
-
 // Ensure provider defined types fully satisfy framework interfaces
 var _ datasource.DataSource = &ProtocolsCIFSShareDataSource{}
 

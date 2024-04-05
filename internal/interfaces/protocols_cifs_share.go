@@ -9,13 +9,6 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
-// TODO:
-// copy this file to match you data source (should match internal/interfaces/protocols_cifs_share.go)
-// replace ProtocolsCIFSShare with the name of the resource, following go conventions, eg IPInterface
-// replace protocols_cifs_share with the name of the resource, for logging purposes, eg ip_interface
-// replace api_url with API, eg ip/interfaces
-// delete these 5 lines
-
 // ProtocolsCIFSShareGetDataModelONTAP describes the GET record data model using go types for mapping.
 type ProtocolsCIFSShareGetDataModelONTAP struct {
 	Name string `mapstructure:"name"`
@@ -40,6 +33,7 @@ type ProtocolsCIFSShareGetDataModelONTAP struct {
 	VscanProfile          string `mapstructure:"vscan_profile"`
 }
 
+// Acls describes the acls data model using go types for mapping.
 type Acls struct {
 	Permission  string `mapstructure:"permission"`
 	Type        string `mapstructure:"type"`
