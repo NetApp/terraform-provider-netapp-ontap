@@ -82,13 +82,6 @@ func GetProtocolsCIFSShareByName(errorHandler *utils.ErrorHandler, r restclient.
 	query := r.NewQuery()
 	query.Add("name", name)
 	query.Add("svm.name", svmName)
-	// query.Set("name", name)
-	// if svmName == "" {
-	// 	query.Set("scope", "cluster")
-	// } else {
-	// 	query.Set("svm.name", svmName)
-	// 	query.Set("scope", "svm")
-	// }
 	query.Fields([]string{"name", "svm.name", "unix_symlink", "dir_umask", "file_umask", "acls", "home_directory", "force_group_for_create", "no_strict_security", "oplocks", "volume", "change_notify", "path", "encryption", "vscan_profile", "offline_files", "comment", "show_snapshot", "continuously_available", "namespace_caching"})
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
@@ -163,9 +156,9 @@ func CreateProtocolsCIFSShare(errorHandler *utils.ErrorHandler, r restclient.Res
 }
 
 // DeleteProtocolsCIFSShare to delete protocols_cifs_share
-func DeleteProtocolsCIFSShare(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) error {
-	api := "/protocols/cifs/shares/{svm.uuid}/{name}"
-	statusCode, _, err := r.CallDeleteMethod(api+"/"+uuid, nil, nil)
+func DeleteProtocolsCIFSShare(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string, svmUUID string) error {
+	api := "/protocols/cifs/shares"
+	statusCode, _, err := r.CallDeleteMethod(api+"/"+svmUUID+"/"+uuid, nil, nil)
 	if err != nil {
 		return errorHandler.MakeAndReportError("error deleting protocols_cifs_share", fmt.Sprintf("error on DELETE %s: %s, statusCode %d", api, err, statusCode))
 	}
