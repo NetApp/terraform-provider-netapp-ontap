@@ -14,53 +14,59 @@ type ProtocolsCIFSShareGetDataModelONTAP struct {
 	Name string `mapstructure:"name"`
 	UUID string `mapstructure:"uuid"`
 
-	Acls                  []Acls `mapstructure:"acls"`
-	ChangeNotify          bool   `mapstructure:"change_notify"`
-	Comment               string `mapstructure:"comment"`
-	ContinuouslyAvailable bool   `mapstructure:"continuously_available"`
-	DirUmask              int64  `mapstructure:"dir_umask"`
-	Encryption            bool   `mapstructure:"encryption"`
-	FileUmask             int64  `mapstructure:"file_umask"`
-	ForceGroupForCreate   string `mapstructure:"force_group_for_create"`
-	HomeDirectory         bool   `mapstructure:"home_directory"`
-	NamespaceCaching      bool   `mapstructure:"namespace_caching"`
-	NoStrictSecurity      bool   `mapstructure:"no_strict_security"`
-	OfflineFiles          string `mapstructure:"offline_files"`
-	Oplocks               bool   `mapstructure:"oplocks"`
-	Path                  string `mapstructure:"path"`
-	ShowSnapshot          bool   `mapstructure:"show_snapshot"`
-	UnixSymlink           string `mapstructure:"unix_symlink"`
-	VscanProfile          string `mapstructure:"vscan_profile"`
+	Acls                  []AclsGet `mapstructure:"acls"`
+	ChangeNotify          bool      `mapstructure:"change_notify"`
+	Comment               string    `mapstructure:"comment"`
+	ContinuouslyAvailable bool      `mapstructure:"continuously_available"`
+	DirUmask              int64     `mapstructure:"dir_umask"`
+	Encryption            bool      `mapstructure:"encryption"`
+	FileUmask             int64     `mapstructure:"file_umask"`
+	ForceGroupForCreate   string    `mapstructure:"force_group_for_create"`
+	HomeDirectory         bool      `mapstructure:"home_directory"`
+	NamespaceCaching      bool      `mapstructure:"namespace_caching"`
+	NoStrictSecurity      bool      `mapstructure:"no_strict_security"`
+	OfflineFiles          string    `mapstructure:"offline_files"`
+	Oplocks               bool      `mapstructure:"oplocks"`
+	Path                  string    `mapstructure:"path"`
+	ShowSnapshot          bool      `mapstructure:"show_snapshot"`
+	UnixSymlink           string    `mapstructure:"unix_symlink"`
+	VscanProfile          string    `mapstructure:"vscan_profile"`
 }
 
 // Acls describes the acls data model using go types for mapping.
 type Acls struct {
-	Permission  string `mapstructure:"permission"`
+	Permission  string `json:"permission"` // Because Acls is nested in ProtocolsCIFSShareResourceBodyDataModelONTAP, when it unmarshal from API to go struct, 'mapstructure' does not work, and result in "Permission" instead of "permission". So, we need to use "json" tag to map the field.
+	Type        string `json:"type"`
+	UserOrGroup string `json:"user_or_group"`
+}
+
+type AclsGet struct {
+	Permission  string `mapstructure:"permission"` // ProtocolsCIFSShareGetDataModelONTAP needs 'mapstructure'
 	Type        string `mapstructure:"type"`
 	UserOrGroup string `mapstructure:"user_or_group"`
 }
 
 // ProtocolsCIFSShareResourceBodyDataModelONTAP describes the body data model using go types for mapping.
 type ProtocolsCIFSShareResourceBodyDataModelONTAP struct {
-	Name                  string `mapstructure:"name"`
+	Name                  string `mapstructure:"name,omitempty"` // can't be present in update, so omit empty.
 	SVM                   svm    `mapstructure:"svm"`
-	Acls                  []Acls `mapstructure:"acls"`
+	Acls                  []Acls `mapstructure:"acls,omitempty"` // API complains if this is not omit empty
 	ChangeNotify          bool   `mapstructure:"change_notify"`
-	Comment               string `mapstructure:"comment"`
+	Comment               string `mapstructure:"comment,omitempty"` // API complains if this is not omit empty
 	ContinuouslyAvailable bool   `mapstructure:"continuously_available"`
 	DirUmask              int64  `mapstructure:"dir_umask"`
 	Encryption            bool   `mapstructure:"encryption"`
 	FileUmask             int64  `mapstructure:"file_umask"`
 	ForceGroupForCreate   string `mapstructure:"force_group_for_create"`
-	HomeDirectory         bool   `mapstructure:"home_directory"`
+	HomeDirectory         bool   `mapstructure:"home_directory,omitempty"` // can't be present in update, so omit empty.
 	NamespaceCaching      bool   `mapstructure:"namespace_caching"`
 	NoStrictSecurity      bool   `mapstructure:"no_strict_security"`
-	OfflineFiles          string `mapstructure:"offline_files"`
+	OfflineFiles          string `mapstructure:"offline_files,omitempty"` // API complains if this is not omit empty
 	Oplocks               bool   `mapstructure:"oplocks"`
-	Path                  string `mapstructure:"path"`
+	Path                  string `mapstructure:"path,omitempty"` // can't be present in update, so omit empty.
 	ShowSnapshot          bool   `mapstructure:"show_snapshot"`
-	UnixSymlink           string `mapstructure:"unix_symlink"`
-	VscanProfile          string `mapstructure:"vscan_profile"`
+	UnixSymlink           string `mapstructure:"unix_symlink,omitempty"`  // API complains if this is not omit empty
+	VscanProfile          string `mapstructure:"vscan_profile,omitempty"` // API complains if this is not omit empty
 }
 
 // ProtocolsCIFSShareDataSourceFilterModel describes the data source data model for queries.
@@ -90,7 +96,7 @@ func GetProtocolsCIFSShareByName(errorHandler *utils.ErrorHandler, r restclient.
 		return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
 			fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
-	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read protocols_cifs_share data source: %#v", dataONTAP))
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read protocols_cifs_share: %#v", dataONTAP))
 	return &dataONTAP, nil
 }
 
@@ -130,6 +136,7 @@ func GetProtocolsCIFSShares(errorHandler *utils.ErrorHandler, r restclient.RestC
 // CreateProtocolsCIFSShare to create protocols_cifs_share
 func CreateProtocolsCIFSShare(errorHandler *utils.ErrorHandler, r restclient.RestClient, body ProtocolsCIFSShareResourceBodyDataModelONTAP) (*ProtocolsCIFSShareGetDataModelONTAP, error) {
 	api := "/protocols/cifs/shares"
+
 	var bodyMap map[string]interface{}
 	if err := mapstructure.Decode(body, &bodyMap); err != nil {
 		return nil, errorHandler.MakeAndReportError("error encoding protocols_cifs_share body", fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body))
@@ -149,10 +156,24 @@ func CreateProtocolsCIFSShare(errorHandler *utils.ErrorHandler, r restclient.Res
 	return &dataONTAP, nil
 }
 
+// UpdateProtocolsCIFSShare to update protocols_cifs_share
+func UpdateProtocolsCIFSShare(errorHandler *utils.ErrorHandler, r restclient.RestClient, body ProtocolsCIFSShareResourceBodyDataModelONTAP, name string, svmUUID string) error {
+	api := "/protocols/cifs/shares/"
+	var bodyMap map[string]interface{}
+	if err := mapstructure.Decode(body, &bodyMap); err != nil {
+		return errorHandler.MakeAndReportError("error encoding protocols_cifs_share body", fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body))
+	}
+	statusCode, _, err := r.CallUpdateMethod(api+"/"+svmUUID+"/"+name, nil, bodyMap)
+	if err != nil {
+		return errorHandler.MakeAndReportError("error updating protocols_cifs_share", fmt.Sprintf("error on POST %s: %s, statusCode %d", api, err, statusCode))
+	}
+	return nil
+}
+
 // DeleteProtocolsCIFSShare to delete protocols_cifs_share
-func DeleteProtocolsCIFSShare(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string, svmUUID string) error {
+func DeleteProtocolsCIFSShare(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, svmUUID string) error {
 	api := "/protocols/cifs/shares"
-	statusCode, _, err := r.CallDeleteMethod(api+"/"+svmUUID+"/"+uuid, nil, nil)
+	statusCode, _, err := r.CallDeleteMethod(api+"/"+svmUUID+"/"+name, nil, nil)
 	if err != nil {
 		return errorHandler.MakeAndReportError("error deleting protocols_cifs_share", fmt.Sprintf("error on DELETE %s: %s, statusCode %d", api, err, statusCode))
 	}
