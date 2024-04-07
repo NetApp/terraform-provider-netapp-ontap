@@ -36,6 +36,7 @@ FEATURES:
 * **New Resource:** `netapp-ontap_protocols_san_lun-maps_resource` ([#13](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/13))
 * **New Resource:** `netapp-ontap_name_services_ldap_resource` ([#25](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/25))
 * **New Resource:** `netapp-ontap_protocols_cifs_service_resource` ([#23](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/23))
+* **New Resource:** `netapp-ontap_protocols_cifs_share_resource` ([#27](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/27))
 
 ENHANCEMENTS:
 * **netapp-ontap_protocols_nfs_export_policy_resource**: Add support for import ([#34](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/34))
