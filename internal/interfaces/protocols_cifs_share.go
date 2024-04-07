@@ -33,13 +33,14 @@ type ProtocolsCIFSShareGetDataModelONTAP struct {
 	VscanProfile          string    `mapstructure:"vscan_profile"`
 }
 
-// Acls describes the acls data model using go types for mapping.
+// Acls describes the acls data model using go types for mapping in ProtocolsCIFSShareResourceBodyDataModelONTAP.
 type Acls struct {
 	Permission  string `json:"permission"` // Because Acls is nested in ProtocolsCIFSShareResourceBodyDataModelONTAP, when it unmarshal from API to go struct, 'mapstructure' does not work, and result in "Permission" instead of "permission". So, we need to use "json" tag to map the field.
 	Type        string `json:"type"`
 	UserOrGroup string `json:"user_or_group"`
 }
 
+// AclsGet describes the acls data model using go types for mapping in ProtocolsCIFSShareGetDataModelONTAP.
 type AclsGet struct {
 	Permission  string `mapstructure:"permission"` // ProtocolsCIFSShareGetDataModelONTAP needs 'mapstructure'
 	Type        string `mapstructure:"type"`
