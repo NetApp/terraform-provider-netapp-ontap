@@ -65,6 +65,7 @@ type ProtocolsCIFSShareResourceModel struct {
 	ID                    types.String `tfsdk:"id"`
 }
 
+// ProtocolsCIFSShareResourceAcls describes the acls resource data model.
 type ProtocolsCIFSShareResourceAcls struct {
 	Permission  string `tfsdk:"permission"`
 	Type        string `tfsdk:"type"`
