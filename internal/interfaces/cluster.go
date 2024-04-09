@@ -17,7 +17,7 @@ type ClusterGetDataModelONTAP struct {
 	Version              versionModelONTAP
 	Contact              string
 	Location             string
-	DnsDomains           []string           `mapstructure:"dns_domains"`
+	DNSDomains           []string           `mapstructure:"dns_domains"`
 	NameServers          []string           `mapstructure:"name_servers"`
 	NtpServers           []string           `mapstructure:"ntp_servers"`
 	TimeZone             timeZone           `mapstructure:"timezone"`
@@ -35,6 +35,7 @@ type mgmtInterface struct {
 	ID   string    `mapstructure:"uuid"`
 }
 
+// ClusterCertificate describes the GET record data model using go types for mapping.
 type ClusterCertificate struct {
 	ID string `mapstructure:"uuid"`
 }
