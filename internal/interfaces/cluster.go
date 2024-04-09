@@ -13,8 +13,30 @@ import (
 type ClusterGetDataModelONTAP struct {
 	// ConfigurableAttribute types.String `json:"configurable_attribute"`
 	// ID                    types.String `json:"id"`
-	Name    string
-	Version versionModelONTAP
+	Name                 string
+	Version              versionModelONTAP
+	Contact              string
+	Location             string
+	DnsDomains           []string           `mapstructure:"dns_domains"`
+	NameServers          []string           `mapstructure:"name_servers"`
+	NtpServers           []string           `mapstructure:"ntp_servers"`
+	TimeZone             timeZone           `mapstructure:"timezone"`
+	ClusterCertificate   ClusterCertificate `mapstructure:"certificate"`
+	ManagementInterfaces []mgmtInterface    `mapstructure:"management_interfaces"`
+}
+
+type timeZone struct {
+	Name string
+}
+
+type mgmtInterface struct {
+	IP   ipAddress `mapstructure:"ip"`
+	Name string    `mapstructure:"name"`
+	ID   string    `mapstructure:"uuid"`
+}
+
+type ClusterCertificate struct {
+	ID string `mapstructure:"uuid"`
 }
 
 type versionModelONTAP struct {
@@ -28,20 +50,22 @@ type ipAddress struct {
 	Address string
 }
 
-type mgmtInterface struct {
+type noddMgmtInterface struct {
 	IP ipAddress
 }
 
 // ClusterNodeGetDataModelONTAP describes the GET record data model using go types for mapping.
 type ClusterNodeGetDataModelONTAP struct {
 	Name                 string
-	ManagementInterfaces []mgmtInterface `mapstructure:"management_interfaces"`
+	ManagementInterfaces []noddMgmtInterface `mapstructure:"management_interfaces"`
 	// Version versionModelONTAP
 }
 
 // GetCluster to get cluster info
 func GetCluster(errorHandler *utils.ErrorHandler, r restclient.RestClient) (*ClusterGetDataModelONTAP, error) {
 	statusCode, response, err := r.GetNilOrOneRecord("cluster", nil, nil)
+	query := r.NewQuery()
+	query.Fields([]string{"name", "location", "contact", "dns_domains", "name_servers", "ntp_servers", "management_interfaces", "timezone", "certificate"})
 	if err == nil && response == nil {
 		err = fmt.Errorf("no response for GET cluster")
 	}
