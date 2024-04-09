@@ -53,6 +53,7 @@ ENHANCEMENTS:
 * **netapp-ontap_networking_ip_interface_resource**: Add support for import ([#32](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/32))
 * **netapp-ontap_protocols_nfs_export_policy_rule_resource**: Add support for import ([#35](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/35))
 * **netapp-ontap_networking_ip_route_resource**: Add support for import ([#33](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/33))
+* **netapp-ontap_cluster** Add contact, locaton, dns_domains, name_servers, timezone, certificate, ntp_servers, management_interfaces options ([#16](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/16))
 
 BUG FIXES:
 * **netapp-ontap_protocols_nfs_service**: Fixed issue with version check failing for minor versions

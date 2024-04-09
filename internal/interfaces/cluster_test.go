@@ -95,7 +95,7 @@ func TestGetClusterNodes(t *testing.T) {
 	errorHandler := utils.NewErrorHandler(context.Background(), &diag.Diagnostics{})
 	record := ClusterNodeGetDataModelONTAP{
 		Name: "cluster1-01",
-		ManagementInterfaces: []mgmtInterface{
+		ManagementInterfaces: []noddMgmtInterface{
 			{ipAddress{"10.11.12.13"}},
 			{ipAddress{"10.11.12.14"}},
 		},
