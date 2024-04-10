@@ -3,24 +3,22 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
-
-// TODO:
-// copy this file to match you resource (should match internal/provider/protocols_san_igroup_resource.go)
-// replace ProtocolsSanIgroup with the name of the resource, following go conventions, eg IPInterface
-// replace protocols_san_igroup with the name of the resource, for logging purposes, eg ip_interface
-// make sure to create internal/interfaces/protocols_san_igroup.go too)
-// delete these 5 lines
 
 // Ensure provider defined types fully satisfy framework interfaces
 var _ resource.Resource = &ProtocolsSanIgroupResource{}
@@ -42,10 +40,37 @@ type ProtocolsSanIgroupResource struct {
 
 // ProtocolsSanIgroupResourceModel describes the resource data model.
 type ProtocolsSanIgroupResourceModel struct {
-	CxProfileName types.String `tfsdk:"cx_profile_name"`
-	Name          types.String `tfsdk:"name"`
-	SVMName       types.String `tfsdk:"svm_name"` // if needed or relevant
-	ID            types.String `tfsdk:"id"`
+	CxProfileName types.String                                `tfsdk:"cx_profile_name"`
+	Name          types.String                                `tfsdk:"name"`
+	SVM           SVM                                         `tfsdk:"svm"`
+	Comment       types.String                                `tfsdk:"comment"`
+	Igroups       *[]ProtocolsSanIgroupResourceIgroupModel    `tfsdk:"igroups"`
+	Initiators    *[]ProtocolsSanIgroupResourceInitiatorModel `tfsdk:"initiators"`
+	OsType        types.String                                `tfsdk:"os_type"`
+	Portset       types.Object                                `tfsdk:"portset"`
+	Protocol      types.String                                `tfsdk:"protocol"`
+	ID            types.String                                `tfsdk:"id"`
+}
+
+// ProtocolsSanIgroupResourceIgroupModel describes the data source data model.
+type ProtocolsSanIgroupResourceIgroupModel struct {
+	Name types.String `tfsdk:"name"`
+}
+
+// ProtocolsSanIgroupResourceInitiatorModel describes the data source data model.
+type ProtocolsSanIgroupResourceInitiatorModel struct {
+	Name types.String `tfsdk:"name"`
+}
+
+// ProtocolsSanIgroupResourceLunMapModel describes the data source data model.
+type ProtocolsSanIgroupResourceLunMapModel struct {
+	LogicalUnitNumber types.Int64 `tfsdk:"logical_unit_number"`
+	Lun               Lun         `tfsdk:"lun"`
+}
+
+// ProtocolsSanIgroupDataSourcePortsetModel describes the data source data model.
+type ProtocolsSanIgroupResourcePortsetModel struct {
+	Name types.String `tfsdk:"name"`
 }
 
 // Metadata returns the resource type name.
@@ -68,22 +93,28 @@ func (r *ProtocolsSanIgroupResource) Schema(ctx context.Context, req resource.Sc
 				MarkdownDescription: "Existing SVM in which to create the initiator group.",
 				Required:            true,
 			},
-			"svm_name": schema.StringAttribute{
-				MarkdownDescription: "Existing SVM in which to create the initiator group.",
+			"svm": schema.SingleNestedAttribute{
+				MarkdownDescription: "SVM details for ProtocolsSanLunMaps",
 				Required:            true,
+				Attributes: map[string]schema.Attribute{
+					"name": schema.StringAttribute{
+						MarkdownDescription: "name of the SVM",
+						Required:            true,
+					},
+				},
 			},
 			"comment": schema.StringAttribute{
 				MarkdownDescription: "Comment",
 				Optional:            true,
 			},
 			"igroups": schema.SetNestedAttribute{
-				MarkdownDescription: "List of initiators",
+				MarkdownDescription: "List of initiator groups",
 				Optional:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
 							MarkdownDescription: "Initiator group name",
-							Optional:            true,
+							Required:            true,
 						},
 					},
 				},
@@ -95,27 +126,31 @@ func (r *ProtocolsSanIgroupResource) Schema(ctx context.Context, req resource.Sc
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
 							MarkdownDescription: "Initiator name",
-							Optional:            true,
+							Required:            true,
 						},
 					},
 				},
 			},
 			"os_type": schema.StringAttribute{
 				MarkdownDescription: "Operating system of the initiator group's initiators.\n",
-				Optional:            true,
+				Required:            true,
 			},
 			"portset": schema.SingleNestedAttribute{
 				MarkdownDescription: "Required ONTAP 9.9 or greater. The portset to which the initiator group is bound. Binding the initiator group to a portset restricts the initiators of the group to accessing mapped LUNs only through network interfaces in the portset.",
 				Optional:            true,
+				Computed:            true,
+				PlanModifiers:       []planmodifier.Object{objectplanmodifier.UseStateForUnknown()},
 				Attributes: map[string]schema.Attribute{
 					"name": schema.StringAttribute{
 						MarkdownDescription: "Portset name",
-						Optional:            true,
+						Required:            true,
 					},
 				},
 			},
 			"protocol": schema.StringAttribute{
 				MarkdownDescription: "If not specified, the default protocol is mixed.",
+				Default:             stringdefault.StaticString("mixed"),
+				Computed:            true,
 				Optional:            true,
 			},
 			"id": schema.StringAttribute{
@@ -169,7 +204,7 @@ func (r *ProtocolsSanIgroupResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	restInfo, err := interfaces.GetProtocolsSanIgroupByName(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString(), cluster.Version)
+	restInfo, err := interfaces.GetProtocolsSanIgroupByName(errorHandler, *client, data.Name.ValueString(), data.SVM.Name.ValueString(), cluster.Version)
 	if err != nil {
 		// error reporting done inside GetProtocolsSanIgroupByName
 		return
@@ -177,9 +212,23 @@ func (r *ProtocolsSanIgroupResource) Read(ctx context.Context, req resource.Read
 	}
 
 	data.Name = types.StringValue(restInfo.Name)
+	data.SVM.Name = types.StringValue(restInfo.SVM.Name)
+	data.Comment = types.StringValue(restInfo.Comment)
+	data.OsType = types.StringValue(restInfo.OsType)
+	data.Protocol = types.StringValue(restInfo.Protocol)
+	data.ID = types.StringValue(restInfo.UUID)
+	elementTypes := map[string]attr.Type{
+		"name": types.StringType,
+	}
+	elements := map[string]attr.Value{
+		"name": types.StringValue(restInfo.Portset.Name),
+	}
+	objectValue, diags := types.ObjectValue(elementTypes, elements)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+	}
+	data.Portset = objectValue
 
-	// Write logs using the tflog package
-	// Documentation: https://terraform.io/plugin/log
 	tflog.Debug(ctx, fmt.Sprintf("read a resource: %#v", data))
 
 	// Save data into Terraform state
@@ -201,7 +250,40 @@ func (r *ProtocolsSanIgroupResource) Create(ctx context.Context, req resource.Cr
 	}
 
 	body.Name = data.Name.ValueString()
-	// body.SVM.Name = data.SVMName.ValueString()
+	body.SVM.Name = data.SVM.Name.ValueString()
+	if !data.Comment.IsUnknown() {
+		body.Comment = data.Comment.ValueString()
+	}
+	if data.Initiators != nil {
+		body.Igroups = make([]interfaces.IgroupLun, len(*data.Igroups))
+		for index, record := range *data.Igroups {
+			body.Igroups[index] = interfaces.IgroupLun{
+				Name: record.Name.ValueString(),
+			}
+		}
+	}
+
+	if data.Initiators != nil {
+		body.Initiators = make([]interfaces.IgroupInitiator, len(*data.Initiators))
+		for index, record := range *data.Initiators {
+			body.Initiators[index] = interfaces.IgroupInitiator{
+				Name: record.Name.ValueString(),
+			}
+		}
+	}
+	body.OsType = data.OsType.ValueString()
+	if !data.Portset.IsUnknown() {
+		var portset ProtocolsSanIgroupResourcePortsetModel
+		diags := data.Portset.As(ctx, &portset, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		if !portset.Name.IsUnknown() {
+			body.Portset.Name = portset.Name.ValueString()
+		}
+	}
+	body.Protocol = data.Protocol.ValueString()
 
 	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
@@ -214,7 +296,18 @@ func (r *ProtocolsSanIgroupResource) Create(ctx context.Context, req resource.Cr
 		return
 	}
 
-	data.UUID = types.StringValue(resource.UUID)
+	data.ID = types.StringValue(resource.UUID)
+	elementTypes := map[string]attr.Type{
+		"name": types.StringType,
+	}
+	elements := map[string]attr.Value{
+		"name": types.StringValue(resource.Portset.Name),
+	}
+	objectValue, diags := types.ObjectValue(elementTypes, elements)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+	}
+	data.Portset = objectValue
 
 	tflog.Trace(ctx, "created a resource")
 
@@ -224,17 +317,43 @@ func (r *ProtocolsSanIgroupResource) Create(ctx context.Context, req resource.Cr
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *ProtocolsSanIgroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *ProtocolsSanIgroupResourceModel
+	var data, state *ProtocolsSanIgroupResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	// Read state file data
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
+
+	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	if err != nil {
+		return
+	}
+
+	var request interfaces.UpdateProtocolsSanIgroupResourceBodyDataModelONTAP
+	if !data.Comment.Equal(state.Comment) {
+		request.Comment = data.Comment.ValueString()
+	}
+	if !data.OsType.Equal(state.OsType) {
+		request.OsType = data.OsType.ValueString()
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("update a svm resource: %#v", data))
+	err = interfaces.UpdateProtocolsSanIgroup(errorHandler, *client, request, state.ID.ValueString())
+	if err != nil {
+		return
+	}
+
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -255,12 +374,12 @@ func (r *ProtocolsSanIgroupResource) Delete(ctx context.Context, req resource.De
 		return
 	}
 
-	if data.UUID.IsNull() {
+	if data.ID.IsNull() {
 		errorHandler.MakeAndReportError("UUID is null", "protocols_san_igroup UUID is null")
 		return
 	}
 
-	err = interfaces.DeleteProtocolsSanIgroup(errorHandler, *client, data.UUID.ValueString())
+	err = interfaces.DeleteProtocolsSanIgroup(errorHandler, *client, data.ID.ValueString())
 	if err != nil {
 		return
 	}
@@ -269,5 +388,17 @@ func (r *ProtocolsSanIgroupResource) Delete(ctx context.Context, req resource.De
 
 // ImportState imports a resource using ID from terraform import command by calling the Read method.
 func (r *ProtocolsSanIgroupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	idParts := strings.Split(req.ID, ",")
+
+	if len(idParts) != 3 || idParts[0] == "" || idParts[1] == "" || idParts[2] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: name,svm_name,cx_profile_name. Got: %q", req.ID),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("svm").AtName("name"), idParts[1])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[2])...)
 }
