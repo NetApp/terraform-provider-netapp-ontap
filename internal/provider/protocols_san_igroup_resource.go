@@ -68,7 +68,7 @@ type ProtocolsSanIgroupResourceLunMapModel struct {
 	Lun               Lun         `tfsdk:"lun"`
 }
 
-// ProtocolsSanIgroupDataSourcePortsetModel describes the data source data model.
+// ProtocolsSanIgroupResourcePortsetModel describes the data source data model.
 type ProtocolsSanIgroupResourcePortsetModel struct {
 	Name types.String `tfsdk:"name"`
 }
