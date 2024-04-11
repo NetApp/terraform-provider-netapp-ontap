@@ -40,7 +40,7 @@ type ClusterDataSourceModel struct {
 	Nodes                []NodeDataSourceModel `tfsdk:"nodes"`
 	Contact              types.String          `tfsdk:"contact"`
 	Location             types.String          `tfsdk:"location"`
-	DnsDomains           types.Set             `tfsdk:"dns_domains"`
+	DNSDomains           types.Set             `tfsdk:"dns_domains"`
 	NameServers          types.Set             `tfsdk:"name_servers"`
 	TimeZone             types.Object          `tfsdk:"timezone"`
 	Certificate          types.Object          `tfsdk:"certificate"`
@@ -235,12 +235,12 @@ func (d *ClusterDataSource) Read(ctx context.Context, req datasource.ReadRequest
 
 	// dns domains
 	elements := []attr.Value{}
-	for _, dnsDomain := range cluster.DnsDomains {
+	for _, dnsDomain := range cluster.DNSDomains {
 		elements = append(elements, types.StringValue(dnsDomain))
 	}
 	setValue, diags := types.SetValue(types.StringType, elements)
 	resp.Diagnostics.Append(diags...)
-	data.DnsDomains = setValue
+	data.DNSDomains = setValue
 
 	//name servers
 	elements = []attr.Value{}
