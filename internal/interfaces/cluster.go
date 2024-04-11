@@ -17,7 +17,7 @@ type ClusterGetDataModelONTAP struct {
 	Version              versionModelONTAP
 	Contact              string
 	Location             string
-	DnsDomains           []string           `mapstructure:"dns_domains"`
+	DNSDomains           []string           `mapstructure:"dns_domains"`
 	NameServers          []string           `mapstructure:"name_servers"`
 	NtpServers           []string           `mapstructure:"ntp_servers"`
 	TimeZone             timeZone           `mapstructure:"timezone"`
@@ -26,6 +26,7 @@ type ClusterGetDataModelONTAP struct {
 	ID                   string             `mapstructure:"uuid"`
 }
 
+// ClusterResourceBodyDataModelONTAP describes the POST/PATCH record data model using go types for mapping.
 type ClusterResourceBodyDataModelONTAP struct {
 	Name                string               `mapstructure:"name,omitempty"`
 	License             ClusterLicense       `mapstructure:"license,omitempty"`
@@ -40,34 +41,41 @@ type ClusterResourceBodyDataModelONTAP struct {
 	Password            string               `mapstructure:"password,omitempty"`
 }
 
+// ClusterLicense describes the License data model used in ClusterResourceBodyDataModelONTAP.
 type ClusterLicense struct {
 	Keys []string `mapstructure:"keys,omitempty"`
 }
 
+// ClusterMgmtInterface describes the Management Interface data model used in ClusterResourceBodyDataModelONTAP.
 type ClusterMgmtInterface struct {
 	IP ClusterMgmtInterfaceIP `mapstructure:"ip"`
 }
 
+// ClusterMgmtInterfaceIP describes the IP data model used in ClusterMgmtInterface.
 type ClusterMgmtInterfaceIP struct {
 	Address string `mapstructure:"address,omitempty"`
 	Gateway string `mapstructure:"gateway,omitempty"`
 	Netmask string `mapstructure:"netmask,omitempty"`
 }
 
+// timeZone describes the TimeZone data model used in ClusterGetDataModelONTAP.
 type timeZone struct {
 	Name string `mapstructure:"name,omitempty"`
 }
 
+// mgmtInterface describes the Management Interface data model used in ClusterGetDataModelONTAP.
 type mgmtInterface struct {
 	IP   ipAddress `mapstructure:"ip"`
 	Name string    `mapstructure:"name"`
 	ID   string    `mapstructure:"uuid"`
 }
 
+// ClusterCertificate describes the Certificate data model used in ClusterGetDataModelONTAP.
 type ClusterCertificate struct {
 	ID string `mapstructure:"uuid,omitempty"`
 }
 
+// versionModelONTAP describes the Version data model used in ClusterGetDataModelONTAP.
 type versionModelONTAP struct {
 	Full       string
 	Generation int
@@ -75,10 +83,12 @@ type versionModelONTAP struct {
 	Minor      int
 }
 
+// ipAddress describes the IP data model used in mgmtInterface.
 type ipAddress struct {
 	Address string
 }
 
+// noddMgmtInterface describes the Management Interface data model used in ClusterNodeGetDataModelONTAP.
 type noddMgmtInterface struct {
 	IP ipAddress
 }

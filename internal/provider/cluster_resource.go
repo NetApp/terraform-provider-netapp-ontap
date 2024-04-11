@@ -63,7 +63,7 @@ type ClusterResourceVersion struct {
 	Full types.String `tfsdk:"full"`
 }
 
-// ClusterResourceManagementInterfaceIP describes the ManagementInterface data model.
+// ClusterResourceManagementInterface describes the ManagementInterface data model.
 type ClusterResourceManagementInterface struct {
 	Address types.String `tfsdk:"address"`
 	Gateway types.String `tfsdk:"gateway"`
@@ -334,7 +334,7 @@ func (r *ClusterResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	// dns domains
 	elements := []attr.Value{}
-	for _, dnsDomain := range cluster.DnsDomains {
+	for _, dnsDomain := range cluster.DNSDomains {
 		elements = append(elements, types.StringValue(dnsDomain))
 	}
 	setValue, diags := types.SetValue(types.StringType, elements)
@@ -468,9 +468,8 @@ func (r *ClusterResource) Create(ctx context.Context, req resource.CreateRequest
 	if data.Password.IsUnknown() {
 		errorHandler.MakeAndReportError("Password is required for cluster create", "Attribute 'password' is missing when creating a cluster.")
 		return
-	} else {
-		body.Password = data.Password.ValueString()
 	}
+	body.Password = data.Password.ValueString()
 
 	//contact
 	if !data.Contact.IsUnknown() {
@@ -616,7 +615,7 @@ func (r *ClusterResource) Create(ctx context.Context, req resource.CreateRequest
 
 	// dns domains
 	elements := []attr.Value{}
-	for _, dnsDomain := range cluster.DnsDomains {
+	for _, dnsDomain := range cluster.DNSDomains {
 		elements = append(elements, types.StringValue(dnsDomain))
 	}
 	setValue, diags := types.SetValue(types.StringType, elements)
@@ -832,7 +831,7 @@ func (r *ClusterResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	// dns domains
 	elements := []attr.Value{}
-	for _, dnsDomain := range cluster.DnsDomains {
+	for _, dnsDomain := range cluster.DNSDomains {
 		elements = append(elements, types.StringValue(dnsDomain))
 	}
 	setValue, diags := types.SetValue(types.StringType, elements)
