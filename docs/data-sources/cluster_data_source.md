@@ -30,7 +30,7 @@ Cluster data source
 - `name_servers` (Set of String) The list of IP addresses of the DNS servers. Addresses can be either IPv4 or IPv6 addresses.
 - `nodes` (Attributes List) Cluster Nodes (see [below for nested schema](#nestedatt--nodes))
 - `ntp_servers` (Set of String) Host name, IPv4 address, or IPv6 address for the external NTP time servers.
-- `time_zone` (Attributes) Time zone (see [below for nested schema](#nestedatt--time_zone))
+- `timezone` (Attributes) Time zone (see [below for nested schema](#nestedatt--timezone))
 - `version` (Attributes) ONTAP software version (see [below for nested schema](#nestedatt--version))
 
 <a id="nestedatt--certificate"></a>
@@ -68,8 +68,8 @@ Read-Only:
 - `name` (String)
 
 
-<a id="nestedatt--time_zone"></a>
-### Nested Schema for `time_zone`
+<a id="nestedatt--timezone"></a>
+### Nested Schema for `timezone`
 
 Read-Only:
 
