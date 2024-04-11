@@ -23,10 +23,39 @@ type ClusterGetDataModelONTAP struct {
 	TimeZone             timeZone           `mapstructure:"timezone"`
 	ClusterCertificate   ClusterCertificate `mapstructure:"certificate"`
 	ManagementInterfaces []mgmtInterface    `mapstructure:"management_interfaces"`
+	ID                   string             `mapstructure:"uuid"`
+}
+
+type ClusterResourceBodyDataModelONTAP struct {
+	Name                string               `mapstructure:"name,omitempty"`
+	License             ClusterLicense       `mapstructure:"license,omitempty"`
+	Contact             string               `mapstructure:"contact,omitempty"`
+	Location            string               `mapstructure:"location,omitempty"`
+	DnsDomains          []string             `mapstructure:"dns_domains,omitempty"`
+	NameServers         []string             `mapstructure:"name_servers,omitempty,omitempty"`
+	NtpServers          []string             `mapstructure:"ntp_servers,omitempty"`
+	TimeZone            timeZone             `mapstructure:"timezone,omitempty"`
+	ClusterCertificate  ClusterCertificate   `mapstructure:"certificate,omitempty"`
+	ManagementInterface ClusterMgmtInterface `mapstructure:"management_interface,omitempty"`
+	Password            string               `mapstructure:"password,omitempty"`
+}
+
+type ClusterLicense struct {
+	Keys []string `mapstructure:"keys,omitempty"`
+}
+
+type ClusterMgmtInterface struct {
+	IP ClusterMgmtInterfaceIP `mapstructure:"ip"`
+}
+
+type ClusterMgmtInterfaceIP struct {
+	Address string `mapstructure:"address,omitempty"`
+	Gateway string `mapstructure:"gateway,omitempty"`
+	Netmask string `mapstructure:"netmask,omitempty"`
 }
 
 type timeZone struct {
-	Name string
+	Name string `mapstructure:"name,omitempty"`
 }
 
 type mgmtInterface struct {
@@ -36,7 +65,7 @@ type mgmtInterface struct {
 }
 
 type ClusterCertificate struct {
-	ID string `mapstructure:"uuid"`
+	ID string `mapstructure:"uuid,omitempty"`
 }
 
 type versionModelONTAP struct {
@@ -65,7 +94,7 @@ type ClusterNodeGetDataModelONTAP struct {
 func GetCluster(errorHandler *utils.ErrorHandler, r restclient.RestClient) (*ClusterGetDataModelONTAP, error) {
 	statusCode, response, err := r.GetNilOrOneRecord("cluster", nil, nil)
 	query := r.NewQuery()
-	query.Fields([]string{"name", "location", "contact", "dns_domains", "name_servers", "ntp_servers", "management_interfaces", "timezone", "certificate"})
+	query.Fields([]string{"name", "location", "contact", "dns_domains", "name_servers", "ntp_servers", "management_interfaces", "timezone", "certificate", "uuid"})
 	if err == nil && response == nil {
 		err = fmt.Errorf("no response for GET cluster")
 	}
@@ -79,6 +108,36 @@ func GetCluster(errorHandler *utils.ErrorHandler, r restclient.RestClient) (*Clu
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read cluster data source: %#v", dataONTAP))
 	return &dataONTAP, nil
+}
+
+// CreateCluster to create cluster. This is async operation.
+func CreateCluster(errorHandler *utils.ErrorHandler, r restclient.RestClient, body ClusterResourceBodyDataModelONTAP) error {
+	api := "cluster"
+	var bodyMap map[string]interface{}
+	if err := mapstructure.Decode(body, &bodyMap); err != nil {
+		return errorHandler.MakeAndReportError("error encoding cluster body", fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body))
+	}
+	statusCode, response, err := r.CallCreateMethod(api, nil, bodyMap)
+	if err != nil {
+		return errorHandler.MakeAndReportError("error creating cluster", fmt.Sprintf("error on POST %s: %s, statusCode %d", api, err, statusCode))
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Create cluster source - udata: %#v", response))
+	return nil
+}
+
+// UpdateCluster to update cluster. This is async operation.
+func UpdateCluster(errorHandler *utils.ErrorHandler, r restclient.RestClient, body ClusterResourceBodyDataModelONTAP) error {
+	api := "cluster"
+	var bodyMap map[string]interface{}
+	if err := mapstructure.Decode(body, &bodyMap); err != nil {
+		return errorHandler.MakeAndReportError("error encoding cluster body", fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body))
+	}
+	statusCode, response, err := r.CallUpdateMethod(api, nil, bodyMap)
+	if err != nil {
+		return errorHandler.MakeAndReportError("error updating cluster", fmt.Sprintf("error on POST %s: %s, statusCode %d", api, err, statusCode))
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Update cluster source - udata: %#v", response))
+	return nil
 }
 
 // GetClusterNodes to get cluster nodes info
