@@ -9,13 +9,6 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
-// TODO:
-// copy this file to match you data source (should match internal/interfaces/protocols_san_igroup.go)
-// replace ProtocolsSanIgroup with the name of the resource, following go conventions, eg IPInterface
-// replace protocols_san_igroup with the name of the resource, for logging purposes, eg ip_interface
-// replace api_url with API, eg ip/interfaces
-// delete these 5 lines
-
 // ProtocolsSanIgroupGetDataModelONTAP describes the GET record data model using go types for mapping.
 type ProtocolsSanIgroupGetDataModelONTAP struct {
 	Name       string            `mapstructure:"name"`
@@ -45,8 +38,8 @@ type IgroupLunForLunMap struct {
 // IgroupLun describes the data model for igroup.
 type IgroupLun struct {
 	Name    string `mapstructure:"name"`
-	UUID    string `mapstructure:"uuid"`
-	Comment string `mapstructure:"comment"`
+	UUID    string `mapstructure:"uuid,omitempty"`
+	Comment string `mapstructure:"comment,omitempty"`
 }
 
 // IgroupInitiator describes the data model for initiator.
@@ -57,14 +50,27 @@ type IgroupInitiator struct {
 
 // Portset describes the data model for portset.
 type Portset struct {
-	Name string `mapstructure:"name"`
-	UUID string `mapstructure:"uuid"`
+	Name string `mapstructure:"name,omitempty"`
+	UUID string `mapstructure:"uuid,omitempty"`
 }
 
 // ProtocolsSanIgroupResourceBodyDataModelONTAP describes the body data model using go types for mapping.
 type ProtocolsSanIgroupResourceBodyDataModelONTAP struct {
-	Name string `mapstructure:"name"`
-	SVM  svm    `mapstructure:"svm"`
+	Name       string            `mapstructure:"name"`
+	SVM        SvmDataModelONTAP `mapstructure:"svm"`
+	OsType     string            `mapstructure:"os_type"`
+	Protocol   string            `mapstructure:"protocol"`
+	Comment    string            `mapstructure:"comment,omitempty"`
+	Igroups    []IgroupLun       `mapstructure:"igroups,omitempty"`
+	Initiators []IgroupInitiator `mapstructure:"initiators,omitempty"`
+	Portset    Portset           `mapstructure:"portset,omitempty"`
+}
+
+// UpdateProtocolsSanIgroupResourceBodyDataModelONTAP describes the body data model using go types for mapping.
+type UpdateProtocolsSanIgroupResourceBodyDataModelONTAP struct {
+	Name    string `mapstructure:"name,omitempty"`
+	OsType  string `mapstructure:"os_type,omitempty"`
+	Comment string `mapstructure:"comment,omitempty"`
 }
 
 // ProtocolsSanIgroupDataSourceFilterModel describes the data source data model for queries.
@@ -97,7 +103,7 @@ func GetProtocolsSanIgroupByName(errorHandler *utils.ErrorHandler, r restclient.
 		return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
 			fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
-	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read protocols_san_igroup data source: %#v", dataONTAP))
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read protocols_san_igroup: %#v", dataONTAP))
 	return &dataONTAP, nil
 }
 
@@ -138,4 +144,52 @@ func GetProtocolsSanIgroups(errorHandler *utils.ErrorHandler, r restclient.RestC
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read protocols_san_igroup data source: %#v", dataONTAP))
 	return dataONTAP, nil
+}
+
+// CreateProtocolsSanIgroup to create protocols_san_igroup
+func CreateProtocolsSanIgroup(errorHandler *utils.ErrorHandler, r restclient.RestClient, body ProtocolsSanIgroupResourceBodyDataModelONTAP) (*ProtocolsSanIgroupGetDataModelONTAP, error) {
+	api := "protocols/san/igroups"
+	var bodyMap map[string]interface{}
+	if err := mapstructure.Decode(body, &bodyMap); err != nil {
+		return nil, errorHandler.MakeAndReportError("error encoding protocols_san_igroups body", fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body))
+	}
+	query := r.NewQuery()
+	query.Add("return_records", "true")
+	statusCode, response, err := r.CallCreateMethod(api, query, bodyMap)
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error creating protocols_san_igroups", fmt.Sprintf("error on POST %s: %s, statusCode %d", api, err, statusCode))
+	}
+
+	var dataONTAP ProtocolsSanIgroupGetDataModelONTAP
+	if err := mapstructure.Decode(response.Records[0], &dataONTAP); err != nil {
+		return nil, errorHandler.MakeAndReportError("error decoding protocols_san_igroups info", fmt.Sprintf("error on decode storage/protocols_san_igroups info: %s, statusCode %d, response %#v", err, statusCode, response))
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Create protocols_san_igroups source - udata: %#v", dataONTAP))
+	return &dataONTAP, nil
+}
+
+// UpdateProtocolsSanIgroup to update a protocols_san_igroup
+func UpdateProtocolsSanIgroup(errorHandler *utils.ErrorHandler, r restclient.RestClient, data UpdateProtocolsSanIgroupResourceBodyDataModelONTAP, uuid string) error {
+	var body map[string]interface{}
+	if err := mapstructure.Decode(data, &body); err != nil {
+		return errorHandler.MakeAndReportError("error encoding protocols_san_igroup body", fmt.Sprintf("error on encoding protocols/san/igroups body: %s, body: %#v", err, data))
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Update protocols_san_igroup info: %#v", data))
+	query := r.NewQuery()
+	query.Add("return_records", "true")
+	statusCode, _, err := r.CallUpdateMethod("protocols/san/igroups/"+uuid, query, body)
+	if err != nil {
+		return errorHandler.MakeAndReportError("error updating protocols_san_igroup", fmt.Sprintf("error on PATCH protocols/san/igroups: %s, statusCode %d", err, statusCode))
+	}
+	return nil
+}
+
+// DeleteProtocolsSanIgroup to delete protocols_san_igroup
+func DeleteProtocolsSanIgroup(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) error {
+	api := fmt.Sprintf("protocols/san/igroups/%s", uuid)
+	statusCode, _, err := r.CallDeleteMethod(api, nil, nil)
+	if err != nil {
+		return errorHandler.MakeAndReportError("error deleting protocols_san_igroups", fmt.Sprintf("error on DELETE %s: %s, statusCode %d", api, err, statusCode))
+	}
+	return nil
 }
