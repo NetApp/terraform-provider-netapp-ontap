@@ -2,8 +2,6 @@ module github.com/netapp/terraform-provider-netapp-ontap
 
 go 1.21
 
-toolchain go1.21.6
-
 require (
 	github.com/hashicorp/terraform-plugin-docs v0.13.0
 	github.com/hashicorp/terraform-plugin-framework v1.7.0
