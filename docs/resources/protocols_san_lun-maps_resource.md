@@ -82,7 +82,7 @@ Required:
 This resource supports import, which allows you to import existing protocols_san_lun-maps into the state of this resource.
 Import require a unique ID composed of the protocols_san_lun-maps svm_name, igroup_name, lun_name and connection profile, separated by a comma.
 
-id = `destination_path`,`cx_profile_name`
+id = `svm.name`, `igroup.name`, `lun.name`, `cx_profile_name`
 
 ### Terraform Import
 
