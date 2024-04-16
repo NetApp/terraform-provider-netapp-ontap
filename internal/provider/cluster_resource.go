@@ -510,7 +510,7 @@ func (r *ClusterResource) Create(ctx context.Context, req resource.CreateRequest
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		body.DnsDomains = dnsDomains
+		body.DNSDomains = dnsDomains
 	}
 
 	//name servers
@@ -755,7 +755,7 @@ func (r *ClusterResource) Update(ctx context.Context, req resource.UpdateRequest
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		body.DnsDomains = dnsDomains
+		body.DNSDomains = dnsDomains
 	}
 	if !plan.NameServers.IsUnknown() {
 		var nameServers []string

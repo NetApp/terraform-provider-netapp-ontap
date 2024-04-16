@@ -32,7 +32,7 @@ type ClusterResourceBodyDataModelONTAP struct {
 	License             ClusterLicense       `mapstructure:"license,omitempty"`
 	Contact             string               `mapstructure:"contact,omitempty"`
 	Location            string               `mapstructure:"location,omitempty"`
-	DnsDomains          []string             `mapstructure:"dns_domains,omitempty"`
+	DNSDomains          []string             `mapstructure:"dns_domains,omitempty"`
 	NameServers         []string             `mapstructure:"name_servers,omitempty,omitempty"`
 	NtpServers          []string             `mapstructure:"ntp_servers,omitempty"`
 	TimeZone            timeZone             `mapstructure:"timezone,omitempty"`
