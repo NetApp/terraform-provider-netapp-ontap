@@ -112,11 +112,6 @@ func (d *ClusterDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 				Computed:            true,
 				MarkdownDescription: "Location information",
 			},
-			// "password": schema.StringAttribute{
-			// 	Computed:            true,
-			// 	Sensitive:           true,
-			// 	MarkdownDescription: "Password",
-			// },
 			"dns_domains": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Computed:            true,
