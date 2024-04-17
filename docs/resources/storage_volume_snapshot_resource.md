@@ -11,9 +11,11 @@ description: |-
 Create/Modify/Delete a Snapshot resource
 
 ### Related ONTAP commands
+```commandline
 * snapshot create
 * snapshot modify
 * snapshot delete
+```
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher

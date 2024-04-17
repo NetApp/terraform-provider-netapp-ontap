@@ -11,10 +11,12 @@ description: |-
 Create/Modify/Delete a SVMPeer
 
 ### Related ONTAP commands
+```commandline
 * vserver peer create
 * vserver peer accept
 * vserver peer modify
 * vserver peer delete
+```
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher

@@ -57,6 +57,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 * **netapp-ontap_protocols_nfs_service**: Fixed issue with version check failing for minor versions
+* netapp-ontap resource and data source documentation update ([#169](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/169))
 
 
 ## 1.0.3 (2023-12-05)
