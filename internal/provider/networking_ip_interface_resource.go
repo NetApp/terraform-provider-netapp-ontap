@@ -17,13 +17,6 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
-// TODO:
-// copy this file to match you resource (should match internal/provider/ip_interface_resource.go)
-// replace IPInterface with the name of the resource, following go conventions, eg IPInterface
-// replace ip_interface with the name of the resource, for logging purposes, eg ip_interface
-// make sure to create internal/interfaces/ip_interface.go too)
-// delete these 5 lines
-
 // Ensure provider defined types fully satisfy framework interfaces
 var _ resource.Resource = &IPInterfaceResource{}
 var _ resource.ResourceWithImportState = &IPInterfaceResource{}

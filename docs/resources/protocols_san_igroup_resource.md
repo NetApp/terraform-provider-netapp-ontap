@@ -11,9 +11,11 @@ description: |-
 Create/Modify/Delete a protocols_san_igroup resource
 
 ### Related ONTAP commands
+```commandline
 * lun igroup create
 * lun igroup modify
 * lun igroup delete
+```
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher

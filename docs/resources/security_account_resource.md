@@ -8,13 +8,13 @@ description: |-
 
 # Resource Security Account
 
-Create a ONTAP user account
+Create/Delete a ONTAP user account
 
 ### Related ONTAP commands
 ```commandline
-security login create
+* security login create
+* security login delete
 ```
-
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher

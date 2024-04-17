@@ -3,6 +3,8 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -18,15 +20,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
-	"strings"
 )
-
-// TODO:
-// copy this file to match you resource (should match internal/provider/storage_snapshot_policy_resource.go)
-// replace SnapshotPolicy with the name of the resource, following go conventions, eg IPInterface
-// replace storage_snapshot_policy with the name of the resource, for logging purposes, eg ip_interface
-// make sure to create internal/interfaces/storage_snapshot_policy.go too)
-// delete these 5 lines
 
 // Ensure provider defined types fully satisfy framework interfaces
 var _ resource.Resource = &SnapshotPolicyResource{}

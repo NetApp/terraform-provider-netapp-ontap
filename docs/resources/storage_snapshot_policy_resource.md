@@ -10,9 +10,11 @@ description: |-
 Create/Modify/Delete a SnapshotPolicy resource
 
 ### Related ONTAP commands
+```commandline
 * snapshot policy create
 * snapshot policy modify
 * snapshot policy delete
+```
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher
