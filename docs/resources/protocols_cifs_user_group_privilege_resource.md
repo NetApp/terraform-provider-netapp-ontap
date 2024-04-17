@@ -10,9 +10,11 @@ description: |-
 Create, Modify, Delete and Import protocols cifs user local privilege resource
 
 ### Related ONTAP commands
+```commandline
 vserver cifs users-and-groups privilege show
 vserver cifs users-and-groups privilege add-privilege
 vserver cifs users-and-groups privilege reset-privilege
+```
 
 ## Supported Platforms
 * On-perm ONTAP system 9.10.1 or higher

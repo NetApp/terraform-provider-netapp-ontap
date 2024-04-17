@@ -11,8 +11,13 @@ description: |-
 Add/Remove License from ONTAP
 
 ### Related ONTAP commands
+```commandline
 * system license add
 * system license delete
+```
+
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
 
 ## Example Usage
 Example when using a license string

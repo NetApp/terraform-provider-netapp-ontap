@@ -10,9 +10,11 @@ description: |-
 Create/Modify/Delete an NFS Configuration of a SVM.
 
 ### Related ONTAP commands
+```commandline
 * vserver nfs create
 * vserver nfs modify
 * vserver nfs delete
+```
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher

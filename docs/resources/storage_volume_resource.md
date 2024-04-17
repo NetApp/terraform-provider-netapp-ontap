@@ -11,9 +11,11 @@ description: |-
 Create/modify/delete a Volume resource
 
 ### Related ONTAP commands
+```commandline
 * volume create
 * volume modify
 * volume delete
+```
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher
