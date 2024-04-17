@@ -10,9 +10,14 @@ description: |-
 Create/Modify/Delete a cluster peer.
 
 ### Related ONTAP commands
+```commandline
 * cluster peer create
 * cluster peer modify
 * cluster peer delete
+```
+
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
 
 ## Example Usage
 

@@ -10,10 +10,15 @@ description: |-
 
 Create/Update/Delete an IPInterface resource
 
-#Related ONTAP commands
+### Related ONTAP commands
+```commandline
 * network interface create
 * network interface modify
 * network interface delete
+```
+
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
 
 ## Example Usage
 

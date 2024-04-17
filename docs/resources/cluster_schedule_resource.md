@@ -9,6 +9,15 @@ description: |-
 
 Create/Modify/Delete a job schedule in a cluster.
 
+### Related ONTAP commands
+```commandline
+* job schedule cron create
+* job schedule interval create
+* job schedule delete
+* job schedule cron modify
+* job schedule interval modify
+```
+
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP

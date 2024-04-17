@@ -8,7 +8,15 @@ description: |-
 
 # Resource DNS
 
-Create, Modify, Delete and Import a name services DNS resource
+Create/Modify/Delete and Import a name services DNS resource
+
+### Related ONTAP commands
+```commandline
+* vserver services name-service dns create
+* vserver services name-service dns create
+* vserver services name-service dns show
+* vserver services name-service dns delete
+```
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher
