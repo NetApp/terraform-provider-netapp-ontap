@@ -11,9 +11,11 @@ description: |-
 Create/Modify/Delete a SVM 
 
 ### Related ONTAP commands
+```commandline
 * vserver create
 * vserver modify
 * vserver delete
+```
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher
