@@ -11,8 +11,10 @@ description: |-
 Create/Delete an IP Route resource
 
 ### Related ONTAP commands
+```commandline
 * network route create
 * network route delete
+```
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher

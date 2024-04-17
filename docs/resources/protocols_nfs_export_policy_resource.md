@@ -9,9 +9,11 @@ description: |-
 Create/Modify/Delete an Export policy resource
 
 ### Related ONTAP commands
+```commandline
 * vserver export-policy create
 * vserver export-policy delete
 * vserver export-policy rename
+```
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher
