@@ -63,11 +63,15 @@ type ClusterResourceVersion struct {
 	Full types.String `tfsdk:"full"`
 }
 
-// ClusterResourceManagementInterface describes the ManagementInterface data model.
-type ClusterResourceManagementInterface struct {
+type ClusterResourceIP struct {
 	Address types.String `tfsdk:"address"`
 	Gateway types.String `tfsdk:"gateway"`
 	Netmask types.String `tfsdk:"netmask"`
+}
+
+// ClusterResourceManagementInterface describes the ManagementInterface data model.
+type ClusterResourceManagementInterface struct {
+	IP ClusterResourceIP `tfsdk:"ip"`
 }
 
 // ClusterResourceCertificate describes the Certificate data model.
@@ -465,7 +469,7 @@ func (r *ClusterResource) Create(ctx context.Context, req resource.CreateRequest
 	body.Name = data.Name.ValueString()
 
 	// password
-	if data.Password.IsUnknown() {
+	if data.Password.IsNull() {
 		errorHandler.MakeAndReportError("Password is required for cluster create", "Attribute 'password' is missing when creating a cluster.")
 		return
 	}
@@ -482,7 +486,7 @@ func (r *ClusterResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	//license
-	if !data.License.IsUnknown() {
+	if !data.License.IsNull() {
 		var license ClusterResourceLicense
 		diags := data.License.As(ctx, &license, basetypes.ObjectAsOptions{})
 		if diags.HasError() {
@@ -558,21 +562,27 @@ func (r *ClusterResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// management interface
-	if !data.ManagementInterface.IsUnknown() {
+	if !data.ManagementInterface.IsNull() {
 		var mgmtInterface ClusterResourceManagementInterface
 		diags := data.ManagementInterface.As(ctx, &mgmtInterface, basetypes.ObjectAsOptions{})
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		if !mgmtInterface.Address.IsUnknown() {
-			body.ManagementInterface.IP.Address = mgmtInterface.Address.ValueString()
+		// var mgmtInterfaceIP ClusterResourceIP
+		// diags = mgmtInterface.IP.As(ctx, &mgmtInterfaceIP, basetypes.ObjectAsOptions{})
+		// if diags.HasError() {
+		// 	resp.Diagnostics.Append(diags...)
+		// 	return
+		// }
+		if !mgmtInterface.IP.Address.IsNull() {
+			body.ManagementInterface.IP.Address = mgmtInterface.IP.Address.ValueString()
 		}
-		if !mgmtInterface.Gateway.IsUnknown() {
-			body.ManagementInterface.IP.Gateway = mgmtInterface.Gateway.ValueString()
+		if !mgmtInterface.IP.Gateway.IsNull() {
+			body.ManagementInterface.IP.Gateway = mgmtInterface.IP.Gateway.ValueString()
 		}
-		if !mgmtInterface.Netmask.IsUnknown() {
-			body.ManagementInterface.IP.Netmask = mgmtInterface.Netmask.ValueString()
+		if !mgmtInterface.IP.Netmask.IsNull() {
+			body.ManagementInterface.IP.Netmask = mgmtInterface.IP.Netmask.ValueString()
 		}
 	}
 
