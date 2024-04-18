@@ -10,9 +10,11 @@ description: |-
 Create/Modify/Delete an aggregate resource
 
 ### Related ONTAP commands
+```commandline
 * storage aggregate create
 * storage aggregate modify
 * storage aggregate delete
+```
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher
@@ -26,7 +28,7 @@ Create/Modify/Delete an aggregate resource
 resource "netapp-ontap_storage_aggregate_resource" "example" {
   cx_profile_name = "cluster4"
   name = "test_aggr"
-  node = "swenjun-vsim1"
+  node = "swenjun-vsim2"
   disk_count = 5
   disk_size = 1
   disk_size_unit= "gb"

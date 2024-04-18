@@ -11,9 +11,11 @@ description: |-
 Create/Modify/Delete a snapmirror resource
 
 ### Related ONTAP commands
+```commandline
 * snapmirror create
 * snapmirror modify
 * snapmirror delete
+```
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher

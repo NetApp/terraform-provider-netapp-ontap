@@ -19,7 +19,7 @@ The ONTAP Provider allows Terraform to Manage NetApp ONTAP resources.
 ## Requirements
 
 * [Terraform](https://www.terraform.io/downloads.html) 1.4+
-* [Go](https://golang.org/doc/install) 1.19+ (to build the provider plugin)
+* [Go](https://golang.org/doc/install) 1.21+ (to build the provider plugin)
 
 ## Building The Provider
 
