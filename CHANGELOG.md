@@ -37,6 +37,8 @@ FEATURES:
 * **New Resource:** `netapp-ontap_name_services_ldap_resource` ([#25](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/25))
 * **New Resource:** `netapp-ontap_protocols_cifs_service_resource` ([#23](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/23))
 * **New Resource:** `netapp-ontap_protocols_cifs_share_resource` ([#27](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/27))
+* **New Resource:** `netapp-ontap_protocols_san_igroup_resource` ([#9](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/9))
+
 
 ENHANCEMENTS:
 * **netapp-ontap_protocols_nfs_export_policy_resource**: Add support for import ([#34](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/34))
@@ -54,9 +56,11 @@ ENHANCEMENTS:
 * **netapp-ontap_networking_ip_interface_resource**: Add support for import ([#32](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/32))
 * **netapp-ontap_protocols_nfs_export_policy_rule_resource**: Add support for import ([#35](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/35))
 * **netapp-ontap_networking_ip_route_resource**: Add support for import ([#33](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/33))
+* **netapp-ontap_cluster** Add contact, locaton, dns_domains, name_servers, timezone, certificate, ntp_servers, management_interfaces options ([#16](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/16))
 
 BUG FIXES:
 * **netapp-ontap_protocols_nfs_service**: Fixed issue with version check failing for minor versions
+* netapp-ontap resource and data source documentation update ([#169](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/169))
 
 
 ## 1.0.3 (2023-12-05)

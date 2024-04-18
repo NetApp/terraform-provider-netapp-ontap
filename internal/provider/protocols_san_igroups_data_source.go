@@ -161,11 +161,11 @@ func (d *ProtocolsSanIgroupsDataSource) Schema(ctx context.Context, req datasour
 							Computed:            true,
 							Attributes: map[string]schema.Attribute{
 								"name": schema.StringAttribute{
-									MarkdownDescription: "The name of the LUN.",
+									MarkdownDescription: "The name of the portset.",
 									Computed:            true,
 								},
 								"uuid": schema.StringAttribute{
-									MarkdownDescription: "The UUID of the LUN.",
+									MarkdownDescription: "The UUID of the portset.",
 									Computed:            true,
 								},
 							},
