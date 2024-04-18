@@ -58,11 +58,12 @@ type ClusterResourceModel struct {
 	ID                   types.String `tfsdk:"id"`
 }
 
-// ClusterResourceVersion describes the Version data model.
+// ClusterResourceVersion describes the Version data model in ClusterResourceModel.
 type ClusterResourceVersion struct {
 	Full types.String `tfsdk:"full"`
 }
 
+// ClusterResourceIP describes the IP data model in ClusterResourceManagementInterface.
 type ClusterResourceIP struct {
 	Address types.String `tfsdk:"address"`
 	Gateway types.String `tfsdk:"gateway"`
