@@ -108,11 +108,10 @@ resource "netapp-ontap_storage_volume_resource" "example" {
 }
 
 func testAccStorageVolumeResourceConfigUpdate(svm, volName string) string {
-	if host == "" || admin == "" || password == "" {
-		host = os.Getenv("TF_ACC_NETAPP_HOST2")
-		admin = os.Getenv("TF_ACC_NETAPP_USER")
-		password = os.Getenv("TF_ACC_NETAPP_PASS2")
-	}
+	host := os.Getenv("TF_ACC_NETAPP_HOST2")
+	admin := os.Getenv("TF_ACC_NETAPP_USER")
+	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+
 	if host == "" || admin == "" || password == "" {
 		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
 		os.Exit(1)
