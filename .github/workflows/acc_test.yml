@@ -12,7 +12,7 @@ jobs:
     # because Dependabot dosn't get access to secrets, and we don't need it to run our ACC TEST, let skip them for that user
     if: ${{ github.actor != 'dependabot[bot]' }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Go
         uses: actions/setup-go@v4
