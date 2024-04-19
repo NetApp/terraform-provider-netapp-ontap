@@ -93,4 +93,3 @@ Read-Only:
 
 - `full` (String) ONTAP software version
 
-
