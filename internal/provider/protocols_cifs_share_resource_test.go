@@ -50,12 +50,10 @@ func TestAccProtocolsCIFSShareResource(t *testing.T) {
 }
 
 func testAccProtocolsCIFSShareResourceConfig(svm, shareName string) string {
+	host := os.Getenv("TF_ACC_NETAPP_HOST_CIFS")
+	admin := os.Getenv("TF_ACC_NETAPP_USER")
+	password := os.Getenv("TF_ACC_NETAPP_PASS2")
 
-	if host == "" || admin == "" || password == "" {
-		host = os.Getenv("TF_ACC_NETAPP_HOST_CIFS")
-		admin = os.Getenv("TF_ACC_NETAPP_USER")
-		password = os.Getenv("TF_ACC_NETAPP_PASS2")
-	}
 	if host == "" || admin == "" || password == "" {
 		fmt.Println("TF_ACC_NETAPP_HOST_CIFS, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
 		os.Exit(1)
