@@ -8,6 +8,7 @@ CATAGORYS = {
     'application': [],
     'cloud': [],
     'cluster': [
+        "cluster_resource.md",
         "cluster_data_source.md",
         "cluster_license_data_source.md",
         "cluster_licenses_data_source.md",
