@@ -255,11 +255,7 @@ func (r *ProtocolsCIFSShareResource) Schema(ctx context.Context, req resource.Sc
 				ONTAP generates the path dynamically for the connected user and this path is appended to each
 				search path to find the full Home Directory path.
 				`,
-				Optional: true,
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
+				Required: true,
 			},
 			"show_snapshot": schema.BoolAttribute{
 				MarkdownDescription: `Specifies whether or not the Snapshot copies can be viewed and traversed by clients.`,
@@ -434,6 +430,7 @@ func (r *ProtocolsCIFSShareResource) Create(ctx context.Context, req resource.Cr
 
 	body.Name = data.Name.ValueString()
 	body.SVM.Name = data.SVMName.ValueString()
+	body.Path = data.Path.ValueString()
 
 	if !data.Acls.IsUnknown() {
 		aclsList := []interfaces.Acls{}
@@ -496,9 +493,6 @@ func (r *ProtocolsCIFSShareResource) Create(ctx context.Context, req resource.Cr
 	}
 	if !data.Oplocks.IsUnknown() {
 		body.Oplocks = data.Oplocks.ValueBool()
-	}
-	if !data.Path.IsUnknown() {
-		body.Path = data.Path.ValueString()
 	}
 	if !data.ShowSnapshot.IsUnknown() {
 		body.ShowSnapshot = data.ShowSnapshot.ValueBool()
