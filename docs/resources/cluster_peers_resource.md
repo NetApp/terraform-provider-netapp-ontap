@@ -68,7 +68,7 @@ Required:
 - `ip_addresses` (Set of String) list of the remote ip addresses
 
 <a id="nestedatt--source_details"></a>
-### Nested Schema for `remote`
+### Nested Schema for `source_details`
 
 Required:
 

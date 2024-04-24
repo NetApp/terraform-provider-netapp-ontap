@@ -46,6 +46,11 @@ resource "netapp-ontap_protocols_cifs_share_resource" "protocols_cifs_share" {
 				is a home directory share then the share name includes the pattern as
 				%w (Windows user name), %u (UNIX user name) and %d (Windows domain name)
 				variables in any combination with this parameter to generate shares dynamically.
+- `path` (String) The fully-qualified pathname in the owning SVM namespace that is shared through this share.
+				If this is a home directory share then the path should be dynamic by specifying the pattern
+				%w (Windows user name), %u (UNIX user name), or %d (domain name) variables in any combination.
+				ONTAP generates the path dynamically for the connected user and this path is appended to each
+				search path to find the full Home Directory path.
 - `svm_name` (String) svm name
 
 ### Optional
@@ -80,11 +85,6 @@ resource "netapp-ontap_protocols_cifs_share_resource" "protocols_cifs_share" {
 				and may use those files in an offline mode even if the share is available.
 - `oplocks` (Boolean) Specify whether opportunistic locks are enabled on this share. "Oplocks" allow clients to lock files and cache content locally,
 				which can increase performance for file operations.
-- `path` (String) The fully-qualified pathname in the owning SVM namespace that is shared through this share.
-				If this is a home directory share then the path should be dynamic by specifying the pattern
-				%w (Windows user name), %u (UNIX user name), or %d (domain name) variables in any combination.
-				ONTAP generates the path dynamically for the connected user and this path is appended to each
-				search path to find the full Home Directory path.
 - `show_snapshot` (Boolean) Specifies whether or not the Snapshot copies can be viewed and traversed by clients.
 - `unix_symlink` (String) Controls the access of UNIX symbolic links to CIFS clients.
 				The supported values are:
