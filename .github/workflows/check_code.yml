@@ -33,7 +33,7 @@ jobs:
 
       - name: Create comments
         if: failure()
-        uses: actions/github-script@v5
+        uses: actions/github-script@v7
         with:
           script: |
             const todo_lines = `${{ steps.check.outputs.todo_lines }}`.trim().split('\n');

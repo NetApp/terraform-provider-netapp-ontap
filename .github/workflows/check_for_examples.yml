@@ -33,7 +33,7 @@ jobs:
 
       - name: Create comment
         if: failure()
-        uses: actions/github-script@v5
+        uses: actions/github-script@v7
         with:
           script: |
             const issue_number = context.payload.pull_request.number;
@@ -70,7 +70,7 @@ jobs:
 
       - name: Create comment
         if: failure()
-        uses: actions/github-script@v5
+        uses: actions/github-script@v7
         with:
           script: |
             const issue_number = context.payload.pull_request.number;
