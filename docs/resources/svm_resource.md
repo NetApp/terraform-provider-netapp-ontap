@@ -19,8 +19,7 @@ Create/Modify/Delete a SVM
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher
-
-~> **NOTE:** Amazon FSx for NetApp ONTAP is not supported
+* Amazon FSx for NetApp ONTAP
 
 
 

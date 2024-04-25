@@ -18,6 +18,7 @@ Flexcache resource
 ```
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
 
 ## Example Usage
 resource "netapp-ontap_storage_flexcache_resource" "storage_flexcache" {
