@@ -21,6 +21,7 @@ vserver cifs users-and-groups local-user delete
 
 ## Supported Platforms
 * On-perm ONTAP system 9.10 or higher
+* Amazon FSx for NetApp ONTAP
 
 ## Example Usage
 

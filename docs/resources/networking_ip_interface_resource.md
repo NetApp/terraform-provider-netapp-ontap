@@ -19,6 +19,7 @@ Create/Update/Delete an IPInterface resource
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
 
 ## Example Usage
 
