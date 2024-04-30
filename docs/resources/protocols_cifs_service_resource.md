@@ -23,6 +23,7 @@ Create/Modify/Delete a CIFS service resource
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
 * In security, parameters only can be used in ONTAP 9.8 or higher:
   `lm_compatibility_level`, `encrypt_dc_connection`
 * In security, parameters only can be used in ONTAP 9.10 or higher
