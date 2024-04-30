@@ -20,6 +20,7 @@ Create/Modify/Delete a Local Group resource
 
 ## Supported Platforms
 * On-perm ONTAP system 9.10 or higher
+* Amazon FSx for NetApp ONTAP
 
 ## Example Usage
 

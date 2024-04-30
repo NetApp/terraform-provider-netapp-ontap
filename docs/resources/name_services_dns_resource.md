@@ -20,6 +20,7 @@ Create/Modify/Delete and Import a name services DNS resource
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
 
 [comment]: <> (TODO: Add support for Amazon FSx for NetApp ONTAP )
 

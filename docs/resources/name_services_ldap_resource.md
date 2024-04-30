@@ -20,6 +20,7 @@ Create/Modify/Delete an LDAP configuration for an SVM
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
 
 ## Important notes
 * Each SVM can have one LDAP configuration.
