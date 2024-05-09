@@ -1,3 +1,8 @@
+# 1.2.0 ()
+
+FEATURES:
+* **New Data Source:** `netapp_ontap_storage_volumes_files_data_source` ([#8](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/8))
+
 ## 1.1.0 ()
 
 FEATURES:
