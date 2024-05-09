@@ -29,7 +29,7 @@ type StorageVolumesFilesDataSource struct {
 	config resourceOrDataSourceConfig
 }
 
-// StorageVolumesFilesDataSourceModel describes the data source data model.
+// StorageVolumesFileDataSourceModel describes the data source data model.
 type StorageVolumesFileDataSourceModel struct {
 	CxProfileName    types.String `tfsdk:"cx_profile_name"`
 	VolumeName       types.String `tfsdk:"volume_name"`
@@ -57,12 +57,6 @@ type StorageVolumesFilesDataSourceModel struct {
 	ByteOffset          types.Int64                         `tfsdk:"byte_offset"`
 	Name                types.String                        `tfsdk:"name"`
 	OverwriteEnabled    types.Bool                          `tfsdk:"overwrite_enabled"`
-}
-
-// StorageVolumesFileDataSourceFilterModel describes the data source data model for queries.
-type StorageVolumesFileDataSourceFilterModel struct {
-	Name    types.String `tfsdk:"name"`
-	SVMName types.String `tfsdk:"svm_name"`
 }
 
 // Metadata returns the data source type name.
