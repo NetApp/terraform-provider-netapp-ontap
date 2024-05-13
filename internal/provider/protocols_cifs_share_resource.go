@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -28,15 +29,15 @@ var _ resource.ResourceWithImportState = &ProtocolsCIFSShareResource{}
 // NewProtocolsCIFSShareResource is a helper function to simplify the provider implementation.
 func NewProtocolsCIFSShareResource() resource.Resource {
 	return &ProtocolsCIFSShareResource{
-		config: resourceOrDataSourceConfig{
-			name: "protocols_cifs_share_resource",
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_cifs_share_resource",
 		},
 	}
 }
 
 // ProtocolsCIFSShareResource defines the resource implementation.
 type ProtocolsCIFSShareResource struct {
-	config resourceOrDataSourceConfig
+	config connection.ResourceOrDataSourceConfig
 }
 
 // ProtocolsCIFSShareResourceModel describes the resource data model.
@@ -74,7 +75,7 @@ type ProtocolsCIFSShareResourceAcls struct {
 
 // Metadata returns the resource type name.
 func (r *ProtocolsCIFSShareResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + r.config.name
+	resp.TypeName = req.ProviderTypeName + "_" + r.config.Name
 }
 
 // Schema defines the schema for the resource.
@@ -313,14 +314,14 @@ func (r *ProtocolsCIFSShareResource) Configure(ctx context.Context, req resource
 	if req.ProviderData == nil {
 		return
 	}
-	config, ok := req.ProviderData.(Config)
+	config, ok := req.ProviderData.(connection.Config)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
 			fmt.Sprintf("Expected Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 	}
-	r.config.providerConfig = config
+	r.config.ProviderConfig = config
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -336,7 +337,7 @@ func (r *ProtocolsCIFSShareResource) Read(ctx context.Context, req resource.Read
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -422,7 +423,7 @@ func (r *ProtocolsCIFSShareResource) Create(ctx context.Context, req resource.Cr
 		return
 	}
 
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -603,7 +604,7 @@ func (r *ProtocolsCIFSShareResource) Update(ctx context.Context, req resource.Up
 		return
 	}
 
-	client, err := getRestClient(errorHandler, r.config, plan.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, plan.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -717,7 +718,7 @@ func (r *ProtocolsCIFSShareResource) Delete(ctx context.Context, req resource.De
 	}
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return

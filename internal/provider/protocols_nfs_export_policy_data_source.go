@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -20,15 +21,15 @@ var _ datasource.DataSource = &ExportPolicyDataSource{}
 // NewExportPolicyDataSource is a helper function to simplify the provider implementation.
 func NewExportPolicyDataSource() datasource.DataSource {
 	return &ExportPolicyDataSource{
-		config: resourceOrDataSourceConfig{
-			name: "protocols_nfs_export_policy_data_source",
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_nfs_export_policy_data_source",
 		},
 	}
 }
 
 // ExportPolicyDataSource defines the source implementation.
 type ExportPolicyDataSource struct {
-	config resourceOrDataSourceConfig
+	config connection.ResourceOrDataSourceConfig
 }
 
 // ExportPolicyDataSourceModel describes the source data model.
@@ -47,7 +48,7 @@ type ExportPolicyDataSourceFilterModel struct {
 
 // Metadata returns the resource type name.
 func (d *ExportPolicyDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + d.config.name
+	resp.TypeName = req.ProviderTypeName + "_" + d.config.Name
 }
 
 // Schema defines the schema for the resource.
@@ -84,14 +85,14 @@ func (d *ExportPolicyDataSource) Configure(ctx context.Context, req datasource.C
 		return
 	}
 
-	config, ok := req.ProviderData.(Config)
+	config, ok := req.ProviderData.(connection.Config)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Data Source Configure Type",
 			fmt.Sprintf("Expected Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 	}
-	d.config.providerConfig = config
+	d.config.ProviderConfig = config
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -106,7 +107,7 @@ func (d *ExportPolicyDataSource) Read(ctx context.Context, req datasource.ReadRe
 	}
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	client, err := getRestClient(errorHandler, d.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, d.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return

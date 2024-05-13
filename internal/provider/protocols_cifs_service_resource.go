@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
@@ -34,15 +35,15 @@ var _ resource.ResourceWithImportState = &CifsServiceResource{}
 // NewCifsServiceResource is a helper function to simplify the provider implementation.
 func NewCifsServiceResource() resource.Resource {
 	return &CifsServiceResource{
-		config: resourceOrDataSourceConfig{
-			name: "protocols_cifs_service_resource",
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_cifs_service_resource",
 		},
 	}
 }
 
 // CifsServiceResource defines the resource implementation.
 type CifsServiceResource struct {
-	config resourceOrDataSourceConfig
+	config connection.ResourceOrDataSourceConfig
 }
 
 // CifsServiceResourceModel describes the resource data model.
@@ -94,7 +95,7 @@ type CifsSecurityResourceModel struct {
 
 // Metadata returns the resource type name.
 func (r *CifsServiceResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + r.config.name
+	resp.TypeName = req.ProviderTypeName + "_" + r.config.Name
 }
 
 // Schema defines the schema for the resource.
@@ -360,14 +361,14 @@ func (r *CifsServiceResource) Configure(ctx context.Context, req resource.Config
 	if req.ProviderData == nil {
 		return
 	}
-	config, ok := req.ProviderData.(Config)
+	config, ok := req.ProviderData.(connection.Config)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
 			fmt.Sprintf("Expected Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 	}
-	r.config.providerConfig = config
+	r.config.ProviderConfig = config
 }
 
 // stringSliceToSet converts a slice of strings to a types.Set
@@ -397,7 +398,7 @@ func (r *CifsServiceResource) Read(ctx context.Context, req resource.ReadRequest
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -509,7 +510,7 @@ func (r *CifsServiceResource) Create(ctx context.Context, req resource.CreateReq
 	body.Name = data.Name.ValueString()
 	body.SVM.Name = data.SVMName.ValueString()
 
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -763,7 +764,7 @@ func (r *CifsServiceResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	client, err := getRestClient(errorHandler, r.config, plan.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, plan.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -908,7 +909,7 @@ func (r *CifsServiceResource) Delete(ctx context.Context, req resource.DeleteReq
 	}
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return

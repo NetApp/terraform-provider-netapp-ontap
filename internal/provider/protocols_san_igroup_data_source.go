@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -18,15 +19,15 @@ var _ datasource.DataSource = &ProtocolsSanIgroupDataSource{}
 // NewProtocolsSanIgroupDataSource is a helper function to simplify the provider implementation.
 func NewProtocolsSanIgroupDataSource() datasource.DataSource {
 	return &ProtocolsSanIgroupDataSource{
-		config: resourceOrDataSourceConfig{
-			name: "protocols_san_igroup_data_source",
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_san_igroup_data_source",
 		},
 	}
 }
 
 // ProtocolsSanIgroupDataSource defines the data source implementation.
 type ProtocolsSanIgroupDataSource struct {
-	config resourceOrDataSourceConfig
+	config connection.ResourceOrDataSourceConfig
 }
 
 // ProtocolsSanIgroupDataSourceModel describes the data source data model.
@@ -77,7 +78,7 @@ type ProtocolsSanIgroupDataSourcePortsetModel struct {
 
 // Metadata returns the data source type name.
 func (d *ProtocolsSanIgroupDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + d.config.name
+	resp.TypeName = req.ProviderTypeName + "_" + d.config.Name
 }
 
 // Schema defines the schema for the data source.
@@ -201,14 +202,14 @@ func (d *ProtocolsSanIgroupDataSource) Configure(ctx context.Context, req dataso
 	if req.ProviderData == nil {
 		return
 	}
-	config, ok := req.ProviderData.(Config)
+	config, ok := req.ProviderData.(connection.Config)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Data Source Configure Type",
 			fmt.Sprintf("Expected Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 	}
-	d.config.providerConfig = config
+	d.config.ProviderConfig = config
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -224,7 +225,7 @@ func (d *ProtocolsSanIgroupDataSource) Read(ctx context.Context, req datasource.
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
-	client, err := getRestClient(errorHandler, d.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, d.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return

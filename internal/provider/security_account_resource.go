@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
@@ -27,15 +28,15 @@ var _ resource.ResourceWithImportState = &SecurityAccountResource{}
 // NewSecurityAccountResource is a helper function to simplify the provider implementation.
 func NewSecurityAccountResource() resource.Resource {
 	return &SecurityAccountResource{
-		config: resourceOrDataSourceConfig{
-			name: "security_account_resource",
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "security_account_resource",
 		},
 	}
 }
 
 // SecurityAccountResource defines the resource implementation.
 type SecurityAccountResource struct {
-	config resourceOrDataSourceConfig
+	config connection.ResourceOrDataSourceConfig
 }
 
 // SecurityAccountResourceModel describes the resource data model.
@@ -72,7 +73,7 @@ type RoleResourceModel struct {
 
 // Metadata returns the resource type name.
 func (r *SecurityAccountResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + r.config.name
+	resp.TypeName = req.ProviderTypeName + "_" + r.config.Name
 }
 
 // Schema defines the schema for the resource.
@@ -176,14 +177,14 @@ func (r *SecurityAccountResource) Configure(ctx context.Context, req resource.Co
 	if req.ProviderData == nil {
 		return
 	}
-	config, ok := req.ProviderData.(Config)
+	config, ok := req.ProviderData.(connection.Config)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
 			fmt.Sprintf("Expected Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 	}
-	r.config.providerConfig = config
+	r.config.ProviderConfig = config
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -199,7 +200,7 @@ func (r *SecurityAccountResource) Read(ctx context.Context, req resource.ReadReq
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -349,7 +350,7 @@ func (r *SecurityAccountResource) Create(ctx context.Context, req resource.Creat
 		body.Locked = data.Locked.ValueBool()
 	}
 
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -444,7 +445,7 @@ func (r *SecurityAccountResource) Delete(ctx context.Context, req resource.Delet
 	}
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return

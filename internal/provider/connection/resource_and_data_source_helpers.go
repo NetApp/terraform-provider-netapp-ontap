@@ -1,4 +1,4 @@
-package provider
+package connection
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -6,27 +6,27 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
-type resourceOrDataSourceConfig struct {
-	client         *restclient.RestClient
-	providerConfig Config
-	name           string
+type ResourceOrDataSourceConfig struct {
+	Client         *restclient.RestClient
+	ProviderConfig Config
+	Name           string
 }
 
 // getRestClient will use existing client config.client or create one if it's not set
-func getRestClient(errorHandler *utils.ErrorHandler, config resourceOrDataSourceConfig, cxProfileName types.String) (*restclient.RestClient, error) {
+func GetRestClient(errorHandler *utils.ErrorHandler, config ResourceOrDataSourceConfig, cxProfileName types.String) (*restclient.RestClient, error) {
 
-	if config.client == nil {
-		client, err := config.providerConfig.NewClient(errorHandler, cxProfileName.ValueString(), config.name)
+	if config.Client == nil {
+		client, err := config.ProviderConfig.NewClient(errorHandler, cxProfileName.ValueString(), config.Name)
 		if err != nil {
 			return nil, err
 		}
-		config.client = client
+		config.Client = client
 	}
-	return config.client, nil
+	return config.Client, nil
 }
 
 // func flattenTypesInt64List(clist []int64) interface{} {
-func flattenTypesInt64List(clist []int64) []types.Int64 {
+func FlattenTypesInt64List(clist []int64) []types.Int64 {
 	if len(clist) == 0 {
 		return nil
 	}
@@ -38,8 +38,8 @@ func flattenTypesInt64List(clist []int64) []types.Int64 {
 	return cronUnits
 }
 
-// func flattenTypesStringList(terraformStringsList []string) interface{} {
-func flattenTypesStringList(terraformStringsList []string) []types.String {
+// func FlattenTypesStringList(terraformStringsList []string) interface{} {
+func FlattenTypesStringList(terraformStringsList []string) []types.String {
 	if len(terraformStringsList) == 0 {
 		return nil
 	}

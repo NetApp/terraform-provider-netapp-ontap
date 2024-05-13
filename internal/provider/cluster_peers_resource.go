@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"reflect"
 	"strings"
 
@@ -26,15 +27,15 @@ var _ resource.ResourceWithImportState = &ClusterPeersResource{}
 // NewClusterPeersResource is a helper function to simplify the provider implementation.
 func NewClusterPeersResource() resource.Resource {
 	return &ClusterPeersResource{
-		config: resourceOrDataSourceConfig{
-			name: "cluster_peers_resource",
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "cluster_peers_resource",
 		},
 	}
 }
 
 // ClusterPeersResource defines the resource implementation.
 type ClusterPeersResource struct {
-	config resourceOrDataSourceConfig
+	config connection.ResourceOrDataSourceConfig
 }
 
 // ClusterPeersResourceModel describes the resource data model.
@@ -64,7 +65,7 @@ type Status struct {
 
 // Metadata returns the resource type name.
 func (r *ClusterPeersResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + r.config.name
+	resp.TypeName = req.ProviderTypeName + "_" + r.config.Name
 }
 
 // Schema defines the schema for the resource.
@@ -157,14 +158,14 @@ func (r *ClusterPeersResource) Configure(ctx context.Context, req resource.Confi
 	if req.ProviderData == nil {
 		return
 	}
-	config, ok := req.ProviderData.(Config)
+	config, ok := req.ProviderData.(connection.Config)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
 			fmt.Sprintf("Expected Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 	}
-	r.config.providerConfig = config
+	r.config.ProviderConfig = config
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -180,7 +181,7 @@ func (r *ClusterPeersResource) Read(ctx context.Context, req resource.ReadReques
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -257,7 +258,7 @@ func (r *ClusterPeersResource) Create(ctx context.Context, req resource.CreateRe
 		body.Authentication.Passphrase = data.Passphrase.ValueString()
 	}
 
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -269,7 +270,7 @@ func (r *ClusterPeersResource) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	data.ID = types.StringValue(resource.UUID)
-	peerClient, err := getRestClient(errorHandler, r.config, data.PeerCxProfileName)
+	peerClient, err := connection.GetRestClient(errorHandler, r.config, data.PeerCxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -325,7 +326,7 @@ func (r *ClusterPeersResource) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	client, err := getRestClient(errorHandler, r.config, state.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, state.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -378,7 +379,7 @@ func (r *ClusterPeersResource) Delete(ctx context.Context, req resource.DeleteRe
 	}
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -395,7 +396,7 @@ func (r *ClusterPeersResource) Delete(ctx context.Context, req resource.DeleteRe
 	}
 
 	// Delete remote peer
-	peerClient, err := getRestClient(errorHandler, r.config, data.PeerCxProfileName)
+	peerClient, err := connection.GetRestClient(errorHandler, r.config, data.PeerCxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return

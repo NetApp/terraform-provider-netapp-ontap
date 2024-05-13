@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
 	"time"
 
@@ -27,15 +28,15 @@ var _ resource.ResourceWithImportState = &SnapmirrorResource{}
 // NewSnapmirrorResource is a helper function to simplify the provider implementation.
 func NewSnapmirrorResource() resource.Resource {
 	return &SnapmirrorResource{
-		config: resourceOrDataSourceConfig{
-			name: "snapmirror_resource",
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "snapmirror_resource",
 		},
 	}
 }
 
 // SnapmirrorResource defines the resource implementation.
 type SnapmirrorResource struct {
-	config resourceOrDataSourceConfig
+	config connection.ResourceOrDataSourceConfig
 }
 
 // SnapmirrorResourceModel describes the resource data model.
@@ -74,7 +75,7 @@ type Policy struct {
 
 // Metadata returns the resource type name
 func (r *SnapmirrorResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + r.config.name
+	resp.TypeName = req.ProviderTypeName + "_" + r.config.Name
 }
 
 // Schema defines the schema for the resource.
@@ -178,14 +179,14 @@ func (r *SnapmirrorResource) Configure(ctx context.Context, req resource.Configu
 	if req.ProviderData == nil {
 		return
 	}
-	config, ok := req.ProviderData.(Config)
+	config, ok := req.ProviderData.(connection.Config)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
 			fmt.Sprintf("Expected Config, got: %T. Please resport this issue to the provider developers.", req.ProviderData),
 		)
 	}
-	r.config.providerConfig = config
+	r.config.ProviderConfig = config
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -201,7 +202,7 @@ func (r *SnapmirrorResource) Read(ctx context.Context, req resource.ReadRequest,
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside New Client
 		return
@@ -273,7 +274,7 @@ func (r *SnapmirrorResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -337,7 +338,7 @@ func (r *SnapmirrorResource) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	client, err := getRestClient(errorHandler, r.config, state.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, state.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -401,7 +402,7 @@ func (r *SnapmirrorResource) Delete(ctx context.Context, req resource.DeleteRequ
 	}
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return

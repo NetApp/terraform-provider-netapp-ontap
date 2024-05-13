@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -18,15 +19,15 @@ var _ datasource.DataSource = &StorageFlexcacheDataSource{}
 // NewStorageFlexcacheDataSource is a helper function to simplify the provider implementation.
 func NewStorageFlexcacheDataSource() datasource.DataSource {
 	return &StorageFlexcacheDataSource{
-		config: resourceOrDataSourceConfig{
-			name: "storage_flexcache_data_source",
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "storage_flexcache_data_source",
 		},
 	}
 }
 
 // StorageFlexcacheDataSource implements the datasource interface and defines the data model for the resource.
 type StorageFlexcacheDataSource struct {
-	config resourceOrDataSourceConfig
+	config connection.ResourceOrDataSourceConfig
 }
 
 // StorageFlexcacheDataSourceModel describes the resource data model.
@@ -49,7 +50,7 @@ type StorageFlexcacheDataSourceModel struct {
 
 // Metadata returns the resource type name.
 func (r *StorageFlexcacheDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + r.config.name
+	resp.TypeName = req.ProviderTypeName + "_" + r.config.Name
 }
 
 // Schema defines the schema for the resource.
@@ -176,14 +177,14 @@ func (r *StorageFlexcacheDataSource) Configure(ctx context.Context, req datasour
 		return
 	}
 
-	config, ok := req.ProviderData.(Config)
+	config, ok := req.ProviderData.(connection.Config)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected  Resource Configure Type",
 			fmt.Sprintf("Expected Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 	}
-	r.config.providerConfig = config
+	r.config.ProviderConfig = config
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -199,7 +200,7 @@ func (r *StorageFlexcacheDataSource) Read(ctx context.Context, req datasource.Re
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
