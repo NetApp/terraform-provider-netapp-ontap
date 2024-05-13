@@ -71,7 +71,6 @@ require (
 	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/hashicorp/cli v1.1.6 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
-	github.com/kisielk/godepgraph v0.0.0-20240411160502-0f324ca7e282 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/oklog/run v1.1.0 // indirect
