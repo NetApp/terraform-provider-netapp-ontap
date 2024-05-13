@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -109,7 +110,7 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 		resp.Diagnostics.AddError("no connection profile", "At least one connection profile must be defined.")
 		return
 	}
-	connectionProfiles := make(map[string]ConnectionProfile, len(data.ConnectionProfiles))
+	connectionProfiles := make(map[string]connection.ConnectionProfile, len(data.ConnectionProfiles))
 	for _, profile := range data.ConnectionProfiles {
 		var validateCerts bool
 		if profile.ValidateCerts.IsNull() {
@@ -117,7 +118,7 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 		} else {
 			validateCerts = profile.ValidateCerts.ValueBool()
 		}
-		connectionProfiles[profile.Name.ValueString()] = ConnectionProfile{
+		connectionProfiles[profile.Name.ValueString()] = connection.ConnectionProfile{
 			Hostname:              profile.Hostname.ValueString(),
 			Username:              profile.Username.ValueString(),
 			Password:              profile.Password.ValueString(),
@@ -129,7 +130,7 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 	if data.JobCompletionTimeOut.IsNull() {
 		jobCompletionTimeOut = 600
 	}
-	config := Config{
+	config := connection.Config{
 		ConnectionProfiles:   connectionProfiles,
 		JobCompletionTimeOut: int(jobCompletionTimeOut),
 		Version:              p.version,

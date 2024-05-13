@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strconv"
 	"strings"
 
@@ -24,15 +25,15 @@ var _ resource.ResourceWithImportState = &IPInterfaceResource{}
 // NewIPInterfaceResource is a helper function to simplify the provider implementation.
 func NewIPInterfaceResource() resource.Resource {
 	return &IPInterfaceResource{
-		config: resourceOrDataSourceConfig{
-			name: "networking_ip_interface_resource",
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "networking_ip_interface_resource",
 		},
 	}
 }
 
 // IPInterfaceResource defines the resource implementation.
 type IPInterfaceResource struct {
-	config resourceOrDataSourceConfig
+	config connection.ResourceOrDataSourceConfig
 }
 
 // IPInterfaceResourceIP describes the resource data model for IP address and mask.
@@ -59,7 +60,7 @@ type IPInterfaceResourceModel struct {
 
 // Metadata returns the resource type name.
 func (r *IPInterfaceResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + r.config.name
+	resp.TypeName = req.ProviderTypeName + "_" + r.config.Name
 }
 
 // Schema defines the schema for the resource.
@@ -127,14 +128,14 @@ func (r *IPInterfaceResource) Configure(ctx context.Context, req resource.Config
 	if req.ProviderData == nil {
 		return
 	}
-	config, ok := req.ProviderData.(Config)
+	config, ok := req.ProviderData.(connection.Config)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
 			fmt.Sprintf("Expected Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 	}
-	r.config.providerConfig = config
+	r.config.ProviderConfig = config
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -150,7 +151,7 @@ func (r *IPInterfaceResource) Read(ctx context.Context, req resource.ReadRequest
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -228,7 +229,7 @@ func (r *IPInterfaceResource) Create(ctx context.Context, req resource.CreateReq
 		Name: data.Location.HomeNode.ValueString(),
 	}
 
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -274,7 +275,7 @@ func (r *IPInterfaceResource) Update(ctx context.Context, req resource.UpdateReq
 		Name: data.Location.HomeNode.ValueString(),
 	}
 
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -302,7 +303,7 @@ func (r *IPInterfaceResource) Delete(ctx context.Context, req resource.DeleteReq
 	}
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return

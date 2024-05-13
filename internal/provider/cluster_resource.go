@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"log"
 	"strings"
 
@@ -28,15 +29,15 @@ var _ resource.ResourceWithImportState = &ClusterResource{}
 // NewClusterResource is a helper function to simplify the provider implementation.
 func NewClusterResource() resource.Resource {
 	return &ClusterResource{
-		config: resourceOrDataSourceConfig{
-			name: "cluster_resource",
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "cluster_resource",
 		},
 	}
 }
 
 // ClusterResource defines the resource implementation.
 type ClusterResource struct {
-	config resourceOrDataSourceConfig
+	config connection.ResourceOrDataSourceConfig
 }
 
 // ClusterResourceModel describes the resource data model.
@@ -92,7 +93,7 @@ type ClusterResourceLicense struct {
 
 // Metadata returns the resource type name.
 func (r *ClusterResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + r.config.name
+	resp.TypeName = req.ProviderTypeName + "_" + r.config.Name
 }
 
 // Schema defines the schema for the resource.
@@ -278,14 +279,14 @@ func (r *ClusterResource) Configure(ctx context.Context, req resource.ConfigureR
 	if req.ProviderData == nil {
 		return
 	}
-	config, ok := req.ProviderData.(Config)
+	config, ok := req.ProviderData.(connection.Config)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
 			fmt.Sprintf("Expected Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 	}
-	r.config.providerConfig = config
+	r.config.ProviderConfig = config
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -301,7 +302,7 @@ func (r *ClusterResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -460,7 +461,7 @@ func (r *ClusterResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -747,7 +748,7 @@ func (r *ClusterResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 
-	client, err := getRestClient(errorHandler, r.config, plan.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, plan.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return

@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -18,15 +19,15 @@ var _ datasource.DataSource = &NameServicesDNSsDataSource{}
 // NewNameServicesDNSsDataSource is a helper function to simplify the provider implementation.
 func NewNameServicesDNSsDataSource() datasource.DataSource {
 	return &NameServicesDNSsDataSource{
-		config: resourceOrDataSourceConfig{
-			name: "name_services_dnss_data_source",
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "name_services_dnss_data_source",
 		},
 	}
 }
 
 // NameServicesDNSsDataSource defines the data source implementation.
 type NameServicesDNSsDataSource struct {
-	config resourceOrDataSourceConfig
+	config connection.ResourceOrDataSourceConfig
 }
 
 // NameServicesDNSsDataSourceModel describes the data source data model.
@@ -45,7 +46,7 @@ type NameServicesDNSDataSourceFilterModel struct {
 
 // Metadata returns the data source type name.
 func (d *NameServicesDNSsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + d.config.name
+	resp.TypeName = req.ProviderTypeName + "_" + d.config.Name
 }
 
 // Schema defines the schema for the data source.
@@ -116,14 +117,14 @@ func (d *NameServicesDNSsDataSource) Configure(ctx context.Context, req datasour
 	if req.ProviderData == nil {
 		return
 	}
-	config, ok := req.ProviderData.(Config)
+	config, ok := req.ProviderData.(connection.Config)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Data Source Configure Type",
 			fmt.Sprintf("Expected Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 	}
-	d.config.providerConfig = config
+	d.config.ProviderConfig = config
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -139,7 +140,7 @@ func (d *NameServicesDNSsDataSource) Read(ctx context.Context, req datasource.Re
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
-	client, err := getRestClient(errorHandler, d.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, d.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -165,8 +166,8 @@ func (d *NameServicesDNSsDataSource) Read(ctx context.Context, req datasource.Re
 			CxProfileName: types.String(data.CxProfileName),
 			SVMName:       types.StringValue(record.SVM.Name),
 			SVMUUID:       types.StringValue(record.SVM.UUID),
-			Domains:       flattenTypesStringList(record.Domains),
-			NameServers:   flattenTypesStringList(record.Servers),
+			Domains:       connection.FlattenTypesStringList(record.Domains),
+			NameServers:   connection.FlattenTypesStringList(record.Servers),
 		}
 	}
 

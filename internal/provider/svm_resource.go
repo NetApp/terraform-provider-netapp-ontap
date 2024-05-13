@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -23,15 +24,15 @@ var _ resource.ResourceWithImportState = &SvmResource{}
 // NewSvmResource is a helper function to simplify the provider implementation.
 func NewSvmResource() resource.Resource {
 	return &SvmResource{
-		config: resourceOrDataSourceConfig{
-			name: "svm_resource",
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "svm_resource",
 		},
 	}
 }
 
 // SvmResource defines the resource implementation.
 type SvmResource struct {
-	config resourceOrDataSourceConfig
+	config connection.ResourceOrDataSourceConfig
 }
 
 // SvmResourceModel describes the resource data model.
@@ -55,7 +56,7 @@ type Aggregate struct {
 
 // Metadata returns the resource type name.
 func (r *SvmResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + r.config.name
+	resp.TypeName = req.ProviderTypeName + "_" + r.config.Name
 }
 
 // Schema defines the schema for the resource.
@@ -126,14 +127,14 @@ func (r *SvmResource) Configure(ctx context.Context, req resource.ConfigureReque
 	if req.ProviderData == nil {
 		return
 	}
-	config, ok := req.ProviderData.(Config)
+	config, ok := req.ProviderData.(connection.Config)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected  Resource Configure Type",
 			fmt.Sprintf("Expected Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 	}
-	r.config.providerConfig = config
+	r.config.ProviderConfig = config
 }
 
 // Create the resource and sets the initial Terraform state.
@@ -198,7 +199,7 @@ func (r *SvmResource) Create(ctx context.Context, req resource.CreateRequest, re
 	}
 
 	errorHandler = utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -228,7 +229,7 @@ func (r *SvmResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -305,7 +306,7 @@ func (r *SvmResource) Update(ctx context.Context, req resource.UpdateRequest, re
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		return
 	}
@@ -412,7 +413,7 @@ func (r *SvmResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 		return
 	}
 
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return

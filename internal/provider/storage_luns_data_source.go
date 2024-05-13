@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -18,15 +19,15 @@ var _ datasource.DataSource = &StorageLunsDataSource{}
 // NewStorageLunsDataSource is a helper function to simplify the provider implementation.
 func NewStorageLunsDataSource() datasource.DataSource {
 	return &StorageLunsDataSource{
-		config: resourceOrDataSourceConfig{
-			name: "storage_luns_data_source",
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "storage_luns_data_source",
 		},
 	}
 }
 
 // StorageLunsDataSource defines the data source implementation.
 type StorageLunsDataSource struct {
-	config resourceOrDataSourceConfig
+	config connection.ResourceOrDataSourceConfig
 }
 
 // StorageLunsDataSourceModel describes the data source data model.
@@ -45,7 +46,7 @@ type StorageLunsDataSourceFilterModel struct {
 
 // Metadata returns the data source type name.
 func (d *StorageLunsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + d.config.name
+	resp.TypeName = req.ProviderTypeName + "_" + d.config.Name
 }
 
 // Schema defines the schema for the data source.
@@ -166,14 +167,14 @@ func (d *StorageLunsDataSource) Configure(ctx context.Context, req datasource.Co
 	if req.ProviderData == nil {
 		return
 	}
-	config, ok := req.ProviderData.(Config)
+	config, ok := req.ProviderData.(connection.Config)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Data Source Configure Type",
 			fmt.Sprintf("Expected Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 	}
-	d.config.providerConfig = config
+	d.config.ProviderConfig = config
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -189,7 +190,7 @@ func (d *StorageLunsDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
-	client, err := getRestClient(errorHandler, d.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, d.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
