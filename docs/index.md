@@ -11,7 +11,7 @@ description: |-
 Use the Netapp Ontap provider to interact with Netapp Ontap resources supported by the Netapp Ontap REST API.
 You must configure the provider with the proper credentials before you can use it.
 
-Use the navigation to the left to read about the available resources. These are currently 15 Resources and 30 Data Sources.
+Use the navigation to the left to read about the available resources. These are currently 30 Resources and 59 Data Sources.
 
 To learn the basics of Terraform using this provider, follow the hands-on [get started tutorials](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/infrastructure-as-code)
 
