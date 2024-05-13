@@ -92,7 +92,7 @@ Required:
 This Resource supports import, which allows you to import existing storage snapshot policy into the state of this resoruce.
 Import require a unique ID composed of the snapshot policy name, svm_name and cx_profile_name, separated by a comma.
  id = `name`,`svm_name`,`cx_profile_name`
- ### Terraform Import
+### Terraform Import
  For example
  ```shell
   terraform import netapp-ontap_storage_snapshot_policy_resource.example policy1,svm1,cluster4
@@ -100,7 +100,7 @@ Import require a unique ID composed of the snapshot policy name, svm_name and cx
 
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
 
-### Terrafomr Import Block
+### Terraform Import Block
 This requires Terraform 1.5 or higher, and will auto create the configuration for you
 
 First create the block
