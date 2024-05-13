@@ -12,7 +12,7 @@ import (
 )
 
 // ConnectionProfile describes how to reach a cluster or svm
-type ConnectionProfile struct {
+type Profile struct {
 	// TODO: add certs in addition to basic authentication
 	// TODO: Add Timeout (currently hardcoded to 10 seconds)
 	Hostname              string
@@ -24,14 +24,14 @@ type ConnectionProfile struct {
 
 // Config is created by the provide configure method
 type Config struct {
-	ConnectionProfiles   map[string]ConnectionProfile
+	ConnectionProfiles   map[string]Profile
 	Version              string
 	JobCompletionTimeOut int
 }
 
 // GetConnectionProfile retrieves a connection profile based on name
 // If name is empty and only one profile is defined, it is returned
-func (c *Config) GetConnectionProfile(name string) (*ConnectionProfile, error) {
+func (c *Config) GetConnectionProfile(name string) (*Profile, error) {
 	if c == nil {
 		return nil, fmt.Errorf("internal error, config is not initialized")
 	}

@@ -6,13 +6,14 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
+// ResourceOrDataSourceConfig is a struct that holds the client and provider config
 type ResourceOrDataSourceConfig struct {
 	Client         *restclient.RestClient
 	ProviderConfig Config
 	Name           string
 }
 
-// getRestClient will use existing client config.client or create one if it's not set
+// GetRestClient will use existing client config.client or create one if it's not set
 func GetRestClient(errorHandler *utils.ErrorHandler, config ResourceOrDataSourceConfig, cxProfileName types.String) (*restclient.RestClient, error) {
 
 	if config.Client == nil {
@@ -25,7 +26,7 @@ func GetRestClient(errorHandler *utils.ErrorHandler, config ResourceOrDataSource
 	return config.Client, nil
 }
 
-// func flattenTypesInt64List(clist []int64) interface{} {
+// FlattenTypesInt64List Flatten a list of int64 values
 func FlattenTypesInt64List(clist []int64) []types.Int64 {
 	if len(clist) == 0 {
 		return nil
@@ -38,7 +39,7 @@ func FlattenTypesInt64List(clist []int64) []types.Int64 {
 	return cronUnits
 }
 
-// func FlattenTypesStringList(terraformStringsList []string) interface{} {
+// FlattenTypesStringList Flatten a list of string values
 func FlattenTypesStringList(terraformStringsList []string) []types.String {
 	if len(terraformStringsList) == 0 {
 		return nil

@@ -110,7 +110,7 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 		resp.Diagnostics.AddError("no connection profile", "At least one connection profile must be defined.")
 		return
 	}
-	connectionProfiles := make(map[string]connection.ConnectionProfile, len(data.ConnectionProfiles))
+	connectionProfiles := make(map[string]connection.Profile, len(data.ConnectionProfiles))
 	for _, profile := range data.ConnectionProfiles {
 		var validateCerts bool
 		if profile.ValidateCerts.IsNull() {
@@ -118,7 +118,7 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 		} else {
 			validateCerts = profile.ValidateCerts.ValueBool()
 		}
-		connectionProfiles[profile.Name.ValueString()] = connection.ConnectionProfile{
+		connectionProfiles[profile.Name.ValueString()] = connection.Profile{
 			Hostname:              profile.Hostname.ValueString(),
 			Username:              profile.Username.ValueString(),
 			Password:              profile.Password.ValueString(),
