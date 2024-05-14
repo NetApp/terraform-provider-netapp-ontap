@@ -341,7 +341,7 @@ func (d *ClusterDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		return
 	}
 	if nodes == nil {
-		errorHandler.MakeAndReportError("Cluster Nodes Not found", fmt.Sprintf("cluster nodes not found."))
+		errorHandler.MakeAndReportError("Cluster Nodes Not found", "cluster nodes not found.")
 		return
 	}
 
