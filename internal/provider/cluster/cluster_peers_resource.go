@@ -205,6 +205,7 @@ func (r *ClusterPeersResource) Read(ctx context.Context, req resource.ReadReques
 
 	if restInfo == nil {
 		errorHandler.MakeAndReportError("error reading info", "No Cluster Peer found")
+		return
 	}
 
 	data.ID = types.StringValue(restInfo.UUID)

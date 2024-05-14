@@ -102,7 +102,7 @@ func GetSecurityAccounts(errorHandler *utils.ErrorHandler, r restclient.RestClie
 		return nil, errorHandler.MakeAndReportError("Error occurred when getting security accounts", fmt.Sprintf("error on get security/accounts: %s", err))
 	}
 	if response == nil {
-		return nil, errorHandler.MakeAndReportError("No Accounts found", fmt.Sprintf("No accounts found"))
+		return nil, errorHandler.MakeAndReportError("No Accounts found", "No accounts found")
 	}
 	var dataOntap []SecurityAccountGetDataModelONTAP
 	for _, info := range response {
