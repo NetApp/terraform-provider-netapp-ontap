@@ -478,7 +478,7 @@ func (r *ProtocolsNfsServiceResource) Read(ctx context.Context, req resource.Rea
 		return
 	}
 	if cluster == nil {
-		errorHandler.MakeAndReportError("No cluster found", fmt.Sprintf("Cluster not found."))
+		errorHandler.MakeAndReportError("No cluster found", "Cluster not found.")
 		return
 	}
 
@@ -488,7 +488,7 @@ func (r *ProtocolsNfsServiceResource) Read(ctx context.Context, req resource.Rea
 		return
 	}
 	if restInfo == nil {
-		errorHandler.MakeAndReportError("No NFS service found", fmt.Sprintf("NFS service not found."))
+		errorHandler.MakeAndReportError("No NFS service found", "NFS service not found.")
 		return
 	}
 
@@ -564,7 +564,7 @@ func (r *ProtocolsNfsServiceResource) Create(ctx context.Context, req resource.C
 	}
 	cluster, err := interfaces.GetCluster(errorHandler, *client)
 	if cluster == nil {
-		errorHandler.MakeAndReportError("No cluster found", fmt.Sprintf("Cluster not found."))
+		errorHandler.MakeAndReportError("No cluster found", "Cluster not found.")
 		return
 	}
 	if err != nil {
@@ -746,7 +746,7 @@ func (r *ProtocolsNfsServiceResource) Update(ctx context.Context, req resource.U
 		return
 	}
 	if cluster == nil {
-		errorHandler.MakeAndReportError("No cluster found", fmt.Sprintf("Cluster not found."))
+		errorHandler.MakeAndReportError("No cluster found", "Cluster not found.")
 		return
 	}
 	var request interfaces.ProtocolsNfsServiceGetDataModelONTAP

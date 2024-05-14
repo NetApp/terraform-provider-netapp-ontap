@@ -192,7 +192,7 @@ func (d *SnapmirrorPoliciesDataSource) Read(ctx context.Context, req datasource.
 		return
 	}
 	if cluster == nil {
-		errorHandler.MakeAndReportError("No cluster found", fmt.Sprintf("cluster not found"))
+		errorHandler.MakeAndReportError("No cluster found", "cluster not found")
 		return
 	}
 

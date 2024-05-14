@@ -180,7 +180,6 @@ func (d *StorageLunDataSource) Configure(ctx context.Context, req datasource.Con
 
 // Read refreshes the Terraform state with the latest data.
 func (d *StorageLunDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	tflog.Debug(ctx, fmt.Sprintf("carchi7py read a data source"))
 	var data StorageLunDataSourceModel
 
 	// Read Terraform configuration data into the model
@@ -189,8 +188,6 @@ func (d *StorageLunDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	tflog.Debug(ctx, fmt.Sprintf("carchi7py read a data source: %#v", data))
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
@@ -206,7 +203,6 @@ func (d *StorageLunDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("carchi7py read a rest info source: %#v", restInfo))
 	data.Name = types.StringValue(restInfo.Name)
 	data.CreationTime = types.StringValue(restInfo.CreateTime)
 	data.Location.LogicalUnit = types.StringValue(restInfo.Location.LogicalUnit)

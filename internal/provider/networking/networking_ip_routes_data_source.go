@@ -187,7 +187,7 @@ func (d *IPRoutesDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 	if cluster == nil {
-		errorHandler.MakeAndReportError("No cluster found", fmt.Sprintf("cluster not found"))
+		errorHandler.MakeAndReportError("No cluster found", "cluster not found")
 		return
 	}
 
