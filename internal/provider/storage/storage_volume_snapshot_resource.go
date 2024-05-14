@@ -25,7 +25,7 @@ var _ resource.ResourceWithImportState = &StorageVolumeResource{}
 func NewStorageVolumeSnapshotResource() resource.Resource {
 	return &StorageVolumeSnapshotResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "storage_volume_snapshot_resource",
+			Name: "storage_volume_snapshot",
 		},
 	}
 }

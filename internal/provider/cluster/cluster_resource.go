@@ -30,7 +30,7 @@ var _ resource.ResourceWithImportState = &ClusterResource{}
 func NewClusterResource() resource.Resource {
 	return &ClusterResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "cluster_resource",
+			Name: "cluster",
 		},
 	}
 }

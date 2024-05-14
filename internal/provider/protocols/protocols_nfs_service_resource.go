@@ -34,7 +34,7 @@ var _ resource.ResourceWithImportState = &ProtocolsNfsServiceResource{}
 func NewProtocolsNfsServiceResource() resource.Resource {
 	return &ProtocolsNfsServiceResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "protocols_nfs_service_resource",
+			Name: "protocols_nfs_service",
 		},
 	}
 }

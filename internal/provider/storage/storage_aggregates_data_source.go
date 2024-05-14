@@ -20,7 +20,7 @@ var _ datasource.DataSource = &StorageAggregatesDataSource{}
 func NewStorageAggregatesDataSource() datasource.DataSource {
 	return &StorageAggregatesDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "storage_aggregates_data_source",
+			Name: "storage_aggregates",
 		},
 	}
 }

@@ -22,7 +22,7 @@ var _ datasource.DataSource = &StorageFlexcachesDataSource{}
 func NewStorageFlexcachesDataSource() datasource.DataSource {
 	return &StorageFlexcachesDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "storage_flexcaches_data_source",
+			Name: "storage_flexcaches",
 		},
 	}
 }

@@ -20,7 +20,7 @@ var _ datasource.DataSource = &ClusterLicensingLicensesDataSource{}
 func NewClusterLicensingLicensesDataSource() datasource.DataSource {
 	return &ClusterLicensingLicensesDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "cluster_licensing_licenses_data_source",
+			Name: "cluster_licensing_licenses",
 		},
 	}
 }

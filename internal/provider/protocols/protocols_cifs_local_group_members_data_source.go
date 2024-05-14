@@ -20,7 +20,7 @@ var _ datasource.DataSource = &CifsLocalGroupMembersDataSource{}
 func NewCifsLocalGroupMembersDataSource() datasource.DataSource {
 	return &CifsLocalGroupMembersDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "protocols_cifs_local_group_members_data_source",
+			Name: "protocols_cifs_local_group_members",
 		},
 	}
 }

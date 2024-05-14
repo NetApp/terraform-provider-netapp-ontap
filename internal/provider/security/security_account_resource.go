@@ -29,7 +29,7 @@ var _ resource.ResourceWithImportState = &SecurityAccountResource{}
 func NewSecurityAccountResource() resource.Resource {
 	return &SecurityAccountResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "security_account_resource",
+			Name: "security_account",
 		},
 	}
 }

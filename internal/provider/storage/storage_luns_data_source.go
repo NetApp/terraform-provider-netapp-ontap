@@ -20,7 +20,7 @@ var _ datasource.DataSource = &StorageLunsDataSource{}
 func NewStorageLunsDataSource() datasource.DataSource {
 	return &StorageLunsDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "storage_luns_data_source",
+			Name: "storage_luns,
 		},
 	}
 }

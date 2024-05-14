@@ -36,7 +36,7 @@ var _ resource.ResourceWithImportState = &CifsServiceResource{}
 func NewCifsServiceResource() resource.Resource {
 	return &CifsServiceResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "protocols_cifs_service_resource",
+			Name: "protocols_cifs_service",
 		},
 	}
 }

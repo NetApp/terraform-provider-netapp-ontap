@@ -25,24 +25,24 @@ func TestAccSvmPeersResource(t *testing.T) {
 			// {
 			// 	Config: testAccSvmPeersResourceConfig("acc_test_peer2", "acc_test2", "swenjuncluster-1", "snapmirror"),
 			// 	Check: resource.ComposeTestCheckFunc(
-			// 		resource.TestCheckResourceAttr("netapp-ontap_svm_peers_resource.example", "svm.name", "acc_test_peer2"),
+			// 		resource.TestCheckResourceAttr("netapp-ontap_svm_peers.example", "svm.name", "acc_test_peer2"),
 			// 	),
 			// },
 			// // Update applications
 			// {
 			// 	Config: testAccSvmPeersResourceConfig("acc_test_peer2", "acc_test2", "swenjuncluster-1", "flexcache"),
 			// 	Check: resource.ComposeTestCheckFunc(
-			// 		resource.TestCheckResourceAttr("netapp-ontap_svm_peers_resource.example", "applications.0", "flexcache"),
-			// 		resource.TestCheckResourceAttr("netapp-ontap_svm_peers_resource.example", "svm.name", "acc_test_peer2"),
+			// 		resource.TestCheckResourceAttr("netapp-ontap_svm_peers.example", "applications.0", "flexcache"),
+			// 		resource.TestCheckResourceAttr("netapp-ontap_svm_peers.example", "svm.name", "acc_test_peer2"),
 			// 	),
 			// },
 			// Import and read
 			{
-				ResourceName:  "netapp-ontap_svm_peers_resource.example",
+				ResourceName:  "netapp-ontap_svm_peers.example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "snapmirror_dest_dp", "snapmirror_dest_svm", "swenjuncluster-1", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_svm_peers_resource.example", "svm.name", "snapmirror_dest_dp"),
+					resource.TestCheckResourceAttr("netapp-ontap_svm_peers.example", "svm.name", "snapmirror_dest_dp"),
 				),
 			},
 		},
@@ -78,7 +78,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_svm_peers_resource" "example" {
+resource "netapp-ontap_svm_peers" "example" {
   cx_profile_name = "cluster4"
   svm = {
     name = "%s"

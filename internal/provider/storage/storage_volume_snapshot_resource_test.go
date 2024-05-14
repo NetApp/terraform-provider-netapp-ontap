@@ -24,29 +24,29 @@ func TestAccStorageVolumeSnapshotResource(t *testing.T) {
 			{
 				Config: testAccStorageVolumeSnapshotResourceConfig("carchi-test", "my comment"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "volume_name", "carchi_test_root"),
-					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "name", "snaptest"),
-					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "svm_name", "carchi-test"),
-					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "comment", "my comment"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot.example", "volume_name", "carchi_test_root"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot.example", "name", "snaptest"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot.example", "svm_name", "carchi-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot.example", "comment", "my comment"),
 				),
 			},
 			// Update and read testing
 			{
 				Config: testAccStorageVolumeSnapshotResourceConfig("carchi-test", "new comment"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "volume_name", "carchi_test_root"),
-					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "name", "snaptest"),
-					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "svm_name", "carchi-test"),
-					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "comment", "new comment"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot.example", "volume_name", "carchi_test_root"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot.example", "name", "snaptest"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot.example", "svm_name", "carchi-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot.example", "comment", "new comment"),
 				),
 			},
 			// Test importing a resource
 			{
-				ResourceName:  "netapp-ontap_storage_volume_snapshot_resource.example",
+				ResourceName:  "netapp-ontap_storage_volume_snapshot.example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "snaptest", "carchi_test_root", "carchi-test", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot_resource.example", "name", "snaptest"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_snapshot.example", "name", "snaptest"),
 				),
 			},
 		},
@@ -74,7 +74,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_storage_volume_snapshot_resource" "example" {
+resource "netapp-ontap_storage_volume_snapshot" "example" {
   cx_profile_name = "cluster4"
   name = "snaptest"
   volume_name = "carchi_test_root"

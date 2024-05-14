@@ -20,7 +20,7 @@ var _ datasource.DataSource = &ProtocolsSanIgroupsDataSource{}
 func NewProtocolsSanIgroupsDataSource() datasource.DataSource {
 	return &ProtocolsSanIgroupsDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "protocols_san_igroups_data_source",
+			Name: "protocols_san_igroups",
 		},
 	}
 }

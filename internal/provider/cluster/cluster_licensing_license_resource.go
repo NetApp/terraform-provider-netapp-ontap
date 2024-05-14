@@ -24,7 +24,7 @@ var _ resource.ResourceWithImportState = &ClusterLicensingLicenseResource{}
 func NewClusterLicensingLicenseResource() resource.Resource {
 	return &ClusterLicensingLicenseResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "cluster_licensing_license_resource",
+			Name: "cluster_licensing_license",
 		},
 	}
 }

@@ -29,25 +29,25 @@ func TestAccStorageVolumeResource(t *testing.T) {
 			{
 				Config: testAccStorageVolumeResourceConfig("acc_test", "accVolume1"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "name", "accVolume1"),
-					resource.TestCheckNoResourceAttr("netapp-ontap_storage_volume_resource.example", "volname"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume.example", "name", "accVolume1"),
+					resource.TestCheckNoResourceAttr("netapp-ontap_storage_volume.example", "volname"),
 				),
 			},
 			{
 				Config: testAccStorageVolumeResourceConfigUpdate("automation", "accVolume1"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "name", "accVolume1"),
-					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "nas.group_id", "10"),
-					resource.TestCheckNoResourceAttr("netapp-ontap_storage_volume_resource.example", "volname"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume.example", "name", "accVolume1"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume.example", "nas.group_id", "10"),
+					resource.TestCheckNoResourceAttr("netapp-ontap_storage_volume.example", "volname"),
 				),
 			},
 			// Test importing a resource
 			{
-				ResourceName:  "netapp-ontap_storage_volume_resource.example",
+				ResourceName:  "netapp-ontap_storage_volume.example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s", "acc_test_root", "acc_test", "cluster5"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "name", "automation"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume.example", "name", "automation"),
 				),
 			},
 		},
@@ -76,7 +76,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_storage_volume_resource" "example" {
+resource "netapp-ontap_storage_volume" "example" {
   cx_profile_name = "cluster5"
   name = "%s"
   svm_name = "%s"
@@ -130,7 +130,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_storage_volume_resource" "example" {
+resource "netapp-ontap_storage_volume" "example" {
   cx_profile_name = "cluster5"
   name = "%s"
   svm_name = "%s"

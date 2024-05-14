@@ -20,7 +20,7 @@ var _ datasource.DataSource = &NameServicesDNSsDataSource{}
 func NewNameServicesDNSsDataSource() datasource.DataSource {
 	return &NameServicesDNSsDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "name_services_dnss_data_source",
+			Name: "name_services_dnss",
 		},
 	}
 }

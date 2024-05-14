@@ -29,26 +29,26 @@ func TestAccNetworkingIpInterfaceResource(t *testing.T) {
 			{
 				Config: testAccNetworkingIPInterfaceResourceConfig("svm0", "10.10.10.10", "ontap_cluster_1-01"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "name", "test-interface"),
-					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "svm_name", "svm0"),
+					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface.example", "name", "test-interface"),
+					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface.example", "svm_name", "svm0"),
 				),
 			},
 			// Update and Read
 			{
 				Config: testAccNetworkingIPInterfaceResourceConfig("svm0", "10.10.10.20", "ontap_cluster_1-01"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "name", "test-interface"),
-					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "ip.address", "10.10.10.20"),
+					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface.example", "name", "test-interface"),
+					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface.example", "ip.address", "10.10.10.20"),
 				),
 			},
 			// Test importing a resource
 			{
-				ResourceName:  "netapp-ontap_networking_ip_interface_resource.example",
+				ResourceName:  "netapp-ontap_networking_ip_interface.example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s", "test-interface", "svm0", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "name", "test-interface"),
-					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "ip.address", "10.10.10.20"),
+					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface.example", "name", "test-interface"),
+					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface.example", "ip.address", "10.10.10.20"),
 				),
 			},
 		},
@@ -76,7 +76,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_networking_ip_interface_resource" "example" {
+resource "netapp-ontap_networking_ip_interface" "example" {
 	cx_profile_name = "cluster4"
 	name = "test-interface"
 	svm_name = "%s"

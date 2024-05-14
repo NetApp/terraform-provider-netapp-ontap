@@ -24,28 +24,28 @@ func TestAccNfsServiceResource(t *testing.T) {
 			{
 				Config: testAccNfsServiceResourceConfig("carchi-test", "false"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service_resource.example", "svm_name", "carchi-test"),
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service_resource.example", "protocol.v3_enabled", "false"),
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service_resource.example", "protocol.v40_enabled", "true"),
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service.example", "svm_name", "carchi-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service.example", "protocol.v3_enabled", "false"),
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service.example", "protocol.v40_enabled", "true"),
 				),
 			},
 			// update and read
 			{
 				Config: testAccNfsServiceResourceConfig("carchi-test", "true"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service_resource.example", "svm_name", "carchi-test"),
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service_resource.example", "protocol.v3_enabled", "true"),
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service_resource.example", "protocol.v40_enabled", "true"),
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service.example", "svm_name", "carchi-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service.example", "protocol.v3_enabled", "true"),
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service.example", "protocol.v40_enabled", "true"),
 				),
 			},
 			// Import and read
 			{
-				ResourceName:  "netapp-ontap_protocols_nfs_service_resource.example",
+				ResourceName:  "netapp-ontap_protocols_nfs_service.example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s", "carchi-test", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service_resource.example", "protocol.v3_enabled", "true"),
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service_resource.example", "protocol.v40_enabled", "true"),
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service.example", "protocol.v3_enabled", "true"),
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_service.example", "protocol.v40_enabled", "true"),
 				),
 			},
 		},
@@ -73,7 +73,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_protocols_nfs_service_resource" "example" {
+resource "netapp-ontap_protocols_nfs_service" "example" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   svm_name = "%s"

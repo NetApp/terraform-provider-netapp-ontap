@@ -25,7 +25,7 @@ var _ resource.ResourceWithImportState = &SvmResource{}
 func NewSvmResource() resource.Resource {
 	return &SvmResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "svm_resource",
+			Name: "svm",
 		},
 	}
 }

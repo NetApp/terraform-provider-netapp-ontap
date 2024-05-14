@@ -25,7 +25,7 @@ var _ resource.ResourceWithImportState = &StorageLunResource{}
 func NewStorageLunResource() resource.Resource {
 	return &StorageLunResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "storage_lun_resource",
+			Name: "storage_lun",
 		},
 	}
 }
