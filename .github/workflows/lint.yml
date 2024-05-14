@@ -7,9 +7,9 @@ jobs:
     name: "Run CI"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
         with:
           fetch-depth: 1
-      - uses: dominikh/staticcheck-action@v1.2.0
+      - uses: dominikh/staticcheck-action@v1
         with:
-          version: "2022.1.1"
+          version: "latest"
