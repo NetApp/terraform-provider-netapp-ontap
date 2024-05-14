@@ -28,33 +28,33 @@ func TestAccStorageLunResouce(t *testing.T) {
 			{
 				Config: testAccStorageLunResourceConfig("ACC-lun", "carchi-test", "lunTest", "linux", 1048576),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_lun.example", "name", "ACC-lun"),
-					resource.TestCheckResourceAttr("netapp-ontap_storage_lun.example", "svm_name", "carchi-test"),
-					resource.TestCheckResourceAttr("netapp-ontap_storage_lun.example", "volume_name", "lunTest"),
-					resource.TestCheckResourceAttr("netapp-ontap_storage_lun.example", "os_type", "linux"),
-					resource.TestCheckResourceAttr("netapp-ontap_storage_lun.example", "size", "1048576"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "name", "ACC-lun"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "svm_name", "carchi-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "volume_name", "lunTest"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "os_type", "linux"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "size", "1048576"),
 				),
 			},
 			// Update name
 			{
 				Config: testAccStorageLunResourceConfig("ACC-lun2", "carchi-test", "lunTest", "linux", 1048576),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_lun.example", "name", "ACC-lun2"),
-					resource.TestCheckResourceAttr("netapp-ontap_storage_lun.example", "svm_name", "carchi-test"),
-					resource.TestCheckResourceAttr("netapp-ontap_storage_lun.example", "volume_name", "lunTest"),
-					resource.TestCheckResourceAttr("netapp-ontap_storage_lun.example", "os_type", "linux"),
-					resource.TestCheckResourceAttr("netapp-ontap_storage_lun.example", "size", "1048576"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "name", "ACC-lun2"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "svm_name", "carchi-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "volume_name", "lunTest"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "os_type", "linux"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "size", "1048576"),
 				),
 			},
 			// Test importing a resource
 			{
-				ResourceName:  "netapp-ontap_storage_lun.example",
+				ResourceName:  "netapp-ontap_lun.example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "ACC-import-lun", "lunTest", "carchi-test", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_lun.example", "name", "ACC-import-lun"),
-					resource.TestCheckResourceAttr("netapp-ontap_storage_lun.example", "os_type", "linux"),
-					resource.TestCheckResourceAttr("netapp-ontap_storage_lun.example", "size", "1048576"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "name", "ACC-import-lun"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "os_type", "linux"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "size", "1048576"),
 				),
 			},
 		},
@@ -82,7 +82,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_storage_lun" "example" {
+resource "netapp-ontap_lun" "example" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name = "%s"

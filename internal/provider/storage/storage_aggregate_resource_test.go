@@ -22,17 +22,17 @@ func TestAccStorageAggregateResource(t *testing.T) {
 			{
 				Config: testAccStorageAggregateResourceConfig("swenjun-vsim2"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_aggregate.example", "name", "acc_test_aggr"),
-					resource.TestCheckNoResourceAttr("netapp-ontap_storage_aggregate.example", "vol"),
+					resource.TestCheckResourceAttr("netapp-ontap_aggregate.example", "name", "acc_test_aggr"),
+					resource.TestCheckNoResourceAttr("netapp-ontap_aggregate.example", "vol"),
 				),
 			},
 			// Test importing a resource
 			{
-				ResourceName:  "netapp-ontap_storage_aggregate.example",
+				ResourceName:  "netapp-ontap_aggregate.example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s", "acc_test_aggr", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_aggregate.example", "name", "acc_test_aggr"),
+					resource.TestCheckResourceAttr("netapp-ontap_aggregate.example", "name", "acc_test_aggr"),
 				),
 			},
 		},
@@ -60,7 +60,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_storage_aggregate" "example" {
+resource "netapp-ontap_aggregate" "example" {
 	cx_profile_name = "cluster4"
 	node = "%s"
 	name = "acc_test_aggr"

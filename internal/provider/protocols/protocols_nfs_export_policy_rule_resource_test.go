@@ -24,10 +24,10 @@ func TestAccNFSExportPolicyRuleResource(t *testing.T) {
 				Config: testAccNFSExportPolicyRuleResourceConfig("carchi-test", "default"),
 				Check: resource.ComposeTestCheckFunc(
 					// check default values
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_export_policy_rule.example1", "allow_suid", "true"),
-					resource.TestCheckTypeSetElemAttr("netapp-ontap_protocols_nfs_export_policy_rule.example1", "protocols.*", "any"),
+					resource.TestCheckResourceAttr("netapp-ontap_nfs_export_policy_rule.example1", "allow_suid", "true"),
+					resource.TestCheckTypeSetElemAttr("netapp-ontap_nfs_export_policy_rule.example1", "protocols.*", "any"),
 					// check id
-					resource.TestMatchResourceAttr("netapp-ontap_protocols_nfs_export_policy_rule.example1", "id", regexp.MustCompile(`carchi-test_default_`)),
+					resource.TestMatchResourceAttr("netapp-ontap_nfs_export_policy_rule.example1", "id", regexp.MustCompile(`carchi-test_default_`)),
 				),
 			},
 			// update test
@@ -35,28 +35,28 @@ func TestAccNFSExportPolicyRuleResource(t *testing.T) {
 				Config: testAccNFSExportPolicyRuleResourceConfigUpdateProtocolsROrule("carchi-test", "default"),
 				Check: resource.ComposeTestCheckFunc(
 					// check default values
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_export_policy_rule.example1", "allow_suid", "true"),
+					resource.TestCheckResourceAttr("netapp-ontap_nfs_export_policy_rule.example1", "allow_suid", "true"),
 					// check if the modification successful
-					resource.TestCheckTypeSetElemAttr("netapp-ontap_protocols_nfs_export_policy_rule.example1", "protocols.*", "nfs3"),
-					resource.TestCheckTypeSetElemAttr("netapp-ontap_protocols_nfs_export_policy_rule.example1", "ro_rule.*", "krb5i"),
+					resource.TestCheckTypeSetElemAttr("netapp-ontap_nfs_export_policy_rule.example1", "protocols.*", "nfs3"),
+					resource.TestCheckTypeSetElemAttr("netapp-ontap_nfs_export_policy_rule.example1", "ro_rule.*", "krb5i"),
 					// check id
-					resource.TestMatchResourceAttr("netapp-ontap_protocols_nfs_export_policy_rule.example1", "id", regexp.MustCompile(`carchi-test_default_`)),
+					resource.TestMatchResourceAttr("netapp-ontap_nfs_export_policy_rule.example1", "id", regexp.MustCompile(`carchi-test_default_`)),
 				),
 			},
 			// Test importing a resource
 			{
-				ResourceName:  "netapp-ontap_protocols_nfs_export_policy_rule.example1",
+				ResourceName:  "netapp-ontap_nfs_export_policy_rule.example1",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "1", "default", "carchi-test", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_export_policy_rule.example1", "svm_name", "carchi-test"),
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_export_policy_rule.example1", "export_policy_name", "default"),
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_export_policy_rule.example1", "allow_suid", "true"),
-					resource.TestCheckTypeSetElemAttr("netapp-ontap_protocols_nfs_export_policy_rule.example1", "protocols.*", "nfs3"),
-					resource.TestCheckTypeSetElemAttr("netapp-ontap_protocols_nfs_export_policy_rule.example1", "ro_rule.*", "krb5i"),
-					resource.TestCheckTypeSetElemAttr("netapp-ontap_protocols_nfs_export_policy_rule.example1", "rw_rule.*", "any"),
+					resource.TestCheckResourceAttr("netapp-ontap_nfs_export_policy_rule.example1", "svm_name", "carchi-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_nfs_export_policy_rule.example1", "export_policy_name", "default"),
+					resource.TestCheckResourceAttr("netapp-ontap_nfs_export_policy_rule.example1", "allow_suid", "true"),
+					resource.TestCheckTypeSetElemAttr("netapp-ontap_nfs_export_policy_rule.example1", "protocols.*", "nfs3"),
+					resource.TestCheckTypeSetElemAttr("netapp-ontap_nfs_export_policy_rule.example1", "ro_rule.*", "krb5i"),
+					resource.TestCheckTypeSetElemAttr("netapp-ontap_nfs_export_policy_rule.example1", "rw_rule.*", "any"),
 					// check id
-					resource.TestMatchResourceAttr("netapp-ontap_protocols_nfs_export_policy_rule.example1", "id", regexp.MustCompile(`carchi-test_default_`)),
+					resource.TestMatchResourceAttr("netapp-ontap_nfs_export_policy_rule.example1", "id", regexp.MustCompile(`carchi-test_default_`)),
 				),
 			},
 		},
@@ -84,7 +84,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_protocols_nfs_export_policy_rule" "example" {
+resource "netapp-ontap_nfs_export_policy_rule" "example" {
   cx_profile_name = "cluster4"
   svm_name = "%s"
 }
@@ -112,7 +112,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_protocols_nfs_export_policy_rule" "example1" {
+resource "netapp-ontap_nfs_export_policy_rule" "example1" {
   cx_profile_name = "cluster4"
   svm_name = "%s"
   export_policy_name = "%s"
@@ -145,7 +145,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_protocols_nfs_export_policy_rule" "example1" {
+resource "netapp-ontap_nfs_export_policy_rule" "example1" {
   cx_profile_name = "cluster4"
   svm_name = "%s"
   export_policy_name = "%s"

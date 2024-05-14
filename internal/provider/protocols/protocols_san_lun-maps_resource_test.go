@@ -18,16 +18,16 @@ func TestAccProtocolsSanLunMapsResource(t *testing.T) {
 			{
 				Config: testAccProtocolsSanLunMapsResourceBasicConfig("/vol/lunTest/ACC-import-lun", "test", "carchi-test"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_san_lun-maps.example", "svm.name", "carchi-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_san_igroup.example", "svm.name", "carchi-test"),
 				),
 			},
 			// Import and read
 			{
-				ResourceName:  "netapp-ontap_protocols_san_lun-maps.example",
+				ResourceName:  "netapp-ontap_san_igroup.example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "carchi-test", "acc_test", "/vol/lunTest/ACC-import-lun", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_san_lun-maps.example", "svm.name", "carchi-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_san_igroup.example", "svm.name", "carchi-test"),
 				),
 			},
 			// Delete testing automatically occurs in TestCase
@@ -56,7 +56,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_protocols_san_lun-maps" "example" {
+resource "netapp-ontap_san_igroup" "example" {
   cx_profile_name = "cluster4"
   svm = {
     name = "%s"

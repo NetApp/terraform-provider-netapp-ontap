@@ -32,7 +32,7 @@ var _ resource.ResourceWithImportState = &AggregateResource{}
 func NewAggregateResource() resource.Resource {
 	return &AggregateResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "storage_aggregate",
+			Name: "aggregate",
 		},
 	}
 }

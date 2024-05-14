@@ -20,7 +20,7 @@ var _ datasource.DataSource = &ProtocolsNfsServicesDataSource{}
 func NewProtocolsNfsServicesDataSource() datasource.DataSource {
 	return &ProtocolsNfsServicesDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "protocols_nfs_services",
+			Name: "nfs_services",
 		},
 	}
 }

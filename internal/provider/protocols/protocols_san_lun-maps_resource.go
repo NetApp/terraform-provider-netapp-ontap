@@ -27,7 +27,7 @@ var _ resource.ResourceWithImportState = &ProtocolsSanLunMapsResource{}
 func NewProtocolsSanLunMapsResource() resource.Resource {
 	return &ProtocolsSanLunMapsResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "protocols_san_lun-maps",
+			Name: "san_lun-maps",
 		},
 	}
 }

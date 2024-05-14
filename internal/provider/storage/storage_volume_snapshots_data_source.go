@@ -20,7 +20,7 @@ var _ datasource.DataSource = &StorageVolumeSnapshotsDataSource{}
 func NewStorageVolumeSnapshotsDataSource() datasource.DataSource {
 	return &StorageVolumeSnapshotsDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "storage_volume_snapshots",
+			Name: "volume_snapshots",
 		},
 	}
 }

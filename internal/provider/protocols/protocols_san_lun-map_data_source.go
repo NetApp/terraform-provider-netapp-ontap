@@ -21,7 +21,7 @@ var _ datasource.DataSource = &ProtocolsSanLunMapDataSource{}
 func NewProtocolsSanLunMapDataSource() datasource.DataSource {
 	return &ProtocolsSanLunMapDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "protocols_san_lun-map",
+			Name: "san_lun-map",
 		},
 	}
 }
