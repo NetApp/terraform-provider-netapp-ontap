@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strconv"
 	"strings"
 
@@ -25,15 +26,15 @@ var _ resource.ResourceWithImportState = &ExportPolicyResource{}
 // NewExportPolicyResource is a helper function to simplify the provider implementation.
 func NewExportPolicyResource() resource.Resource {
 	return &ExportPolicyResource{
-		config: resourceOrDataSourceConfig{
-			name: "protocols_nfs_export_policy_resource",
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_nfs_export_policy_resource",
 		},
 	}
 }
 
 // ExportPolicyResource defines the resource implementation.
 type ExportPolicyResource struct {
-	config resourceOrDataSourceConfig
+	config connection.ResourceOrDataSourceConfig
 }
 
 // ExportPolicyResourceModel describes the resource data model.
@@ -46,7 +47,7 @@ type ExportPolicyResourceModel struct {
 
 // Metadata returns the resource type name.
 func (r *ExportPolicyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + r.config.name
+	resp.TypeName = req.ProviderTypeName + "_" + r.config.Name
 }
 
 // Schema defines the schema for the resource.
@@ -86,14 +87,14 @@ func (r *ExportPolicyResource) Configure(ctx context.Context, req resource.Confi
 		return
 	}
 
-	config, ok := req.ProviderData.(Config)
+	config, ok := req.ProviderData.(connection.Config)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected  Resource Configure Type",
 			fmt.Sprintf("Expected Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 	}
-	r.config.providerConfig = config
+	r.config.ProviderConfig = config
 }
 
 // Create creates the resource and sets the initial Terraform state.
@@ -111,7 +112,7 @@ func (r *ExportPolicyResource) Create(ctx context.Context, req resource.CreateRe
 
 	request.Name = data.Name.ValueString()
 
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -152,7 +153,7 @@ func (r *ExportPolicyResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -195,7 +196,7 @@ func (r *ExportPolicyResource) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		return
 	}
@@ -227,7 +228,7 @@ func (r *ExportPolicyResource) Delete(ctx context.Context, req resource.DeleteRe
 	}
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return

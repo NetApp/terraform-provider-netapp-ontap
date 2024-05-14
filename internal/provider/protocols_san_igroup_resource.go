@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -27,15 +28,15 @@ var _ resource.ResourceWithImportState = &ProtocolsSanIgroupResource{}
 // NewProtocolsSanIgroupResource is a helper function to simplify the provider implementation.
 func NewProtocolsSanIgroupResource() resource.Resource {
 	return &ProtocolsSanIgroupResource{
-		config: resourceOrDataSourceConfig{
-			name: "protocols_san_igroup_resource",
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_san_igroup_resource",
 		},
 	}
 }
 
 // ProtocolsSanIgroupResource defines the resource implementation.
 type ProtocolsSanIgroupResource struct {
-	config resourceOrDataSourceConfig
+	config connection.ResourceOrDataSourceConfig
 }
 
 // ProtocolsSanIgroupResourceModel describes the resource data model.
@@ -75,7 +76,7 @@ type ProtocolsSanIgroupResourcePortsetModel struct {
 
 // Metadata returns the resource type name.
 func (r *ProtocolsSanIgroupResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + r.config.name
+	resp.TypeName = req.ProviderTypeName + "_" + r.config.Name
 }
 
 // Schema defines the schema for the resource.
@@ -170,14 +171,14 @@ func (r *ProtocolsSanIgroupResource) Configure(ctx context.Context, req resource
 	if req.ProviderData == nil {
 		return
 	}
-	config, ok := req.ProviderData.(Config)
+	config, ok := req.ProviderData.(connection.Config)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
 			fmt.Sprintf("Expected Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 	}
-	r.config.providerConfig = config
+	r.config.ProviderConfig = config
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -193,7 +194,7 @@ func (r *ProtocolsSanIgroupResource) Read(ctx context.Context, req resource.Read
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -285,7 +286,7 @@ func (r *ProtocolsSanIgroupResource) Create(ctx context.Context, req resource.Cr
 	}
 	body.Protocol = data.Protocol.ValueString()
 
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -330,7 +331,7 @@ func (r *ProtocolsSanIgroupResource) Update(ctx context.Context, req resource.Up
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		return
 	}
@@ -368,7 +369,7 @@ func (r *ProtocolsSanIgroupResource) Delete(ctx context.Context, req resource.De
 	}
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return

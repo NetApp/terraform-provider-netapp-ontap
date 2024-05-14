@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/mitchellh/mapstructure"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -30,15 +31,15 @@ var _ resource.ResourceWithImportState = &StorageVolumeResource{}
 // NewStorageVolumeResource is a helper function to simplify the provider implementation.
 func NewStorageVolumeResource() resource.Resource {
 	return &StorageVolumeResource{
-		config: resourceOrDataSourceConfig{
-			name: "storage_volume_resource",
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "storage_volume_resource",
 		},
 	}
 }
 
 // StorageVolumeResource defines the resource implementation.
 type StorageVolumeResource struct {
-	config resourceOrDataSourceConfig
+	config connection.ResourceOrDataSourceConfig
 }
 
 // StorageVolumeResourceModel describes the resource data model.
@@ -117,7 +118,7 @@ type StorageVolumeResourceSpaceLogicalSpace struct {
 
 // Metadata returns the resource type name.
 func (r *StorageVolumeResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + r.config.name
+	resp.TypeName = req.ProviderTypeName + "_" + r.config.Name
 }
 
 // Schema defines the schema for the resource.
@@ -356,14 +357,14 @@ func (r *StorageVolumeResource) Configure(ctx context.Context, req resource.Conf
 		return
 	}
 
-	config, ok := req.ProviderData.(Config)
+	config, ok := req.ProviderData.(connection.Config)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
 			fmt.Sprintf("Expected Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 	}
-	r.config.providerConfig = config
+	r.config.ProviderConfig = config
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -378,7 +379,7 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 	}
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -705,7 +706,7 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -854,7 +855,7 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	client, err := getRestClient(errorHandler, r.config, plan.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, plan.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -1049,7 +1050,7 @@ func (r *StorageVolumeResource) Delete(ctx context.Context, req resource.DeleteR
 	}
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
