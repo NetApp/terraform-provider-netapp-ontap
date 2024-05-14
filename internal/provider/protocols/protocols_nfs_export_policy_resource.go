@@ -27,7 +27,7 @@ var _ resource.ResourceWithImportState = &ExportPolicyResource{}
 func NewExportPolicyResource() resource.Resource {
 	return &ExportPolicyResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "protocols_nfs_export_policy"_resource"",
+			Name: "protocols_nfs_export_policy",
 		},
 	}
 }
