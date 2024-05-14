@@ -20,7 +20,7 @@ var _ datasource.DataSource = &CifsUserGroupPrivilegesDataSource{}
 func NewCifsUserGroupPrivilegesDataSource() datasource.DataSource {
 	return &CifsUserGroupPrivilegesDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "protocols_cifs_user_group_privileges",
+			Name: "cifs_user_group_privileges",
 		},
 	}
 }

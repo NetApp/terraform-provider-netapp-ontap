@@ -25,26 +25,26 @@ func TestAccCifsLocalGroupMemberResource(t *testing.T) {
 				Config: testAccCifsLocalGroupMemberResourceConfig("svm3", "SVM3_SERVER\\\\accgroup1", "SVM3_SERVER\\\\accuser3"),
 				Check: resource.ComposeTestCheckFunc(
 					// check member
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_local_group_member.example1", "member", "SVM3_SERVER\\accuser3"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_local_group_member.example1", "member", "SVM3_SERVER\\accuser3"),
 					// check group_name
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_local_group_member.example1", "group_name", "SVM3_SERVER\\accgroup1"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_local_group_member.example1", "group_name", "SVM3_SERVER\\accgroup1"),
 					// check svm_name
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_local_group_member.example1", "svm_name", "svm3"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_local_group_member.example1", "svm_name", "svm3"),
 					// check ID
-					resource.TestCheckResourceAttrSet("netapp-ontap_protocols_cifs_local_group_member.example1", "id"),
+					resource.TestCheckResourceAttrSet("netapp-ontap_cifs_local_group_member.example1", "id"),
 				),
 			},
 			// Test importing a resource
 			{
-				ResourceName:  "netapp-ontap_protocols_cifs_local_group_member.example1",
+				ResourceName:  "netapp-ontap_cifs_local_group_member.example1",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "SVM3_SERVER\\accuser3", "SVM3_SERVER\\accgroup1", "svm3", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_local_group_member.example1", "svm_name", "svm3"),
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_local_group_member.example1", "group_name", "SVM3_SERVER\\accgroup1"),
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_local_group_member.example1", "member", "SVM3_SERVER\\accuser3"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_local_group_member.example1", "svm_name", "svm3"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_local_group_member.example1", "group_name", "SVM3_SERVER\\accgroup1"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_local_group_member.example1", "member", "SVM3_SERVER\\accuser3"),
 					// check id
-					resource.TestCheckResourceAttrSet("netapp-ontap_protocols_cifs_local_group_member.example1", "id"),
+					resource.TestCheckResourceAttrSet("netapp-ontap_cifs_local_group_member.example1", "id"),
 				),
 			},
 		},
@@ -53,7 +53,7 @@ func TestAccCifsLocalGroupMemberResource(t *testing.T) {
 
 func testAccCifsLocalGroupMemberResourceConfigMissingVars(svmName string) string {
 	return fmt.Sprintf(`
-resource "netapp-ontap_protocols_cifs_local_group_member" "example1" {
+resource "netapp-ontap_cifs_local_group_member" "example1" {
 	  svm_name = "%s"
 	  group_name = "SVM3_SERVER\\accgroup1"
 	  member = "SVM3_SERVER\\accuser3"
@@ -81,7 +81,7 @@ provider "netapp-ontap" {
 		},
 		]
 	}
-resource "netapp-ontap_protocols_cifs_local_group_member" "example1" {
+resource "netapp-ontap_cifs_local_group_member" "example1" {
 	cx_profile_name = "cluster4"
 	  svm_name = "%s"
 	  group_name = "%s"

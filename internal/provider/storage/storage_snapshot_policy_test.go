@@ -24,27 +24,27 @@ func TestAccStorageSnapshotPolicyResource(t *testing.T) {
 			{
 				Config: testAccStorageSnapshotPolicyResourceConfig("tf-sn-policy", "carchi-test", "create a test snapshot policy", true),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_snapshot_policy.example", "name", "tf-sn-policy"),
-					resource.TestCheckResourceAttr("netapp-ontap_storage_snapshot_policy.example", "comment", "create a test snapshot policy"),
-					resource.TestCheckResourceAttr("netapp-ontap_storage_snapshot_policy.example", "enabled", "true"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapshot_policy.example", "name", "tf-sn-policy"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapshot_policy.example", "comment", "create a test snapshot policy"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapshot_policy.example", "enabled", "true"),
 				),
 			},
 			// Update storage snapshot policy on comment and read
 			{
 				Config: testAccStorageSnapshotPolicyResourceConfig("tf-sn-policy", "carchi-test", "Update the existing snapshot policy", true),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_snapshot_policy.example", "name", "tf-sn-policy"),
-					resource.TestCheckResourceAttr("netapp-ontap_storage_snapshot_policy.example", "comment", "Update the existing snapshot policy"),
-					resource.TestCheckResourceAttr("netapp-ontap_storage_snapshot_policy.example", "enabled", "true"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapshot_policy.example", "name", "tf-sn-policy"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapshot_policy.example", "comment", "Update the existing snapshot policy"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapshot_policy.example", "enabled", "true"),
 				),
 			},
 			// Test importing a resource
 			{
-				ResourceName:  "netapp-ontap_storage_snapshot_policy.example",
+				ResourceName:  "netapp-ontap_snapshot_policy.example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s", "tfimportpolicy", "carchi-test", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_snapshot_policy.example", "name", "tfimportpolicy"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapshot_policy.example", "name", "tfimportpolicy"),
 				),
 			},
 		},
@@ -72,7 +72,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_storage_snapshot_policy" "example" {
+resource "netapp-ontap_snapshot_policy" "example" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name = "%s"

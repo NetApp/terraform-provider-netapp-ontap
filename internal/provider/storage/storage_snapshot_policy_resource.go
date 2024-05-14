@@ -31,7 +31,7 @@ var _ resource.ResourceWithImportState = &SnapshotPolicyResource{}
 func NewSnapshotPolicyResource() resource.Resource {
 	return &SnapshotPolicyResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "storage_snapshot_policy",
+			Name: "snapshot_policy",
 		},
 	}
 }

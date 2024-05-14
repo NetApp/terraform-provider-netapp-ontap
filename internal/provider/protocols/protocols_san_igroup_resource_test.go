@@ -18,24 +18,24 @@ func TestAccProtocolsSanIgroupResource(t *testing.T) {
 			{
 				Config: testAccProtocolsSanIgroupResourceBasicConfig("acc_test2", "carchi-test"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_san_igroup.example", "name", "acc_test2"),
+					resource.TestCheckResourceAttr("netapp-ontap_san_igroup.example", "name", "acc_test2"),
 				),
 			},
 			// Update options and read
 			{
 				Config: testAccProtocolsSanIgroupResourceUpdateConfig("acc_test2", "carchi-test", "windows", "test_acc"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_san_igroup.example", "os_type", "windows"),
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_san_igroup.example", "name", "acc_test2"),
+					resource.TestCheckResourceAttr("netapp-ontap_san_igroup.example", "os_type", "windows"),
+					resource.TestCheckResourceAttr("netapp-ontap_san_igroup.example", "name", "acc_test2"),
 				),
 			},
 			// Import and read
 			{
-				ResourceName:  "netapp-ontap_protocols_san_igroup.example",
+				ResourceName:  "netapp-ontap_san_igroup.example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s", "acc_test", "carchi-test", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_san_igroup.example", "name", "acc_test"),
+					resource.TestCheckResourceAttr("netapp-ontap_san_igroup.example", "name", "acc_test"),
 				),
 			},
 			// Delete testing automatically occurs in TestCase
@@ -64,7 +64,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_protocols_san_igroup" "example" {
+resource "netapp-ontap_san_igroup" "example" {
   cx_profile_name = "cluster4"
   name = "%s"
   svm = {
@@ -96,7 +96,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_protocols_san_igroup" "example" {
+resource "netapp-ontap_san_igroup" "example" {
   cx_profile_name = "cluster4"
   name = "%s"
   svm = {

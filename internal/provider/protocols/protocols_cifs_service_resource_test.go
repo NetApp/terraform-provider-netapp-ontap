@@ -24,27 +24,27 @@ func TestAccCifsServiceResource(t *testing.T) {
 			{
 				Config: testAccCifsServiceResourceConfig("tftestcifs", "testSVM"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_service.example", "svm_name", "testSVM"),
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_service.example", "name", "tftestcifs"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_service.example", "svm_name", "testSVM"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_service.example", "name", "tftestcifs"),
 				),
 			},
 			// update and read
 			{
 				Config: testAccCifsServiceResourceUpdateConfig("tftestcifs", "testSVM"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_service.example", "svm_name", "testSVM"),
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_service.example", "name", "tftestcifs"),
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_service.example", "security.lm_compatibility_level", "ntlm_ntlmv2_krb"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_service.example", "svm_name", "testSVM"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_service.example", "name", "tftestcifs"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_service.example", "security.lm_compatibility_level", "ntlm_ntlmv2_krb"),
 				),
 			},
 			// Import and read
 			{
-				ResourceName:  "netapp-ontap_protocols_cifs_service.example",
+				ResourceName:  "netapp-ontap_cifs_service.example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s,%s,%s", "TFCIFS", "tfsvm", "clustercifs", "cifstest", os.Getenv("TF_ACC_NETAPP_CIFS_ADDOMAIN_PASS")),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_service.example", "name", "TFCIFS"),
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_service.example", "svm_name", "tfsvm"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_service.example", "name", "TFCIFS"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_service.example", "svm_name", "tfsvm"),
 				),
 			},
 		},
@@ -53,7 +53,7 @@ func TestAccCifsServiceResource(t *testing.T) {
 
 func testAccCifsServiceResourceConfigMissingVars(svmName string) string {
 	return fmt.Sprintf(`
-	resource "netapp-ontap_protocols_cifs_service" "example1" {
+	resource "netapp-ontap_cifs_service" "example1" {
 		svm_name = "%s"
 	}
 	`, svmName)
@@ -80,7 +80,7 @@ provider "netapp-ontap" {
 		},
 	]
 }
-resource "netapp-ontap_protocols_cifs_service" "example" {
+resource "netapp-ontap_cifs_service" "example" {
 	cx_profile_name = "clustercifs"
 	svm_name = "%s"
 	name = "%s"
@@ -114,7 +114,7 @@ provider "netapp-ontap" {
 		},
 	]
 }
-resource "netapp-ontap_protocols_cifs_service" "example" {
+resource "netapp-ontap_cifs_service" "example" {
 	cx_profile_name = "clustercifs"
 	svm_name = "%s"
 	name = "%s"
