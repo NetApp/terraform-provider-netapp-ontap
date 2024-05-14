@@ -27,11 +27,15 @@ func NewClusterDataSource() datasource.DataSource {
 }
 
 // ClusterDataSource defines the data source implementation.
+//
+//nolint:golint
 type ClusterDataSource struct {
 	config connection.ResourceOrDataSourceConfig
 }
 
 // ClusterDataSourceModel describes the data source data model.
+//
+//nolint:golint
 type ClusterDataSourceModel struct {
 	// ConfigurableAttribute types.String `tfsdk:"configurable_attribute"`
 	// ID                    types.String `tfsdk:"id"`
