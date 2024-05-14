@@ -30,7 +30,7 @@ func TestAccClusterPeersResource(t *testing.T) {
 			},
 			// Import and read
 			{
-				ResourceName:  "netapp-ontap_cluster_peers_resource.example",
+				ResourceName:  "netapp-ontap_cluster_peers.example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s", "acc_test_cluster2", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
