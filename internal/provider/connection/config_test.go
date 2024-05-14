@@ -1,4 +1,4 @@
-package provider
+package connection
 
 import (
 	"context"
@@ -12,27 +12,27 @@ import (
 
 func TestConfig_GetConnectionProfile(t *testing.T) {
 	type fields struct {
-		ConnectionProfiles map[string]ConnectionProfile
+		ConnectionProfiles map[string]Profile
 		Version            string
 	}
 	type args struct {
 		name string
 	}
-	cxProfile := ConnectionProfile{}
-	cxProfiles := map[string]ConnectionProfile{"empty": cxProfile}
-	cxProfilesTwo := map[string]ConnectionProfile{"empty1": cxProfile, "empty2": cxProfile}
+	cxProfile := Profile{}
+	cxProfiles := map[string]Profile{"empty": cxProfile}
+	cxProfilesTwo := map[string]Profile{"empty1": cxProfile, "empty2": cxProfile}
 	tests := []struct {
 		name    string
 		fields  fields
 		args    args
-		want    *ConnectionProfile
+		want    *Profile
 		wantErr bool
 	}{
 		{name: "test_found", fields: fields{ConnectionProfiles: cxProfiles, Version: "v1.2.3"}, args: args{name: "empty"}, want: &cxProfile, wantErr: false},
 		{name: "test_found_one_profile_no_name", fields: fields{ConnectionProfiles: cxProfiles, Version: "v1.2.3"}, args: args{name: ""}, want: &cxProfile, wantErr: false},
 		{name: "test_not_found", fields: fields{ConnectionProfiles: cxProfiles, Version: "v1.2.3"}, args: args{name: "other"}, want: nil, wantErr: true},
 		{name: "test_no_config", fields: fields{ConnectionProfiles: cxProfiles, Version: "v1.2.3"}, args: args{name: "other"}, want: nil, wantErr: true},
-		{name: "test_no_profiles", fields: fields{ConnectionProfiles: map[string]ConnectionProfile{}, Version: "v1.2.3"}, args: args{name: "other"}, want: nil, wantErr: true},
+		{name: "test_no_profiles", fields: fields{ConnectionProfiles: map[string]Profile{}, Version: "v1.2.3"}, args: args{name: "other"}, want: nil, wantErr: true},
 		{name: "test_two_profiles_no_name", fields: fields{ConnectionProfiles: cxProfilesTwo, Version: "v1.2.3"}, args: args{name: ""}, want: nil, wantErr: true},
 	}
 	for _, tt := range tests {
@@ -59,11 +59,11 @@ func TestConfig_GetConnectionProfile(t *testing.T) {
 
 func TestConfig_NewClient(t *testing.T) {
 	type fields struct {
-		ConnectionProfiles map[string]ConnectionProfile
+		ConnectionProfiles map[string]Profile
 		Version            string
 	}
-	cxProfile := ConnectionProfile{}
-	cxProfiles := map[string]ConnectionProfile{"empty": cxProfile}
+	cxProfile := Profile{}
+	cxProfiles := map[string]Profile{"empty": cxProfile}
 	// cxProfilesTwo := map[string]ConnectionProfile{"empty1": cxProfile, "empty2": cxProfile}
 	restClient, err := restclient.NewClient(context.Background(), restclient.ConnectionProfile{}, "TerraformONTAP/config_test/v1.2.3", 600)
 	if err != nil {

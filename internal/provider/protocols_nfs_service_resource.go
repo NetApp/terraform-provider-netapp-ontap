@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -32,15 +33,15 @@ var _ resource.ResourceWithImportState = &ProtocolsNfsServiceResource{}
 // NewProtocolsNfsServiceResource is a helper function to simplify the provider implementation.
 func NewProtocolsNfsServiceResource() resource.Resource {
 	return &ProtocolsNfsServiceResource{
-		config: resourceOrDataSourceConfig{
-			name: "protocols_nfs_service_resource",
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_nfs_service_resource",
 		},
 	}
 }
 
 // ProtocolsNfsServiceResource defines the resource implementation.
 type ProtocolsNfsServiceResource struct {
-	config resourceOrDataSourceConfig
+	config connection.ResourceOrDataSourceConfig
 }
 
 // ProtocolsNfsServiceResourceModel describes the resource data model.
@@ -114,7 +115,7 @@ type SecurityResourceModel struct {
 
 // Metadata returns the resource type name.
 func (r *ProtocolsNfsServiceResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + r.config.name
+	resp.TypeName = req.ProviderTypeName + "_" + r.config.Name
 }
 
 // Schema defines the schema for the resource.
@@ -443,14 +444,14 @@ func (r *ProtocolsNfsServiceResource) Configure(ctx context.Context, req resourc
 	if req.ProviderData == nil {
 		return
 	}
-	config, ok := req.ProviderData.(Config)
+	config, ok := req.ProviderData.(connection.Config)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
 			fmt.Sprintf("Expected Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 	}
-	r.config.providerConfig = config
+	r.config.ProviderConfig = config
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -466,7 +467,7 @@ func (r *ProtocolsNfsServiceResource) Read(ctx context.Context, req resource.Rea
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -556,7 +557,7 @@ func (r *ProtocolsNfsServiceResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -725,7 +726,7 @@ func (r *ProtocolsNfsServiceResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -891,7 +892,7 @@ func (r *ProtocolsNfsServiceResource) Delete(ctx context.Context, req resource.D
 	}
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return

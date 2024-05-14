@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -20,15 +21,15 @@ var _ datasource.DataSource = &StorageFlexcachesDataSource{}
 // NewStorageFlexcachesDataSource is a helper function to simplify the provider implementation.
 func NewStorageFlexcachesDataSource() datasource.DataSource {
 	return &StorageFlexcachesDataSource{
-		config: resourceOrDataSourceConfig{
-			name: "storage_flexcaches_data_source",
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "storage_flexcaches_data_source",
 		},
 	}
 }
 
 // StorageFlexcachesDataSource defines the resource implementation.
 type StorageFlexcachesDataSource struct {
-	config resourceOrDataSourceConfig
+	config connection.ResourceOrDataSourceConfig
 }
 
 // StorageFlexcachesDataSourceModel describes the resource data model.
@@ -46,7 +47,7 @@ type StorageFlexcacheDataSourceFilterModel struct {
 
 // Metadata returns the resource type name.
 func (r *StorageFlexcachesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + r.config.name
+	resp.TypeName = req.ProviderTypeName + "_" + r.config.Name
 }
 
 // Schema defines the schema for the resource.
@@ -198,14 +199,14 @@ func (r *StorageFlexcachesDataSource) Configure(ctx context.Context, req datasou
 		return
 	}
 
-	config, ok := req.ProviderData.(Config)
+	config, ok := req.ProviderData.(connection.Config)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected  Resource Configure Type",
 			fmt.Sprintf("Expected Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 	}
-	r.config.providerConfig = config
+	r.config.ProviderConfig = config
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -221,7 +222,7 @@ func (r *StorageFlexcachesDataSource) Read(ctx context.Context, req datasource.R
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return

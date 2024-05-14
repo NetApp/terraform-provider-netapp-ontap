@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"regexp"
 	"strings"
 
@@ -26,15 +27,15 @@ var _ resource.ResourceWithImportState = &CifsLocalGroupMemberResource{}
 // NewCifsLocalGroupMemberResource is a helper function to simplify the provider implementation.
 func NewCifsLocalGroupMemberResource() resource.Resource {
 	return &CifsLocalGroupMemberResource{
-		config: resourceOrDataSourceConfig{
-			name: "protocols_cifs_local_group_member_resource",
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_cifs_local_group_member_resource",
 		},
 	}
 }
 
 // CifsLocalGroupMemberResource defines the resource implementation.
 type CifsLocalGroupMemberResource struct {
-	config resourceOrDataSourceConfig
+	config connection.ResourceOrDataSourceConfig
 }
 
 // CifsLocalGroupMemberResourceModel describes the resource data model.
@@ -48,7 +49,7 @@ type CifsLocalGroupMemberResourceModel struct {
 
 // Metadata returns the resource type name.
 func (r *CifsLocalGroupMemberResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + r.config.name
+	resp.TypeName = req.ProviderTypeName + "_" + r.config.Name
 }
 
 // Schema defines the schema for the resource.
@@ -103,14 +104,14 @@ func (r *CifsLocalGroupMemberResource) Configure(ctx context.Context, req resour
 	if req.ProviderData == nil {
 		return
 	}
-	config, ok := req.ProviderData.(Config)
+	config, ok := req.ProviderData.(connection.Config)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
 			fmt.Sprintf("Expected Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 	}
-	r.config.providerConfig = config
+	r.config.ProviderConfig = config
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -126,7 +127,7 @@ func (r *CifsLocalGroupMemberResource) Read(ctx context.Context, req resource.Re
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -181,7 +182,7 @@ func (r *CifsLocalGroupMemberResource) Create(ctx context.Context, req resource.
 
 	body.Name = data.Member.ValueString()
 
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -245,7 +246,7 @@ func (r *CifsLocalGroupMemberResource) Delete(ctx context.Context, req resource.
 	}
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return

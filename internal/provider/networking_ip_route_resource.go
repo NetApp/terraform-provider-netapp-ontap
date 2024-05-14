@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -30,15 +31,15 @@ var _ resource.ResourceWithImportState = &IPRouteResource{}
 // NewIPRouteResource is a helper function to simplify the provider implementation.
 func NewIPRouteResource() resource.Resource {
 	return &IPRouteResource{
-		config: resourceOrDataSourceConfig{
-			name: "networking_ip_route_resource",
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "networking_ip_route_resource",
 		},
 	}
 }
 
 // IPRouteResource defines the resource implementation.
 type IPRouteResource struct {
-	config resourceOrDataSourceConfig
+	config connection.ResourceOrDataSourceConfig
 }
 
 // IPRouteResourceModel describes the resource data model.
@@ -53,7 +54,7 @@ type IPRouteResourceModel struct {
 
 // Metadata returns the resource type name.
 func (r *IPRouteResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + r.config.name
+	resp.TypeName = req.ProviderTypeName + "_" + r.config.Name
 }
 
 // Schema defines the schema for the resource.
@@ -130,14 +131,14 @@ func (r *IPRouteResource) Configure(ctx context.Context, req resource.ConfigureR
 	if req.ProviderData == nil {
 		return
 	}
-	config, ok := req.ProviderData.(Config)
+	config, ok := req.ProviderData.(connection.Config)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
 			fmt.Sprintf("Expected Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 	}
-	r.config.providerConfig = config
+	r.config.ProviderConfig = config
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -153,7 +154,7 @@ func (r *IPRouteResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -239,7 +240,7 @@ func (r *IPRouteResource) Create(ctx context.Context, req resource.CreateRequest
 		body.Metric = data.Metric.ValueInt64()
 	}
 
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -287,7 +288,7 @@ func (r *IPRouteResource) Delete(ctx context.Context, req resource.DeleteRequest
 	}
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return

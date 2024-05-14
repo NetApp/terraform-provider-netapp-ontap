@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -23,15 +24,15 @@ var _ resource.ResourceWithImportState = &StorageVolumeResource{}
 // NewStorageVolumeSnapshotResource is a helper function to simplify the provider implementation.
 func NewStorageVolumeSnapshotResource() resource.Resource {
 	return &StorageVolumeSnapshotResource{
-		config: resourceOrDataSourceConfig{
-			name: "storage_volume_snapshot_resource",
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "storage_volume_snapshot_resource",
 		},
 	}
 }
 
 // StorageVolumeSnapshotResource defines the resource implementation.
 type StorageVolumeSnapshotResource struct {
-	config resourceOrDataSourceConfig
+	config connection.ResourceOrDataSourceConfig
 }
 
 // StorageVolumeSnapshotResourceModel describes the resource data model.
@@ -49,7 +50,7 @@ type StorageVolumeSnapshotResourceModel struct {
 
 // Metadata returns the resource type name.
 func (r *StorageVolumeSnapshotResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + r.config.name
+	resp.TypeName = req.ProviderTypeName + "_" + r.config.Name
 }
 
 // Schema defines the schema for the resource.
@@ -107,14 +108,14 @@ func (r *StorageVolumeSnapshotResource) Configure(ctx context.Context, req resou
 	if req.ProviderData == nil {
 		return
 	}
-	config, ok := req.ProviderData.(Config)
+	config, ok := req.ProviderData.(connection.Config)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Data Source Configure Type",
 			fmt.Sprintf("Expected Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 	}
-	r.config.providerConfig = config
+	r.config.ProviderConfig = config
 }
 
 // Create creates the resource and sets the initial Terraform state.
@@ -131,7 +132,7 @@ func (r *StorageVolumeSnapshotResource) Create(ctx context.Context, req resource
 	}
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -190,7 +191,7 @@ func (r *StorageVolumeSnapshotResource) Read(ctx context.Context, req resource.R
 	}
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		return
 	}
@@ -250,7 +251,7 @@ func (r *StorageVolumeSnapshotResource) Update(ctx context.Context, req resource
 	}
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -317,7 +318,7 @@ func (r *StorageVolumeSnapshotResource) Delete(ctx context.Context, req resource
 	}
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return

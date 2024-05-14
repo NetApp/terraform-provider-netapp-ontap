@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
@@ -30,15 +31,15 @@ var _ resource.ResourceWithImportState = &AggregateResource{}
 // NewAggregateResource is a helper function to simplify the provider implementation.
 func NewAggregateResource() resource.Resource {
 	return &AggregateResource{
-		config: resourceOrDataSourceConfig{
-			name: "storage_aggregate_resource",
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "storage_aggregate_resource",
 		},
 	}
 }
 
 // AggregateResource defines the resource implementation.
 type AggregateResource struct {
-	config resourceOrDataSourceConfig
+	config connection.ResourceOrDataSourceConfig
 }
 
 // AggregateResourceModel describes the resource data model.
@@ -61,7 +62,7 @@ type AggregateResourceModel struct {
 
 // Metadata returns the resource type name.
 func (r *AggregateResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + r.config.name
+	resp.TypeName = req.ProviderTypeName + "_" + r.config.Name
 }
 
 // Schema defines the schema for the resource.
@@ -199,14 +200,14 @@ func (r *AggregateResource) Configure(ctx context.Context, req resource.Configur
 		return
 	}
 
-	config, ok := req.ProviderData.(Config)
+	config, ok := req.ProviderData.(connection.Config)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected  Resource Configure Type",
 			fmt.Sprintf("Expected Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 	}
-	r.config.providerConfig = config
+	r.config.ProviderConfig = config
 }
 
 // Create creates the resource and sets the initial Terraform state.
@@ -224,7 +225,7 @@ func (r *AggregateResource) Create(ctx context.Context, req resource.CreateReque
 
 	request.Name = data.Name.ValueString()
 
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -324,7 +325,7 @@ func (r *AggregateResource) Read(ctx context.Context, req resource.ReadRequest, 
 	}
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -379,7 +380,7 @@ func (r *AggregateResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	client, err := getRestClient(errorHandler, r.config, plan.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, plan.CxProfileName)
 	if err != nil {
 		return
 	}
@@ -450,7 +451,7 @@ func (r *AggregateResource) Delete(ctx context.Context, req resource.DeleteReque
 	}
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return

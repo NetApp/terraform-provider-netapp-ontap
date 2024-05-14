@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -26,15 +27,15 @@ var _ resource.ResourceWithImportState = &ClusterScheduleResource{}
 // NewClusterScheduleResource is a helper function to simplify the provider implementation.
 func NewClusterScheduleResource() resource.Resource {
 	return &ClusterScheduleResource{
-		config: resourceOrDataSourceConfig{
-			name: "cluster_schedule_resource",
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "cluster_schedule_resource",
 		},
 	}
 }
 
 // ClusterScheduleResource defines the resource implementation.
 type ClusterScheduleResource struct {
-	config resourceOrDataSourceConfig
+	config connection.ResourceOrDataSourceConfig
 }
 
 // CronScheduleResourceModel describe the cron data model
@@ -57,7 +58,7 @@ type ClusterScheduleResourceModel struct {
 
 // Metadata returns the resource type name.
 func (r *ClusterScheduleResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + r.config.name
+	resp.TypeName = req.ProviderTypeName + "_" + r.config.Name
 }
 
 // Schema defines the schema for the resource.
@@ -131,14 +132,14 @@ func (r *ClusterScheduleResource) Configure(ctx context.Context, req resource.Co
 	if req.ProviderData == nil {
 		return
 	}
-	config, ok := req.ProviderData.(Config)
+	config, ok := req.ProviderData.(connection.Config)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected  Resource Configure Type",
 			fmt.Sprintf("Expected Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 	}
-	r.config.providerConfig = config
+	r.config.ProviderConfig = config
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -154,7 +155,7 @@ func (r *ClusterScheduleResource) Read(ctx context.Context, req resource.ReadReq
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -266,7 +267,7 @@ func (r *ClusterScheduleResource) Create(ctx context.Context, req resource.Creat
 		body.Cron.Months = months
 	}
 
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -296,7 +297,7 @@ func (r *ClusterScheduleResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		return
 	}
@@ -349,7 +350,7 @@ func (r *ClusterScheduleResource) Delete(ctx context.Context, req resource.Delet
 	}
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
