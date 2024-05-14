@@ -317,7 +317,7 @@ func (d *ProtocolsNfsServiceDataSource) Read(ctx context.Context, req datasource
 		return
 	}
 	if cluster == nil {
-		errorHandler.MakeAndReportError("No cluster found", fmt.Sprintf("cluster not found"))
+		errorHandler.MakeAndReportError("No cluster found", "cluster not found")
 		return
 	}
 
@@ -327,7 +327,7 @@ func (d *ProtocolsNfsServiceDataSource) Read(ctx context.Context, req datasource
 		return
 	}
 	if restInfo == nil {
-		errorHandler.MakeAndReportError("No NFS service found", fmt.Sprintf("NFS service not found"))
+		errorHandler.MakeAndReportError("No NFS service found", "NFS service not found")
 		return
 	}
 	data.Enabled = types.BoolValue(restInfo.Enabled)

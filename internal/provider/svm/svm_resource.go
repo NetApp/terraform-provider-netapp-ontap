@@ -246,6 +246,7 @@ func (r *SvmResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	}
 	if svm == nil {
 		errorHandler.MakeAndReportError("No Svm found", "No SVM found")
+		return
 	}
 	data.Name = types.StringValue(svm.Name)
 	data.ID = types.StringValue(svm.UUID)

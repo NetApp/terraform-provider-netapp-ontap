@@ -132,7 +132,7 @@ func (d *IPRouteDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		return
 	}
 	if cluster == nil {
-		errorHandler.MakeAndReportError("No cluster found", fmt.Sprintf("No Cluster found"))
+		errorHandler.MakeAndReportError("No cluster found", "No Cluster found")
 		return
 	}
 

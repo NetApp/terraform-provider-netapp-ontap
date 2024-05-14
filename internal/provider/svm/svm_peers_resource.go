@@ -188,6 +188,7 @@ func (r *SVMPeersResource) Read(ctx context.Context, req resource.ReadRequest, r
 
 	if restInfo == nil {
 		errorHandler.MakeAndReportError("error reading info", "No SVM Peer found")
+		return
 	}
 
 	data.ID = types.StringValue(restInfo.UUID)

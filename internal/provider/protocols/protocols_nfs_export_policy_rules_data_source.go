@@ -196,7 +196,7 @@ func (d *ProtocolsNFSExportPolicyRulesDataSource) Read(ctx context.Context, req 
 		return
 	}
 	if cluster == nil {
-		errorHandler.MakeAndReportError("No cluster found", fmt.Sprintf("cluster not found"))
+		errorHandler.MakeAndReportError("No cluster found", "cluster not found")
 		return
 	}
 

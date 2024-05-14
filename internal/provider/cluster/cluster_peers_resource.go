@@ -304,6 +304,7 @@ func (r *ClusterPeersResource) Create(ctx context.Context, req resource.CreateRe
 	}
 	if restInfo == nil {
 		errorHandler.MakeAndReportError("error reading info", "No Cluster Peer found")
+		return
 	}
 	data.State = types.StringValue(restInfo.Authentication.State)
 

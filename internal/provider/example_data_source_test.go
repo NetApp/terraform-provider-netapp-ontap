@@ -16,8 +16,8 @@ package provider
 //	})
 //}
 
-const testAccExampleDataSourceConfig = `
-data "netapp-ontap_example" "test" {
-  configurable_attribute = "example"
-}
+//const testAccExampleDataSourceConfig = `
+//data "netapp-ontap_example" "test" {
+//  configurable_attribute = "example"
+//}
 `
