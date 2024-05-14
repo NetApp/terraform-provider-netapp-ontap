@@ -23,17 +23,17 @@ func TestAccNFSExportPolicyResource(t *testing.T) {
 			{
 				Config: testAccNFSExportPolicyResourceConfig("carchi-test"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_export_policy_resource.example", "name", "acc_test"),
-					resource.TestCheckNoResourceAttr("netapp-ontap_protocols_nfs_export_policy_resource.example", "volname"),
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_export_policy.example", "name", "acc_test"),
+					resource.TestCheckNoResourceAttr("netapp-ontap_protocols_nfs_export_policy.example", "volname"),
 				),
 			},
 			// Test importing a resource
 			{
-				ResourceName:  "netapp-ontap_protocols_nfs_export_policy_resource.example",
+				ResourceName:  "netapp-ontap_protocols_nfs_export_policy.example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s", "acc_test", "carchi-test", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_export_policy_resource.example", "name", "acc_test"),
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_export_policy.example", "name", "acc_test"),
 				),
 			},
 		},
@@ -61,7 +61,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_protocols_nfs_export_policy_resource" "example" {
+resource "netapp-ontap_protocols_nfs_export_policy" "example" {
 	cx_profile_name = "cluster4"
 	svm_name = "%s"
 	name = "acc_test"

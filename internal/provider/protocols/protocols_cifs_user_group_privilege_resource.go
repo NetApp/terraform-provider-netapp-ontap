@@ -29,7 +29,7 @@ var _ resource.ResourceWithImportState = &CifsUserGroupPrivilegeResource{}
 func NewCifsUserGroupPrivilegeResource() resource.Resource {
 	return &CifsUserGroupPrivilegeResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "protocols_cifs_user_group_privilege_resource",
+			Name: "protocols_cifs_user_group_privilege",
 		},
 	}
 }

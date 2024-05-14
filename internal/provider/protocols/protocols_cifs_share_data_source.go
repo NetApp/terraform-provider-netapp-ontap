@@ -23,7 +23,7 @@ var _ datasource.DataSource = &ProtocolsCIFSShareDataSource{}
 func NewProtocolsCIFSShareDataSource() datasource.DataSource {
 	return &ProtocolsCIFSShareDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "protocols_cifs_share_data_source",
+			Name: "protocols_cifs_share",
 		},
 	}
 }

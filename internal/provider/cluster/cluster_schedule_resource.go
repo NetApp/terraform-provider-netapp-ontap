@@ -28,7 +28,7 @@ var _ resource.ResourceWithImportState = &ClusterScheduleResource{}
 func NewClusterScheduleResource() resource.Resource {
 	return &ClusterScheduleResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "cluster_schedule_resource",
+			Name: "cluster_schedule",
 		},
 	}
 }

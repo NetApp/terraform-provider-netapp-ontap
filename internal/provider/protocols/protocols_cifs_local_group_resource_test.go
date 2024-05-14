@@ -24,11 +24,11 @@ func TestAccCifsLocalGroupResource(t *testing.T) {
 				Config: testAccCifsLocalGroupResourceConfig("ansibleSVM", "group1"),
 				Check: resource.ComposeTestCheckFunc(
 					// check name
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_local_group_resource.example1", "name", "group1"),
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_local_group.example1", "name", "group1"),
 					// check svm_name
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_local_group_resource.example1", "svm_name", "ansibleSVM"),
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_local_group.example1", "svm_name", "ansibleSVM"),
 					// check ID
-					resource.TestCheckResourceAttrSet("netapp-ontap_protocols_cifs_local_group_resource.example1", "id"),
+					resource.TestCheckResourceAttrSet("netapp-ontap_protocols_cifs_local_group.example1", "id"),
 				),
 			},
 			// update test
@@ -36,21 +36,21 @@ func TestAccCifsLocalGroupResource(t *testing.T) {
 				Config: testAccCifsLocalGroupResourceConfig("ansibleSVM", "newgroup"),
 				Check: resource.ComposeTestCheckFunc(
 					// check renamed group name
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_local_group_resource.example1", "name", "newgroup"),
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_local_group.example1", "name", "newgroup"),
 					// check id
-					resource.TestCheckResourceAttrSet("netapp-ontap_protocols_cifs_local_group_resource.example1", "id")),
+					resource.TestCheckResourceAttrSet("netapp-ontap_protocols_cifs_local_group.example1", "id")),
 			},
 			// Test importing a resource
 			{
-				ResourceName:  "netapp-ontap_protocols_cifs_local_group_resource.example1",
+				ResourceName:  "netapp-ontap_protocols_cifs_local_group.example1",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s", "Administrators", "ansibleSVM", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_local_group_resource.example1", "svm_name", "ansibleSVM"),
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_local_group_resource.example1", "name", "Administrators"),
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_local_group.example1", "svm_name", "ansibleSVM"),
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_local_group.example1", "name", "Administrators"),
 					resource.TestMatchResourceAttr("netapp-ontap_protocols_nfs_export_policy_rule_resource.example1", "description", regexp.MustCompile(`Built-in Administrators`)),
 					// check id
-					resource.TestCheckResourceAttrSet("netapp-ontap_protocols_cifs_local_group_resource.example1", "id"),
+					resource.TestCheckResourceAttrSet("netapp-ontap_protocols_cifs_local_group.example1", "id"),
 				),
 			},
 		},
@@ -78,7 +78,7 @@ provider "netapp-ontap" {
 	]
 }
 
-resource "netapp-ontap_protocols_cifs_local_group_resource" "example1" {
+resource "netapp-ontap_protocols_cifs_local_group" "example1" {
 	cx_profile_name = "cluster4"
 	svm_name = "%s"
 }
@@ -105,7 +105,7 @@ provider "netapp-ontap" {
 		},
 	]
 }
-resource "netapp-ontap_protocols_cifs_local_group_resource" "example1" {
+resource "netapp-ontap_protocols_cifs_local_group" "example1" {
 	cx_profile_name = "cluster4"
 	svm_name = "%s"
 	name = "%s"

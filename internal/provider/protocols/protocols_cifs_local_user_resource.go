@@ -28,7 +28,7 @@ var _ resource.ResourceWithImportState = &CifsLocalUserResource{}
 func NewCifsLocalUserResource() resource.Resource {
 	return &CifsLocalUserResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "protocols_cifs_local_user_resource",
+			Name: "protocols_cifs_local_user",
 		},
 	}
 }

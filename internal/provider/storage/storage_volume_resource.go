@@ -32,7 +32,7 @@ var _ resource.ResourceWithImportState = &StorageVolumeResource{}
 func NewStorageVolumeResource() resource.Resource {
 	return &StorageVolumeResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "storage_volume_resource",
+			Name: "storage_volume",
 		},
 	}
 }

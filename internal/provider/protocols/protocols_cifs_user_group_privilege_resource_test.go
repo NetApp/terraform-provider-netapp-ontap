@@ -24,13 +24,13 @@ func TestAccCifsUserGroupPrivilegeResource(t *testing.T) {
 				Config: testAccCifsUserGroupPrivilegeResourceConfig("svm3", "accuser1", "sechangenotifyprivilege"),
 				Check: resource.ComposeTestCheckFunc(
 					// check name
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_user_group_privilege_resource.example1", "name", "accuser1"),
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_user_group_privilege.example1", "name", "accuser1"),
 					// check svm_name
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_user_group_privilege_resource.example1", "svm_name", "svm3"),
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_user_group_privilege.example1", "svm_name", "svm3"),
 					// check ID
-					resource.TestCheckResourceAttrSet("netapp-ontap_protocols_cifs_user_group_privilege_resource.example1", "id"),
+					resource.TestCheckResourceAttrSet("netapp-ontap_protocols_cifs_user_group_privilege.example1", "id"),
 					// check privileges
-					resource.TestCheckTypeSetElemAttr("netapp-ontap_protocols_cifs_user_group_privilege_resource.example1", "privileges.*", "sechangenotifyprivilege"),
+					resource.TestCheckTypeSetElemAttr("netapp-ontap_protocols_cifs_user_group_privilege.example1", "privileges.*", "sechangenotifyprivilege"),
 				),
 			},
 			// update one privilege
@@ -38,24 +38,24 @@ func TestAccCifsUserGroupPrivilegeResource(t *testing.T) {
 				Config: testAccCifsUserGroupPrivilegeResourceConfig("svm3", "accuser1", "setakeownershipprivilege"),
 				Check: resource.ComposeTestCheckFunc(
 					// check user name
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_user_group_privilege_resource.example1", "name", "accuser1"),
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_user_group_privilege.example1", "name", "accuser1"),
 					// check id
-					resource.TestCheckResourceAttrSet("netapp-ontap_protocols_cifs_user_group_privilege_resource.example1", "id"),
+					resource.TestCheckResourceAttrSet("netapp-ontap_protocols_cifs_user_group_privilege.example1", "id"),
 					// check updated privileges
-					resource.TestCheckTypeSetElemAttr("netapp-ontap_protocols_cifs_user_group_privilege_resource.example1", "privileges.*", "setakeownershipprivilege"),
+					resource.TestCheckTypeSetElemAttr("netapp-ontap_protocols_cifs_user_group_privilege.example1", "privileges.*", "setakeownershipprivilege"),
 				),
 			},
 			// Test importing a resource
 			{
-				ResourceName:  "netapp-ontap_protocols_cifs_user_group_privilege_resource.example1",
+				ResourceName:  "netapp-ontap_protocols_cifs_user_group_privilege.example1",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s", "accuser1", "svm3", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_user_group_privilege_resource.example1", "svm_name", "svm3"),
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_user_group_privilege_resource.example1", "name", "accuser1"),
-					resource.TestCheckTypeSetElemAttr("netapp-ontap_protocols_cifs_user_group_privilege_resource.example1", "privileges.*", "sesecurityprivilege"),
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_user_group_privilege.example1", "svm_name", "svm3"),
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_user_group_privilege.example1", "name", "accuser1"),
+					resource.TestCheckTypeSetElemAttr("netapp-ontap_protocols_cifs_user_group_privilege.example1", "privileges.*", "sesecurityprivilege"),
 					// check id
-					resource.TestCheckResourceAttrSet("netapp-ontap_protocols_cifs_user_group_privilege_resource.example1", "id"),
+					resource.TestCheckResourceAttrSet("netapp-ontap_protocols_cifs_user_group_privilege.example1", "id"),
 				),
 			},
 		},
@@ -64,7 +64,7 @@ func TestAccCifsUserGroupPrivilegeResource(t *testing.T) {
 
 func testAccCifsUserGroupPrivilegeResourceConfigMissingVars(svmName string) string {
 	return fmt.Sprintf(`
-	resource "netapp-ontap_protocols_cifs_user_group_privilege_resource" "example1" {
+	resource "netapp-ontap_protocols_cifs_user_group_privilege" "example1" {
 		svm_name = "%s"
 	}
 	`, svmName)
@@ -91,7 +91,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_protocols_cifs_user_group_privilege_resource" "example1" {
+resource "netapp-ontap_protocols_cifs_user_group_privilege" "example1" {
 	cx_profile_name = "cluster4"
 	svm_name = "%s"
 	name = "%s"

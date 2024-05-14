@@ -20,7 +20,7 @@ var _ datasource.DataSource = &ClusterScheduleDataSource{}
 func NewClusterScheduleDataSource() datasource.DataSource {
 	return &ClusterScheduleDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "cluster_schedule_data_source",
+			Name: "cluster_schedule",
 		},
 	}
 }

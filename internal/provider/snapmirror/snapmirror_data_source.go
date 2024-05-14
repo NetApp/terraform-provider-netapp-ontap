@@ -20,7 +20,7 @@ var _ datasource.DataSource = &SnapmirrorDataSource{}
 func NewSnapmirrorDataSource() datasource.DataSource {
 	return &SnapmirrorDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "snapmirror_data_source",
+			Name: "snapmirror",
 		},
 	}
 }

@@ -20,7 +20,7 @@ var _ datasource.DataSource = &SvmDataSource{}
 func NewSvmDataSource() datasource.DataSource {
 	return &SvmDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "svm_data_source",
+			Name: "svm",
 		},
 	}
 }

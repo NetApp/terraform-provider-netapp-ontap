@@ -33,7 +33,7 @@ var _ resource.ResourceWithImportState = &SnapmirrorPolicyResource{}
 func NewSnapmirrorPolicyResource() resource.Resource {
 	return &SnapmirrorPolicyResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "snapmirror_policy_resource",
+			Name: "snapmirror_policy",
 		},
 	}
 }
