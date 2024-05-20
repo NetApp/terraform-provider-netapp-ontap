@@ -19,7 +19,7 @@ var _ datasource.DataSource = &SecurityAccountDataSource{}
 func NewSecurityAccountDataSource() datasource.DataSource {
 	return &SecurityAccountDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "security_account_data_source",
+			Name: "security_account",
 		},
 	}
 }

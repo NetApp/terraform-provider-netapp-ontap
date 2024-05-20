@@ -20,7 +20,7 @@ var _ datasource.DataSource = &SnapshotPolicyDataSource{}
 func NewSnapshotPolicyDataSource() datasource.DataSource {
 	return &SnapshotPolicyDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "storage_snapshot_policy_data_source",
+			Name: "snapshot_policy",
 		},
 	}
 }

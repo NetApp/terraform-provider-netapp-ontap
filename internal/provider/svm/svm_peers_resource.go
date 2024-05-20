@@ -27,7 +27,7 @@ var _ resource.ResourceWithImportState = &SVMPeersResource{}
 func NewSVMPeersResource() resource.Resource {
 	return &SVMPeersResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "svm_peers_resource",
+			Name: "svm_peers",
 		},
 	}
 }

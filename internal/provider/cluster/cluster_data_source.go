@@ -21,7 +21,7 @@ var _ datasource.DataSource = &ClusterDataSource{}
 func NewClusterDataSource() datasource.DataSource {
 	return &ClusterDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "cluster_data_source",
+			Name: "cluster",
 		},
 	}
 }

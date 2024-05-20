@@ -30,7 +30,7 @@ var _ resource.ResourceWithImportState = &ProtocolsCIFSShareResource{}
 func NewProtocolsCIFSShareResource() resource.Resource {
 	return &ProtocolsCIFSShareResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "protocols_cifs_share_resource",
+			Name: "cifs_share",
 		},
 	}
 }

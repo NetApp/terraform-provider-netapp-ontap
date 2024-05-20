@@ -29,7 +29,7 @@ var _ resource.ResourceWithImportState = &NameServicesLDAPResource{}
 func NewNameServicesLDAPResource() resource.Resource {
 	return &NameServicesLDAPResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "name_services_ldap_resource",
+			Name: "name_services_ldap",
 		},
 	}
 }

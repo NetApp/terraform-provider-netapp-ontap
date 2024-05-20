@@ -24,26 +24,26 @@ func TestAccProtocolsCIFSShareResource(t *testing.T) {
 			{
 				Config: testAccProtocolsCIFSShareResourceConfig("tfsvm", "acc_test_cifs_share"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_share_resource.example", "name", "acc_test_cifs_share"),
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_share_resource.example", "comment", "this is a comment"),
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_share_resource.example", "continuously_available", "false"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_share.example", "name", "acc_test_cifs_share"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_share.example", "comment", "this is a comment"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_share.example", "continuously_available", "false"),
 				),
 			},
 			{
 				Config: testAccProtocolsCIFSShareResourceConfigUpdate("tfsvm", "acc_test_cifs_share"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_share_resource.example", "name", "acc_test_cifs_share"),
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_share_resource.example", "comment", "update comment"),
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_share_resource.example", "continuously_available", "true"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_share.example", "name", "acc_test_cifs_share"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_share.example", "comment", "update comment"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_share.example", "continuously_available", "true"),
 				),
 			},
 			// Test importing a resource
 			{
-				ResourceName:  "netapp-ontap_protocols_cifs_share_resource.example",
+				ResourceName:  "netapp-ontap_cifs_share.example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s", "acc_test_cifs_share_import", "tfsvm", "clustercifs"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_share_resource.example", "name", "acc_test_cifs_share_import"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_share.example", "name", "acc_test_cifs_share_import"),
 				),
 			},
 		},
@@ -72,7 +72,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_protocols_cifs_share_resource" "example" {
+resource "netapp-ontap_cifs_share" "example" {
 	cx_profile_name = "clustercifs"
   	name = "%s"
   	svm_name = "%s"
@@ -109,7 +109,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_protocols_cifs_share_resource" "example" {
+resource "netapp-ontap_cifs_share" "example" {
   cx_profile_name = "clustercifs"
   name = "%s"
   svm_name = "%s"

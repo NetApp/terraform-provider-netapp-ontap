@@ -20,7 +20,7 @@ var _ datasource.DataSource = &IPRoutesDataSource{}
 func NewIPRoutesDataSource() datasource.DataSource {
 	return &IPRoutesDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "networking_ip_routes_data_source",
+			Name: "networking_ip_routes",
 		},
 	}
 }

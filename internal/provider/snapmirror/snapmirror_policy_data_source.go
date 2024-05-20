@@ -21,7 +21,7 @@ var _ datasource.DataSource = &SnapmirrorPolicyDataSource{}
 func NewSnapmirrorPolicyDataSource() datasource.DataSource {
 	return &SnapmirrorPolicyDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "snapmirror_policy_data_source",
+			Name: "snapmirror_policy",
 		},
 	}
 }

@@ -30,7 +30,7 @@ var _ resource.ResourceWithImportState = &ProtocolsSanIgroupResource{}
 func NewProtocolsSanIgroupResource() resource.Resource {
 	return &ProtocolsSanIgroupResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "protocols_san_igroup_resource",
+			Name: "san_igroup",
 		},
 	}
 }

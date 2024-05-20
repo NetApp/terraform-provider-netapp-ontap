@@ -24,51 +24,51 @@ func TestAccClusterScheduleResource(t *testing.T) {
 			{
 				Config: testAccClusterScheduleResourceIntervalConfig("tf-interval-schedule-test", "PT8M30S"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule_resource.example", "name", "tf-interval-schedule-test"),
-					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule_resource.example", "interval", "PT8M30S"),
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule.example", "name", "tf-interval-schedule-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule.example", "interval", "PT8M30S"),
 				),
 			},
 			// update and read
 			{
 				Config: testAccClusterScheduleResourceIntervalConfig("tf-interval-schedule-test", "PT8M20S"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule_resource.example", "name", "tf-interval-schedule-test"),
-					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule_resource.example", "interval", "PT8M20S"),
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule.example", "name", "tf-interval-schedule-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule.example", "interval", "PT8M20S"),
 				),
 			},
 			// Test importing a interval job schedule resource
 			{
-				ResourceName:  "netapp-ontap_cluster_schedule_resource.example",
+				ResourceName:  "netapp-ontap_cluster_schedule.example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s", "tf-interval-schedule-test", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule_resource.example", "name", "tf-interval-schedule-test"),
-					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule_resource.example", "interval", "PT8M20S"),
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule.example", "name", "tf-interval-schedule-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule.example", "interval", "PT8M20S"),
 				),
 			},
 			// Create cron schedule and read
 			{
 				Config: testAccClusterScheduleCreateResourceCronConfig("tf-cron-schedule-test"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule_resource.cron-example", "name", "tf-cron-schedule-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule.cron-example", "name", "tf-cron-schedule-test"),
 				),
 			},
 			// Update cron schedule and read
 			{
 				Config: testAccClusterScheduleUpdateResourceCronConfig("tf-cron-schedule-test"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule_resource.cron-example", "name", "tf-cron-schedule-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule.cron-example", "name", "tf-cron-schedule-test"),
 				),
 			},
 			// Test importing a cron job schedule resource
 			{
-				ResourceName:  "netapp-ontap_cluster_schedule_resource.cron-example",
+				ResourceName:  "netapp-ontap_cluster_schedule.cron-example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s", "tf-cron-schedule-test", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule_resource.cron-example", "name", "tf-cron-schedule-test"),
-					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule_resource.cron-example", "cron.days.0", "2"),
-					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule_resource.cron-example", "cron.weekdays.2", "4"),
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule.cron-example", "name", "tf-cron-schedule-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule.cron-example", "cron.days.0", "2"),
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule.cron-example", "cron.weekdays.2", "4"),
 				),
 			},
 		},
@@ -96,7 +96,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_cluster_schedule_resource" "example" {
+resource "netapp-ontap_cluster_schedule" "example" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name = "%s"
@@ -125,7 +125,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_cluster_schedule_resource" "cron-example" {
+resource "netapp-ontap_cluster_schedule" "cron-example" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name = "%s"
@@ -160,7 +160,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_cluster_schedule_resource" "cron-example" {
+resource "netapp-ontap_cluster_schedule" "cron-example" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name = "%s"

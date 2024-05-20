@@ -21,7 +21,7 @@ var _ datasource.DataSource = &ProtocolsNFSExportPolicyRulesDataSource{}
 func NewExportPolicyRulesDataSource() datasource.DataSource {
 	return &ProtocolsNFSExportPolicyRulesDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "protocols_nfs_export_policy_rules_data_source",
+			Name: "nfs_export_policy_rules",
 		},
 	}
 }
