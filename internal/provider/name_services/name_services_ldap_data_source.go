@@ -20,7 +20,7 @@ var _ datasource.DataSource = &NameServicesLDAPDataSource{}
 func NewNameServicesLDAPDataSource() datasource.DataSource {
 	return &NameServicesLDAPDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "name_services_ldap_data_source",
+			Name: "name_services_ldap",
 		},
 	}
 }

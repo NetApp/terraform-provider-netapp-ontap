@@ -29,7 +29,7 @@ var _ resource.ResourceWithImportState = &SnapmirrorResource{}
 func NewSnapmirrorResource() resource.Resource {
 	return &SnapmirrorResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "snapmirror_resource",
+			Name: "snapmirror",
 		},
 	}
 }

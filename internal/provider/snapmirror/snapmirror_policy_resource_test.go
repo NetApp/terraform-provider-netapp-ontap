@@ -24,104 +24,104 @@ func TestAccSnapmirrorPolicyResource(t *testing.T) {
 			{
 				Config: testAccSnapmirrorPolicyResourceBasicConfig("ansibleSVM"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "carchitestme4"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "name", "carchitestme4"),
 				),
 			},
 			//  Test adding transfer_schedule
 			{
 				Config: testAccSnapmirrorPolicyResourceAddTransferScheduleBasicConfig("ansibleSVM", "weekly"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "carchitestme4"),
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "transfer_schedule_name", "weekly"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "name", "carchitestme4"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "transfer_schedule_name", "weekly"),
 				),
 			},
 			//  Test update transfer_schedule
 			{
 				Config: testAccSnapmirrorPolicyResourceAddTransferScheduleBasicConfig("ansibleSVM", "daily"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "carchitestme4"),
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "transfer_schedule_name", "daily"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "name", "carchitestme4"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "transfer_schedule_name", "daily"),
 				),
 			},
 			// Test remove snapmirror policy transfer schedule
 			{
 				Config: testAccSnapmirrorPolicyResourceBasicConfig("ansibleSVM"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "carchitestme4"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "name", "carchitestme4"),
 				),
 			},
 			// Test add snapmirror policy with comment and identity_preservation
 			{
 				Config: testAccSnapmirrorPolicyResourceConfig("ansibleSVM", "test comment", "full"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "carchitestme4"),
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "comment", "test comment"),
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "identity_preservation", "full"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "name", "carchitestme4"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "comment", "test comment"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "identity_preservation", "full"),
 				),
 			},
 			// Test update snapmirror policy with comment and identity_preservation change
 			{
 				Config: testAccSnapmirrorPolicyResourceConfig("ansibleSVM", "update comment", "exclude_network_config"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "carchitestme4"),
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "comment", "update comment"),
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "identity_preservation", "exclude_network_config"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "name", "carchitestme4"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "comment", "update comment"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "identity_preservation", "exclude_network_config"),
 				),
 			},
 			// Test update snapmirror policy with adding two retention rules
 			{
 				Config: testAccSnapmirrorPolicyResourceAddTwoRetentionConfig("ansibleSVM", "update comment", "exclude_network_config", "weekly", 5),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "carchitestme4"),
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "comment", "update comment"),
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "identity_preservation", "exclude_network_config"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "name", "carchitestme4"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "comment", "update comment"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "identity_preservation", "exclude_network_config"),
 					// check number of reteion
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "retention.#", "2"),
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "retention.0.label", "hourly"),
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "retention.0.count", "7"),
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "retention.1.label", "weekly"),
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "retention.1.count", "5"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "retention.#", "2"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "retention.0.label", "hourly"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "retention.0.count", "7"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "retention.1.label", "weekly"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "retention.1.count", "5"),
 				),
 			},
 			// Test update snapmirror policy with removing one retention rule
 			{
 				Config: testAccSnapmirrorPolicyResourceRemoveOneRetentionConfig("ansibleSVM", "update comment", "exclude_network_config"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "carchitestme4"),
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "comment", "update comment"),
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "identity_preservation", "exclude_network_config"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "name", "carchitestme4"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "comment", "update comment"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "identity_preservation", "exclude_network_config"),
 					// check number of reteion
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "retention.#", "1"),
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "retention.0.label", "hourly"),
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "retention.0.count", "7"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "retention.#", "1"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "retention.0.label", "hourly"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "retention.0.count", "7"),
 				),
 			},
 			// Test create sync type snapmirror policy
 			{
 				Config: testAccSnapmirrorPolicyResourceSyncBasicConfig("ansibleSVM", "test sync"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.sync_example", "name", "test_sync"),
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.sync_example", "comment", "test sync"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.sync_example", "name", "test_sync"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.sync_example", "comment", "test sync"),
 				),
 			},
 			// Test update sync type snapmirror policy with changing comment
 			{
 				Config: testAccSnapmirrorPolicyResourceSyncBasicConfig("ansibleSVM", "test update sync comment"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.sync_example", "name", "test_sync"),
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.sync_example", "comment", "test update sync comment"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.sync_example", "name", "test_sync"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.sync_example", "comment", "test update sync comment"),
 				),
 			},
 			// Test update sync type snapmirror policy with adding a retention
 			{
 				Config: testAccSnapmirrorPolicyResourceSyncAddRetentionConfig("ansibleSVM", "test add retenion in sync type"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.sync_example", "name", "test_sync"),
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.sync_example", "comment", "test add retenion in sync type"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.sync_example", "name", "test_sync"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.sync_example", "comment", "test add retenion in sync type"),
 					// check number of reteion
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.sync_example", "retention.#", "1"),
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.sync_example", "retention.0.label", "daily"),
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.sync_example", "retention.0.count", "1"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.sync_example", "retention.#", "1"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.sync_example", "retention.0.label", "daily"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.sync_example", "retention.0.count", "1"),
 				),
 			},
 			// Test update sync type snapmirror policy with adding extra retention - max is 1
@@ -154,7 +154,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_snapmirror_policy_resource" "example" {
+resource "netapp-ontap_snapmirror_policy" "example" {
   cx_profile_name = "cluster4"
   name = "carchitestme4"
   svm_name = "%s"
@@ -183,7 +183,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_snapmirror_policy_resource" "example" {
+resource "netapp-ontap_snapmirror_policy" "example" {
   cx_profile_name = "cluster4"
   name = "carchitestme4"
   svm_name = "%s"
@@ -213,7 +213,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_snapmirror_policy_resource" "example" {
+resource "netapp-ontap_snapmirror_policy" "example" {
   cx_profile_name = "cluster4"
   name = "carchitestme4"
   svm_name = "%s"
@@ -244,7 +244,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_snapmirror_policy_resource" "example" {
+resource "netapp-ontap_snapmirror_policy" "example" {
   cx_profile_name = "cluster4"
   name = "carchitestme4"
   svm_name = "%s"
@@ -286,7 +286,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_snapmirror_policy_resource" "example" {
+resource "netapp-ontap_snapmirror_policy" "example" {
   cx_profile_name = "cluster4"
   name = "carchitestme4"
   svm_name = "%s"
@@ -324,7 +324,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_snapmirror_policy_resource" "sync_example" {
+resource "netapp-ontap_snapmirror_policy" "sync_example" {
   cx_profile_name = "cluster4"
   name = "test_sync"
   svm_name = "%s"
@@ -355,7 +355,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_snapmirror_policy_resource" "sync_example" {
+resource "netapp-ontap_snapmirror_policy" "sync_example" {
   cx_profile_name = "cluster4"
   name = "test_sync"
   svm_name = "%s"
@@ -392,7 +392,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_snapmirror_policy_resource" "sync_example" {
+resource "netapp-ontap_snapmirror_policy" "sync_example" {
   cx_profile_name = "cluster4"
   name = "test_sync"
   svm_name = "%s"

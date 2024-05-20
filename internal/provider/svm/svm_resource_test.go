@@ -19,34 +19,34 @@ func TestAccSvmResource(t *testing.T) {
 				Config: testAccSvmResourceConfig("tfsvm4", "test", "default"),
 				Check: resource.ComposeTestCheckFunc(
 					// Check to see the svm name is correct,
-					resource.TestCheckResourceAttr("netapp-ontap_svm_resource.example", "name", "tfsvm4"),
+					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "name", "tfsvm4"),
 					// Check to see if Ipspace is set correctly
-					resource.TestCheckResourceAttr("netapp-ontap_svm_resource.example", "ipspace", "ansibleIpspace_newname"),
+					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "ipspace", "ansibleIpspace_newname"),
 					// Check that a ID has been set (we don't know what the vaule is as it changes
-					resource.TestCheckResourceAttrSet("netapp-ontap_svm_resource.example", "id"),
-					resource.TestCheckResourceAttr("netapp-ontap_svm_resource.example", "comment", "test")),
+					resource.TestCheckResourceAttrSet("netapp-ontap_svm.example", "id"),
+					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "comment", "test")),
 			},
 			// Update a comment
 			{
 				Config: testAccSvmResourceConfig("tfsvm4", "carchi8py was here", "default"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_svm_resource.example", "comment", "carchi8py was here"),
-					resource.TestCheckResourceAttr("netapp-ontap_svm_resource.example", "name", "tfsvm4")),
+					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "comment", "carchi8py was here"),
+					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "name", "tfsvm4")),
 			},
 			// Update a comment with an empty string
 			{
 				Config: testAccSvmResourceConfig("tfsvm4", "", "default"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_svm_resource.example", "comment", ""),
-					resource.TestCheckResourceAttr("netapp-ontap_svm_resource.example", "name", "tfsvm4")),
+					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "comment", ""),
+					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "name", "tfsvm4")),
 			},
 			// Update snapshot policy default-1weekly and comment "carchi8py was here"
 			{
 				Config: testAccSvmResourceConfig("tfsvm4", "carchi8py was here", "default-1weekly"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_svm_resource.example", "comment", "carchi8py was here"),
-					resource.TestCheckResourceAttr("netapp-ontap_svm_resource.example", "snapshot_policy", "default-1weekly"),
-					resource.TestCheckResourceAttr("netapp-ontap_svm_resource.example", "name", "tfsvm4")),
+					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "comment", "carchi8py was here"),
+					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "snapshot_policy", "default-1weekly"),
+					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "name", "tfsvm4")),
 			},
 			// Update snapshot policy with empty string
 			{
@@ -57,8 +57,8 @@ func TestAccSvmResource(t *testing.T) {
 			{
 				Config: testAccSvmResourceConfig("tfsvm3", "carchi8py was here", "default"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_svm_resource.example", "comment", "carchi8py was here"),
-					resource.TestCheckResourceAttr("netapp-ontap_svm_resource.example", "name", "tfsvm3")),
+					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "comment", "carchi8py was here"),
+					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "name", "tfsvm3")),
 			},
 			// Fail if the name already exist
 			{
@@ -67,11 +67,11 @@ func TestAccSvmResource(t *testing.T) {
 			},
 			// Import and read
 			{
-				ResourceName:  "netapp-ontap_svm_resource.example",
+				ResourceName:  "netapp-ontap_svm.example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s", "ansibleSVM", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_svm_resource.example", "name", "ansibleSVM"),
+					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "name", "ansibleSVM"),
 				),
 			},
 		},
@@ -98,7 +98,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_svm_resource" "example" {
+resource "netapp-ontap_svm" "example" {
   cx_profile_name = "cluster4"
   name = "%s"
   ipspace = "ansibleIpspace_newname"

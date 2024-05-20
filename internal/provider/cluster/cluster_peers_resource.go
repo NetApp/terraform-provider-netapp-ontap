@@ -28,7 +28,7 @@ var _ resource.ResourceWithImportState = &ClusterPeersResource{}
 func NewClusterPeersResource() resource.Resource {
 	return &ClusterPeersResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "cluster_peers_resource",
+			Name: "cluster_peers",
 		},
 	}
 }

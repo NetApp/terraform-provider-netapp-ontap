@@ -28,7 +28,7 @@ var _ resource.Resource = &StorageFlexcacheResource{}
 func NewStorageFlexcacheRsource() resource.Resource {
 	return &StorageFlexcacheResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "storage_flexcache_resource",
+			Name: "flexcache",
 		},
 	}
 }

@@ -24,24 +24,24 @@ func TestAccSnapmirrorResource(t *testing.T) {
 			{
 				Config: testAccSnapmirrorResourceBasicConfig("snapmirror_dest_svm:snap_dest3", "snapmirror_dest_svm:snap_dest2"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_resource.example", "destination_endpoint.path", "snapmirror_dest_svm:snap_dest2"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror.example", "destination_endpoint.path", "snapmirror_dest_svm:snap_dest2"),
 				),
 			},
 			// Update a policy
 			{
 				Config: testAccSnapmirrorResourceUpdateConfig("snapmirror_dest_svm:snap_dest", "snapmirror_source_svm:snap", "MirrorAndVault"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_resource.example", "policy.name", "MirrorAndVault"),
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_resource.example", "destination_endpoint.path", "snapmirror_source_svm:snap"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror.example", "policy.name", "MirrorAndVault"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror.example", "destination_endpoint.path", "snapmirror_source_svm:snap"),
 				),
 			},
 			// Import and read
 			{
-				ResourceName:  "netapp-ontap_snapmirror_resource.example",
+				ResourceName:  "netapp-ontap_snapmirror.example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s", "snapmirror_dest_svm:snap_dest2", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_resource.example", "destination_endpoint.path", "snapmirror_dest_svm:snap_dest2"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror.example", "destination_endpoint.path", "snapmirror_dest_svm:snap_dest2"),
 				),
 			},
 			// Delete testing automatically occurs in TestCase
@@ -70,7 +70,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_snapmirror_resource" "example" {
+resource "netapp-ontap_snapmirror" "example" {
   cx_profile_name = "cluster4"
   source_endpoint = {
     path = "%s"
@@ -102,7 +102,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_snapmirror_resource" "example" {
+resource "netapp-ontap_snapmirror" "example" {
   cx_profile_name = "cluster4"
   source_endpoint = {
     path = "%s"

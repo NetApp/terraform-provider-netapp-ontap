@@ -32,7 +32,7 @@ var _ resource.ResourceWithImportState = &IPRouteResource{}
 func NewIPRouteResource() resource.Resource {
 	return &IPRouteResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "networking_ip_route_resource",
+			Name: "networking_ip_route",
 		},
 	}
 }

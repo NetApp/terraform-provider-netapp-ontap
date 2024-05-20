@@ -26,26 +26,26 @@ func TestAccNameServicesLDAPResource(t *testing.T) {
 			{
 				Config: testAccNameServicesLDAPResourceConfig("svm1", "subtree"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_name_services_ldap_resource.name_services_ldap", "svm_name", "svm1"),
-					resource.TestCheckResourceAttr("netapp-ontap_name_services_ldap_resource.name_services_ldap", "servers.0", "1.1.1.1"),
+					resource.TestCheckResourceAttr("netapp-ontap_name_services_ldap.name_services_ldap", "svm_name", "svm1"),
+					resource.TestCheckResourceAttr("netapp-ontap_name_services_ldap.name_services_ldap", "servers.0", "1.1.1.1"),
 				),
 			},
 			// Test update
 			{
 				Config: testAccNameServicesLDAPResourceConfig("svm1", "base"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_name_services_ldap_resource.name_services_ldap", "svm_name", "svm1"),
-					resource.TestCheckResourceAttr("netapp-ontap_name_services_ldap_resource.name_services_ldap", "base_scope", "base"),
+					resource.TestCheckResourceAttr("netapp-ontap_name_services_ldap.name_services_ldap", "svm_name", "svm1"),
+					resource.TestCheckResourceAttr("netapp-ontap_name_services_ldap.name_services_ldap", "base_scope", "base"),
 				),
 			},
 			// Test importing a resource
 			{
-				ResourceName:  "netapp-ontap_name_services_ldap_resource.name_services_ldap",
+				ResourceName:  "netapp-ontap_name_services_ldap.name_services_ldap",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s", svmName, credName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_name_services_ldap_resource.name_services_ldap", "svm_name", svmName),
-					resource.TestCheckResourceAttr("netapp-ontap_name_services_ldap_resource.name_services_ldap", "servers.0", "acc1.test.com"),
+					resource.TestCheckResourceAttr("netapp-ontap_name_services_ldap.name_services_ldap", "svm_name", svmName),
+					resource.TestCheckResourceAttr("netapp-ontap_name_services_ldap.name_services_ldap", "servers.0", "acc1.test.com"),
 				),
 			},
 		},
@@ -73,7 +73,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_name_services_ldap_resource" "name_services_ldap" {
+resource "netapp-ontap_name_services_ldap" "name_services_ldap" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   svm_name = "%s"

@@ -28,7 +28,7 @@ var _ resource.ResourceWithImportState = &CifsLocalGroupMemberResource{}
 func NewCifsLocalGroupMemberResource() resource.Resource {
 	return &CifsLocalGroupMemberResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "protocols_cifs_local_group_member_resource",
+			Name: "cifs_local_group_member",
 		},
 	}
 }

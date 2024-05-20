@@ -20,7 +20,7 @@ var _ datasource.DataSource = &CifsServicesDataSource{}
 func NewCifsServicesDataSource() datasource.DataSource {
 	return &CifsServicesDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "protocols_cifs_services_data_source",
+			Name: "cifs_services",
 		},
 	}
 }

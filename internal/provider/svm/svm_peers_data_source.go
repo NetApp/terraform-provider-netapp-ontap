@@ -21,7 +21,7 @@ var _ datasource.DataSource = &SVMPeersDataSource{}
 func NewSVMPeersDataSource() datasource.DataSource {
 	return &SVMPeersDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "svm_peers_data_source",
+			Name: "svm_peers",
 		},
 	}
 }

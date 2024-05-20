@@ -29,17 +29,17 @@ func TestAccStorageFlexcacheResource(t *testing.T) {
 			{
 				Config: testAccStorageFlexcacheResourceConfig("acc_test", "accFlexcache"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_flexcache_resource.example", "name", "accFlexcache"),
-					resource.TestCheckNoResourceAttr("netapp-ontap_storage_flexcache_resource.example", "volname"),
+					resource.TestCheckResourceAttr("netapp-ontap_flexcache.example", "name", "accFlexcache"),
+					resource.TestCheckNoResourceAttr("netapp-ontap_flexcache.example", "volname"),
 				),
 			},
 			// Test importing a resource
 			{
-				ResourceName:  "netapp-ontap_storage_flexcache_resource.example",
+				ResourceName:  "netapp-ontap_flexcache.example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s", "accFlexcache", "acc_test", "cluster5"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_flexcache_resource.example", "name", "accFlexcache"),
+					resource.TestCheckResourceAttr("netapp-ontap_flexcache.example", "name", "accFlexcache"),
 				),
 			},
 		},
@@ -68,7 +68,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_storage_flexcache_resource" "example" {
+resource "netapp-ontap_flexcache" "example" {
   cx_profile_name = "cluster5"
   name = "%s"
   svm_name = "%s"

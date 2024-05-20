@@ -20,7 +20,7 @@ var _ datasource.DataSource = &ClusterPeersDataSource{}
 func NewClusterPeersDataSource() datasource.DataSource {
 	return &ClusterPeersDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "cluster_peers_data_source",
+			Name: "cluster_peers",
 		},
 	}
 }
