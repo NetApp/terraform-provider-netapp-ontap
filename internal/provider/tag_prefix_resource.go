@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -29,15 +30,15 @@ var _ resource.ResourceWithImportState = &GoPrefixResource{}
 // NewGoPrefixResource is a helper function to simplify the provider implementation.
 func NewGoPrefixResource() resource.Resource {
 	return &GoPrefixResource{
-		config: resourceOrDataSourceConfig{
-			name: "tag_prefix_resource",
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "tag_prefix_resource",
 		},
 	}
 }
 
 // GoPrefixResource defines the resource implementation.
 type GoPrefixResource struct {
-	config resourceOrDataSourceConfig
+	config connection.ResourceOrDataSourceConfig
 }
 
 // GoPrefixResourceModel describes the resource data model.
@@ -50,7 +51,7 @@ type GoPrefixResourceModel struct {
 
 // Metadata returns the resource type name.
 func (r *GoPrefixResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + r.config.name
+	resp.TypeName = req.ProviderTypeName + "_" + r.config.Name
 }
 
 // Schema defines the schema for the resource.
@@ -89,14 +90,14 @@ func (r *GoPrefixResource) Configure(ctx context.Context, req resource.Configure
 	if req.ProviderData == nil {
 		return
 	}
-	config, ok := req.ProviderData.(Config)
+	config, ok := req.ProviderData.(connection.Config)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
 			fmt.Sprintf("Expected Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 	}
-	r.config.providerConfig = config
+	r.config.ProviderConfig = config
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -112,7 +113,7 @@ func (r *GoPrefixResource) Read(ctx context.Context, req resource.ReadRequest, r
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -151,7 +152,7 @@ func (r *GoPrefixResource) Create(ctx context.Context, req resource.CreateReques
 	body.Name = data.Name.ValueString()
 	// body.SVM.Name = data.SVMName.ValueString()
 
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -197,7 +198,7 @@ func (r *GoPrefixResource) Delete(ctx context.Context, req resource.DeleteReques
 	}
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	client, err := getRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
