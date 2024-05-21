@@ -49,7 +49,7 @@ Import require a unique ID composed of the export policy name, svm_name and cx_p
 
  id = `name`,`svm_name`,`cx_profile_name`
 
- ### Terraform Import
+### Terraform Import
 
  For example
  ```shell
@@ -58,7 +58,7 @@ Import require a unique ID composed of the export policy name, svm_name and cx_p
 
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
 
-### Terrafomr Import Block
+### Terraform Import Block
 This requires Terraform 1.5 or higher, and will auto create the configuration for you
 
 First create the block
