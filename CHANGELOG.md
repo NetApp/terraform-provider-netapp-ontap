@@ -3,7 +3,12 @@
 FEATURES:
 * **New Data Source:** `netapp_ontap_storage_volumes_files_data_source` ([#8](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/8))
 
-## 1.1.0 ()
+## 1.1.1 (2024-05-15)
+
+* added missing resources in changelog.
+* corrected typos in the documentation.
+
+## 1.1.0 (2024-05-08)
 
 FEATURES:
 * **New Data Source:** `netapp_ontap_protocols_cifs_local_group_data_source` ([#54](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/54))
@@ -43,6 +48,10 @@ FEATURES:
 * **New Resource:** `netapp-ontap_protocols_cifs_service_resource` ([#23](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/23))
 * **New Resource:** `netapp-ontap_protocols_cifs_share_resource` ([#27](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/27))
 * **New Resource:** `netapp-ontap_protocols_san_igroup_resource` ([#9](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/9))
+* **New Resource:** `netapp-ontap_cluster_resource` ([#15](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/15))
+* **New Resource:** `netapp-ontap_cluster_peers_resource` ([#49](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/49))
+* **New Resource:** `netapp-ontap_storage_lun_resource` ([#11](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/11))
+* **New Resource:** `netapp-ontap_security_account_resource` ([#21](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/21))
 
 
 ENHANCEMENTS:
