@@ -22,7 +22,6 @@ Create/Modify/Delete a SVMPeer
 * On-perm ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
-
 ## Example Usage
 
 ```terraform
@@ -98,7 +97,7 @@ For example
 ```
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
 
-### Terrafomr Import Block
+### Terraform Import Block
 This requires Terraform 1.5 or higher, and will auto create the configuration for you
 
 First create the block
