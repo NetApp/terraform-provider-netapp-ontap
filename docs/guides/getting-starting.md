@@ -95,7 +95,7 @@ variable "validate_certs" {
 ```
 
 ### Create A Volume
-Now let us create a volume. First, you'll want to have the documentation for [netapp-ontap_storage_volume](https://registry.terraform.io/providers/NetApp/netapp-ontap/latest/docs/resources/storage_volume) open in another tab.
+Now let us create a volume. First, you'll want to have the documentation for [netapp-ontap_storage_volume](https://registry.terraform.io/providers/NetApp/netapp-ontap/latest/docs/resources/storage_volume_resource) open in another tab.
 This will show you all the configuration options for the volume resource, including examples.
 
 We are just going to make a volume with the required variables
