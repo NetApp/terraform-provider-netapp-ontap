@@ -24,7 +24,7 @@ Create/Modify/Delete an NFS Configuration of a SVM.
 
 ```terraform
 # Create a new NFS service that is enabled with NFSv3 disabled, NFSv4 enabled, with ACL enabled. 
-resource "netapp-ontap_protocols_nfs_service_resource" "protocols_nfs_service" {
+resource "netapp-ontap_protocols_nfs_service" "protocols_nfs_service" {
   # required to know which system to interface with
   cx_profile_name = "cluster2"
   svm_name = "ansibleSVM"
@@ -149,7 +149,7 @@ id = `svm_name`,`cx_profile_name`
 
 For example
 ```shell
- terraform import netapp-ontap_protocols_nfs_service_resource.example ansibleSVM,cluster4
+ terraform import netapp-ontap_protocols_nfs_service.example ansibleSVM,cluster4
 ```
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
 
@@ -159,7 +159,7 @@ This requires Terraform 1.5 or higher, and will auto create the configuration fo
 First create the block
 ```terraform
 import {
-  to = netapp-ontap_protocols_nfs_service_resource.nfs_import
+  to = netapp-ontap_protocols_nfs_service.nfs_import
   id = "ansibleSVM,cluster4"
 }
 ```
@@ -173,7 +173,7 @@ This will generate a file called generated.tf, which will contain the configurat
 # Please review these resources and move them into your main configuration files.
 
 # __generated__ by Terraform from "ansibleSVM,cluster4"
-resource "netapp-ontap_protocols_nfs_service_resource" "nfs_import" {
+resource "netapp-ontap_protocols_nfs_service" "nfs_import" {
   cx_profile_name = "cluster4"
   enabled         = true
   protocol = {

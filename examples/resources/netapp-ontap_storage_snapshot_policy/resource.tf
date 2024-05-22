@@ -1,4 +1,4 @@
-resource "netapp-ontap_storage_snapshot_policy_resource" "storage_snapshot_policy" {
+resource "netapp-ontap_storage_snapshot_policy" "storage_snapshot_policy" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name = "testmesnapshotpolicy"

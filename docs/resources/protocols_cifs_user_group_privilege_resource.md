@@ -22,7 +22,7 @@ vserver cifs users-and-groups privilege reset-privilege
 ## Example Usage
 ```terraform
 # Create Protocols Cifs User Group Privilege
-resource "netapp-ontap_protocols_cifs_user_group_privilege_resource" "user_group_privilege_exp1" {
+resource "netapp-ontap_protocols_cifs_user_group_privilege" "user_group_privilege_exp1" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name = "test"
@@ -30,7 +30,7 @@ resource "netapp-ontap_protocols_cifs_user_group_privilege_resource" "user_group
   privileges = ["setcbprivilege", "sesecurityprivilege"]
 }
 
-resource "netapp-ontap_protocols_cifs_user_group_privilege_resource" "user_group_privilege_exp2" {
+resource "netapp-ontap_protocols_cifs_user_group_privilege" "user_group_privilege_exp2" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name = "testlower"

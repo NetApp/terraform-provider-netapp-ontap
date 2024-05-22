@@ -1,4 +1,4 @@
-data "netapp-ontap_protocols_cifs_local_group_member_data_source" "protocols_cifs_local_group_member" {
+data "netapp-ontap_protocols_cifs_local_group_member" "protocols_cifs_local_group_member" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   svm_name = "test3"
