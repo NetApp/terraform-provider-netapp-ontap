@@ -1,4 +1,4 @@
-resource "netapp-ontap_protocols_nfs_service_resource" "protocols_nfs_service" {
+resource "netapp-ontap_protocols_nfs_service" "protocols_nfs_service" {
   # required to know which system to interface with
   cx_profile_name = "cluster2"
   svm_name = "ansibleSVM"

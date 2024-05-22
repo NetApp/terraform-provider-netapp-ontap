@@ -1,4 +1,4 @@
-resource "netapp-ontap_storage_volume_snapshot_resource" "example" {
+resource "netapp-ontap_storage_volume_snapshot" "example" {
   cx_profile_name = "cluster4"
   name = "snaptest"
   volume_name =  "carchi_test_root"

@@ -1,4 +1,4 @@
-resource "netapp-ontap_storage_lun_resource" "storage_lun" {
+resource "netapp-ontap_storage_lun" "storage_lun" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name = "ACC-import-lun"

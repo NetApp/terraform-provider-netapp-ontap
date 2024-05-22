@@ -1,4 +1,4 @@
-data "netapp-ontap_protocols_nfs_export_policies_data_source" "export_policies" {
+data "netapp-ontap_protocols_nfs_export_policies" "export_policies" {
   cx_profile_name = "cluster4"
   filter = {
     #name = "default"

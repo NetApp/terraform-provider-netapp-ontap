@@ -1,4 +1,4 @@
-resource "netapp-ontap_storage_aggregate_resource" "example" {
+resource "netapp-ontap_storage_aggregate" "example" {
   cx_profile_name = "cluster4"
   name = "test_aggr"
   node = "swenjun-vsim1"

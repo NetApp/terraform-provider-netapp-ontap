@@ -24,7 +24,7 @@ Create/Modify/Delete a SnapshotPolicy resource
 
 ```terraform
 # Create a storage snapshot policy
-resource "netapp-ontap_storage_snapshot_policy_resource" "storage_snapshot_policy" {
+resource "netapp-ontap_storage_snapshot_policy" "storage_snapshot_policy" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name = "testsnapshotpolicy"
@@ -95,7 +95,7 @@ Import require a unique ID composed of the snapshot policy name, svm_name and cx
 ### Terraform Import
  For example
  ```shell
-  terraform import netapp-ontap_storage_snapshot_policy_resource.example policy1,svm1,cluster4
+  terraform import netapp-ontap_storage_snapshot_policy.example policy1,svm1,cluster4
  ```
 
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
@@ -106,7 +106,7 @@ This requires Terraform 1.5 or higher, and will auto create the configuration fo
 First create the block
 ```terraform
 import {
-  to = netapp-ontap_storage_snapshot_policy_resource.exp_import
+  to = netapp-ontap_storage_snapshot_policy.exp_import
   id = "policy1,svm1,cluster4"
 }
 ```
@@ -119,7 +119,7 @@ This will generate a file called generated.tf, which will contain the configurat
 # __generated__ by Terraform
 # Please review these resources and move them into your main configuration files.
 # __generated__ by Terraform from "policy1,svm1,cluster4"
-resource "netapp-ontap_storage_snapshot_policy_resource" "policy1_import" {
+resource "netapp-ontap_storage_snapshot_policy" "policy1_import" {
   cx_profile_name = "cluster4"
   name       = "policy1"
   svm_name   = "svm1"

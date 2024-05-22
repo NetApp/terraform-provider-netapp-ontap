@@ -1,4 +1,4 @@
-data "netapp-ontap_storage_flexcaches_data_source" "storage_flexcache" {
+data "netapp-ontap_storage_flexcaches" "storage_flexcache" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
     filter = {

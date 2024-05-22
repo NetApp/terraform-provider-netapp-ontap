@@ -26,7 +26,7 @@ Create/Modify/Delete a Local Group resource
 
 ```terraform
 # Create a local group
-resource "netapp-ontap_protocols_cifs_local_group_resource" "example" {
+resource "netapp-ontap_protocols_cifs_local_group" "example" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name = "SERVER12\\testme"
@@ -68,7 +68,7 @@ Import require a unique ID composed of the local group name, svm_name and cx_pro
 
  For example
  ```shell
-  terraform import netapp-ontap_protocols_cifs_local_group_resource.example grp1,svm1,cluster4
+  terraform import netapp-ontap_protocols_cifs_local_group.example grp1,svm1,cluster4
  ```
 
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
@@ -79,7 +79,7 @@ This requires Terraform 1.5 or higher, and will auto create the configuration fo
 First create the block
 ```terraform
 import {
-  to = netapp-ontap_protocols_cifs_local_group_resource.grp_import
+  to = netapp-ontap_protocols_cifs_local_group.grp_import
   id = "grp1,svm1,cluster4"
 }
 ```
@@ -92,7 +92,7 @@ This will generate a file called generated.tf, which will contain the configurat
 # __generated__ by Terraform
 # Please review these resources and move them into your main configuration files.
 # __generated__ by Terraform from "grp1,svm1,cluster4"
-resource "netapp-ontap_protocols_cifs_local_group_resource" "grp1_import" {
+resource "netapp-ontap_protocols_cifs_local_group" "grp1_import" {
   cx_profile_name = "cluster4"
   name       = "grp1"
   svm_name   = "svm1"

@@ -1,4 +1,4 @@
-resource "netapp-ontap_storage_flexcache_resource" "storage_flexcache" {
+resource "netapp-ontap_storage_flexcache" "storage_flexcache" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name = "acc_test_storage_flexcache_volume"

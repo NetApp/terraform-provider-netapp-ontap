@@ -26,7 +26,7 @@ Create/Modify/Delete an aggregate resource
 
 ```terraform
 # Create an aggregate
-resource "netapp-ontap_storage_aggregate_resource" "example" {
+resource "netapp-ontap_storage_aggregate" "example" {
   cx_profile_name = "cluster4"
   name = "test_aggr"
   node = "swenjun-vsim2"
@@ -83,7 +83,7 @@ Import require a unique ID composed of the aggregate name and cx_profile_name, s
 
  For example
  ```shell
-  terraform import netapp-ontap_storage_aggregate_resource.example aggr1,cluster4
+  terraform import netapp-ontap_storage_aggregate.example aggr1,cluster4
  ```
 
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
@@ -94,7 +94,7 @@ This requires Terraform 1.5 or higher, and will auto create the configuration fo
 First create the block
 ```terraform
 import {
-  to = netapp-ontap_storage_aggregate_resource.aggr_import
+  to = netapp-ontap_storage_aggregate.aggr_import
   id = "aggr1,cluster4"
 }
 ```
@@ -107,7 +107,7 @@ This will generate a file called generated.tf, which will contain the configurat
 # __generated__ by Terraform
 # Please review these resources and move them into your main configuration files.
 # __generated__ by Terraform from "aggr1,cluster4"
-resource "netapp-ontap_storage_volume_resource" "aggr_import" {
+resource "netapp-ontap_storage_volume" "aggr_import" {
   cx_profile_name = "cluster4"
   name       = "aggr1"
   node       = "node1"

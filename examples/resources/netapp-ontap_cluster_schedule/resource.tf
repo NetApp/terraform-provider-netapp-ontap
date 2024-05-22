@@ -1,4 +1,4 @@
-resource "netapp-ontap_cluster_schedule_resource" "cs_example1" {
+resource "netapp-ontap_cluster_schedule" "cs_example1" {
   cx_profile_name = "cluster4"
   name = "cs_test_cron"
   cron = {
@@ -10,7 +10,7 @@ resource "netapp-ontap_cluster_schedule_resource" "cs_example1" {
   }
 }
 
-resource "netapp-ontap_cluster_schedule_resource" "cs_example2" {
+resource "netapp-ontap_cluster_schedule" "cs_example2" {
   cx_profile_name = "cluster4"
   name = "cs_test_interval"
   interval = "PT7M30S"

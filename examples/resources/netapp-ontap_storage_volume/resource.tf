@@ -1,4 +1,4 @@
-resource "netapp-ontap_storage_volume_resource" "example" {
+resource "netapp-ontap_storage_volume" "example" {
   cx_profile_name = "cluster4"
   name = "terraformTest2"
   svm_name = "ansibleSVM"

@@ -1,4 +1,4 @@
-resource "netapp-ontap_protocols_cifs_user_group_privilege_resource" "protocols_cifs_user_group_privilege_test3" {
+resource "netapp-ontap_protocols_cifs_user_group_privilege" "protocols_cifs_user_group_privilege_test3" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name = "test3"
@@ -6,7 +6,7 @@ resource "netapp-ontap_protocols_cifs_user_group_privilege_resource" "protocols_
   privileges = ["setcbprivilege", "sesecurityprivilege"]
 }
 
-resource "netapp-ontap_protocols_cifs_user_group_privilege_resource" "protocols_cifs_user_group_privilege_test" {
+resource "netapp-ontap_protocols_cifs_user_group_privilege" "protocols_cifs_user_group_privilege_test" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name = "test"
