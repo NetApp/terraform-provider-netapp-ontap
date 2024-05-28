@@ -170,7 +170,8 @@ func (r *StorageLunResource) Read(ctx context.Context, req resource.ReadRequest,
 	}
 
 	if restInfo == nil {
-		errorHandler.MakeAndReportError("error reading info", "No SVM Peer found")
+		errorHandler.MakeAndReportError("error reading info", "No Lun found")
+		return
 	}
 
 	data.Name = types.StringValue(restInfo.Name)
