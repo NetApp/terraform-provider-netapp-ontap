@@ -3,8 +3,9 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"strings"
+
+	"github.com/hashicorp/terraform-plugin-framework/path"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -43,6 +44,8 @@ type StorageLunResourceModel struct {
 	OSType        types.String `tfsdk:"os_type"`
 	Size          types.Int64  `tfsdk:"size"`
 	QoSPolicyName types.String `tfsdk:"qos_policy_name"`
+	SerialNumber  types.String `tfsdk:"serial_number"`
+	LogicalUnit   types.String `tfsdk:"logical_unit"`
 	ID            types.String `tfsdk:"id"`
 }
 
@@ -63,8 +66,20 @@ func (r *StorageLunResource) Schema(ctx context.Context, req resource.SchemaRequ
 				Required:            true,
 			},
 			"name": schema.StringAttribute{
-				MarkdownDescription: "Lun name or location.logical_unit",
-				Required:            true,
+				MarkdownDescription: "Lun name",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"logical_unit": schema.StringAttribute{
+				MarkdownDescription: "Logical unit for lun",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"svm_name": schema.StringAttribute{
 				MarkdownDescription: "SVM name",
@@ -85,6 +100,13 @@ func (r *StorageLunResource) Schema(ctx context.Context, req resource.SchemaRequ
 			"qos_policy_name": schema.StringAttribute{
 				MarkdownDescription: "QoS policy name",
 				Optional:            true,
+			},
+			"serial_number": schema.StringAttribute{
+				MarkdownDescription: "Serial number for lun",
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"id": schema.StringAttribute{
 				MarkdownDescription: "StorageLun UUID",
@@ -132,17 +154,32 @@ func (r *StorageLunResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	restInfo, err := interfaces.GetStorageLunByName(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString(), data.VolumeName.ValueString())
-	if err != nil {
-		// error reporting done inside GetStorageLun
-		return
+	var restInfo *interfaces.StorageLunGetDataModelONTAP
+	if data.ID.ValueString() != "" {
+		restInfo, err = interfaces.GetStorageLunByUUID(errorHandler, *client, data.ID.ValueString())
+		if err != nil {
+			// error reporting done inside GetStorageLunByUUID
+			return
+		}
+	} else {
+		restInfo, err = interfaces.GetStorageLunByName(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString(), data.VolumeName.ValueString())
+		if err != nil {
+			// error reporting done inside GetStorageLunByName
+			return
+		}
 	}
 
-	data.Name = types.StringValue(restInfo.Location.LogicalUnit)
+	if restInfo == nil {
+		errorHandler.MakeAndReportError("error reading info", "No SVM Peer found")
+	}
+
+	data.Name = types.StringValue(restInfo.Name)
+	data.LogicalUnit = types.StringValue(restInfo.Location.LogicalUnit)
 	data.ID = types.StringValue(restInfo.UUID)
 	data.SVMName = types.StringValue(restInfo.SVM.Name)
 	data.VolumeName = types.StringValue(restInfo.Location.Volume.Name)
 	data.OSType = types.StringValue(restInfo.OSType)
+	data.SerialNumber = types.StringValue(restInfo.SerialNumber)
 	data.Size = types.Int64Value(restInfo.Space.Size)
 	if restInfo.QoSPolicy.Name != "" {
 		data.QoSPolicyName = types.StringValue(restInfo.QoSPolicy.Name)
@@ -170,7 +207,12 @@ func (r *StorageLunResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	body.Locations.LogicalUnit = data.Name.ValueString()
+	if !data.Name.IsNull() {
+		body.Name = data.Name.ValueString()
+	}
+	if !data.LogicalUnit.IsNull() {
+		body.Locations.LogicalUnit = data.LogicalUnit.ValueString()
+	}
 	body.Locations.Volume.Name = data.VolumeName.ValueString()
 	body.SVM.Name = data.SVMName.ValueString()
 	body.OsType = data.OSType.ValueString()
@@ -191,6 +233,9 @@ func (r *StorageLunResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	data.ID = types.StringValue(resource.UUID)
+	data.SerialNumber = types.StringValue(resource.SerialNumber)
+	data.LogicalUnit = types.StringValue(resource.Location.LogicalUnit)
+	data.Name = types.StringValue(resource.Name)
 
 	tflog.Trace(ctx, "created a resource")
 
@@ -218,7 +263,10 @@ func (r *StorageLunResource) Update(ctx context.Context, req resource.UpdateRequ
 
 	var request interfaces.StorageLunResourceBodyDataModelONTAP
 	if !plan.Name.Equal(state.Name) {
-		request.Locations.LogicalUnit = plan.Name.ValueString()
+		request.Name = plan.Name.ValueString()
+	}
+	if !plan.LogicalUnit.Equal(state.LogicalUnit) {
+		request.Locations.LogicalUnit = plan.LogicalUnit.ValueString()
 	}
 	if !plan.VolumeName.Equal(state.VolumeName) {
 		request.Locations.Volume.Name = plan.VolumeName.ValueString()

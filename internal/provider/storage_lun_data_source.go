@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -38,6 +39,7 @@ type StorageLunDataSourceModel struct {
 	OSType        types.String                        `tfsdk:"os_type"`
 	QoSPolicy     *StorageLunDataSourceQoSPolicyModel `tfsdk:"qos_policy"`
 	Space         *StorageLunDataSourceSpaceModel     `tfsdk:"space"`
+	SerialNumber  types.String                        `tfsdk:"serial_number"`
 	ID            types.String                        `tfsdk:"id"`
 }
 
@@ -89,11 +91,6 @@ func (d *StorageLunDataSource) Schema(ctx context.Context, req datasource.Schema
 				MarkdownDescription: "svm name for lun",
 				Required:            true,
 			},
-			"privileges": schema.ListAttribute{
-				ElementType:         types.StringType,
-				MarkdownDescription: "List of privileges",
-				Required:            true,
-			},
 			"create_time": schema.StringAttribute{
 				MarkdownDescription: "Time when the lun was created",
 				Computed:            true,
@@ -125,6 +122,10 @@ func (d *StorageLunDataSource) Schema(ctx context.Context, req datasource.Schema
 			},
 			"os_type": schema.StringAttribute{
 				MarkdownDescription: "OS type for lun",
+				Computed:            true,
+			},
+			"serial_number": schema.StringAttribute{
+				MarkdownDescription: "Serial number for lun",
 				Computed:            true,
 			},
 			"qos_policy": schema.SingleNestedAttribute{
@@ -179,7 +180,7 @@ func (d *StorageLunDataSource) Configure(ctx context.Context, req datasource.Con
 
 // Read refreshes the Terraform state with the latest data.
 func (d *StorageLunDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	tflog.Debug(ctx, fmt.Sprintf("carchi7py read a data source"))
+	tflog.Debug(ctx, "read a data source")
 	var data StorageLunDataSourceModel
 
 	// Read Terraform configuration data into the model
@@ -189,7 +190,7 @@ func (d *StorageLunDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("carchi7py read a data source: %#v", data))
+	tflog.Debug(ctx, fmt.Sprintf("read a data source: %#v", data))
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
@@ -205,13 +206,14 @@ func (d *StorageLunDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("carchi7py read a rest info source: %#v", restInfo))
+	tflog.Debug(ctx, fmt.Sprintf("read a rest info source: %#v", restInfo))
 	data.Name = types.StringValue(restInfo.Name)
 	data.CreationTime = types.StringValue(restInfo.CreateTime)
 	data.Location.LogicalUnit = types.StringValue(restInfo.Location.LogicalUnit)
 	data.Location.Volume.Name = types.StringValue(restInfo.Location.Volume.Name)
 	data.Location.Volume.UUID = types.StringValue(restInfo.Location.Volume.UUID)
 	data.OSType = types.StringValue(restInfo.OSType)
+	data.SerialNumber = types.StringValue(restInfo.SerialNumber)
 	if restInfo.QoSPolicy.Name != "" {
 		data.QoSPolicy.Name = types.StringValue(restInfo.QoSPolicy.Name)
 	}
