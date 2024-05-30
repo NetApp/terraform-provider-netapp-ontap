@@ -1,5 +1,5 @@
 ---
-page_title: "netapp-ontap_protocols_nfs_export_policy Data Source - terraform-provider-netapp-ontap"
+page_title: "netapp-ontap_nfs_export_policy Data Source - terraform-provider-netapp-ontap"
 subcategory: "NAS"
 description: |-
   NFS Export Policy Data source
@@ -10,7 +10,7 @@ description: |-
 NFS Export Policy Data source
 ## Example Usage
 ```terraform
-data "netapp-ontap_protocols_nfs_export_policy" "export_policy" {
+data "netapp-ontap_nfs_export_policy" "export_policy" {
   cx_profile_name = "cluster4"
   svm_name = "svm4"
   name = "default"

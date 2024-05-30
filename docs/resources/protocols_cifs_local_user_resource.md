@@ -27,7 +27,7 @@ vserver cifs users-and-groups local-user delete
 
 ```terraform
 # Create a local group
-resource "netapp-ontap_protocols_cifs_local_user" "example" {
+resource "netapp-ontap_cifs_local_user" "example" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name = "testme"
