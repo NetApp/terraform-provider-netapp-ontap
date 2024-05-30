@@ -24,7 +24,7 @@ Create/Modify/Delete a Snapshot resource
 ## Example Usage
 
 ```
-resource "netapp-ontap_storage_volume_snapshot" "example" {
+resource "netapp-ontap_volume_snapshot" "example" {
   cx_profile_name = "cluster4"
   name = "snaptest"
   volume_name = "tf_test_root"
@@ -64,7 +64,7 @@ Import require a unique ID composed of the snapshot name, volume_name, svm_name 
 
  For example
  ```shell
-  terraform import netapp-ontap_storage_volume_snapshot.example snapshotname,vol2,svm1,cluster4
+  terraform import netapp-ontap_volume_snapshot.example snapshotname,vol2,svm1,cluster4
  ```
 
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
@@ -75,7 +75,7 @@ This requires Terraform 1.5 or higher, and will auto create the configuration fo
 First create the block
 ```terraform
 import {
-  to = netapp-ontap_storage_volume_snapshot.snapshot_import
+  to = netapp-ontap_volume_snapshot.snapshot_import
   id = "snapshot1,vol1,svm1,cluster4"
 }
 ```
@@ -88,7 +88,7 @@ This will generate a file called generated.tf, which will contain the configurat
 # __generated__ by Terraform
 # Please review these resources and move them into your main configuration files.
 # __generated__ by Terraform from "snapshot1,vol1,svm1,cluster4"
-resource "netapp-ontap_storage_volume_snapshot" "snapshot_import" {
+resource "netapp-ontap_volume_snapshot" "snapshot_import" {
   cx_profile_name = "cluster4"
   name       = "snapshot1"
   volume_name       = "vol1"

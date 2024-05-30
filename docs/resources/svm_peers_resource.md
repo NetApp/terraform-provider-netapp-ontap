@@ -93,7 +93,7 @@ id = `svm_name`,`peer_svm_name`,`peer_cluster_name`,`cx_profile_name`
 
 For example
 ```shell
- terraform import netapp-ontap_storage_svm_peers.example svm1,peer_svm,test-1,cluster4
+ terraform import netapp-ontap_svm_peers.example svm1,peer_svm,test-1,cluster4
 ```
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
 
@@ -103,7 +103,7 @@ This requires Terraform 1.5 or higher, and will auto create the configuration fo
 First create the block
 ```terraform
 import {
-  to = netapp-ontap_storage_svm_peers.svm_import
+  to = netapp-ontap_svm_peers.svm_import
   id = "svm1,peer_svm,test-1,cluster4"
 }
 ```
@@ -116,7 +116,7 @@ This will generate a file called generated.tf, which will contain the configurat
 # __generated__ by Terraform
 # Please review these resources and move them into your main configuration files.
 # __generated__ by Terraform from "svm1_root,svm1,cluster4"
-resource "netapp-ontap_storage_svm_peers" "svm_peers_import" {
+resource "netapp-ontap_svm_peers" "svm_peers_import" {
   svm = {
     name = "svm1"
   }

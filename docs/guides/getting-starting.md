@@ -95,7 +95,7 @@ variable "validate_certs" {
 ```
 
 ### Create A Volume
-Now let us create a volume. First, you'll want to have the documentation for [netapp-ontap_storage_volume](https://registry.terraform.io/providers/NetApp/netapp-ontap/latest/docs/resources/storage_volume_resource) open in another tab.
+Now let us create a volume. First, you'll want to have the documentation for [netapp-ontap_volume](https://registry.terraform.io/providers/NetApp/netapp-ontap/latest/docs/resources/storage_volume_resource) open in another tab.
 This will show you all the configuration options for the volume resource, including examples.
 
 We are just going to make a volume with the required variables
@@ -106,11 +106,11 @@ We are just going to make a volume with the required variables
 * space.size - The size of the volume
 * space.size_unit - The unit of the size of the volume
 
-When calling a resource in Terraform, you need to specify the resource type in this case `netapp-ontap_storage_volume`, the name of the resource `volume1`.
+When calling a resource in Terraform, you need to specify the resource type in this case `netapp-ontap_volume`, the name of the resource `volume1`.
 The type and name of the resource must be unique in your configuration, and are used to identify the resource in the state file.
 
 ```terraform
-resource "netapp-ontap_storage_volume" "volume1" {
+resource "netapp-ontap_volume" "volume1" {
   cx_profile_name = "cluster4"
   name = "terraformTest5"
   svm_name = "terraformSVM"
@@ -149,8 +149,8 @@ Resource actions are indicated with the following symbols:
 
 Terraform will perform the following actions:
 
-  # netapp-ontap_storage_volume.volume1 will be created
-  + resource "netapp-ontap_storage_volume" "volume1" {
+  # netapp-ontap_volume.volume1 will be created
+  + resource "netapp-ontap_volume" "volume1" {
       + aggregates       = [
           + {
               + name = "aggr2"
@@ -210,8 +210,8 @@ Resource actions are indicated with the following symbols:
 
 Terraform will perform the following actions:
 
-  # netapp-ontap_storage_volume.volume1 will be created
-  + resource "netapp-ontap_storage_volume" "volume1" {
+  # netapp-ontap_volume.volume1 will be created
+  + resource "netapp-ontap_volume" "volume1" {
       + aggregates       = [
           + {
               + name = "aggr2"
@@ -250,8 +250,8 @@ Do you want to perform these actions?
 
   Enter a value: yes
 
-netapp-ontap_storage_volume.volume1: Creating...
-netapp-ontap_storage_volume.volume1: Creation complete after 2s [id=b6742203-7f43-11ee-8c83-005056b34578]
+netapp-ontap_volume.volume1: Creating...
+netapp-ontap_volume.volume1: Creation complete after 2s [id=b6742203-7f43-11ee-8c83-005056b34578]
 
 Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
 ```
@@ -287,7 +287,7 @@ cat terraform.tfstate
   "resources": [
     {
       "mode": "managed",
-      "type": "netapp-ontap_storage_volume",
+      "type": "netapp-ontap_volume",
       "name": "volume1",
       "provider": "provider[\"registry.terraform.io/netapp/netapp-ontap\"]",
       "instances": [
@@ -366,7 +366,7 @@ var.username
 var.validate_certs
   Enter a value: false
 
-netapp-ontap_storage_volume.volume1: Refreshing state... [id=b6742203-7f43-11ee-8c83-005056b34578]
+netapp-ontap_volume.volume1: Refreshing state... [id=b6742203-7f43-11ee-8c83-005056b34578]
 
 Terraform used the selected providers to generate the following execution plan.
 Resource actions are indicated with the following symbols:
@@ -374,8 +374,8 @@ Resource actions are indicated with the following symbols:
 
 Terraform will perform the following actions:
 
-  # netapp-ontap_storage_volume.volume1 will be destroyed
-  - resource "netapp-ontap_storage_volume" "volume1" {
+  # netapp-ontap_volume.volume1 will be destroyed
+  - resource "netapp-ontap_volume" "volume1" {
       - aggregates      = [
           - {
               - name = "aggr2" -> null
@@ -432,8 +432,8 @@ Do you really want to destroy all resources?
 
   Enter a value: yes
 
-netapp-ontap_storage_volume.volume1: Destroying... [id=b6742203-7f43-11ee-8c83-005056b34578]
-netapp-ontap_storage_volume.volume1: Destruction complete after 1s
+netapp-ontap_volume.volume1: Destroying... [id=b6742203-7f43-11ee-8c83-005056b34578]
+netapp-ontap_volume.volume1: Destruction complete after 1s
 
 Destroy complete! Resources: 1 destroyed.
 ```
@@ -451,7 +451,7 @@ The reason for this is that the volume resource is not yet created, so the snaps
 Terrafrom will create all resources at the same time, so it will try to create the snapshot before the volume is created.
 
 ```terraform
-resource "netapp-ontap_storage_volume" "volume1" {
+resource "netapp-ontap_volume" "volume1" {
   cx_profile_name = "cluster4"
   name            = "terraformTest5"
   svm_name        = "terraformSVM"
@@ -466,7 +466,7 @@ resource "netapp-ontap_storage_volume" "volume1" {
   }
 }
 
-resource "netapp-ontap_storage_volume_snapshot" "snapshot1" {
+resource "netapp-ontap_volume_snapshot" "snapshot1" {
   cx_profile_name = "cluster4"
   name = "snaptest"
   volume_name = "terraformTest5"
@@ -480,10 +480,10 @@ You can see this by running `terraform graph | dot -Tsvg > graph.svg` and openin
 In this image, you scan see both volume and snapshot resources are created at the same time.
 
 To tell Terraform that the snapshot resource depends on the volume resource, we can use an expression reference. 
-In this case `volume_name = netapp-ontap_storage_volume.volume1.name` which tells Terraform that the snapshot resource depends on the volume resource, and to wait until the volume resource is created before creating the snapshot resource.
+In this case `volume_name = netapp-ontap_volume.volume1.name` which tells Terraform that the snapshot resource depends on the volume resource, and to wait until the volume resource is created before creating the snapshot resource.
 
 ```terraform
-resource "netapp-ontap_storage_volume" "volume1" {
+resource "netapp-ontap_volume" "volume1" {
   cx_profile_name = "cluster4"
   name = "terraformTest2"
   svm_name = "terraformSVM"
@@ -498,10 +498,10 @@ resource "netapp-ontap_storage_volume" "volume1" {
   }
 }
 
-resource "netapp-ontap_storage_volume_snapshot" "snapshot1" {
+resource "netapp-ontap_volume_snapshot" "snapshot1" {
   cx_profile_name = "cluster4"
   name = "snaptest"
-  volume_name = netapp-ontap_storage_volume.volume1.name
+  volume_name = netapp-ontap_volume.volume1.name
   svm_name = "terraformSVM"
 }
 ````
