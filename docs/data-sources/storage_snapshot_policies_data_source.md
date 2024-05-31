@@ -1,5 +1,5 @@
 ---
-page_title: "netapp-ontap_storage_snapshot_policies_data_source Data Source - terraform-provider-netapp-ontap"
+page_title: "netapp-ontap_snapshot_policies Data Source - terraform-provider-netapp-ontap"
 subcategory: "Storage"
 description: |-
   Retrieves Snapshot Policies information
@@ -11,7 +11,7 @@ Snapshot Policies data source
 
 ## Example Usage
 ```terraform
-data "netapp-ontap_storage_snapshot_policies_data_source" "storage_snapshot_policies" {
+data "netapp-ontap_snapshot_policies" "storage_snapshot_policies" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   filter = {

@@ -1,5 +1,5 @@
 ---
-page_title: "netapp-ontap_cluster_licensing_license_data_source Data Source - terraform-provider-netapp-ontap"
+page_title: "netapp-ontap_cluster_licensing_license Data Source - terraform-provider-netapp-ontap"
 subcategory: "Cluster"
 description: |-
   ClusterLicensingLicense data source
@@ -10,7 +10,7 @@ description: |-
 ClusterLicensingLicense data source
 ## Example Usage
 ```terraform
-data "netapp-ontap_cluster_licensing_license_data_source" "cluster_licensing_license" {
+data "netapp-ontap_cluster_licensing_license" "cluster_licensing_license" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name = "snapmirror_sync"
