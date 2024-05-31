@@ -193,9 +193,12 @@ func (r *StorageFlexcacheResource) Schema(ctx context.Context, req resource.Sche
 				Required:            true,
 			},
 			"junction_path": schema.StringAttribute{
-				MarkdownDescription: "Name of the junction path",
+				MarkdownDescription: "Name of the junction path. Path to mount the FlexCache volume",
 				Computed:            true,
 				Optional:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"size": schema.Int64Attribute{
 				MarkdownDescription: "The size of the flexcache volume",
@@ -281,7 +284,7 @@ func (r *StorageFlexcacheResource) Read(ctx context.Context, req resource.ReadRe
 	size, sizeUnit := interfaces.ByteFormat(int64(flexcache.Size))
 	data.Size = types.Int64Value(int64(size))
 	data.SizeUnit = types.StringValue(sizeUnit)
-	data.JunctionPath = types.StringValue(flexcache.JunctionPath)
+	data.JunctionPath = types.StringValue(flexcache.Path)
 	data.ConstituentsPerAggregate = types.Int64Value(int64(flexcache.ConstituentsPerAggregate))
 	data.DrCache = types.BoolValue(flexcache.DrCache)
 	data.GlobalFileLockingEnabled = types.BoolValue(flexcache.GlobalFileLockingEnabled)
@@ -419,7 +422,7 @@ func (r *StorageFlexcacheResource) Create(ctx context.Context, req resource.Crea
 	request.Name = data.Name.ValueString()
 	request.SVM.Name = data.SvmName.ValueString()
 	if !data.JunctionPath.IsUnknown() {
-		request.JunctionPath = data.JunctionPath.ValueString()
+		request.Path = data.JunctionPath.ValueString()
 	}
 	if !data.ConstituentsPerAggregate.IsUnknown() {
 		request.ConstituentsPerAggregate = int(data.ConstituentsPerAggregate.ValueInt64())
@@ -556,7 +559,7 @@ func (r *StorageFlexcacheResource) Create(ctx context.Context, req resource.Crea
 	size, sizeUnit := interfaces.ByteFormat(int64(flexcache.Size))
 	data.Size = types.Int64Value(int64(size))
 	data.SizeUnit = types.StringValue(sizeUnit)
-	data.JunctionPath = types.StringValue(flexcache.JunctionPath)
+	data.JunctionPath = types.StringValue(flexcache.Path)
 	data.ConstituentsPerAggregate = types.Int64Value(int64(flexcache.ConstituentsPerAggregate))
 	data.DrCache = types.BoolValue(flexcache.DrCache)
 	data.GlobalFileLockingEnabled = types.BoolValue(flexcache.GlobalFileLockingEnabled)
@@ -691,6 +694,19 @@ func (r *StorageFlexcacheResource) Delete(ctx context.Context, req resource.Dele
 	if data.ID.IsUnknown() {
 		errorHandler.MakeAndReportError("UUID is null", "flexcache UUID is null")
 		return
+	}
+
+	// If the volume has junction path configured, the volume needs to be unmounted and offline before deletion
+	if !data.JunctionPath.IsUnknown() {
+		var request interfaces.StorageVolumeResourceModel
+		// Set JunctionPath to empty to unmount the path
+		request.NAS.JunctionPath = ""
+		// Set volume state to offline
+		request.State = "offline"
+		err = interfaces.UpddateStorageVolume(errorHandler, *client, request, data.ID.ValueString())
+		if err != nil {
+			return
+		}
 	}
 
 	err = interfaces.DeleteStorageFlexcache(errorHandler, *client, data.ID.ValueString())
