@@ -1,5 +1,7 @@
 ## 1.1.2 (2024-06-03)
 
+ENHANCEMENTS:
+* added guide for changing NetApp Ontap Provider from one minor version to another.
 * corrected typos in the CHANGELOG.
 
 ## 1.1.1 (2024-05-15)
