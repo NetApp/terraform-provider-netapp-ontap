@@ -24,7 +24,7 @@ func TestAccProtocolsSanLunMapsResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_protocols_san_lun-maps_resource.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "carchi-test", "acc_test", "/vol/lunTest/ACC-import-lun", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "carchi-test", "acc_test", "/vol/lunTest/test", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_protocols_san_lun-maps_resource.example", "svm.name", "carchi-test"),
 				),
