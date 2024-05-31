@@ -1,10 +1,10 @@
 ---
-page_title: "Upgrading version with the NetApp Ontap Provider"
+page_title: "Upgrading minor version with the NetApp Ontap Provider"
 subcategory: ""
 description: |-
 ---
 
-# Updating version With The NetApp ONTAP Provider
+# Updating minor version With The NetApp ONTAP Provider
 
 Before getting started, you will need:
 * ONTAP 9.6 or later
