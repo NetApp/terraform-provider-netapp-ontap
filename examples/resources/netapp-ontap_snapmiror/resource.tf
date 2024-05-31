@@ -1,4 +1,4 @@
-resource "netapp-ontap_snapmirror_resource" "snapmirror_async" {
+resource "netapp-ontap_snapmirror" "snapmirror_async" {
   # required to know which system to interface with
   cx_profile_name = "cluster1"
   source_endpoint = {

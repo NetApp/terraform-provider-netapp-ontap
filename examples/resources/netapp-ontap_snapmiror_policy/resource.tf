@@ -1,11 +1,11 @@
-resource "netapp-ontap_snapmirror_policy_resource" "snapmirror_policy" {
+resource "netapp-ontap_snapmirror_policy" "snapmirror_policy" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name = "testsp_basic"
   svm_name = "ansibleSVM"
 }
 
-resource "netapp-ontap_snapmirror_policy_resource" "snapmirror_policy_async" {
+resource "netapp-ontap_snapmirror_policy" "snapmirror_policy_async" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name = "testsp_async_retention"
@@ -26,7 +26,7 @@ resource "netapp-ontap_snapmirror_policy_resource" "snapmirror_policy_async" {
   ]
 }
 
-resource "netapp-ontap_snapmirror_policy_resource" "snapmirror_policy_sync" {
+resource "netapp-ontap_snapmirror_policy" "snapmirror_policy_sync" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name = "testsp_sync"
@@ -35,7 +35,7 @@ resource "netapp-ontap_snapmirror_policy_resource" "snapmirror_policy_sync" {
   sync_type = "sync"
 }
 
-resource "netapp-ontap_snapmirror_policy_resource" "snapmirror_policy_sync_1" {
+resource "netapp-ontap_snapmirror_policy" "snapmirror_policy_sync_1" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name = "testsp_sync"

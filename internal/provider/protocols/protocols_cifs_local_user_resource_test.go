@@ -48,8 +48,8 @@ func TestAccCifsLocalUserResource(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_cifs_local_user.example1", "svm_name", "ansibleSVM"),
 					resource.TestCheckResourceAttr("netapp-ontap_cifs_local_user.example1", "name", "Administrator"),
-					resource.TestMatchResourceAttr("netapp-ontap_protocols_nfs_export_policy_rule_resource.example1", "description", regexp.MustCompile(`Built-in administrator account`)),
-					resource.TestCheckTypeSetElemAttr("netapp-ontap_protocols_nfs_export_policy_rule_resource.example1", "membership.*", "Administrators"),
+					resource.TestMatchResourceAttr("netapp-ontap_protocols_nfs_export_policy_rule.example1", "description", regexp.MustCompile(`Built-in administrator account`)),
+					resource.TestCheckTypeSetElemAttr("netapp-ontap_protocols_nfs_export_policy_rule.example1", "membership.*", "Administrators"),
 					// check id
 					resource.TestCheckResourceAttrSet("netapp-ontap_cifs_local_user.example1", "id"),
 				),

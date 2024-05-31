@@ -1,17 +1,17 @@
 ---
-page_title: "netapp-ontap_protocols_nfs_services_data_source Data Source - terraform-provider-netapp-ontap"
+page_title: "netapp-ontap_nfs_services Data Source - terraform-provider-netapp-ontap"
 subcategory: "NAS"
 description: |-
   Retrieves list of NFSs configuration of SVMs.
 ---
 
-# netapp-ontap_protocols_nfs_services_data_source (Data Source)
+# netapp-ontap_nfs_services (Data Source)
 
 Retrieves list of NFSs configuration of SVMs.
 
 ## Example Usage
 ```terraform
-data "netapp-ontap_protocols_nfs_services_data_source" "protocols_nfs_services" {
+data "netapp-ontap_nfs_services" "protocols_nfs_services" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   filter = {

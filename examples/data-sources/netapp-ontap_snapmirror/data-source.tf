@@ -1,4 +1,4 @@
-data "netapp-ontap_snapmirror_data_source" "snapmirror" {
+data "netapp-ontap_snapmirror" "snapmirror" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   destination = {
