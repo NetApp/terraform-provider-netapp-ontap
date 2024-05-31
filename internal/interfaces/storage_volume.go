@@ -117,7 +117,7 @@ type QOS struct {
 // NAS describes the resource data model.
 type NAS struct {
 	ExportPolicy    ExportPolicy `mapstructure:"export_policy,omitempty"`
-	JunctionPath    string       `mapstructure:"path,omitempty"`
+	JunctionPath    string       `mapstructure:"path"`
 	SecurityStyle   string       `mapstructure:"security_style,omitempty"`
 	UnixPermissions int          `mapstructure:"unix_permissions,omitempty"`
 	GroupID         int          `mapstructure:"gid"`
