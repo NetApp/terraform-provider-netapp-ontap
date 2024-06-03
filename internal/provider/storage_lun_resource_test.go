@@ -61,7 +61,7 @@ func TestAccStorageLunResouce(t *testing.T) {
 	})
 }
 
-func testAccStorageLunResourceConfig(logical_unit string, svmname string, volumeName string, osType string, size int64) string {
+func testAccStorageLunResourceConfig(logicalUnit string, svmname string, volumeName string, osType string, size int64) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS")
@@ -90,5 +90,5 @@ resource "netapp-ontap_storage_lun_resource" "example" {
   volume_name = "%s"
   os_type = "%s"
   size = "%d"
-}`, host, admin, password, logical_unit, svmname, volumeName, osType, size)
+}`, host, admin, password, logicalUnit, svmname, volumeName, osType, size)
 }
