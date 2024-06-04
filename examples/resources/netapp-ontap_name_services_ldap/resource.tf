@@ -1,4 +1,4 @@
-resource "netapp-ontap_name_services_ldap_resource" "name_services_ldap" {
+resource "netapp-ontap_name_services_ldap" "name_services_ldap" {
   # required to know which system to interface with
   cx_profile_name = "cluster1"
   svm_name = "svm5"
