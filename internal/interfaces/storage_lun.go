@@ -11,14 +11,15 @@ import (
 
 // StorageLunGetDataModelONTAP describes the GET record data model using go types for mapping.
 type StorageLunGetDataModelONTAP struct {
-	Name       string       `mapstructure:"name"`
-	UUID       string       `mapstructure:"uuid"`
-	SVM        svm          `mapstructure:"svm,omitempty"`
-	CreateTime string       `mapstructure:"create_time,omitempty"`
-	Location   LunLocation  `mapstructure:"location,omitempty"`
-	OSType     string       `mapstructure:"os_type,omitempty"`
-	QoSPolicy  LunQoSPolicy `mapstructure:"qos_policy,omitempty"`
-	Space      LunSpace     `mapstructure:"space,omitempty"`
+	Name         string       `mapstructure:"name"`
+	UUID         string       `mapstructure:"uuid"`
+	SVM          svm          `mapstructure:"svm,omitempty"`
+	CreateTime   string       `mapstructure:"create_time,omitempty"`
+	Location     LunLocation  `mapstructure:"location,omitempty"`
+	OSType       string       `mapstructure:"os_type,omitempty"`
+	QoSPolicy    LunQoSPolicy `mapstructure:"qos_policy,omitempty"`
+	Space        LunSpace     `mapstructure:"space,omitempty"`
+	SerialNumber string       `mapstructure:"serial_number,omitempty"`
 }
 
 // LunLocation describes the data model for location.
@@ -47,6 +48,7 @@ type LunSpace struct {
 
 // StorageLunResourceBodyDataModelONTAP describes the body data model using go types for mapping.
 type StorageLunResourceBodyDataModelONTAP struct {
+	Name      string   `mapstructure:"name,omitempty"`
 	SVM       svm      `mapstructure:"svm,omitempty"`
 	Locations location `mapstructure:"location,omitempty"`
 	OsType    string   `mapstructure:"os_type,omitempty"`
@@ -78,10 +80,32 @@ type StorageLunDataSourceFilterModel struct {
 func GetStorageLunByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, svmName string, volumeName string) (*StorageLunGetDataModelONTAP, error) {
 	api := "storage/luns"
 	query := r.NewQuery()
-	query.Set("location.logical_unit", name)
+	query.Set("name", name)
 	query.Set("svm.name", svmName)
 	query.Set("location.volume.name", volumeName)
-	query.Fields([]string{"name", "svm.name", "create_time", "location", "os_type", "qos_policy", "space", "uuid"})
+	query.Fields([]string{"name", "svm.name", "create_time", "location", "os_type", "qos_policy", "space", "serial_number", "uuid"})
+	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading storage_lun info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
+	}
+
+	var dataONTAP StorageLunGetDataModelONTAP
+	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
+		return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
+			fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read storage_lun data source: %#v", dataONTAP))
+	return &dataONTAP, nil
+}
+
+// GetStorageLunByUUID to get storage_lun info
+func GetStorageLunByUUID(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) (*StorageLunGetDataModelONTAP, error) {
+	api := "storage/luns/" + uuid
+	query := r.NewQuery()
+	query.Fields([]string{"name", "svm.name", "create_time", "location", "os_type", "qos_policy", "space", "serial_number", "uuid"})
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
 		err = fmt.Errorf("no response for GET %s", api)
@@ -103,7 +127,7 @@ func GetStorageLunByName(errorHandler *utils.ErrorHandler, r restclient.RestClie
 func GetStorageLuns(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *StorageLunDataSourceFilterModel) ([]StorageLunGetDataModelONTAP, error) {
 	api := "storage/luns"
 	query := r.NewQuery()
-	query.Fields([]string{"name", "svm.name", "create_time", "location", "os_type", "qos_policy", "space", "uuid"})
+	query.Fields([]string{"name", "svm.name", "create_time", "location", "os_type", "qos_policy", "space", "serial_number", "uuid"})
 	if filter != nil {
 		if filter.Name != "" {
 			query.Add("name", filter.Name)

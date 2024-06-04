@@ -2,10 +2,11 @@ package provider
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"os"
 	"regexp"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccStorageLunResouce(t *testing.T) {
@@ -27,7 +28,7 @@ func TestAccStorageLunResouce(t *testing.T) {
 			{
 				Config: testAccStorageLunResourceConfig("ACC-lun", "carchi-test", "lunTest", "linux", 1048576),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_lun_resource.example", "name", "ACC-lun"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_lun_resource.example", "logical_unit", "ACC-lun"),
 					resource.TestCheckResourceAttr("netapp-ontap_storage_lun_resource.example", "svm_name", "carchi-test"),
 					resource.TestCheckResourceAttr("netapp-ontap_storage_lun_resource.example", "volume_name", "lunTest"),
 					resource.TestCheckResourceAttr("netapp-ontap_storage_lun_resource.example", "os_type", "linux"),
@@ -38,7 +39,7 @@ func TestAccStorageLunResouce(t *testing.T) {
 			{
 				Config: testAccStorageLunResourceConfig("ACC-lun2", "carchi-test", "lunTest", "linux", 1048576),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_lun_resource.example", "name", "ACC-lun2"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_lun_resource.example", "logical_unit", "ACC-lun2"),
 					resource.TestCheckResourceAttr("netapp-ontap_storage_lun_resource.example", "svm_name", "carchi-test"),
 					resource.TestCheckResourceAttr("netapp-ontap_storage_lun_resource.example", "volume_name", "lunTest"),
 					resource.TestCheckResourceAttr("netapp-ontap_storage_lun_resource.example", "os_type", "linux"),
@@ -49,9 +50,9 @@ func TestAccStorageLunResouce(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_storage_lun_resource.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "ACC-import-lun", "lunTest", "carchi-test", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "/vol/lunTest/ACC-import-lun", "lunTest", "carchi-test", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_lun_resource.example", "name", "ACC-import-lun"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_lun_resource.example", "logical_unit", "ACC-import-lun"),
 					resource.TestCheckResourceAttr("netapp-ontap_storage_lun_resource.example", "os_type", "linux"),
 					resource.TestCheckResourceAttr("netapp-ontap_storage_lun_resource.example", "size", "1048576"),
 				),
@@ -60,7 +61,7 @@ func TestAccStorageLunResouce(t *testing.T) {
 	})
 }
 
-func testAccStorageLunResourceConfig(name string, svmname string, volumeName string, osType string, size int64) string {
+func testAccStorageLunResourceConfig(logicalUnit string, svmname string, volumeName string, osType string, size int64) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS")
@@ -84,10 +85,10 @@ provider "netapp-ontap" {
 resource "netapp-ontap_storage_lun_resource" "example" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
-  name = "%s"
+  logical_unit = "%s"
   svm_name = "%s"
   volume_name = "%s"
   os_type = "%s"
   size = "%d"
-}`, host, admin, password, name, svmname, volumeName, osType, size)
+}`, host, admin, password, logicalUnit, svmname, volumeName, osType, size)
 }

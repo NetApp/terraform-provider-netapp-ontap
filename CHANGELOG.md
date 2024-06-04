@@ -1,6 +1,10 @@
 ## 1.1.2 (2024-06-03)
 
 ENHANCEMENTS:
+* **netapp-ontap_storage_lun_resource**, **netapp-ontap_storage_lun_data_source**, **netapp-ontap_storage_luns_data_source**: added `serial_number` option to get info in state file ([#207](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/207))
+
+BUG FIXES:
+* **netapp-ontap_storage_lun_resource**, **netapp-ontap_storage_lun_data_source**, **netapp-ontap_storage_luns_data_source**: fixed `name` and `logical_unit` options as separate inputs for resource and info in state file gets added separately as well ([#215](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/215))
 * added guide for changing NetApp Ontap Provider from one minor version to another.
 * corrected typos in the CHANGELOG.
 
