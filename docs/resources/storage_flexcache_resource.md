@@ -17,7 +17,7 @@ Flexcache resource
 * volume flexcache delete
 ```
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+* On-perm ONTAP system 9.8 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
@@ -69,7 +69,7 @@ resource "netapp-ontap_storage_flexcache_resource" "storage_flexcache" {
 - `dr_cache` (Boolean) The state of the dr cache
 - `global_file_locking_enabled` (Boolean) The state of the global file locking
 - `guarantee` (Attributes) The guarantee of the volume (see [below for nested schema](#nestedatt--guarantee))
-- `junction_path` (String) Name of the junction path
+- `junction_path` (String) Name of the junction path. Path to mount the FlexCache volume.
 - `size` (Number) The size of the flexcache volume
 - `size_unit` (String) The unit used to interpret the size parameter
 - `use_tiered_aggregate` (Boolean) The state of the use tiered aggregates

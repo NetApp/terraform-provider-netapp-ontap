@@ -24,7 +24,7 @@ func TestAccStorageFlexcacheResource(t *testing.T) {
 				Config:      testAccStorageFlexcacheResourceConfig("non-existant", "name-cant-have-dashes"),
 				ExpectError: regexp.MustCompile("917888"),
 			},
-			// Read testing
+			// Test create the resource
 			{
 				Config: testAccStorageFlexcacheResourceConfig("acc_test", "accFlexcache"),
 				Check: resource.ComposeTestCheckFunc(
@@ -32,13 +32,21 @@ func TestAccStorageFlexcacheResource(t *testing.T) {
 					resource.TestCheckNoResourceAttr("netapp-ontap_storage_flexcache_resource.example", "volname"),
 				),
 			},
+			// Test create the resource with junction path
+			{
+				Config: testAccStorageFlexcacheResourcePathConfig("acc_test", "accFlexcacheJP", "/accFlexcachejp"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_storage_flexcache_resource.jpexample", "name", "accFlexcacheJP"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_flexcache_resource.jpexample", "junction_path", "/accFlexcachejp"),
+				),
+			},
 			// Test importing a resource
 			{
-				ResourceName:  "netapp-ontap_storage_flexcache_resource.example",
+				ResourceName:  "netapp-ontap_storage_flexcache_resource.jpexample",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s", "accFlexcache", "acc_test", "cluster5"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s", "accFlexcacheJP", "acc_test", "cluster5"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_flexcache_resource.example", "name", "accFlexcache"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_flexcache_resource.jpexample", "name", "accFlexcacheJP"),
 				),
 			},
 		},
@@ -95,4 +103,55 @@ resource "netapp-ontap_storage_flexcache_resource" "example" {
     }
   ]
 }`, host, admin, password, volName, svm)
+}
+
+func testAccStorageFlexcacheResourcePathConfig(svm, volName string, junctionPath string) string {
+	host := os.Getenv("TF_ACC_NETAPP_HOST2")
+	admin := os.Getenv("TF_ACC_NETAPP_USER")
+	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+
+	if host == "" || admin == "" || password == "" {
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		os.Exit(1)
+	}
+	return fmt.Sprintf(`
+provider "netapp-ontap" {
+ connection_profiles = [
+    {
+      name = "cluster5"
+      hostname = "%s"
+      username = "%s"
+      password = "%s"
+      validate_certs = false
+    },
+  ]
+}
+resource "netapp-ontap_storage_flexcache_resource" "jpexample" {
+  cx_profile_name = "cluster5"
+  name = "%s"
+  svm_name = "%s"
+  origins = [
+    {
+      volume = {
+        name = "acc_test_storage_flexcache_origin_volume"
+      },
+      svm = {
+        name = "acc_test"
+      }
+    }
+  ]
+  size = 200
+  size_unit = "mb"
+  guarantee = {
+    type = "none"
+  }
+  dr_cache = false
+  junction_path = "%s"
+  global_file_locking_enabled = false
+  aggregates = [
+    {
+      name = "acc_test"
+    }
+  ]
+}`, host, admin, password, volName, svm, junctionPath)
 }
