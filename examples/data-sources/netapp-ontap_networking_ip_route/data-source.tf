@@ -1,4 +1,4 @@
-data "netapp-ontap_networking_ip_route_data_source" "networking_ip_route" {
+data "netapp-ontap_networking_ip_route" "networking_ip_route" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   destination = {
