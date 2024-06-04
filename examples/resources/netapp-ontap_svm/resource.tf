@@ -1,4 +1,4 @@
-resource "netapp-ontap_svm_resource" "example" {
+resource "netapp-ontap_svm" "example" {
   cx_profile_name = "cluster2"
   name = "tfsvm"
   ipspace = "test"

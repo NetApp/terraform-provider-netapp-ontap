@@ -229,7 +229,7 @@ func (r *CifsLocalGroupMemberResource) Update(ctx context.Context, req resource.
 		return
 	}
 
-	tflog.Error(ctx, "Update not supported for protocols_cifs_local_group_member_resource")
+	tflog.Error(ctx, "Update not supported for resource protocols_cifs_local_group_member")
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
