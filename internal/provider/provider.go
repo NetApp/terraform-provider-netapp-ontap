@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/cluster"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/name_services"
@@ -228,6 +229,8 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		protocols.NewProtocolsSanLunMapsDataSource,
 		security.NewSecurityAccountDataSource,
 		security.NewSecurityAccountsDataSource,
+		security.NewSecurityRoleDataSource,
+		security.NewSecurityRolesDataSource,
 		snapmirror.NewSnapmirrorDataSource,
 		snapmirror.NewSnapmirrorsDataSource,
 		storage.NewSnapshotPoliciesDataSource,
