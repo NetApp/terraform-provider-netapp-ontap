@@ -1,5 +1,5 @@
 ---
-page_title: "netapp-ontap_snapmirror_policies_data_source Data Source - terraform-provider-netapp-ontap"
+page_title: "netapp-ontap_snapmirror_policies Data Source - terraform-provider-netapp-ontap"
 subcategory: "SnapMirror"
 description: |-
   Retrieves SnapMirror policies of SVMs.
@@ -11,7 +11,7 @@ Retrieves SnapMirror policies of SVMs.
 
 ## Example Usage
 ```terraform
-data "netapp-ontap_snapmirror_policies_data_source" "snapmirror_policies" {
+data "netapp-ontap_snapmirror_policies" "snapmirror_policies" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   filter = {

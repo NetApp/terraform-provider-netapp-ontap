@@ -6,7 +6,7 @@ description: |-
   Volume resource
 ---
 
-# netapp-ontap_storage_volume_resource (Resource)
+# netapp-ontap_volume (Resource)
 
 Create/modify/delete a Volume resource
 
@@ -26,7 +26,7 @@ Create/modify/delete a Volume resource
 ## Example Usage
 
 ```terraform
-resource "netapp-ontap_storage_volume_resource" "example" {
+resource "netapp-ontap_volume" "example" {
   cx_profile_name = "cluster5"
   name = "vol1"
   svm_name = "svm2"
@@ -181,7 +181,7 @@ id = `name`,`svm_name`,`cx_profile_name`
 
 For example
 ```shell
- terraform import netapp-ontap_storage_volume_resource.example vol1,svm2,cluster5
+ terraform import netapp-ontap_volume.example vol1,svm2,cluster5
 ```
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
 
@@ -191,7 +191,7 @@ This requires Terraform 1.5 or higher, and will auto create the configuration fo
 First create the block
 ```terraform
 import {
-  to = netapp-ontap_storage_volume_resource.volume_import
+  to = netapp-ontap_volume.volume_import
   id = "svm1_root,svm1,cluster4"
 }
 ```
@@ -205,7 +205,7 @@ This will generate a file called generated.tf, which will contain the configurat
 # Please review these resources and move them into your main configuration files.
 
 # __generated__ by Terraform from "svm1_root,svm1,cluster4"
-resource "netapp-ontap_storage_volume_resource" "volume_import" {
+resource "netapp-ontap_volume" "volume_import" {
   aggregates = [
     {
       name = "aggr1"

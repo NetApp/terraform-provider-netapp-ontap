@@ -1,4 +1,4 @@
-resource "netapp-ontap_cluster_resource" "cluster" {
+resource "netapp-ontap_cluster" "cluster" {
   # required to know which system to interface with
   cx_profile_name = "cluster1"
   name = "test_cluster"
