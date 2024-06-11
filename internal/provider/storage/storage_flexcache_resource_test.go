@@ -128,7 +128,7 @@ provider "netapp-ontap" {
     },
   ]
 }
-resource "netapp-ontap_storage_flexcache_resource" "jpexample" {
+resource "netapp-ontap_flexcache" "jpexample" {
   cx_profile_name = "cluster5"
   name = "%s"
   svm_name = "%s"
