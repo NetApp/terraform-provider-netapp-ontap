@@ -23,7 +23,7 @@ Create/Delete an IP Route resource
 ## Example Usage
 
 ```terraform
-resource "netapp-ontap_networking_ip_route_resource" "networking_ip_route" {
+resource "netapp-ontap_networking_ip_route" "networking_ip_route" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   svm_name = "ansibleSVM"

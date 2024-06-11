@@ -2,9 +2,10 @@ package protocols_test
 
 import (
 	"fmt"
-	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
 	"os"
 	"testing"
+
+	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -25,7 +26,7 @@ func TestAccProtocolsSanLunMapsResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_san_lun-maps.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "carchi-test", "acc_test", "/vol/lunTest/ACC-import-lun", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "carchi-test", "acc_test", "/vol/lunTest/test", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_san_lun-maps.example", "svm.name", "carchi-test"),
 				),

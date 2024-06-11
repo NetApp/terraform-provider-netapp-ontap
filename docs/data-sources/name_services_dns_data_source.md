@@ -1,5 +1,5 @@
 ---
-page_title: "netapp-ontap_name_services_dns_data_source Data Source - terraform-provider-netapp-ontap"
+page_title: "netapp-ontap_name_services_dns Data Source - terraform-provider-netapp-ontap"
 subcategory: "Name-Services"
 description: |-
   Retrieves the DNS Configuration of an SVM.
@@ -11,7 +11,7 @@ Retrieves the DNS Configuration of an SVM.
 
 ## Example Usage
 ```terraform
-data "netapp-ontap_name_services_dns_data_source" "name_services_dns" {
+data "netapp-ontap_name_services_dns" "name_services_dns" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   svm_name = "svm0"

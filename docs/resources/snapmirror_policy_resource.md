@@ -24,7 +24,7 @@ Create/Modify/Delete a snapmirror policy resource
 ## Example Usage
 ```
 # Create a basic snapmirror policy
-resource "netapp-ontap_snapmirror_policy_resource" "snapmirror_policy_basic_async1" {
+resource "netapp-ontap_snapmirror_policy" "snapmirror_policy_basic_async1" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name = "test_async_basic"
@@ -32,7 +32,7 @@ resource "netapp-ontap_snapmirror_policy_resource" "snapmirror_policy_basic_asyn
 }
 
 # Create a basic sync type snapmirror policy
-resource "netapp-ontap_snapmirror_policy_resource" "snapmirror_policy_basic_sync1" {
+resource "netapp-ontap_snapmirror_policy" "snapmirror_policy_basic_sync1" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name = "test_sync_basic"
@@ -42,7 +42,7 @@ resource "netapp-ontap_snapmirror_policy_resource" "snapmirror_policy_basic_sync
 }
 
 # Create a async type snapmirror policy with retention rules
-resource "netapp-ontap_snapmirror_policy_resource" "snapmirror_policy_async" {
+resource "netapp-ontap_snapmirror_policy" "snapmirror_policy_async" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name = "test_async_retention"
@@ -64,7 +64,7 @@ resource "netapp-ontap_snapmirror_policy_resource" "snapmirror_policy_async" {
 }
 
 # Create a sync type snapmirror policy with retntion a rule
-resource "netapp-ontap_snapmirror_policy_resource" "snapmirror_policy_sync" {
+resource "netapp-ontap_snapmirror_policy" "snapmirror_policy_sync" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name = "test_sync_retention"
@@ -130,7 +130,7 @@ id = `name`,`svm_name`,`cx_profile_name`
 
 For example
 ```shell
- terraform import netapp-ontap_snapmirror_policy_resource.example test_name,svm1,cluster5
+ terraform import netapp-ontap_snapmirror_policy.example test_name,svm1,cluster5
 ```
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
 
@@ -140,7 +140,7 @@ This requires Terraform 1.5 or higher, and will auto create the configuration fo
 First create the block
 ```terraform
 import {
-  to = netapp-ontap_snapmirror_policy_resource.snapmirror_policy_import
+  to = netapp-ontap_snapmirror_policy.snapmirror_policy_import
   id = "test_name,svm1,cluster4"
 }
 ```
@@ -153,7 +153,7 @@ This will generate a file called generated.tf, which will contain the configurat
 # __generated__ by Terraform
 # Please review these resources and move them into your main configuration files.
 # __generated__ by Terraform from "svm1_root,svm1,cluster4"
-resource "netapp-ontap_snapmirror_policy_resource" "svm_import" {
+resource "netapp-ontap_snapmirror_policy" "svm_import" {
   comment = "testing import"
   cx_profile_name = "cluster4"
   name = "testImport"

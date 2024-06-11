@@ -247,6 +247,7 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		storage.NewStorageVolumeSnapshotsDataSource,
 		storage.NewStorageVolumeDataSource,
 		storage.NewStorageVolumesDataSource,
+		storage.NewStorageVolumesFilesDataSource,
 		svm.NewSvmDataSource,
 		svm.NewSvmsDataSource,
 		svm.NewSVMPeerDataSource,
