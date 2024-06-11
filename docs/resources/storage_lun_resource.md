@@ -12,9 +12,9 @@ Create/Modify/Delete a lun resource
 
 ### Related ONTAP commands
 ```commandline
-* storage lun create
-* storage lun modify
-* storage lun delete
+* lun create
+* lun modify
+* lun delete
 ```
 
 ## Supported Platforms

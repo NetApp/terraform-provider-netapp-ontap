@@ -122,6 +122,10 @@ func (d *StorageLunsDataSource) Schema(ctx context.Context, req datasource.Schem
 							MarkdownDescription: "OS type for lun",
 							Computed:            true,
 						},
+						"serial_number": schema.StringAttribute{
+							MarkdownDescription: "Serial number for lun",
+							Computed:            true,
+						},
 						"qos_policy": schema.SingleNestedAttribute{
 							Computed: true,
 							Attributes: map[string]schema.Attribute{
@@ -224,7 +228,8 @@ func (d *StorageLunsDataSource) Read(ctx context.Context, req datasource.ReadReq
 					UUID: types.StringValue(record.Location.Volume.UUID),
 				},
 			},
-			OSType: types.StringValue(record.OSType),
+			OSType:       types.StringValue(record.OSType),
+			SerialNumber: types.StringValue(record.SerialNumber),
 			QoSPolicy: &StorageLunDataSourceQoSPolicyModel{
 				Name: types.StringValue(record.QoSPolicy.Name),
 				UUID: types.StringValue(record.QoSPolicy.UUID),

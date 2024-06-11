@@ -1,6 +1,6 @@
 data "netapp-ontap_luns" "storage_luns" {
   # required to know which system to interface with
-  cx_profile_name = "cluster4"
+  cx_profile_name = "cluster2"
   filter = {
     svm_name = "svm0"
   }
