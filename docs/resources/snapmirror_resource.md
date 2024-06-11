@@ -26,7 +26,7 @@ Create/Modify/Delete a snapmirror resource
 ## Example Usage
 ```
 # Create a snapmirror
-resource "netapp-ontap_snapmirror_resource" "snapmirror" {
+resource "netapp-ontap_snapmirror" "snapmirror" {
   # required to know which system to interface with
   cx_profile_name = "cluster1"
   source_endpoint = {
@@ -112,7 +112,7 @@ id = `destination_path`,`cx_profile_name`
 
 For example
 ```shell
- terraform import netapp-ontap_snapmirror_resource.example destination_path,cluster5
+ terraform import netapp-ontap_snapmirror.example destination_path,cluster5
 ```
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
 
@@ -122,7 +122,7 @@ This requires Terraform 1.5 or higher, and will auto create the configuration fo
 First create the block
 ```terraform
 import {
-  to = netapp-ontap_snapmirror_resource.snapmirror_import
+  to = netapp-ontap_snapmirror.snapmirror_import
   id = "destination_path,cluster4"
 }
 ```
@@ -135,7 +135,7 @@ This will generate a file called generated.tf, which will contain the configurat
 # __generated__ by Terraform
 # Please review these resources and move them into your main configuration files.
 # __generated__ by Terraform from "snapmirror_dest_svm:snap_dest2,cluster4"
-resource "netapp-ontap_snapmirror_resource" "snapmirror_import" {
+resource "netapp-ontap_snapmirror" "snapmirror_import" {
   cx_profile_name = "cluster4"
   create_destination = null
   destination_endpoint = {

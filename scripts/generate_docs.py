@@ -101,6 +101,7 @@ CATAGORYS = {
         "storage_snapshot_policy_resource.md",
         "storage_volume_data_source.md",
         "storage_volumes_data_source.md",
+        "storage_volumes_files_data_source.md",
         "storage_volume_resource.md",
         "storage_volume_snapshot_data_source.md",
         "storage_volume_snapshots_data_source.md"
