@@ -38,17 +38,17 @@ func TestAccStorageFlexcacheResource(t *testing.T) {
 			{
 				Config: testAccStorageFlexcacheResourcePathConfig("acc_test", "accFlexcacheJP", "/accFlexcachejp"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_flexcache_resource.jpexample", "name", "accFlexcacheJP"),
-					resource.TestCheckResourceAttr("netapp-ontap_storage_flexcache_resource.jpexample", "junction_path", "/accFlexcachejp"),
+					resource.TestCheckResourceAttr("netapp-ontap_flexcache.jpexample", "name", "accFlexcacheJP"),
+					resource.TestCheckResourceAttr("netapp-ontap_flexcache.jpexample", "junction_path", "/accFlexcachejp"),
 				),
 			},
 			// Test importing a resource
 			{
-				ResourceName:  "netapp-ontap_flexcache.example",
+				ResourceName:  "netapp-ontap_flexcache.jpexample",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s", "accFlexcacheJP", "acc_test", "cluster5"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_flexcache.example", "name", "accFlexcache"),
+					resource.TestCheckResourceAttr("netapp-ontap_flexcache.jpexample", "name", "accFlexcache"),
 				),
 			},
 		},
