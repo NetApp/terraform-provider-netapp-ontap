@@ -29,7 +29,7 @@ func TestAccStorageLunResouce(t *testing.T) {
 			{
 				Config: testAccStorageLunResourceConfig("ACC-lun", "carchi-test", "lunTest", "linux", 1048576),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "name", "ACC-lun"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "name", "/vol/lunTest/ACC-lun"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "svm_name", "carchi-test"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "volume_name", "lunTest"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "os_type", "linux"),
@@ -40,7 +40,7 @@ func TestAccStorageLunResouce(t *testing.T) {
 			{
 				Config: testAccStorageLunResourceConfig("ACC-lun2", "carchi-test", "lunTest", "linux", 1048576),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "name", "ACC-lun2"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "logical_unit", "ACC-lun2"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "svm_name", "carchi-test"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "volume_name", "lunTest"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "os_type", "linux"),
