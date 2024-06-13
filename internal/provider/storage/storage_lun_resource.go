@@ -44,6 +44,7 @@ type StorageLunResourceModel struct {
 	VolumeName    types.String `tfsdk:"volume_name"`
 	OSType        types.String `tfsdk:"os_type"`
 	Size          types.Int64  `tfsdk:"size"`
+	SizeUnit      types.String `tfsdk:"size_unit"`
 	QoSPolicyName types.String `tfsdk:"qos_policy_name"`
 	SerialNumber  types.String `tfsdk:"serial_number"`
 	LogicalUnit   types.String `tfsdk:"logical_unit"`
@@ -95,8 +96,12 @@ func (r *StorageLunResource) Schema(ctx context.Context, req resource.SchemaRequ
 				Required:            true,
 			},
 			"size": schema.Int64Attribute{
-				MarkdownDescription: "Size of the lun",
+				MarkdownDescription: "Size of the lun in byte if size_unit is not provided, otherwise size in the specified unit",
 				Required:            true,
+			},
+			"size_unit": schema.StringAttribute{
+				MarkdownDescription: "The unit used to interpret the size parameter",
+				Optional:            true,
 			},
 			"qos_policy_name": schema.StringAttribute{
 				MarkdownDescription: "QoS policy name",
@@ -182,7 +187,15 @@ func (r *StorageLunResource) Read(ctx context.Context, req resource.ReadRequest,
 	data.VolumeName = types.StringValue(restInfo.Location.Volume.Name)
 	data.OSType = types.StringValue(restInfo.OSType)
 	data.SerialNumber = types.StringValue(restInfo.SerialNumber)
-	data.Size = types.Int64Value(restInfo.Space.Size)
+	if !data.SizeUnit.IsNull() {
+		var sizeUnit string
+		var size int64
+		size, sizeUnit = interfaces.ByteFormat(int64(restInfo.Space.Size))
+		data.Size = types.Int64Value(size)
+		data.SizeUnit = types.StringValue(sizeUnit)
+	} else {
+		data.Size = types.Int64Value(restInfo.Space.Size)
+	}
 	if restInfo.QoSPolicy.Name != "" {
 		data.QoSPolicyName = types.StringValue(restInfo.QoSPolicy.Name)
 	}
@@ -218,7 +231,16 @@ func (r *StorageLunResource) Create(ctx context.Context, req resource.CreateRequ
 	body.Locations.Volume.Name = data.VolumeName.ValueString()
 	body.SVM.Name = data.SVMName.ValueString()
 	body.OsType = data.OSType.ValueString()
-	body.Space.Size = data.Size.ValueInt64()
+	if !data.SizeUnit.IsNull() {
+		if _, ok := interfaces.POW2BYTEMAP[data.SizeUnit.ValueString()]; !ok {
+			errorHandler.MakeAndReportError("error creating flexcache", fmt.Sprintf("invalid input for size_unit: %s, required one of: bytes, b, kb, mb, gb, tb, pb, eb, zb, yb", data.SizeUnit.ValueString()))
+			return
+		}
+		body.Space.Size = data.Size.ValueInt64() * int64(interfaces.POW2BYTEMAP[data.SizeUnit.ValueString()])
+	} else {
+		body.Space.Size = data.Size.ValueInt64()
+	}
+
 	if !data.QoSPolicyName.IsNull() {
 		body.QosPolicy = data.QoSPolicyName.ValueString()
 	}
@@ -279,9 +301,16 @@ func (r *StorageLunResource) Update(ctx context.Context, req resource.UpdateRequ
 	if !plan.OSType.Equal(state.OSType) {
 		request.OsType = plan.OSType.ValueString()
 	}
-	if !plan.Size.Equal(state.Size) {
-		request.Space.Size = plan.Size.ValueInt64()
+	baseUnit := int64(1)
+	if !plan.SizeUnit.IsNull() {
+		if _, ok := interfaces.POW2BYTEMAP[plan.SizeUnit.ValueString()]; !ok {
+			errorHandler.MakeAndReportError("error updating lun", fmt.Sprintf("invalid input for size_unit: %s, required one of: bytes, b, kb, mb, gb, tb, pb, eb, zb, yb", plan.SizeUnit.ValueString()))
+			return
+		}
+		baseUnit = int64(interfaces.POW2BYTEMAP[plan.SizeUnit.ValueString()])
 	}
+	request.Space.Size = plan.Size.ValueInt64() * baseUnit
+
 	if !plan.QoSPolicyName.Equal(state.QoSPolicyName) {
 		request.QosPolicy = plan.QoSPolicyName.ValueString()
 	}
