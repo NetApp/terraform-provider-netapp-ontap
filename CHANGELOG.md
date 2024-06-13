@@ -3,6 +3,9 @@
 FEATURES:
 * **New Data Source:** `netapp-ontap_volumes_files` ([#8](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/8))
 
+ENHANCEMENTS:
+* **netapp-ontap_lun**: added `size_unit` option. ([#227](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/227))
+
 ## 1.1.2 (2024-06-03)
 
 ENHANCEMENTS:
