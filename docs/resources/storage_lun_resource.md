@@ -59,7 +59,7 @@ resource "netapp-ontap_lun" "storage_lun" {
 - `id` (String) StorageLun UUID
 
 ## Import
-This Resource supports import, which allows you to import existing aggregates into the state of this resoruce.
+This Resource supports import, which allows you to import existing lun into the state of this resoruce.
 Import require a unique ID composed of the lun name, volume name, svm name, and cx_profile_name, separated by a comma.
 
 id = `name`,`volume_name`, `svm_name`, `cx_profile_name`
@@ -102,7 +102,4 @@ resource "netapp-ontap_lun" "lun_import" {
   svm_name        = "carchi-test"
   volume_name     = "lunTest"
 }
-
-}
-``` 
-
+```
