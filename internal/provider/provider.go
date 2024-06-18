@@ -178,6 +178,7 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		snapmirror.NewSnapmirrorPolicyResource,
 		storage.NewStorageLunResource,
 		storage.NewSnapshotPolicyResource,
+		storage.NewStorageQuotaRulesResource,
 		storage.NewStorageFlexcacheRsource,
 		storage.NewStorageVolumeResource,
 		storage.NewStorageVolumeSnapshotResource,
