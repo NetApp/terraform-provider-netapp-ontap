@@ -11,14 +11,11 @@ resource "netapp-ontap_quota_rules" "storage_quota_rules" {
   qtree = {
     name = ""
     }
-  # users = [{
-  #   name = ""
-  #   }]
-  # group = {
-  #   name = ""
-  #   }
+  users = [{
+    name = ""
+    }]
   files = {
     hard_limit = 100
-    soft_limit = 70
+    soft_limit = 80
     }
 }
