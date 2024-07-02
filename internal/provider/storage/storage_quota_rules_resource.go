@@ -250,6 +250,7 @@ func (r *StorageQuotaRulesResource) Read(ctx context.Context, req resource.ReadR
 		resp.Diagnostics.Append(diags...)
 	}
 	data.Files = objectValue
+	// user and group are not modified and hence not added.
 	data.ID = types.StringValue(restInfo.UUID)
 
 	tflog.Debug(ctx, fmt.Sprintf("read a resource: %#v", data))
