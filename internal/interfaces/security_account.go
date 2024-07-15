@@ -2,7 +2,6 @@ package interfaces
 
 import (
 	"fmt"
-
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient"
@@ -30,17 +29,6 @@ type SecurityAccountGetDataModelONTAP struct {
 	Role         SecurityAccountRole          `mapstructure:"role,omitempty"`
 	Scope        string                       `mapstructure:"scope,omitempty"`
 	Applications []SecurityAccountApplication `mapstructure:"applications,omitempty"`
-}
-
-// SecurityAccountResourceUpdateBodyDataModelONTAP describes the resource update model using go types for mapping.
-type SecurityAccountResourceUpdateBodyDataModelONTAP struct {
-	Applications []map[string]interface{} `mapstructure:"applications,omitempty"`
-	// Owner                      SecurityAccountOwner     `mapstructure:"owner,omitempty"`
-	Role     SecurityAccountRole `mapstructure:"role,omitempty"`
-	Password string              `mapstructure:"password,omitempty"`
-	// SecondAuthenticationMethod string                   `mapstructure:"second_authentication_method,omitempty"`
-	Comment string `mapstructure:"comment,omitempty"`
-	Locked  bool   `mapstructure:"locked,omitempty"`
 }
 
 // SecurityAccountApplication describes the application data model using go types for mapping.
@@ -156,22 +144,6 @@ func DeleteSecurityAccount(errorHandler *utils.ErrorHandler, r restclient.RestCl
 	statusCode, _, err := r.CallDeleteMethod(api, nil, nil)
 	if err != nil {
 		return errorHandler.MakeAndReportError("Error occurred when deleting security account", fmt.Sprintf("error on delete security/account: %s, statusCode: %d", err, statusCode))
-	}
-	return nil
-}
-
-// UpdateSecurityAccount to update a security account
-func UpdateSecurityAccount(errorHandler *utils.ErrorHandler, r restclient.RestClient, data SecurityAccountResourceUpdateBodyDataModelONTAP, uuid string, name string) error {
-	var body map[string]interface{}
-	if err := mapstructure.Decode(data, &body); err != nil {
-		return errorHandler.MakeAndReportError("error encoding security account body", fmt.Sprintf("error on encoding security/accounts body: %s, body: %#v", err, data))
-	}
-	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Update security account info: %#v", data))
-	query := r.NewQuery()
-	query.Add("return_records", "true")
-	statusCode, _, err := r.CallUpdateMethod("security/accounts/"+uuid+"/"+name, query, body)
-	if err != nil {
-		return errorHandler.MakeAndReportError("error updating security account", fmt.Sprintf("error on PATCH security/accounts: %s, statusCode %d", err, statusCode))
 	}
 	return nil
 }

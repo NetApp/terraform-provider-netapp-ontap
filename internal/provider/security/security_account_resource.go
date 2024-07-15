@@ -3,8 +3,6 @@ package security
 import (
 	"context"
 	"fmt"
-	"strings"
-
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -209,7 +207,7 @@ func (r *SecurityAccountResource) Read(ctx context.Context, req resource.ReadReq
 	}
 	tflog.Debug(ctx, fmt.Sprintf("read a resource: %#v", data))
 	var restInfo *interfaces.SecurityAccountGetDataModelONTAP
-	if data.Owner.IsNull() {
+	if data.Owner.IsUnknown() {
 		restInfo, err = interfaces.GetSecurityAccountByName(errorHandler, *client, data.Name.ValueString(), "")
 		if err != nil {
 			// error reporting done inside GetSecurityAccount
@@ -422,115 +420,17 @@ func (r *SecurityAccountResource) Create(ctx context.Context, req resource.Creat
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *SecurityAccountResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan, state *SecurityAccountResourceModel
+	var data *SecurityAccountResourceModel
 
 	// Read Terraform plan data into the model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	client, err := connection.GetRestClient(utils.NewErrorHandler(ctx, &resp.Diagnostics), r.config, plan.CxProfileName)
-	if err != nil {
-		// error reporting done inside NewClient
-		return
-	}
 
-	var request interfaces.SecurityAccountResourceUpdateBodyDataModelONTAP
-
-	// applications update
-	applications := []interfaces.SecurityAccountApplication{}
-	for _, item := range plan.Applications {
-		var application interfaces.SecurityAccountApplication
-		application.Application = item.Application.ValueString()
-		if item.SecondAuthentiactionMethod.IsNull() {
-			application.SecondAuthenticationMethod = item.SecondAuthentiactionMethod.ValueString()
-		}
-		if item.AuthenticationMethods != nil {
-			application.AuthenticationMethods = make([]string, len(*item.AuthenticationMethods))
-			for index, authenticationMethod := range *item.AuthenticationMethods {
-				application.AuthenticationMethods[index] = authenticationMethod.ValueString()
-			}
-		}
-		applications = append(applications, application)
-	}
-	err = mapstructure.Decode(applications, &request.Applications)
-	if err != nil {
-		errorHandler.MakeAndReportError("error creating User applications", fmt.Sprintf("error on encoding copies info: %s, copies %#v", err, request.Applications))
-		return
-	}
-	// password update
-	if !plan.Password.Equal(state.Password) {
-		request.Password = plan.Password.ValueString()
-	}
-
-	// role update
-	if !plan.Role.IsUnknown() {
-		var role RoleResourceModel
-		diags := plan.Role.As(ctx, &role, basetypes.ObjectAsOptions{})
-		if diags.HasError() {
-			resp.Diagnostics.Append(diags...)
-			return
-		}
-		request.Role.Name = role.Name.ValueString()
-	}
-
-	// locked update
-	if !plan.Locked.IsNull() {
-		request.Locked = plan.Locked.ValueBool()
-	}
-
-	// comment update
-	if !plan.Comment.Equal(state.Comment) {
-		request.Comment = plan.Comment.ValueString()
-	}
-
-	err = interfaces.UpdateSecurityAccount(errorHandler, *client, request, state.OwnerID.ValueString(), state.Name.ValueString())
-	if err != nil {
-		return
-	}
-
-	// Read the resource again to get the updated data
-	restInfo, err := interfaces.GetSecurityAccountByName(errorHandler, *client, plan.Name.ValueString(), state.OwnerID.ValueString())
-	if err != nil {
-		// error reporting done inside GetSecurityAccount
-		return
-	}
-	plan.Name = types.StringValue(restInfo.Name)
-	// There is no ID in the REST response, so we use the name as ID
-	plan.ID = types.StringValue(restInfo.Name)
-	elementTypes := map[string]attr.Type{
-		"name": types.StringType,
-	}
-	elements := map[string]attr.Value{
-		"name": types.StringValue(restInfo.Owner.Name),
-	}
-	objectValue, diags := types.ObjectValue(elementTypes, elements)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-	}
-
-	plan.Owner = objectValue
-	plan.OwnerID = types.StringValue(restInfo.Owner.UUID)
-	plan.Locked = types.BoolValue(restInfo.Locked)
-	if restInfo.Comment != "" {
-		plan.Comment = types.StringValue(restInfo.Comment)
-	}
-	elementTypes = map[string]attr.Type{
-		"name": types.StringType,
-	}
-	elements = map[string]attr.Value{
-		"name": types.StringValue(restInfo.Role.Name),
-	}
-	objectValue, diags = types.ObjectValue(elementTypes, elements)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-	}
-	plan.Role = objectValue
 	// Save updated data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -565,17 +465,5 @@ func (r *SecurityAccountResource) Delete(ctx context.Context, req resource.Delet
 
 // ImportState imports a resource using ID from terraform import command by calling the Read method.
 func (r *SecurityAccountResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	tflog.Debug(ctx, fmt.Sprintf("import req security account resource: %#v", req))
-	// Parse the ID
-	idParts := strings.Split(req.ID, ",")
-	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
-		resp.Diagnostics.AddError(
-			"Unexpected Import Identifier",
-			fmt.Sprint("Expected ID in the format 'name,cx_profile_name', got: ", req.ID),
-		)
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[0])...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[1])...)
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
