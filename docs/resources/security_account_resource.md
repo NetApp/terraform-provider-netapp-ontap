@@ -8,16 +8,12 @@ description: |-
 
 # Resource Security Account
 
-Create/Modify/Delete a ONTAP user account
+Create/Delete a ONTAP user account
 
 ### Related ONTAP commands
 ```commandline
 * security login create
 * security login delete
-* security login modify
-* security login password
-* security login lock
-* security login unlock
 ```
 
 ## Supported Platforms
@@ -93,57 +89,4 @@ Optional:
 
 - `name` (String) Account role name
 
-## Import
-This resource supports import, which allows you to import existing security account into the state of this resource.
-Import require a unique ID composed of the security account name and connection profile, separated by a comma.
 
-id = `name`, `cx_profile_name`
-
-### Terraform Import
-
- For example
- ```shell
-  terraform import netapp-ontap_security_account.act_import acc_user,cluster4
- ```
-
-### Terraform Import Block
-This requires Terraform 1.5 or higher, and will auto create the configuration for you
-
-First create the block
-```terraform
-import {
-  to = netapp-ontap_security_account.act_import
-  id = "acc_user,cluster4"
-}
-```
-Next run, this will auto create the configuration for you
-```shell
-terraform plan -generate-config-out=generated.tf
-```
-This will generate a file called generated.tf, which will contain the configuration for the imported resource
-```terraform
-# __generated__ by Terraform
-# Please review these resources and move them into your main configuration files.
-# __generated__ by Terraform from "acc_user,cluster4"
-resource "netapp-ontap_security_account" "act_import" {
-  cx_profile_name = "cluster4"
-  name       = "acc_user"
-  applications = [
-    {
-      application = "http"
-      authentication_methods = ["password"]
-      second_authentication_method = "none"
-    }
-  ]
-  comment         = null
-  locked          = false
-  owner = {
-    name = "abccluster-1"
-  }
-  password = null # sensitive
-  role = {
-    name = "admin"
-  }
-  second_authentication_method = null
-}
-``` 
