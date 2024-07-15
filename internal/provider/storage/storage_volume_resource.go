@@ -3,10 +3,11 @@ package storage
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -944,7 +945,7 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 			return
 		}
 		if _, ok := interfaces.POW2BYTEMAP[space.SizeUnit.ValueString()]; !ok {
-			errorHandler.MakeAndReportError("error creating volume", fmt.Sprintf("invalid input for size_unit: %s, required one of: bytes, b, kb, mb, gb, tb, pb, eb, zb, yb", space.SizeUnit.ValueString()))
+			errorHandler.MakeAndReportError("error updating volume", fmt.Sprintf("invalid input for size_unit: %s, required one of: bytes, b, kb, mb, gb, tb, pb, eb, zb, yb", space.SizeUnit.ValueString()))
 			return
 		}
 		if !plan.Space.Equal(state.Space) {
