@@ -3,9 +3,10 @@ package storage
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -43,7 +44,10 @@ type StorageLunResourceModel struct {
 	VolumeName    types.String `tfsdk:"volume_name"`
 	OSType        types.String `tfsdk:"os_type"`
 	Size          types.Int64  `tfsdk:"size"`
+	SizeUnit      types.String `tfsdk:"size_unit"`
 	QoSPolicyName types.String `tfsdk:"qos_policy_name"`
+	SerialNumber  types.String `tfsdk:"serial_number"`
+	LogicalUnit   types.String `tfsdk:"logical_unit"`
 	ID            types.String `tfsdk:"id"`
 }
 
@@ -64,8 +68,20 @@ func (r *StorageLunResource) Schema(ctx context.Context, req resource.SchemaRequ
 				Required:            true,
 			},
 			"name": schema.StringAttribute{
-				MarkdownDescription: "Lun name or location.logical_unit",
-				Required:            true,
+				MarkdownDescription: "Lun name",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"logical_unit": schema.StringAttribute{
+				MarkdownDescription: "Logical unit for lun",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"svm_name": schema.StringAttribute{
 				MarkdownDescription: "SVM name",
@@ -80,12 +96,23 @@ func (r *StorageLunResource) Schema(ctx context.Context, req resource.SchemaRequ
 				Required:            true,
 			},
 			"size": schema.Int64Attribute{
-				MarkdownDescription: "Size of the lun",
+				MarkdownDescription: "Size of the lun in byte if size_unit is not provided, otherwise size in the specified unit",
 				Required:            true,
+			},
+			"size_unit": schema.StringAttribute{
+				MarkdownDescription: "The unit used to interpret the size parameter",
+				Optional:            true,
 			},
 			"qos_policy_name": schema.StringAttribute{
 				MarkdownDescription: "QoS policy name",
 				Optional:            true,
+			},
+			"serial_number": schema.StringAttribute{
+				MarkdownDescription: "Serial number for lun",
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"id": schema.StringAttribute{
 				MarkdownDescription: "StorageLun UUID",
@@ -133,18 +160,42 @@ func (r *StorageLunResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	restInfo, err := interfaces.GetStorageLunByName(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString(), data.VolumeName.ValueString())
-	if err != nil {
-		// error reporting done inside GetStorageLun
+	var restInfo *interfaces.StorageLunGetDataModelONTAP
+	if data.ID.ValueString() != "" {
+		restInfo, err = interfaces.GetStorageLunByUUID(errorHandler, *client, data.ID.ValueString())
+		if err != nil {
+			// error reporting done inside GetStorageLunByUUID
+			return
+		}
+	} else {
+		restInfo, err = interfaces.GetStorageLunByName(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString(), data.VolumeName.ValueString())
+		if err != nil {
+			// error reporting done inside GetStorageLunByName
+			return
+		}
+	}
+
+	if restInfo == nil {
+		errorHandler.MakeAndReportError("error reading info", "No Lun found")
 		return
 	}
 
-	data.Name = types.StringValue(restInfo.Location.LogicalUnit)
+	data.Name = types.StringValue(restInfo.Name)
+	data.LogicalUnit = types.StringValue(restInfo.Location.LogicalUnit)
 	data.ID = types.StringValue(restInfo.UUID)
 	data.SVMName = types.StringValue(restInfo.SVM.Name)
 	data.VolumeName = types.StringValue(restInfo.Location.Volume.Name)
 	data.OSType = types.StringValue(restInfo.OSType)
-	data.Size = types.Int64Value(restInfo.Space.Size)
+	data.SerialNumber = types.StringValue(restInfo.SerialNumber)
+	if !data.SizeUnit.IsNull() {
+		var sizeUnit string
+		var size int64
+		size, sizeUnit = interfaces.ByteFormat(int64(restInfo.Space.Size))
+		data.Size = types.Int64Value(size)
+		data.SizeUnit = types.StringValue(sizeUnit)
+	} else {
+		data.Size = types.Int64Value(restInfo.Space.Size)
+	}
 	if restInfo.QoSPolicy.Name != "" {
 		data.QoSPolicyName = types.StringValue(restInfo.QoSPolicy.Name)
 	}
@@ -171,11 +222,25 @@ func (r *StorageLunResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	body.Locations.LogicalUnit = data.Name.ValueString()
+	if !data.Name.IsNull() {
+		body.Name = data.Name.ValueString()
+	}
+	if !data.LogicalUnit.IsNull() {
+		body.Locations.LogicalUnit = data.LogicalUnit.ValueString()
+	}
 	body.Locations.Volume.Name = data.VolumeName.ValueString()
 	body.SVM.Name = data.SVMName.ValueString()
 	body.OsType = data.OSType.ValueString()
-	body.Space.Size = data.Size.ValueInt64()
+	if !data.SizeUnit.IsNull() {
+		if _, ok := interfaces.POW2BYTEMAP[data.SizeUnit.ValueString()]; !ok {
+			errorHandler.MakeAndReportError("error creating flexcache", fmt.Sprintf("invalid input for size_unit: %s, required one of: bytes, b, kb, mb, gb, tb, pb, eb, zb, yb", data.SizeUnit.ValueString()))
+			return
+		}
+		body.Space.Size = data.Size.ValueInt64() * int64(interfaces.POW2BYTEMAP[data.SizeUnit.ValueString()])
+	} else {
+		body.Space.Size = data.Size.ValueInt64()
+	}
+
 	if !data.QoSPolicyName.IsNull() {
 		body.QosPolicy = data.QoSPolicyName.ValueString()
 	}
@@ -192,6 +257,9 @@ func (r *StorageLunResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	data.ID = types.StringValue(resource.UUID)
+	data.SerialNumber = types.StringValue(resource.SerialNumber)
+	data.LogicalUnit = types.StringValue(resource.Location.LogicalUnit)
+	data.Name = types.StringValue(resource.Name)
 
 	tflog.Trace(ctx, "created a resource")
 
@@ -219,7 +287,10 @@ func (r *StorageLunResource) Update(ctx context.Context, req resource.UpdateRequ
 
 	var request interfaces.StorageLunResourceBodyDataModelONTAP
 	if !plan.Name.Equal(state.Name) {
-		request.Locations.LogicalUnit = plan.Name.ValueString()
+		request.Name = plan.Name.ValueString()
+	}
+	if !plan.LogicalUnit.Equal(state.LogicalUnit) {
+		request.Locations.LogicalUnit = plan.LogicalUnit.ValueString()
 	}
 	if !plan.VolumeName.Equal(state.VolumeName) {
 		request.Locations.Volume.Name = plan.VolumeName.ValueString()
@@ -230,9 +301,16 @@ func (r *StorageLunResource) Update(ctx context.Context, req resource.UpdateRequ
 	if !plan.OSType.Equal(state.OSType) {
 		request.OsType = plan.OSType.ValueString()
 	}
-	if !plan.Size.Equal(state.Size) {
-		request.Space.Size = plan.Size.ValueInt64()
+	baseUnit := int64(1)
+	if !plan.SizeUnit.IsNull() {
+		if _, ok := interfaces.POW2BYTEMAP[plan.SizeUnit.ValueString()]; !ok {
+			errorHandler.MakeAndReportError("error updating lun", fmt.Sprintf("invalid input for size_unit: %s, required one of: bytes, b, kb, mb, gb, tb, pb, eb, zb, yb", plan.SizeUnit.ValueString()))
+			return
+		}
+		baseUnit = int64(interfaces.POW2BYTEMAP[plan.SizeUnit.ValueString()])
 	}
+	request.Space.Size = plan.Size.ValueInt64() * baseUnit
+
 	if !plan.QoSPolicyName.Equal(state.QoSPolicyName) {
 		request.QosPolicy = plan.QoSPolicyName.ValueString()
 	}

@@ -12,9 +12,9 @@ Create/Modify/Delete a lun resource
 
 ### Related ONTAP commands
 ```commandline
-* storage lun create
-* storage lun modify
-* storage lun delete
+* lun create
+* lun modify
+* lun delete
 ```
 
 ## Supported Platforms
@@ -46,13 +46,14 @@ resource "netapp-ontap_lun" "storage_lun" {
 - `cx_profile_name` (String) Connection profile name
 - `name` (String) Lun name or location.logical_unit
 - `os_type` (String) OS type
-- `size` (Number) Size of the lun
+- `size` (Number) Size of the lun in byte if size_unit is not provided, otherwise size in the specified `size_unit`
 - `svm_name` (String) SVM name
 - `volume_name` (String) Volume name
 
 ### Optional
 
 - `qos_policy_name` (String) QoS policy name
+- `size_unit` (String) The unit used to interpret the size parameter
 
 ### Read-Only
 
