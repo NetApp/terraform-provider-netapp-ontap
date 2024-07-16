@@ -15,13 +15,6 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
-// TODO:
-// copy this file to match you data source (should match internal/provider/security_role_data_source.go)
-// replace SecurityRole with the name of the resource, following go conventions, eg IPInterface
-// replace security_role with the name of the resource, for logging purposes, eg ip_interface
-// make sure to create internal/interfaces/security_role.go too)
-// delete these 5 lines
-
 // Ensure provider defined types fully satisfy framework interfaces
 var _ datasource.DataSource = &SecurityRoleDataSource{}
 
@@ -80,27 +73,27 @@ func (d *SecurityRoleDataSource) Schema(ctx context.Context, req datasource.Sche
 			},
 			"privileges": schema.SetNestedAttribute{
 				MarkdownDescription: "The list of privileges that this role has been granted.",
-				Optional:            true,
+				Computed:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"path": schema.StringAttribute{
 							MarkdownDescription: "Either of REST URI/endpoint OR command/command directory path.",
-							Optional:            true,
+							Computed:            true,
 						},
 						"access": schema.StringAttribute{
 							MarkdownDescription: "Access level for the REST endpoint or command/command directory path. If it denotes the access level for a command/command directory path, the only supported enum values are 'none','readonly' and 'all'.",
-							Optional:            true,
+							Computed:            true,
 						},
 					},
 				},
 			},
 			"builtin": schema.BoolAttribute{
 				MarkdownDescription: "Indicates if this is a built-in (pre-defined) role which cannot be modified or deleted.",
-				Optional:            true,
+				Computed:            true,
 			},
 			"scope": schema.StringAttribute{
 				MarkdownDescription: "Scope of the entity. Set to 'cluster' for cluster owned objects and to 'svm' for SVM owned objects.",
-				Optional:            true,
+				Computed:            true,
 			},
 		},
 	}

@@ -9,13 +9,6 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
-// TODO:
-// copy this file to match you data source (should match internal/interfaces/security_role.go)
-// replace SecurityRole with the name of the resource, following go conventions, eg IPInterface
-// replace security_role with the name of the resource, for logging purposes, eg ip_interface
-// replace api_url with API, eg ip/interfaces
-// delete these 5 lines
-
 // SecurityRoleGetDataModelONTAP describes the GET record data model using go types for mapping.
 type SecurityRoleGetDataModelONTAP struct {
 	Name       string                   `mapstructure:"name"`
@@ -54,12 +47,6 @@ func GetSecurityRoleByName(errorHandler *utils.ErrorHandler, r restclient.RestCl
 	api := "security/roles/" + svmUUID + "/" + name
 	query := r.NewQuery()
 	query.Set("name", name)
-	// if svmName == "" {
-	// 	query.Set("scope", "cluster")
-	// } else {
-	// 	query.Set("svm.name", svmName)
-	// 	query.Set("scope", "svm")
-	// }
 	query.Fields([]string{"name", "scope", "owner", "privileges", "builtin"})
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
