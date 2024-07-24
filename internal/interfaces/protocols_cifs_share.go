@@ -159,14 +159,14 @@ func CreateProtocolsCIFSShare(errorHandler *utils.ErrorHandler, r restclient.Res
 
 // UpdateProtocolsCIFSShare to update protocols_cifs_share
 func UpdateProtocolsCIFSShare(errorHandler *utils.ErrorHandler, r restclient.RestClient, body ProtocolsCIFSShareResourceBodyDataModelONTAP, name string, svmUUID string) error {
-	api := "/protocols/cifs/shares/"
+	api := fmt.Sprintf("/protocols/cifs/shares/%s/%s", svmUUID, name)
 	var bodyMap map[string]interface{}
 	if err := mapstructure.Decode(body, &bodyMap); err != nil {
 		return errorHandler.MakeAndReportError("error encoding protocols_cifs_share body", fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body))
 	}
-	statusCode, _, err := r.CallUpdateMethod(api+"/"+svmUUID+"/"+name, nil, bodyMap)
+	statusCode, _, err := r.CallUpdateMethod(api, nil, bodyMap)
 	if err != nil {
-		return errorHandler.MakeAndReportError("error updating protocols_cifs_share", fmt.Sprintf("error on POST %s: %s, statusCode %d", api, err, statusCode))
+		return errorHandler.MakeAndReportError("error updating protocols_cifs_share", fmt.Sprintf("error on PATCH %s: %s, statusCode %d", api, err, statusCode))
 	}
 	return nil
 }

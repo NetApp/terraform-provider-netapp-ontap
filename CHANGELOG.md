@@ -1,3 +1,9 @@
+## 1.1.3
+
+BUG FIXES:
+* **netapp-ontap_protocols_cifs_share_resource**
+`acls` unable to update acls ([#236](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/236))
+
 ## 1.1.2 (2024-06-03)
 
 ENHANCEMENTS:
