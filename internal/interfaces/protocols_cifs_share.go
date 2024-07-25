@@ -52,20 +52,20 @@ type ProtocolsCIFSShareResourceBodyDataModelONTAP struct {
 	Name                  string `mapstructure:"name,omitempty"` // can't be present in update, so omit empty.
 	SVM                   svm    `mapstructure:"svm"`
 	Acls                  []Acls `mapstructure:"acls,omitempty"` // API complains if this is not omit empty
-	ChangeNotify          bool   `mapstructure:"change_notify"`
+	ChangeNotify          bool   `mapstructure:"change_notify,omitempty"`
 	Comment               string `mapstructure:"comment,omitempty"` // API complains if this is not omit empty
-	ContinuouslyAvailable bool   `mapstructure:"continuously_available"`
-	DirUmask              int64  `mapstructure:"dir_umask"`
-	Encryption            bool   `mapstructure:"encryption"`
-	FileUmask             int64  `mapstructure:"file_umask"`
-	ForceGroupForCreate   string `mapstructure:"force_group_for_create"`
+	ContinuouslyAvailable bool   `mapstructure:"continuously_available,omitempty"`
+	DirUmask              int64  `mapstructure:"dir_umask,omitempty"`
+	Encryption            bool   `mapstructure:"encryption,omitempty"`
+	FileUmask             int64  `mapstructure:"file_umask,omitempty"`
+	ForceGroupForCreate   string `mapstructure:"force_group_for_create,omitempty"`
 	HomeDirectory         bool   `mapstructure:"home_directory,omitempty"` // can't be present in update, so omit empty.
-	NamespaceCaching      bool   `mapstructure:"namespace_caching"`
-	NoStrictSecurity      bool   `mapstructure:"no_strict_security"`
+	NamespaceCaching      bool   `mapstructure:"namespace_caching,omitempty"`
+	NoStrictSecurity      bool   `mapstructure:"no_strict_security,omitempty"`
 	OfflineFiles          string `mapstructure:"offline_files,omitempty"` // API complains if this is not omit empty
-	Oplocks               bool   `mapstructure:"oplocks"`
+	Oplocks               bool   `mapstructure:"oplocks,omitempty"`
 	Path                  string `mapstructure:"path,omitempty"` // can't be present in update, so omit empty.
-	ShowSnapshot          bool   `mapstructure:"show_snapshot"`
+	ShowSnapshot          bool   `mapstructure:"show_snapshot,omitempty"`
 	UnixSymlink           string `mapstructure:"unix_symlink,omitempty"`  // API complains if this is not omit empty
 	VscanProfile          string `mapstructure:"vscan_profile,omitempty"` // API complains if this is not omit empty
 }

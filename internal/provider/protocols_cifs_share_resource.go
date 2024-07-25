@@ -708,6 +708,12 @@ func (r *ProtocolsCIFSShareResource) Update(ctx context.Context, req resource.Up
 		}
 	}
 
+	if !plan.ContinuouslyAvailable.IsUnknown() {
+		if plan.ContinuouslyAvailable != state.ContinuouslyAvailable {
+			body.ContinuouslyAvailable = plan.ContinuouslyAvailable.ValueBool()
+		}
+	}
+
 	svm, err := interfaces.GetSvmByName(errorHandler, *client, plan.SVMName.ValueString())
 	if err != nil {
 		return
@@ -751,11 +757,12 @@ func (r *ProtocolsCIFSShareResource) Update(ctx context.Context, req resource.Up
 					} else {
 						// update the acls since permission is different
 						interfacesAcls := interfaces.ProtocolsCIFSShareAclResourceBodyDataModelONTAP{}
-						interfacesAcls.Permission = stateAclElement.Permission
-						err = interfaces.UpdateProtocolsCIFSShareAcl(errorHandler, *client, interfacesAcls, svm.UUID, plan.Name.ValueString(), stateAclElement.UserOrGroup, stateAclElement.Type)
+						interfacesAcls.Permission = planAclElement.Permission
+						err = interfaces.UpdateProtocolsCIFSShareAcl(errorHandler, *client, interfacesAcls, svm.UUID, plan.Name.ValueString(), planAclElement.UserOrGroup, planAclElement.Type)
 						if err != nil {
 							return
 						}
+						break
 					}
 				}
 				// if we reach the end of stateAcls, then we know it's a delete action because it was not found in plan acls.
@@ -789,8 +796,8 @@ func (r *ProtocolsCIFSShareResource) Update(ctx context.Context, req resource.Up
 					if stateAclElement.Permission == planAclElement.Permission {
 						break
 					} else {
-						// update is already handled by above logic, so continue
-						continue
+						// update is already handled by above logic, so break
+						break
 					}
 				}
 				// if we reach the end of planAcls, then we know it's a create action because it was not found in state acls.
