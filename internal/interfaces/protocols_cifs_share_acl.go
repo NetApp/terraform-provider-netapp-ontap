@@ -9,15 +9,15 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
-// ProtocolsCIFSShareAclGetDataModelONTAP describes the GET record data model using go types for mapping.
-type ProtocolsCIFSShareAclGetDataModelONTAP struct {
+// ProtocolsCIFSShareACLGetDataModelONTAP describes the GET record data model using go types for mapping.
+type ProtocolsCIFSShareACLGetDataModelONTAP struct {
 	Name        string `mapstructure:"name"`
 	UUID        string `mapstructure:"uuid"`
 	UserOrGroup string `mapstructure:"user_or_group"`
 }
 
-// ProtocolsCIFSShareAclResourceBodyDataModelONTAP describes the body data model using go types for mapping.
-type ProtocolsCIFSShareAclResourceBodyDataModelONTAP struct {
+// ProtocolsCIFSShareACLResourceBodyDataModelONTAP describes the body data model using go types for mapping.
+type ProtocolsCIFSShareACLResourceBodyDataModelONTAP struct {
 	// Name       string `mapstructure:"name"`
 	// SVM        svm    `mapstructure:"svm"`
 	Permission  string `mapstructure:"permission"`
@@ -25,15 +25,15 @@ type ProtocolsCIFSShareAclResourceBodyDataModelONTAP struct {
 	Type        string `mapstructure:"type"`
 }
 
-// ProtocolsCIFSShareAclDataSourceFilterModel describes the data source data model for queries.
-type ProtocolsCIFSShareAclDataSourceFilterModel struct {
+// ProtocolsCIFSShareACLDataSourceFilterModel describes the data source data model for queries.
+type ProtocolsCIFSShareACLDataSourceFilterModel struct {
 	Name        string `mapstructure:"name"`
 	SVMName     string `mapstructure:"svm.name"`
 	UserOrGroup string `mapstructure:"user_or_group"`
 }
 
-// GetProtocolsCIFSShareAclByName to get protocols_cifs_share_acl info
-func GetProtocolsCIFSShareAclByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, svmName string) (*ProtocolsCIFSShareAclGetDataModelONTAP, error) {
+// GetProtocolsCIFSShareACLByName to get protocols_cifs_share_acl info
+func GetProtocolsCIFSShareACLByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, svmName string) (*ProtocolsCIFSShareACLGetDataModelONTAP, error) {
 	api := "api_url"
 	query := r.NewQuery()
 	query.Set("name", name)
@@ -52,7 +52,7 @@ func GetProtocolsCIFSShareAclByName(errorHandler *utils.ErrorHandler, r restclie
 		return nil, errorHandler.MakeAndReportError("error reading protocols_cifs_share_acl info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
 	}
 
-	var dataONTAP ProtocolsCIFSShareAclGetDataModelONTAP
+	var dataONTAP ProtocolsCIFSShareACLGetDataModelONTAP
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
 			fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
@@ -62,7 +62,7 @@ func GetProtocolsCIFSShareAclByName(errorHandler *utils.ErrorHandler, r restclie
 }
 
 // GetProtocolsCIFSShareAcls to get protocols_cifs_share_acl info for all resources matching a filter
-func GetProtocolsCIFSShareAcls(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *ProtocolsCIFSShareAclDataSourceFilterModel, svmName string, shareName string) ([]ProtocolsCIFSShareAclGetDataModelONTAP, error) {
+func GetProtocolsCIFSShareAcls(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *ProtocolsCIFSShareACLDataSourceFilterModel, svmName string, shareName string) ([]ProtocolsCIFSShareACLGetDataModelONTAP, error) {
 	api := fmt.Sprintf("/protocols/cifs/shares/%s/%s/acls", svmName, shareName)
 	query := r.NewQuery()
 	query.Fields([]string{"name", "svm.name", "scope"})
@@ -81,9 +81,9 @@ func GetProtocolsCIFSShareAcls(errorHandler *utils.ErrorHandler, r restclient.Re
 		return nil, errorHandler.MakeAndReportError("error reading protocols_cifs_share_acls info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
 	}
 
-	var dataONTAP []ProtocolsCIFSShareAclGetDataModelONTAP
+	var dataONTAP []ProtocolsCIFSShareACLGetDataModelONTAP
 	for _, info := range response {
-		var record ProtocolsCIFSShareAclGetDataModelONTAP
+		var record ProtocolsCIFSShareACLGetDataModelONTAP
 		if err := mapstructure.Decode(info, &record); err != nil {
 			return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
 				fmt.Sprintf("error: %s, statusCode %d, info %#v", err, statusCode, info))
@@ -94,8 +94,8 @@ func GetProtocolsCIFSShareAcls(errorHandler *utils.ErrorHandler, r restclient.Re
 	return dataONTAP, nil
 }
 
-// CreateProtocolsCIFSShareAcl to create protocols_cifs_share_acl
-func CreateProtocolsCIFSShareAcl(errorHandler *utils.ErrorHandler, r restclient.RestClient, body ProtocolsCIFSShareAclResourceBodyDataModelONTAP, svmID string, shareName string) (*ProtocolsCIFSShareAclGetDataModelONTAP, error) {
+// CreateProtocolsCIFSShareACL to create protocols_cifs_share_acl
+func CreateProtocolsCIFSShareACL(errorHandler *utils.ErrorHandler, r restclient.RestClient, body ProtocolsCIFSShareACLResourceBodyDataModelONTAP, svmID string, shareName string) (*ProtocolsCIFSShareACLGetDataModelONTAP, error) {
 	api := fmt.Sprintf("/protocols/cifs/shares/%s/%s/acls", svmID, shareName)
 	var bodyMap map[string]interface{}
 	if err := mapstructure.Decode(body, &bodyMap); err != nil {
@@ -108,7 +108,7 @@ func CreateProtocolsCIFSShareAcl(errorHandler *utils.ErrorHandler, r restclient.
 		return nil, errorHandler.MakeAndReportError("error creating protocols_cifs_share_acl", fmt.Sprintf("error on POST %s: %s, statusCode %d", api, err, statusCode))
 	}
 
-	var dataONTAP ProtocolsCIFSShareAclGetDataModelONTAP
+	var dataONTAP ProtocolsCIFSShareACLGetDataModelONTAP
 	if err := mapstructure.Decode(response.Records[0], &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError("error decoding protocols_cifs_share_acl info", fmt.Sprintf("error on decode storage/protocols_cifs_share_acls info: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
@@ -116,8 +116,8 @@ func CreateProtocolsCIFSShareAcl(errorHandler *utils.ErrorHandler, r restclient.
 	return &dataONTAP, nil
 }
 
-// UpdateProtocolsCIFSShareAcl to update protocols_cifs_share_acl
-func UpdateProtocolsCIFSShareAcl(errorHandler *utils.ErrorHandler, r restclient.RestClient, body ProtocolsCIFSShareAclResourceBodyDataModelONTAP, svmID string, shareName string, userOrGroup string, aclType string) error {
+// UpdateProtocolsCIFSShareACL to update protocols_cifs_share_acl
+func UpdateProtocolsCIFSShareACL(errorHandler *utils.ErrorHandler, r restclient.RestClient, body ProtocolsCIFSShareACLResourceBodyDataModelONTAP, svmID string, shareName string, userOrGroup string, aclType string) error {
 	api := fmt.Sprintf("/protocols/cifs/shares/%s/%s/acls/%s/%s", svmID, shareName, userOrGroup, aclType)
 	var bodyMap map[string]interface{}
 	if err := mapstructure.Decode(body, &bodyMap); err != nil {
@@ -132,8 +132,8 @@ func UpdateProtocolsCIFSShareAcl(errorHandler *utils.ErrorHandler, r restclient.
 	return nil
 }
 
-// DeleteProtocolsCIFSShareAcl to delete protocols_cifs_share_acl
-func DeleteProtocolsCIFSShareAcl(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmID string, shareName string, userOrGroup string, aclType string) error {
+// DeleteProtocolsCIFSShareACL to delete protocols_cifs_share_acl
+func DeleteProtocolsCIFSShareACL(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmID string, shareName string, userOrGroup string, aclType string) error {
 	api := fmt.Sprintf("/protocols/cifs/shares/%s/%s/acls/%s/%s", svmID, shareName, userOrGroup, aclType)
 	statusCode, _, err := r.CallDeleteMethod(api, nil, nil)
 	if err != nil {
