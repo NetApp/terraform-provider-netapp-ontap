@@ -127,7 +127,7 @@ func UpdateProtocolsCIFSShareAcl(errorHandler *utils.ErrorHandler, r restclient.
 	delete(bodyMap, "user_or_group") // user_or_group is not returned in the response
 	statusCode, _, err := r.CallUpdateMethod(api, nil, bodyMap)
 	if err != nil {
-		return errorHandler.MakeAndReportError("error creating protocols_cifs_share_acl", fmt.Sprintf("error on POST %s: %s, statusCode %d", api, err, statusCode))
+		return errorHandler.MakeAndReportError("error updating protocols_cifs_share_acl", fmt.Sprintf("error on PATCH %s: %s, statusCode %d", api, err, statusCode))
 	}
 	return nil
 }
