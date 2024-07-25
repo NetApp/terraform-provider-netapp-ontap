@@ -562,7 +562,7 @@ func (r *ProtocolsCIFSShareResource) Create(ctx context.Context, req resource.Cr
 				if err != nil {
 					return
 				}
-				err = interfaces.DeleteProtocolsCIFSShareAcl(errorHandler, *client, svm.UUID, data.Name.ValueString(), acls.UserOrGroup, acls.Type)
+				err = interfaces.DeleteProtocolsCIFSShareACL(errorHandler, *client, svm.UUID, data.Name.ValueString(), acls.UserOrGroup, acls.Type)
 				if err != nil {
 					// error reporting done inside DeleteProtocolsCIFSShareAcl
 					return
@@ -737,28 +737,28 @@ func (r *ProtocolsCIFSShareResource) Update(ctx context.Context, req resource.Up
 		}
 		// iterate over plan acls and compare with state acls. Make create or update or delete calls accordingly.
 		for _, element := range stateAcls {
-			var stateAclElement ProtocolsCIFSShareResourceAcls
-			diags := element.As(ctx, &stateAclElement, basetypes.ObjectAsOptions{})
+			var stateACLElement ProtocolsCIFSShareResourceAcls
+			diags := element.As(ctx, &stateACLElement, basetypes.ObjectAsOptions{})
 			if diags.HasError() {
 				resp.Diagnostics.Append(diags...)
 				return
 			}
-			for index, planAcl := range planeAcls {
+			for index, planACL := range planeAcls {
 				var planAclElement ProtocolsCIFSShareResourceAcls
-				diags := planAcl.As(ctx, &planAclElement, basetypes.ObjectAsOptions{})
+				diags := planACL.As(ctx, &planAclElement, basetypes.ObjectAsOptions{})
 				if diags.HasError() {
 					resp.Diagnostics.Append(diags...)
 					return
 				}
 				// if 'userOrGroup' and 'type' matches, then we know it's not a create action. If permission is same, then break the loop because nothing to update.
-				if stateAclElement.UserOrGroup == planAclElement.UserOrGroup && stateAclElement.Type == planAclElement.Type {
-					if stateAclElement.Permission == planAclElement.Permission {
+				if stateACLElement.UserOrGroup == planAclElement.UserOrGroup && stateACLElement.Type == planAclElement.Type {
+					if stateACLElement.Permission == planAclElement.Permission {
 						break
 					} else {
 						// update the acls since permission is different
-						interfacesAcls := interfaces.ProtocolsCIFSShareAclResourceBodyDataModelONTAP{}
+						interfacesAcls := interfaces.ProtocolsCIFSShareACLResourceBodyDataModelONTAP{}
 						interfacesAcls.Permission = planAclElement.Permission
-						err = interfaces.UpdateProtocolsCIFSShareAcl(errorHandler, *client, interfacesAcls, svm.UUID, plan.Name.ValueString(), planAclElement.UserOrGroup, planAclElement.Type)
+						err = interfaces.UpdateProtocolsCIFSShareACL(errorHandler, *client, interfacesAcls, svm.UUID, plan.Name.ValueString(), planAclElement.UserOrGroup, planAclElement.Type)
 						if err != nil {
 							return
 						}
@@ -767,7 +767,7 @@ func (r *ProtocolsCIFSShareResource) Update(ctx context.Context, req resource.Up
 				}
 				// if we reach the end of stateAcls, then we know it's a delete action because it was not found in plan acls.
 				if index == len(planeAcls)-1 {
-					err = interfaces.DeleteProtocolsCIFSShareAcl(errorHandler, *client, svm.UUID, plan.Name.ValueString(), stateAclElement.UserOrGroup, stateAclElement.Type)
+					err = interfaces.DeleteProtocolsCIFSShareACL(errorHandler, *client, svm.UUID, plan.Name.ValueString(), stateACLElement.UserOrGroup, stateACLElement.Type)
 					if err != nil {
 						return
 					}
@@ -777,23 +777,23 @@ func (r *ProtocolsCIFSShareResource) Update(ctx context.Context, req resource.Up
 
 		}
 		// now handle create action
-		for _, planAcl := range planeAcls {
-			var planAclElement ProtocolsCIFSShareResourceAcls
-			diags := planAcl.As(ctx, &planAclElement, basetypes.ObjectAsOptions{})
+		for _, planACL := range planeAcls {
+			var planACLElement ProtocolsCIFSShareResourceAcls
+			diags := planACL.As(ctx, &planACLElement, basetypes.ObjectAsOptions{})
 			if diags.HasError() {
 				resp.Diagnostics.Append(diags...)
 				return
 			}
 
 			for index, element := range stateAcls {
-				var stateAclElement ProtocolsCIFSShareResourceAcls
-				diags := element.As(ctx, &stateAclElement, basetypes.ObjectAsOptions{})
+				var stateACLElement ProtocolsCIFSShareResourceAcls
+				diags := element.As(ctx, &stateACLElement, basetypes.ObjectAsOptions{})
 				if diags.HasError() {
 					resp.Diagnostics.Append(diags...)
 					return
 				}
-				if stateAclElement.UserOrGroup == planAclElement.UserOrGroup && stateAclElement.Type == planAclElement.Type {
-					if stateAclElement.Permission == planAclElement.Permission {
+				if stateACLElement.UserOrGroup == planACLElement.UserOrGroup && stateACLElement.Type == planACLElement.Type {
+					if stateACLElement.Permission == planACLElement.Permission {
 						break
 					} else {
 						// update is already handled by above logic, so break
@@ -802,11 +802,11 @@ func (r *ProtocolsCIFSShareResource) Update(ctx context.Context, req resource.Up
 				}
 				// if we reach the end of planAcls, then we know it's a create action because it was not found in state acls.
 				if index == len(stateAcls)-1 {
-					interfacesAcls := interfaces.ProtocolsCIFSShareAclResourceBodyDataModelONTAP{}
-					interfacesAcls.Permission = planAclElement.Permission
-					interfacesAcls.Type = planAclElement.Type
-					interfacesAcls.UserOrGroup = planAclElement.UserOrGroup
-					_, err = interfaces.CreateProtocolsCIFSShareAcl(errorHandler, *client, interfacesAcls, svm.UUID, plan.Name.ValueString())
+					interfacesAcls := interfaces.ProtocolsCIFSShareACLResourceBodyDataModelONTAP{}
+					interfacesAcls.Permission = planACLElement.Permission
+					interfacesAcls.Type = planACLElement.Type
+					interfacesAcls.UserOrGroup = planACLElement.UserOrGroup
+					_, err = interfaces.CreateProtocolsCIFSShareACL(errorHandler, *client, interfacesAcls, svm.UUID, plan.Name.ValueString())
 					if err != nil {
 						return
 					}

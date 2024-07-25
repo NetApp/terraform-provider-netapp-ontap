@@ -37,13 +37,13 @@ func TestAccProtocolsCIFSShareResource(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccProtocolsCIFSShareResourceConfigUpdateAddAcl("tfsvm", "acc_test_cifs_share"),
+				Config: testAccProtocolsCIFSShareResourceConfigUpdateAddACL("tfsvm", "acc_test_cifs_share"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_share_resource.example", "name", "acc_test_cifs_share"),
 				),
 			},
 			{
-				Config: testAccProtocolsCIFSShareResourceConfigUpdateDeleteAcl("tfsvm", "acc_test_cifs_share"),
+				Config: testAccProtocolsCIFSShareResourceConfigUpdateDeleteACL("tfsvm", "acc_test_cifs_share"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_share_resource.example", "name", "acc_test_cifs_share"),
 				),
@@ -62,9 +62,12 @@ func TestAccProtocolsCIFSShareResource(t *testing.T) {
 }
 
 func testAccProtocolsCIFSShareResourceConfig(svm, shareName string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST_CIFS")
-	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	// host := os.Getenv("TF_ACC_NETAPP_HOST_CIFS")
+	// admin := os.Getenv("TF_ACC_NETAPP_USER")
+	// password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	host := "10.193.73.2"
+	admin := "admin"
+	password := "Netapp1!"
 
 	if host == "" || admin == "" || password == "" {
 		fmt.Println("TF_ACC_NETAPP_HOST_CIFS, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
@@ -100,9 +103,13 @@ resource "netapp-ontap_protocols_cifs_share_resource" "example" {
 }
 
 func testAccProtocolsCIFSShareResourceConfigUpdate(svm, volName string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST_CIFS")
-	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	// host := os.Getenv("TF_ACC_NETAPP_HOST_CIFS")
+	// admin := os.Getenv("TF_ACC_NETAPP_USER")
+	// password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	host := "10.193.73.2"
+	admin := "admin"
+	password := "Netapp1!"
+
 	if host == "" || admin == "" || password == "" {
 		fmt.Println("TF_ACC_NETAPP_HOST_CIFS, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
 		os.Exit(1)
@@ -137,10 +144,14 @@ resource "netapp-ontap_protocols_cifs_share_resource" "example" {
 }`, host, admin, password, volName, svm)
 }
 
-func testAccProtocolsCIFSShareResourceConfigUpdateAddAcl(svm, volName string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST_CIFS")
-	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+func testAccProtocolsCIFSShareResourceConfigUpdateAddACL(svm, volName string) string {
+	// host := os.Getenv("TF_ACC_NETAPP_HOST_CIFS")
+	// admin := os.Getenv("TF_ACC_NETAPP_USER")
+	// password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	host := "10.193.73.2"
+	admin := "admin"
+	password := "Netapp1!"
+
 	if host == "" || admin == "" || password == "" {
 		fmt.Println("TF_ACC_NETAPP_HOST_CIFS, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
 		os.Exit(1)
@@ -180,10 +191,13 @@ resource "netapp-ontap_protocols_cifs_share_resource" "example" {
 }`, host, admin, password, volName, svm)
 }
 
-func testAccProtocolsCIFSShareResourceConfigUpdateDeleteAcl(svm, volName string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST_CIFS")
-	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+func testAccProtocolsCIFSShareResourceConfigUpdateDeleteACL(svm, volName string) string {
+	// host := os.Getenv("TF_ACC_NETAPP_HOST_CIFS")
+	// admin := os.Getenv("TF_ACC_NETAPP_USER")
+	// password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	host := "10.193.73.2"
+	admin := "admin"
+	password := "Netapp1!"
 	if host == "" || admin == "" || password == "" {
 		fmt.Println("TF_ACC_NETAPP_HOST_CIFS, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
 		os.Exit(1)
