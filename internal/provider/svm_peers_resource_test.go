@@ -39,7 +39,7 @@ func TestAccSvmPeersResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_svm_peers_resource.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "snapmirror_dest_dp", "snapmirror_dest_svm", "swenjuncluster-1", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "terraform", "tf_peer", "swenjuncluster-1", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_svm_peers_resource.example", "svm.name", "snapmirror_dest_dp"),
 				),
@@ -48,13 +48,13 @@ func TestAccSvmPeersResource(t *testing.T) {
 	})
 }
 func testAccSvmPeersResourceConfig(svm, peerSvm, peerCluster, applications string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST4")
+	host := os.Getenv("TF_ACC_NETAPP_HOST5")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	password2 := os.Getenv("TF_ACC_NETAPP_PASS2")
 	host2 := os.Getenv("TF_ACC_NETAPP_HOST2")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST2, TF_ACC_NETAPP_HOST4, TF_ACC_NETAPP_USER, TF_ACC_NETAPP_PASS2 and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST2, TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, TF_ACC_NETAPP_PASS2 and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -92,5 +92,5 @@ resource "netapp-ontap_svm_peers_resource" "example" {
     peer_cx_profile_name = "cluster3"
   }
   applications = ["%s"]
-}`, host, admin, password, host2, admin, password2, svm, peerSvm, peerCluster, applications)
+}`, host, admin, password2, host2, admin, password2, svm, peerSvm, peerCluster, applications)
 }
