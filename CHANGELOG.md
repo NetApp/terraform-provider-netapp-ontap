@@ -1,3 +1,9 @@
+## 1.1.3
+
+BUG FIXES:
+* **netapp-ontap_protocols_san_igroups_resource**: fixed bug nil pointer dereference ([#247](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/247))
+
+
 ## 1.1.2 (2024-06-03)
 
 ENHANCEMENTS:
