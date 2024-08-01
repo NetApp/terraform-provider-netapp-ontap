@@ -316,17 +316,6 @@ func (r *StorageVolumeEfficiencyPoliciesResource) Create(ctx context.Context, re
 
 	data.ID = types.StringValue(resource.UUID)
 	data.Comment = types.StringValue(resource.Comment)
-	// elementTypes := map[string]attr.Type{
-	// 	"name": types.StringType,
-	// }
-	// elements := map[string]attr.Value{
-	// 	"name": types.StringValue(resource.Schedule.Name),
-	// }
-	// objectValue, diags := types.ObjectValue(elementTypes, elements)
-	// if diags.HasError() {
-	// 	resp.Diagnostics.Append(diags...)
-	// }
-	// data.Schedule = objectValue
 
 	tflog.Trace(ctx, "created a resource")
 
