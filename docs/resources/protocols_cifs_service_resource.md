@@ -119,10 +119,10 @@ Optional:
 
 Optional:
 
-- `advertised_kdc_encryptions` (Set of String) List of advertised KDC encryptions
+- `advertised_kdc_encryptions` (Set of String) List of advertised KDC encryptions (9.12)
 - `aes_netlogon_enabled` (Boolean) An AES session key is enabled for the Netlogon channel (9.10)
 - `encrypt_dc_connection` (Boolean) Encryption is required for domain controller connections (9.8)
-- `kdc_encryption` (Boolean) Specifies whether AES-128 and AES-256 encryption is enabled for all Kerberos-based communication with the Active Directory KDC
+- `kdc_encryption` (Boolean) Specifies whether AES-128 and AES-256 encryption is enabled for all Kerberos-based communication with the Active Directory KDC. Deprecated in 9.12. Use 'advertised_kdc_encryptions' instead.
 - `ldap_referral_enabled` (Boolean) Specifies if LDAP referral chasing is enabled for AD LDAP connections (9.10)
 - `lm_compatibility_level` (String) CIFS server minimum security level
 - `restrict_anonymous` (String) Specifies what level of access an anonymous user is granted
