@@ -56,14 +56,14 @@ type Portset struct {
 
 // ProtocolsSanIgroupResourceBodyDataModelONTAP describes the body data model using go types for mapping.
 type ProtocolsSanIgroupResourceBodyDataModelONTAP struct {
-	Name       string            `mapstructure:"name"`
-	SVM        SvmDataModelONTAP `mapstructure:"svm"`
-	OsType     string            `mapstructure:"os_type"`
-	Protocol   string            `mapstructure:"protocol"`
-	Comment    string            `mapstructure:"comment,omitempty"`
-	Igroups    []IgroupLun       `mapstructure:"igroups,omitempty"`
-	Initiators []IgroupInitiator `mapstructure:"initiators,omitempty"`
-	Portset    Portset           `mapstructure:"portset,omitempty"`
+	Name       string                   `mapstructure:"name"`
+	SVM        SvmDataModelONTAP        `mapstructure:"svm"`
+	OsType     string                   `mapstructure:"os_type"`
+	Protocol   string                   `mapstructure:"protocol"`
+	Comment    string                   `mapstructure:"comment,omitempty"`
+	Igroups    []map[string]interface{} `mapstructure:"igroups,omitempty"`
+	Initiators []map[string]interface{} `mapstructure:"initiators,omitempty"`
+	Portset    Portset                  `mapstructure:"portset,omitempty"`
 }
 
 // UpdateProtocolsSanIgroupResourceBodyDataModelONTAP describes the body data model using go types for mapping.
