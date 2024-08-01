@@ -25,7 +25,7 @@ func TestAccSnapmirrorResource(t *testing.T) {
 			{
 				Config: testAccSnapmirrorResourceBasicConfig("tf_peer:snap_source2", "terraform:snap_dest2"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_resource.example", "destination_endpoint.path", "terraform:snap_dest2"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror.example", "destination_endpoint.path", "terraform:snap_dest2"),
 				),
 			},
 			// Update a policy
@@ -33,7 +33,7 @@ func TestAccSnapmirrorResource(t *testing.T) {
 				Config: testAccSnapmirrorResourceUpdateConfig("tf_peer:snap_source", "terraform:snap_dest", "MirrorAndVault"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror.example", "policy.name", "MirrorAndVault"),
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_resource.example", "destination_endpoint.path", "terraform:snap_dest"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror.example", "destination_endpoint.path", "terraform:snap_dest"),
 				),
 			},
 			// Import and read
@@ -42,7 +42,7 @@ func TestAccSnapmirrorResource(t *testing.T) {
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s", "terraform:snap_dest", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_resource.example", "destination_endpoint.path", "terraform:snap_dest"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror.example", "destination_endpoint.path", "terraform:snap_dest"),
 				),
 			},
 			// Delete testing automatically occurs in TestCase
