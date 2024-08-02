@@ -432,7 +432,7 @@ func (r *ProtocolsCIFSShareResource) Create(ctx context.Context, req resource.Cr
 	body.SVM.Name = data.SVMName.ValueString()
 	body.Path = data.Path.ValueString()
 
-	configHasDefaultAcl := false
+	configHasDefaultACL := false
 	if !data.Acls.IsUnknown() {
 		aclsList := []interfaces.Acls{}
 		elements := make([]types.Object, 0, len(data.Acls.Elements()))
@@ -453,7 +453,7 @@ func (r *ProtocolsCIFSShareResource) Create(ctx context.Context, req resource.Cr
 			interfacesAcls.Type = acls.Type
 			interfacesAcls.UserOrGroup = acls.UserOrGroup
 			if acls.UserOrGroup == "Everyone" && acls.Permission == "full_control" {
-				configHasDefaultAcl = true
+				configHasDefaultACL = true
 			}
 			aclsList = append(aclsList, interfacesAcls)
 		}
@@ -557,7 +557,7 @@ func (r *ProtocolsCIFSShareResource) Create(ctx context.Context, req resource.Cr
 	} else {
 		for _, acls := range restInfo.Acls {
 			//If the config file does not have acl set user_or_group as "Everyone / Full Control", the API will create one by default. Need to delete it if user does not want one.
-			if acls.UserOrGroup == "Everyone" && acls.Permission == "full_control" && !configHasDefaultAcl {
+			if acls.UserOrGroup == "Everyone" && acls.Permission == "full_control" && !configHasDefaultACL {
 				svm, err := interfaces.GetSvmByName(errorHandler, *client, data.SVMName.ValueString())
 				if err != nil {
 					return
@@ -744,21 +744,21 @@ func (r *ProtocolsCIFSShareResource) Update(ctx context.Context, req resource.Up
 				return
 			}
 			for index, planACL := range planeAcls {
-				var planAclElement ProtocolsCIFSShareResourceAcls
-				diags := planACL.As(ctx, &planAclElement, basetypes.ObjectAsOptions{})
+				var planACLElement ProtocolsCIFSShareResourceAcls
+				diags := planACL.As(ctx, &planACLElement, basetypes.ObjectAsOptions{})
 				if diags.HasError() {
 					resp.Diagnostics.Append(diags...)
 					return
 				}
 				// if 'userOrGroup' and 'type' matches, then we know it's not a create action. If permission is same, then break the loop because nothing to update.
-				if stateACLElement.UserOrGroup == planAclElement.UserOrGroup && stateACLElement.Type == planAclElement.Type {
-					if stateACLElement.Permission == planAclElement.Permission {
+				if stateACLElement.UserOrGroup == planACLElement.UserOrGroup && stateACLElement.Type == planACLElement.Type {
+					if stateACLElement.Permission == planACLElement.Permission {
 						break
 					} else {
 						// update the acls since permission is different
 						interfacesAcls := interfaces.ProtocolsCIFSShareACLResourceBodyDataModelONTAP{}
-						interfacesAcls.Permission = planAclElement.Permission
-						err = interfaces.UpdateProtocolsCIFSShareACL(errorHandler, *client, interfacesAcls, svm.UUID, plan.Name.ValueString(), planAclElement.UserOrGroup, planAclElement.Type)
+						interfacesAcls.Permission = planACLElement.Permission
+						err = interfaces.UpdateProtocolsCIFSShareACL(errorHandler, *client, interfacesAcls, svm.UUID, plan.Name.ValueString(), planACLElement.UserOrGroup, planACLElement.Type)
 						if err != nil {
 							return
 						}
