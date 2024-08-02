@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
@@ -40,16 +41,16 @@ type ProtocolsSanIgroupResource struct {
 
 // ProtocolsSanIgroupResourceModel describes the resource data model.
 type ProtocolsSanIgroupResourceModel struct {
-	CxProfileName types.String                                `tfsdk:"cx_profile_name"`
-	Name          types.String                                `tfsdk:"name"`
-	SVM           SVM                                         `tfsdk:"svm"`
-	Comment       types.String                                `tfsdk:"comment"`
-	Igroups       *[]ProtocolsSanIgroupResourceIgroupModel    `tfsdk:"igroups"`
-	Initiators    *[]ProtocolsSanIgroupResourceInitiatorModel `tfsdk:"initiators"`
-	OsType        types.String                                `tfsdk:"os_type"`
-	Portset       types.Object                                `tfsdk:"portset"`
-	Protocol      types.String                                `tfsdk:"protocol"`
-	ID            types.String                                `tfsdk:"id"`
+	CxProfileName types.String                               `tfsdk:"cx_profile_name"`
+	Name          types.String                               `tfsdk:"name"`
+	SVM           SVM                                        `tfsdk:"svm"`
+	Comment       types.String                               `tfsdk:"comment"`
+	Igroups       []ProtocolsSanIgroupResourceIgroupModel    `tfsdk:"igroups"`
+	Initiators    []ProtocolsSanIgroupResourceInitiatorModel `tfsdk:"initiators"`
+	OsType        types.String                               `tfsdk:"os_type"`
+	Portset       types.Object                               `tfsdk:"portset"`
+	Protocol      types.String                               `tfsdk:"protocol"`
+	ID            types.String                               `tfsdk:"id"`
 }
 
 // ProtocolsSanIgroupResourceIgroupModel describes the data source data model.
@@ -254,23 +255,35 @@ func (r *ProtocolsSanIgroupResource) Create(ctx context.Context, req resource.Cr
 	if !data.Comment.IsUnknown() {
 		body.Comment = data.Comment.ValueString()
 	}
-	if data.Initiators != nil {
-		body.Igroups = make([]interfaces.IgroupLun, len(*data.Igroups))
-		for index, record := range *data.Igroups {
-			body.Igroups[index] = interfaces.IgroupLun{
-				Name: record.Name.ValueString(),
-			}
+
+	if data.Igroups != nil {
+		igroups := []interfaces.IgroupLun{}
+		for _, igroup := range data.Igroups {
+			var ig interfaces.IgroupLun
+			ig.Name = igroup.Name.ValueString()
+			igroups = append(igroups, ig)
+		}
+		err := mapstructure.Decode(igroups, &body.Igroups)
+		if err != nil {
+			errorHandler.MakeAndReportError("error creating igroups", fmt.Sprintf("error on encoding copies info: %s, copies %#v", err, igroups))
+			return
 		}
 	}
 
 	if data.Initiators != nil {
-		body.Initiators = make([]interfaces.IgroupInitiator, len(*data.Initiators))
-		for index, record := range *data.Initiators {
-			body.Initiators[index] = interfaces.IgroupInitiator{
-				Name: record.Name.ValueString(),
-			}
+		initiators := []interfaces.IgroupInitiator{}
+		for _, v := range data.Igroups {
+			var initiator interfaces.IgroupInitiator
+			initiator.Name = v.Name.ValueString()
+			initiators = append(initiators, initiator)
+		}
+		err := mapstructure.Decode(initiators, &body.Initiators)
+		if err != nil {
+			errorHandler.MakeAndReportError("error creating igroups", fmt.Sprintf("error on encoding copies info: %s, copies %#v", err, initiators))
+			return
 		}
 	}
+
 	body.OsType = data.OsType.ValueString()
 	if !data.Portset.IsUnknown() {
 		var portset ProtocolsSanIgroupResourcePortsetModel
@@ -343,7 +356,7 @@ func (r *ProtocolsSanIgroupResource) Update(ctx context.Context, req resource.Up
 		request.OsType = data.OsType.ValueString()
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("update a svm resource: %#v", data))
+	tflog.Debug(ctx, fmt.Sprintf("update an igroup resource: %#v", data))
 	err = interfaces.UpdateProtocolsSanIgroup(errorHandler, *client, request, state.ID.ValueString())
 	if err != nil {
 		return
