@@ -3,12 +3,12 @@
 page_title: "netapp-ontap_volume_efficiency_policies Resource - terraform-provider-netapp-ontap"
 subcategory: "Storage"
 description: |-
-  StorageVolumeEfficiencyPolicies resource
+  VolumeEfficiencyPolicies resource
 ---
 
 # netapp-ontap_volume_efficiency_policies (Resource)
 
-Create/Modify/Delete a StorageVolumeEfficiencyPolicies resource
+Create/Modify/Delete a VolumeEfficiencyPolicies resource
 
 ### Related ONTAP commands
 ```commandline
