@@ -3,12 +3,12 @@
 page_title: "netapp-ontap_quota_rule Data Source - terraform-provider-netapp-ontap"
 subcategory: "Storage"
 description: |-
-  StorageQuotaRule data source
+  QuotaRule data source
 ---
 
 # netapp-ontap_quota_rule (Data Source)
 
-StorageQuotaRule data source
+QuotaRule data source
 
 ## Example Usage
 ```terraform
