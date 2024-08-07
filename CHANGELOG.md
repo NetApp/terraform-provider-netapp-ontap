@@ -1,8 +1,8 @@
 ## 1.1.3
 
 BUG FIXES:
-
 * **netapp-ontap_protocols_cifs_service_resource**: fixed on attribute checking ([#250](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/250))
+* **netapp-ontap_protocols_cifs_share_resource** :`acls` unable to update acls ([#236](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/236))
 * **netapp-ontap_protocols_san_igroups_resource**: fixed bug nil pointer dereference ([#247](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/247))
 
 
