@@ -1,9 +1,5 @@
 package provider
 
-import (
-	"fmt"
-)
-
 //func TestAccExampleResource(t *testing.T) {
 //	resource.Test(t, resource.TestCase{
 //		PreCheck:                 func() { testAccPreCheck(t) },
@@ -40,10 +36,10 @@ import (
 //	})
 //}
 
-func testAccExampleResourceConfig(configurableAttribute string) string {
-	return fmt.Sprintf(`
-resource "netapp-ontap_example" "test" {
-  configurable_attribute = %[1]q
-}
-`, configurableAttribute)
-}
+//func testAccExampleResourceConfig(configurableAttribute string) string {
+//	return fmt.Sprintf(`
+//resource "netapp-ontap_example" "test" {
+//  configurable_attribute = %[1]q
+//}
+//`, configurableAttribute)
+//}
