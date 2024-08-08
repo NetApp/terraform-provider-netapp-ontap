@@ -2,8 +2,9 @@ package connection
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"strings"
+
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient"
@@ -20,6 +21,14 @@ type Profile struct {
 	Password              string
 	ValidateCerts         bool
 	MaxConcurrentRequests int
+	UseAWSLambdaLink      bool
+	AWSConfig             AWSConfig
+}
+
+type AWSConfig struct {
+	Region              string
+	SharedConfigProfile string
+	FunctionName        string
 }
 
 // Config is created by the provide configure method
@@ -63,7 +72,6 @@ func (c *Config) NewClient(errorHandler *utils.ErrorHandler, cxProfileName strin
 			fmt.Sprintf("decode error on ConnectionProfile %#v to restclient.ConnectionProfile", connectionProfile))
 	}
 	// the tag resource_name/version will be used for telemetry
-
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Version string is: %#v", strings.Join([]string{"TerrafromONTAP", resName, c.Version}, "/")))
 	client, err := restclient.NewClient(errorHandler.Ctx, profile, strings.Join([]string{"TerraformONTAP", resName, c.Version}, "/"), c.JobCompletionTimeOut)
 	if err != nil {
