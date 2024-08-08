@@ -26,7 +26,7 @@ Create/Modify/Delete a job schedule in a cluster.
 
 ```terraform
 # Create a job schedule using cron type
-resource "netapp-ontap_cluster_schedule_resource" "cs_example1" {
+resource "netapp-ontap_cluster_schedule" "cs_example1" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name = "cs_test_cron"
@@ -40,7 +40,7 @@ resource "netapp-ontap_cluster_schedule_resource" "cs_example1" {
 }
 
 # Create a job schedule using interval type
-resource "netapp-ontap_cluster_schedule_resource" "cs_example2" {
+resource "netapp-ontap_cluster_schedule" "cs_example2" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name = "cs_test_interval"
@@ -85,7 +85,7 @@ Import require a unique ID composed of the schedule job name and cx_profile_name
 
  For example
  ```shell
-  terraform import netapp-ontap_cluster_schedule_resource.example job1,cluster4
+  terraform import netapp-ontap_cluster_schedule.example job1,cluster4
  ```
 
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
@@ -96,7 +96,7 @@ This requires Terraform 1.5 or higher, and will auto create the configuration fo
 First create the block
 ```terraform
 import {
-  to = netapp-ontap_cluster_schedule_resource.example.schedulejob_import
+  to = netapp-ontap_cluster_schedule.example.schedulejob_import
   id = "job1,cluster4"
 }
 ```
@@ -109,7 +109,7 @@ This will generate a file called generated.tf, which will contain the configurat
 # __generated__ by Terraform
 # Please review these resources and move them into your main configuration files.
 # __generated__ by Terraform from "job1,cluster4"
-resource "netapp-ontap_cluster_schedule_resource.example" "schedulejob_import" {
+resource "netapp-ontap_cluster_schedule.example" "schedulejob_import" {
   cx_profile_name = "cluster4"
   name       = "job1"
 }

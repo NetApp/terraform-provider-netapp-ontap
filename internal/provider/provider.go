@@ -4,6 +4,16 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/cluster"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/name_services"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/networking"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/protocols"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/security"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/snapmirror"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/storage"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/svm"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -109,7 +119,7 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 		resp.Diagnostics.AddError("no connection profile", "At least one connection profile must be defined.")
 		return
 	}
-	connectionProfiles := make(map[string]ConnectionProfile, len(data.ConnectionProfiles))
+	connectionProfiles := make(map[string]connection.Profile, len(data.ConnectionProfiles))
 	for _, profile := range data.ConnectionProfiles {
 		var validateCerts bool
 		if profile.ValidateCerts.IsNull() {
@@ -117,7 +127,7 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 		} else {
 			validateCerts = profile.ValidateCerts.ValueBool()
 		}
-		connectionProfiles[profile.Name.ValueString()] = ConnectionProfile{
+		connectionProfiles[profile.Name.ValueString()] = connection.Profile{
 			Hostname:              profile.Hostname.ValueString(),
 			Username:              profile.Username.ValueString(),
 			Password:              profile.Password.ValueString(),
@@ -129,7 +139,7 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 	if data.JobCompletionTimeOut.IsNull() {
 		jobCompletionTimeOut = 600
 	}
-	config := Config{
+	config := connection.Config{
 		ConnectionProfiles:   connectionProfiles,
 		JobCompletionTimeOut: int(jobCompletionTimeOut),
 		Version:              p.version,
@@ -142,103 +152,105 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 // Resources defines the provider's resources.
 func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		NewAggregateResource,
-		NewCifsLocalGroupResource,
-		NewCifsLocalGroupMemberResource,
-		NewCifsLocalUserResource,
-		NewCifsServiceResource,
-		NewCifsUserGroupPrivilegeResource,
-		NewClusterResource,
-		NewClusterLicensingLicenseResource,
-		NewClusterPeersResource,
-		NewClusterScheduleResource,
+		storage.NewAggregateResource,
+		protocols.NewCifsLocalGroupResource,
+		protocols.NewCifsLocalGroupMemberResource,
+		protocols.NewCifsLocalUserResource,
+		protocols.NewCifsServiceResource,
+		protocols.NewCifsUserGroupPrivilegeResource,
+		cluster.NewClusterResource,
+		cluster.NewClusterLicensingLicenseResource,
+		cluster.NewClusterPeersResource,
+		cluster.NewClusterScheduleResource,
 		NewExampleResource,
-		NewExportPolicyResource,
-		NewExportPolicyRuleResource,
-		NewIPInterfaceResource,
-		NewIPRouteResource,
-		NewNameServicesDNSResource,
-		NewNameServicesLDAPResource,
-		NewProtocolsCIFSShareResource,
-		NewProtocolsNfsServiceResource,
-		NewProtocolsSanIgroupResource,
-		NewProtocolsSanLunMapsResource,
-		NewSecurityAccountResource,
-		NewSnapmirrorResource,
-		NewSnapmirrorPolicyResource,
-		NewStorageLunResource,
-		NewSnapshotPolicyResource,
-		NewStorageFlexcacheRsource,
-		NewStorageVolumeResource,
-		NewStorageVolumeSnapshotResource,
-		NewSVMPeersResource,
-		NewSvmResource,
+		protocols.NewExportPolicyResource,
+		protocols.NewExportPolicyRuleResource,
+		networking.NewIPInterfaceResource,
+		networking.NewIPRouteResource,
+		name_services.NewNameServicesDNSResource,
+		name_services.NewNameServicesLDAPResource,
+		protocols.NewProtocolsCIFSShareResource,
+		protocols.NewProtocolsNfsServiceResource,
+		protocols.NewProtocolsSanIgroupResource,
+		protocols.NewProtocolsSanLunMapsResource,
+		security.NewSecurityAccountResource,
+		snapmirror.NewSnapmirrorResource,
+		snapmirror.NewSnapmirrorPolicyResource,
+		storage.NewStorageLunResource,
+		storage.NewSnapshotPolicyResource,
+		storage.NewStorageQuotaRulesResource,
+		storage.NewStorageFlexcacheRsource,
+		storage.NewStorageVolumeResource,
+		storage.NewStorageVolumeSnapshotResource,
+		svm.NewSVMPeersResource,
+		svm.NewSvmResource,
 	}
 }
 
 // DataSources defines the provider's data sources.
 func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		NewCifsLocalGroupDataSource,
-		NewCifsLocalGroupsDataSource,
-		NewCifsLocalGroupMemberDataSource,
-		NewCifsLocalGroupMembersDataSource,
-		NewCifsLocalUserDataSource,
-		NewCifsLocalUsersDataSource,
-		NewCifsServiceDataSource,
-		NewCifsServicesDataSource,
-		NewCifsUserGroupPrivilegeDataSource,
-		NewCifsUserGroupPrivilegesDataSource,
-		NewClusterDataSource,
-		NewClusterLicensingLicenseDataSource,
-		NewClusterLicensingLicensesDataSource,
-		NewClusterPeerDataSource,
-		NewClusterPeersDataSource,
-		NewClusterScheduleDataSource,
-		NewClusterSchedulesDataSource,
+		protocols.NewCifsLocalGroupDataSource,
+		protocols.NewCifsLocalGroupsDataSource,
+		protocols.NewCifsLocalGroupMemberDataSource,
+		protocols.NewCifsLocalGroupMembersDataSource,
+		protocols.NewCifsLocalUserDataSource,
+		protocols.NewCifsLocalUsersDataSource,
+		protocols.NewCifsServiceDataSource,
+		protocols.NewCifsServicesDataSource,
+		protocols.NewCifsUserGroupPrivilegeDataSource,
+		protocols.NewCifsUserGroupPrivilegesDataSource,
+		cluster.NewClusterDataSource,
+		cluster.NewClusterLicensingLicenseDataSource,
+		cluster.NewClusterLicensingLicensesDataSource,
+		cluster.NewClusterPeerDataSource,
+		cluster.NewClusterPeersDataSource,
+		cluster.NewClusterScheduleDataSource,
+		cluster.NewClusterSchedulesDataSource,
 		NewExampleDataSource,
-		NewExportPolicyDataSource,
-		NewExportPoliciesDataSource,
-		NewExportPolicyRuleDataSource,
-		NewExportPolicyRulesDataSource,
-		NewIPInterfaceDataSource,
-		NewIPInterfacesDataSource,
-		NewIPRouteDataSource,
-		NewIPRoutesDataSource,
-		NewNameServicesDNSDataSource,
-		NewNameServicesDNSsDataSource,
-		NewNameServicesLDAPDataSource,
-		NewNameServicesLDAPsDataSource,
-		NewProtocolsCIFSShareDataSource,
-		NewProtocolsCIFSSharesDataSource,
-		NewProtocolsNfsServiceDataSource,
-		NewProtocolsNfsServicesDataSource,
-		NewProtocolsSanIgroupDataSource,
-		NewProtocolsSanIgroupsDataSource,
-		NewProtocolsSanLunMapDataSource,
-		NewProtocolsSanLunMapsDataSource,
-		NewSecurityAccountDataSource,
-		NewSecurityAccountsDataSource,
-		NewSnapmirrorDataSource,
-		NewSnapmirrorsDataSource,
-		NewSnapshotPoliciesDataSource,
-		NewSnapshotPolicyDataSource,
-		NewSnapmirrorPolicyDataSource,
-		NewSnapmirrorPoliciesDataSource,
-		NewStorageAggregateDataSource,
-		NewStorageAggregatesDataSource,
-		NewStorageFlexcacheDataSource,
-		NewStorageFlexcachesDataSource,
-		NewStorageLunDataSource,
-		NewStorageLunsDataSource,
-		NewStorageVolumeSnapshotDataSource,
-		NewStorageVolumeSnapshotsDataSource,
-		NewStorageVolumeDataSource,
-		NewStorageVolumesDataSource,
-		NewSvmDataSource,
-		NewSvmsDataSource,
-		NewSVMPeerDataSource,
-		NewSVMPeersDataSource,
+		protocols.NewExportPolicyDataSource,
+		protocols.NewExportPoliciesDataSource,
+		protocols.NewExportPolicyRuleDataSource,
+		protocols.NewExportPolicyRulesDataSource,
+		networking.NewIPInterfaceDataSource,
+		networking.NewIPInterfacesDataSource,
+		networking.NewIPRouteDataSource,
+		networking.NewIPRoutesDataSource,
+		name_services.NewNameServicesDNSDataSource,
+		name_services.NewNameServicesDNSsDataSource,
+		name_services.NewNameServicesLDAPDataSource,
+		name_services.NewNameServicesLDAPsDataSource,
+		protocols.NewProtocolsCIFSShareDataSource,
+		protocols.NewProtocolsCIFSSharesDataSource,
+		protocols.NewProtocolsNfsServiceDataSource,
+		protocols.NewProtocolsNfsServicesDataSource,
+		protocols.NewProtocolsSanIgroupDataSource,
+		protocols.NewProtocolsSanIgroupsDataSource,
+		protocols.NewProtocolsSanLunMapDataSource,
+		protocols.NewProtocolsSanLunMapsDataSource,
+		security.NewSecurityAccountDataSource,
+		security.NewSecurityAccountsDataSource,
+		snapmirror.NewSnapmirrorDataSource,
+		snapmirror.NewSnapmirrorsDataSource,
+		storage.NewSnapshotPoliciesDataSource,
+		storage.NewSnapshotPolicyDataSource,
+		snapmirror.NewSnapmirrorPolicyDataSource,
+		snapmirror.NewSnapmirrorPoliciesDataSource,
+		storage.NewStorageAggregateDataSource,
+		storage.NewStorageAggregatesDataSource,
+		storage.NewStorageFlexcacheDataSource,
+		storage.NewStorageFlexcachesDataSource,
+		storage.NewStorageLunDataSource,
+		storage.NewStorageLunsDataSource,
+		storage.NewStorageVolumeSnapshotDataSource,
+		storage.NewStorageVolumeSnapshotsDataSource,
+		storage.NewStorageVolumeDataSource,
+		storage.NewStorageVolumesDataSource,
+		storage.NewStorageVolumesFilesDataSource,
+		svm.NewSvmDataSource,
+		svm.NewSvmsDataSource,
+		svm.NewSVMPeerDataSource,
+		svm.NewSVMPeersDataSource,
 	}
 }
 

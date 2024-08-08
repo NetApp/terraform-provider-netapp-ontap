@@ -1,5 +1,5 @@
 ---
-page_title: "netapp-ontap_snapmirrors_data_source Data Source - terraform-provider-netapp-ontap"
+page_title: "netapp-ontap_snapmirrors Data Source - terraform-provider-netapp-ontap"
 subcategory: "SnapMirror"
 description: |-
   Retrieves list of the snapmirrors
@@ -11,7 +11,7 @@ Retrieves list of the snapmirrors
 
 ## Example Usage
 ```terraform
-data "netapp-ontap_snapmirrors_data_source" "snapmirrors" {
+data "netapp-ontap_snapmirrors" "snapmirrors" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   filter = {
