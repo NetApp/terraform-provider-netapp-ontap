@@ -4,6 +4,8 @@ FEATURES:
 * **New Data Source:** `netapp-ontap_volumes_files` ([#8](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/8))
 * **New Data Source:** `netapp-ontap_quota_rules` ([#135](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/135))
 * **New Data Source:** `netapp-ontap_quota_rule` ([#135](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/135))
+* **New Data Source:** `netapp-ontap_security_login_message` ([#17](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/17))
+* **New Data Source:** `netapp-ontap_security_login_messages` ([#17](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/17))
 * **New Resource:** `netapp-ontap_volume_efficiency_policies` ([#80](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/80))
 * **New Resource:** `netapp-ontap_quota_rules` ([#136](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/136))
 * **New Resource:** `netapp-ontap_volumes_files` ([#5](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/5))
@@ -31,6 +33,7 @@ BUG FIXES:
 
 BUG FIXES:
 * netapp-ontap_storage_flexcache_resource: Fixed junction_path bug ([#223](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/223))
+
 
 ## 1.1.1 (2024-05-15)
 
