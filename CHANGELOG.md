@@ -34,7 +34,6 @@ BUG FIXES:
 BUG FIXES:
 * netapp-ontap_storage_flexcache_resource: Fixed junction_path bug ([#223](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/223))
 
-
 ## 1.1.1 (2024-05-15)
 
 * added missing resources in changelog.
