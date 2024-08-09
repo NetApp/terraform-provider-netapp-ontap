@@ -2,10 +2,11 @@ package protocols_test
 
 import (
 	"fmt"
-	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
 	"os"
 	"regexp"
 	"testing"
+
+	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -40,13 +41,13 @@ func TestAccProtocolsCIFSShareResource(t *testing.T) {
 			{
 				Config: testAccProtocolsCIFSShareResourceConfigUpdateAddACL("tfsvm", "acc_test_cifs_share"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_share_resource.example", "name", "acc_test_cifs_share"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_share.example", "name", "acc_test_cifs_share"),
 				),
 			},
 			{
 				Config: testAccProtocolsCIFSShareResourceConfigUpdateDeleteACL("tfsvm", "acc_test_cifs_share"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_cifs_share_resource.example", "name", "acc_test_cifs_share"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_share.example", "name", "acc_test_cifs_share"),
 				),
 			},
 			// Test importing a resource
@@ -122,7 +123,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_protocols_cifs_share_resource" "example" {
+resource "netapp-ontap_cifs_share" "example" {
   cx_profile_name = "clustercifs"
   name = "%s"
   svm_name = "%s"
@@ -161,7 +162,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_protocols_cifs_share_resource" "example" {
+resource "netapp-ontap_cifs_share" "example" {
   cx_profile_name = "clustercifs"
   name = "%s"
   svm_name = "%s"
