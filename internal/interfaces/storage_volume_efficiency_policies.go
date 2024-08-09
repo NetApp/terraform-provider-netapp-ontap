@@ -75,7 +75,7 @@ func GetStorageVolumeEfficiencyPoliciesByUUID(errorHandler *utils.ErrorHandler, 
 		return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
 			fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
-	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read storage_lun data source: %#v", dataONTAP))
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read storage_volume_efficiency_policies: %#v", dataONTAP))
 	return &dataONTAP, nil
 }
 
@@ -103,15 +103,15 @@ func GetStorageVolumeEfficiencyPoliciesByName(errorHandler *utils.ErrorHandler, 
 	return &dataONTAP, nil
 }
 
-// GetStorageVolumeEfficiencyPoliciess to get storage_volume_efficiency_policies info for all resources matching a filter
-func GetStorageVolumeEfficiencyPoliciess(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *StorageVolumeEfficiencyPoliciesDataSourceFilterModel) ([]StorageVolumeEfficiencyPoliciesGetDataModelONTAP, error) {
+// GetStorageVolumeEfficiencyPolicies to get storage_volume_efficiency_policies info for all resources matching a filter
+func GetStorageVolumeEfficiencyPolicies(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *StorageVolumeEfficiencyPoliciesDataSourceFilterModel) ([]StorageVolumeEfficiencyPoliciesGetDataModelONTAP, error) {
 	api := "api_url"
 	query := r.NewQuery()
 	query.Fields([]string{"name", "svm.name", "scope"})
 	if filter != nil {
 		var filterMap map[string]interface{}
 		if err := mapstructure.Decode(filter, &filterMap); err != nil {
-			return nil, errorHandler.MakeAndReportError("error encoding tag_all_prefix filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
+			return nil, errorHandler.MakeAndReportError("error encoding storage_volume_efficiency_policies filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
 		}
 		query.SetValues(filterMap)
 	}
@@ -120,7 +120,7 @@ func GetStorageVolumeEfficiencyPoliciess(errorHandler *utils.ErrorHandler, r res
 		err = fmt.Errorf("no response for GET %s", api)
 	}
 	if err != nil {
-		return nil, errorHandler.MakeAndReportError("error reading tag_all_prefix info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
+		return nil, errorHandler.MakeAndReportError("error reading storage_volume_efficiency_policies info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
 	}
 
 	var dataONTAP []StorageVolumeEfficiencyPoliciesGetDataModelONTAP
@@ -132,7 +132,7 @@ func GetStorageVolumeEfficiencyPoliciess(errorHandler *utils.ErrorHandler, r res
 		}
 		dataONTAP = append(dataONTAP, record)
 	}
-	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read tag_all_prefix data source: %#v", dataONTAP))
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read storage_volume_efficiency_policies data source: %#v", dataONTAP))
 	return dataONTAP, nil
 }
 
@@ -176,7 +176,6 @@ func UpdateStorageVolumeEfficiencyPolicies(errorHandler *utils.ErrorHandler, r r
 		return errorHandler.MakeAndReportError("error encoding storage_volume_efficiency_policies body", fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body))
 	}
 	query := r.NewQuery()
-	query.Add("return_records", "true")
 	statusCode, _, err := r.CallUpdateMethod(api+"/"+uuid, query, bodyMap)
 	if err != nil {
 		return errorHandler.MakeAndReportError("error updating storage_volume_efficiency_policies", fmt.Sprintf("error on Update %s: %s, statusCode %d", api, err, statusCode))
