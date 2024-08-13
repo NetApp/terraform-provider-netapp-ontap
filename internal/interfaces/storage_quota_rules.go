@@ -11,14 +11,15 @@ import (
 
 // StorageQuotaRulesGetDataModelONTAP describes the GET record data model using go types for mapping.
 type StorageQuotaRulesGetDataModelONTAP struct {
-	SVM    svm    `mapstructure:"svm"`
-	Volume volume `mapstructure:"volume"`
-	Users  []User `mapstructure:"users,omitempty"`
-	Group  Group  `mapstructure:"group,omitempty"`
-	Qtree  Qtree  `mapstructure:"qtree,omitempty"`
-	Type   string `mapstructure:"type"`
-	Files  Files  `mapstructure:"files,omitempty"`
-	UUID   string `mapstructure:"uuid"`
+	SVM         svm    `mapstructure:"svm"`
+	Volume      volume `mapstructure:"volume"`
+	Users       []User `mapstructure:"users,omitempty"`
+	Group       Group  `mapstructure:"group,omitempty"`
+	Qtree       Qtree  `mapstructure:"qtree,omitempty"`
+	Type        string `mapstructure:"type"`
+	Files       Files  `mapstructure:"files,omitempty"`
+	UserMapping bool   `mapstructure:"user_mapping,omitempty"`
+	UUID        string `mapstructure:"uuid"`
 }
 
 // StorageQuotaRulesResourceBodyDataModelONTAP describes the body data model using go types for mapping.
@@ -61,8 +62,10 @@ type Files struct {
 
 // StorageQuotaRulesDataSourceFilterModel describes the data source data model for queries.
 type StorageQuotaRulesDataSourceFilterModel struct {
-	Name    string `mapstructure:"name"`
-	SVMName string `mapstructure:"svm.name"`
+	Type       string `mapstructure:"type"`
+	SVMName    string `mapstructure:"svm.name"`
+	VolumeName string `mapstructure:"volume.name"`
+	QtreeName  string `mapstructure:"qtree.name"`
 }
 
 // GetStorageQuotaRules to get storage_quota_rules info
@@ -73,7 +76,7 @@ func GetStorageQuotaRules(errorHandler *utils.ErrorHandler, r restclient.RestCli
 	query.Set("type", quotaType)
 	query.Set("qtree.name", qtree)
 	query.Set("svm.name", svmName)
-	query.Fields([]string{"volume", "svm", "type", "qtree", "users", "group", "files", "uuid"})
+	query.Fields([]string{"volume", "svm", "type", "qtree", "users", "group", "files", "user_mapping", "uuid"})
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
 		err = fmt.Errorf("no response for GET %s", api)
@@ -117,11 +120,11 @@ func GetStorageQuotaRulesByUUID(errorHandler *utils.ErrorHandler, r restclient.R
 func GetOneORMoreStorageQuotaRules(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *StorageQuotaRulesDataSourceFilterModel) ([]StorageQuotaRulesGetDataModelONTAP, error) {
 	api := "storage/quota/rules"
 	query := r.NewQuery()
-	query.Fields([]string{"name", "svm.name", "scope"})
+	query.Fields([]string{"volume", "svm", "type", "qtree", "users", "group", "files", "user_mapping", "uuid"})
 	if filter != nil {
 		var filterMap map[string]interface{}
 		if err := mapstructure.Decode(filter, &filterMap); err != nil {
-			return nil, errorHandler.MakeAndReportError("error encoding tag_all_prefix filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
+			return nil, errorHandler.MakeAndReportError("error encoding quota_rules filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
 		}
 		query.SetValues(filterMap)
 	}
@@ -130,7 +133,7 @@ func GetOneORMoreStorageQuotaRules(errorHandler *utils.ErrorHandler, r restclien
 		err = fmt.Errorf("no response for GET %s", api)
 	}
 	if err != nil {
-		return nil, errorHandler.MakeAndReportError("error reading tag_all_prefix info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
+		return nil, errorHandler.MakeAndReportError("error reading quota_rules info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
 	}
 
 	var dataONTAP []StorageQuotaRulesGetDataModelONTAP
@@ -142,7 +145,7 @@ func GetOneORMoreStorageQuotaRules(errorHandler *utils.ErrorHandler, r restclien
 		}
 		dataONTAP = append(dataONTAP, record)
 	}
-	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read tag_all_prefix data source: %#v", dataONTAP))
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read quota_rules data source: %#v", dataONTAP))
 	return dataONTAP, nil
 }
 
