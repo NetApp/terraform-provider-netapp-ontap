@@ -99,7 +99,7 @@ func TestConfig_NewClient(t *testing.T) {
 					return
 				}
 			} else if ok, diffs := tt.want.Equals(got); !ok {
-				t.Errorf(diffs)
+				t.Error(diffs)
 			}
 		})
 	}
