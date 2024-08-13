@@ -77,6 +77,8 @@ CATAGORYS = {
         "security_account_data_source.md",
         "security_accounts_data_source.md",
         "security_account_resource.md",
+        "security_login_message_data_source.md",
+        "security_login_messages_data_source.md",
     ],
     'snaplock': [],
     'snapmirror': [
