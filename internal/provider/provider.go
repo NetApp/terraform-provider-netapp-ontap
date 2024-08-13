@@ -181,6 +181,7 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		storage.NewStorageQuotaRulesResource,
 		storage.NewStorageFlexcacheRsource,
 		storage.NewStorageVolumeResource,
+		storage.NewVolumesFilesResource,
 		storage.NewStorageVolumeSnapshotResource,
 		svm.NewSVMPeersResource,
 		svm.NewSvmResource,
