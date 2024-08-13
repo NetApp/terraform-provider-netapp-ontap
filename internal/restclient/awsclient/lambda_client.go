@@ -27,7 +27,7 @@ type AWSLambdaProfile struct {
 	Hostname string
 	// ValidateCerts bool
 	Base64Credential string
-	AWSConfig        AWSConfig
+	AWSConfig        AWSConfig `mapstructure:"aws,omitempty"`
 }
 
 type AWSConfig struct {

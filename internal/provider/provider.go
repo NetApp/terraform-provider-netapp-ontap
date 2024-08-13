@@ -39,13 +39,12 @@ type ONTAPProvider struct {
 // ConnectionProfileModel associate a connection profile with a name
 // TODO: augment address with hostname, ...
 type ConnectionProfileModel struct {
-	Name               types.String `tfsdk:"name"`
-	Hostname           types.String `tfsdk:"hostname"`
-	Username           types.String `tfsdk:"username"`
-	Password           types.String `tfsdk:"password"`
-	ValidateCerts      types.Bool   `tfsdk:"validate_certs"`
-	UseAWSLambdaLink   types.Bool   `tfsdk:"use_aws_lambda_link"`
-	ONTAPProviderModel types.Object `tfsdk:"aws"`
+	Name                  types.String `tfsdk:"name"`
+	Hostname              types.String `tfsdk:"hostname"`
+	Username              types.String `tfsdk:"username"`
+	Password              types.String `tfsdk:"password"`
+	ValidateCerts         types.Bool   `tfsdk:"validate_certs"`
+	ONTAPProviderAWSModel types.Object `tfsdk:"aws"`
 }
 
 // ONTAPProviderModel describes the provider data model.
@@ -56,6 +55,10 @@ type ONTAPProviderModel struct {
 }
 
 type ONTAPProviderAWSModel struct {
+	Lambda types.Object `tfsdk:"lambda"`
+}
+
+type ONTAPProviderAWSLambdaModel struct {
 	Region              types.String `tfsdk:"region"`
 	SharedConfigProfile types.String `tfsdk:"shared_config_profile"`
 	FunctionName        types.String `tfsdk:"function_name"`
@@ -106,25 +109,27 @@ func (p *ONTAPProvider) Schema(ctx context.Context, req provider.SchemaRequest, 
 							MarkdownDescription: "Whether to enforce SSL certificate validation, defaults to true",
 							Optional:            true,
 						},
-						"use_aws_lambda_link": schema.BoolAttribute{
-							MarkdownDescription: "Indicates a preference order between several routes to the same destination.",
-							Optional:            true,
-						},
 						"aws": schema.SingleNestedAttribute{
-							MarkdownDescription: "AWS configuration",
+							MarkdownDescription: "AWS configuration for Lambda",
 							Optional:            true,
 							Attributes: map[string]schema.Attribute{
-								"region": schema.StringAttribute{
-									MarkdownDescription: "AWS region",
+								"lambda": schema.SingleNestedAttribute{
+									MarkdownDescription: "AWS Lambda configuration",
 									Optional:            true,
-								},
-								"function_name": schema.StringAttribute{
-									MarkdownDescription: "AWS Lambda function name",
-									Optional:            true,
-								},
-								"shared_config_profile": schema.StringAttribute{
-									MarkdownDescription: "AWS shared config profile",
-									Optional:            true,
+									Attributes: map[string]schema.Attribute{
+										"region": schema.StringAttribute{
+											MarkdownDescription: "AWS region",
+											Optional:            true,
+										},
+										"function_name": schema.StringAttribute{
+											MarkdownDescription: "AWS Lambda function name",
+											Optional:            true,
+										},
+										"shared_config_profile": schema.StringAttribute{
+											MarkdownDescription: "AWS shared config profile",
+											Optional:            true,
+										},
+									},
 								},
 							},
 						},
@@ -172,16 +177,10 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 			return
 		}
 		var validateCerts bool
-		var UseAWSLambdaLink bool
 		if connectionProfile.ValidateCerts.IsNull() {
 			validateCerts = true
 		} else {
 			validateCerts = connectionProfile.ValidateCerts.ValueBool()
-		}
-		if connectionProfile.UseAWSLambdaLink.IsNull() {
-			UseAWSLambdaLink = false
-		} else {
-			UseAWSLambdaLink = connectionProfile.UseAWSLambdaLink.ValueBool()
 		}
 		connectionProfiles[connectionProfile.Name.ValueString()] = connection.Profile{
 			Hostname:              connectionProfile.Hostname.ValueString(),
@@ -189,23 +188,30 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 			Password:              connectionProfile.Password.ValueString(),
 			ValidateCerts:         validateCerts,
 			MaxConcurrentRequests: 0,
-			UseAWSLambdaLink:      UseAWSLambdaLink,
 		}
-		if !connectionProfile.ONTAPProviderModel.IsNull() {
+		if !connectionProfile.ONTAPProviderAWSModel.IsNull() {
 			var awsConfig ONTAPProviderAWSModel
-			diags := connectionProfile.ONTAPProviderModel.As(ctx, &awsConfig, basetypes.ObjectAsOptions{})
+			diags := connectionProfile.ONTAPProviderAWSModel.As(ctx, &awsConfig, basetypes.ObjectAsOptions{})
 			if diags.HasError() {
 				resp.Diagnostics.Append(diags...)
 				return
 			}
-			currentProfile := connectionProfiles[connectionProfile.Name.ValueString()]
-
-			currentProfile.AWSConfig = connection.AWSConfig{
-				Region:              awsConfig.Region.ValueString(),
-				SharedConfigProfile: awsConfig.SharedConfigProfile.ValueString(),
-				FunctionName:        awsConfig.FunctionName.ValueString(),
+			if !awsConfig.Lambda.IsNull() {
+				var lambdaConfig ONTAPProviderAWSLambdaModel
+				diags := awsConfig.Lambda.As(ctx, &lambdaConfig, basetypes.ObjectAsOptions{})
+				if diags.HasError() {
+					resp.Diagnostics.Append(diags...)
+					return
+				}
+				currentProfile := connectionProfiles[connectionProfile.Name.ValueString()]
+				currentProfile.UseAWSLambda = true
+				currentProfile.AWS = connection.AWSConfig{
+					Region:              lambdaConfig.Region.ValueString(),
+					SharedConfigProfile: lambdaConfig.SharedConfigProfile.ValueString(),
+					FunctionName:        lambdaConfig.FunctionName.ValueString(),
+				}
+				connectionProfiles[connectionProfile.Name.ValueString()] = currentProfile
 			}
-			connectionProfiles[connectionProfile.Name.ValueString()] = currentProfile
 		}
 	}
 	jobCompletionTimeOut := data.JobCompletionTimeOut.ValueInt64()

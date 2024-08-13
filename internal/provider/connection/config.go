@@ -21,8 +21,8 @@ type Profile struct {
 	Password              string
 	ValidateCerts         bool
 	MaxConcurrentRequests int
-	UseAWSLambdaLink      bool
-	AWSConfig             AWSConfig
+	UseAWSLambda          bool
+	AWS                   AWSConfig `mapstructure:"aws,omitempty"`
 }
 
 type AWSConfig struct {
