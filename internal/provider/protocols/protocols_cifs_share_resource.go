@@ -433,6 +433,7 @@ func (r *ProtocolsCIFSShareResource) Create(ctx context.Context, req resource.Cr
 	body.SVM.Name = data.SVMName.ValueString()
 	body.Path = data.Path.ValueString()
 
+	configHasDefaultACL := false
 	if !data.Acls.IsUnknown() {
 		aclsList := []interfaces.Acls{}
 		elements := make([]types.Object, 0, len(data.Acls.Elements()))
@@ -452,7 +453,9 @@ func (r *ProtocolsCIFSShareResource) Create(ctx context.Context, req resource.Cr
 			interfacesAcls.Permission = acls.Permission
 			interfacesAcls.Type = acls.Type
 			interfacesAcls.UserOrGroup = acls.UserOrGroup
-
+			if acls.UserOrGroup == "Everyone" && acls.Permission == "full_control" {
+				configHasDefaultACL = true
+			}
 			aclsList = append(aclsList, interfacesAcls)
 		}
 		body.Acls = aclsList
@@ -554,6 +557,20 @@ func (r *ProtocolsCIFSShareResource) Create(ctx context.Context, req resource.Cr
 		data.Acls = setValue
 	} else {
 		for _, acls := range restInfo.Acls {
+			//If the config file does not have acl set user_or_group as "Everyone / Full Control", the API will create one by default. Need to delete it if user does not want one.
+			if acls.UserOrGroup == "Everyone" && acls.Permission == "full_control" && !configHasDefaultACL {
+				svm, err := interfaces.GetSvmByName(errorHandler, *client, data.SVMName.ValueString())
+				if err != nil {
+					return
+				}
+				err = interfaces.DeleteProtocolsCIFSShareACL(errorHandler, *client, svm.UUID, data.Name.ValueString(), acls.UserOrGroup, acls.Type)
+				if err != nil {
+					// error reporting done inside DeleteProtocolsCIFSShareAcl
+					return
+				}
+				continue
+			}
+
 			elementType := map[string]attr.Type{
 				"permission":    types.StringType,
 				"type":          types.StringType,
@@ -692,9 +709,113 @@ func (r *ProtocolsCIFSShareResource) Update(ctx context.Context, req resource.Up
 		}
 	}
 
+	if !plan.ContinuouslyAvailable.IsUnknown() {
+		if plan.ContinuouslyAvailable != state.ContinuouslyAvailable {
+			body.ContinuouslyAvailable = plan.ContinuouslyAvailable.ValueBool()
+		}
+	}
+
 	svm, err := interfaces.GetSvmByName(errorHandler, *client, plan.SVMName.ValueString())
 	if err != nil {
 		return
+	}
+
+	// have no luck updating acls using PATCH cifs/shares API sucessfully, so we have to use the acls set of API.
+	if !plan.Acls.IsUnknown() {
+		// reading acls from plan
+		planeAcls := make([]types.Object, 0, len(plan.Acls.Elements()))
+		diags := plan.Acls.ElementsAs(ctx, &planeAcls, false)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		// reading acls from state
+		stateAcls := make([]types.Object, 0, len(state.Acls.Elements()))
+		diags = state.Acls.ElementsAs(ctx, &stateAcls, false)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		// iterate over plan acls and compare with state acls. Make create or update or delete calls accordingly.
+		for _, element := range stateAcls {
+			var stateACLElement ProtocolsCIFSShareResourceAcls
+			diags := element.As(ctx, &stateACLElement, basetypes.ObjectAsOptions{})
+			if diags.HasError() {
+				resp.Diagnostics.Append(diags...)
+				return
+			}
+			for index, planACL := range planeAcls {
+				var planACLElement ProtocolsCIFSShareResourceAcls
+				diags := planACL.As(ctx, &planACLElement, basetypes.ObjectAsOptions{})
+				if diags.HasError() {
+					resp.Diagnostics.Append(diags...)
+					return
+				}
+				// if 'userOrGroup' and 'type' matches, then we know it's not a create action. If permission is same, then break the loop because nothing to update.
+				if stateACLElement.UserOrGroup == planACLElement.UserOrGroup && stateACLElement.Type == planACLElement.Type {
+					if stateACLElement.Permission == planACLElement.Permission {
+						break
+					} else {
+						// update the acls since permission is different
+						interfacesAcls := interfaces.ProtocolsCIFSShareACLResourceBodyDataModelONTAP{}
+						interfacesAcls.Permission = planACLElement.Permission
+						err = interfaces.UpdateProtocolsCIFSShareACL(errorHandler, *client, interfacesAcls, svm.UUID, plan.Name.ValueString(), planACLElement.UserOrGroup, planACLElement.Type)
+						if err != nil {
+							return
+						}
+						break
+					}
+				}
+				// if we reach the end of stateAcls, then we know it's a delete action because it was not found in plan acls.
+				if index == len(planeAcls)-1 {
+					err = interfaces.DeleteProtocolsCIFSShareACL(errorHandler, *client, svm.UUID, plan.Name.ValueString(), stateACLElement.UserOrGroup, stateACLElement.Type)
+					if err != nil {
+						return
+					}
+
+				}
+			}
+
+		}
+		// now handle create action
+		for _, planACL := range planeAcls {
+			var planACLElement ProtocolsCIFSShareResourceAcls
+			diags := planACL.As(ctx, &planACLElement, basetypes.ObjectAsOptions{})
+			if diags.HasError() {
+				resp.Diagnostics.Append(diags...)
+				return
+			}
+
+			for index, element := range stateAcls {
+				var stateACLElement ProtocolsCIFSShareResourceAcls
+				diags := element.As(ctx, &stateACLElement, basetypes.ObjectAsOptions{})
+				if diags.HasError() {
+					resp.Diagnostics.Append(diags...)
+					return
+				}
+				if stateACLElement.UserOrGroup == planACLElement.UserOrGroup && stateACLElement.Type == planACLElement.Type {
+					if stateACLElement.Permission == planACLElement.Permission {
+						break
+					} else {
+						// update is already handled by above logic, so break
+						break
+					}
+				}
+				// if we reach the end of planAcls, then we know it's a create action because it was not found in state acls.
+				if index == len(stateAcls)-1 {
+					interfacesAcls := interfaces.ProtocolsCIFSShareACLResourceBodyDataModelONTAP{}
+					interfacesAcls.Permission = planACLElement.Permission
+					interfacesAcls.Type = planACLElement.Type
+					interfacesAcls.UserOrGroup = planACLElement.UserOrGroup
+					_, err = interfaces.CreateProtocolsCIFSShareACL(errorHandler, *client, interfacesAcls, svm.UUID, plan.Name.ValueString())
+					if err != nil {
+						return
+					}
+				}
+			}
+
+		}
+
 	}
 
 	err = interfaces.UpdateProtocolsCIFSShare(errorHandler, *client, body, plan.Name.ValueString(), svm.UUID)
