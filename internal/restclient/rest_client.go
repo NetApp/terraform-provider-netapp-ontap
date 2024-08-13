@@ -24,12 +24,12 @@ type ConnectionProfile struct {
 	Password              string
 	ValidateCerts         bool
 	MaxConcurrentRequests int
-	UseAWSLambdaLink      bool
-	AWSConfig             AWSConfig
+	UseAWSLambda          bool
+	AWS                   AWSConfig `mapstructure:"AWS,omitempty"`
 }
 
 type AWSConfig struct {
-	Region              string
+	Region              string `mapstructure:"region,omitempty"`
 	SharedConfigProfile string
 	FunctionName        string
 }
@@ -162,7 +162,7 @@ func (r *RestClient) callAPIMethod(method string, baseURL string, query *RestQue
 	if query != nil {
 		values = query.Values
 	}
-	if r.connectionProfile.UseAWSLambdaLink {
+	if r.connectionProfile.UseAWSLambda {
 		statusCode, response, awsClientErr := r.awsClient.Invoke(baseURL, method, body, values)
 		return r.unmarshalAWSLambdaResponse(statusCode, response, awsClientErr)
 	}
@@ -181,7 +181,7 @@ func (r *RestClient) callAPIMethod(method string, baseURL string, query *RestQue
 // Lambda client is created if UseAWSLambdaLink is set to true.
 // If UseAWSLambdaLink is false, a new HTTP client is created.
 func NewClient(ctx context.Context, cxProfile ConnectionProfile, tag string, jobCompletionTimeOut int) (*RestClient, error) {
-	if cxProfile.UseAWSLambdaLink {
+	if cxProfile.UseAWSLambda {
 		var awsLambdaProfile awsclient.AWSLambdaProfile
 		awsLambdaProfile.APIRoot = "api"
 		err := mapstructure.Decode(cxProfile, &awsLambdaProfile)
