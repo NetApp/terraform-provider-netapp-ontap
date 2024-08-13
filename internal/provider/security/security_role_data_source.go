@@ -22,7 +22,7 @@ var _ datasource.DataSource = &SecurityRoleDataSource{}
 func NewSecurityRoleDataSource() datasource.DataSource {
 	return &SecurityRoleDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "security_role_data_source",
+			Name: "security_role",
 		},
 	}
 }
