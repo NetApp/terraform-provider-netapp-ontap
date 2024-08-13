@@ -96,6 +96,7 @@ CATAGORYS = {
         "storage_lun_data_source.md",
         "storage_luns_data_source.md",
         "storage_lun_resource.md",
+        "storage_quota_rules_resource.md",
         "storage_snapshot_policies_data_source.md",
         "storage_snapshot_policy_data_source.md",
         "storage_snapshot_policy_resource.md",
