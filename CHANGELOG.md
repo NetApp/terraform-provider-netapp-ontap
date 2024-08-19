@@ -1,7 +1,7 @@
 ## 1.1.4
 
 BUG FIXES:
-* **netapp-ontap_cluster_data_source: fix on nodes to show multiple elements ([#264](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/264))
+* **netapp-ontap_cluster_data_source**: fix on nodes to show multiple elements ([#264](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/264))
 
 ## 1.1.3
 
@@ -22,7 +22,7 @@ BUG FIXES:
 * corrected typos in the CHANGELOG.
 
 BUG FIXES:
-* netapp-ontap_storage_flexcache_resource: Fixed junction_path bug ([#223](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/223))
+* **netapp-ontap_storage_flexcache_resource**: Fixed junction_path bug ([#223](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/223))
 
 ## 1.1.1 (2024-05-15)
 
