@@ -85,12 +85,12 @@ type versionModelONTAP struct {
 
 // ipAddress describes the IP data model used in mgmtInterface.
 type ipAddress struct {
-	Address string
+	Address string `mapstructure:"address"`
 }
 
 // noddMgmtInterface describes the Management Interface data model used in ClusterNodeGetDataModelONTAP.
 type noddMgmtInterface struct {
-	IP ipAddress
+	IP ipAddress `mapstructure:"ip"`
 }
 
 // ClusterNodeGetDataModelONTAP describes the GET record data model using go types for mapping.
@@ -162,9 +162,9 @@ func GetClusterNodes(errorHandler *utils.ErrorHandler, r restclient.RestClient) 
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read cluster data source NODES - records: %#v", records))
 
-	var dataONTAP ClusterNodeGetDataModelONTAP
-	nodes := []ClusterNodeGetDataModelONTAP{}
+	var nodes []ClusterNodeGetDataModelONTAP
 	for _, record := range records {
+		var dataONTAP ClusterNodeGetDataModelONTAP
 		if err := mapstructure.Decode(record, &dataONTAP); err != nil {
 			return nil, errorHandler.MakeAndReportError("error decoding cluster nodes info", fmt.Sprintf("error: %s, statusCode %d, record %#v", err, statusCode, record))
 		}
