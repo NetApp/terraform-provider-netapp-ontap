@@ -1,4 +1,10 @@
-## 1.1.3
+
+## 1.1.4 
+
+DOC FIXES:
+* **netapp-ontap_storage_flexcache_resource**: Fixed Page display issue ([[#271](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/271)])
+
+## 1.1.3 (2024-08-08)
 
 BUG FIXES:
 * **netapp-ontap_protocols_cifs_service_resource**: fixed on attribute checking ([#250](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/250))
