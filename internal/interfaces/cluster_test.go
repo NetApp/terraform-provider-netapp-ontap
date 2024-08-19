@@ -143,7 +143,7 @@ func TestGetClusterNodes(t *testing.T) {
 		want    []ClusterNodeGetDataModelONTAP
 		wantErr bool
 	}{
-		{name: "test_no_records_1", responses: responses["test_no_records_1"], want: []ClusterNodeGetDataModelONTAP{}, wantErr: false},
+		{name: "test_no_records_1", responses: responses["test_no_records_1"], want: nil, wantErr: false},
 		{name: "test_one_record_1", responses: responses["test_one_record_1"], want: expectedOneRecord, wantErr: false},
 		{name: "test_two_records_1", responses: responses["test_two_records_1"], want: expectedTwoRecords, wantErr: false},
 		{name: "test_error_1", responses: responses["test_error_1"], want: nil, wantErr: true},
