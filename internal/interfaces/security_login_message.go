@@ -40,7 +40,8 @@ type SecurityLoginMessageDataSourceFilterModel struct {
 	SVMName string `mapstructure:"svm.name"`
 }
 
-// GetSecurityLoginMessageByName to get security_login_message info
+// GetSecurityLoginMessageByBannerMotd to get security_login_message info
+// Retrieves the login banner and messages of the day (MOTD) configured in the cluster and in specific SVMs.
 func GetSecurityLoginMessageByBannerMotd(errorHandler *utils.ErrorHandler, r restclient.RestClient, banner string, message string, svmName string) (*SecurityLoginMessageGetDataModelONTAP, error) {
 	api := "security/login/messages"
 	query := r.NewQuery()
