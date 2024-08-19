@@ -49,7 +49,7 @@ resource "netapp-ontap_networking_ip_route_resource" "networking_ip_route" {
 ### Optional
 
 - `destination` (Attributes) destination IP address information (see [below for nested schema](#nestedatt--destination))
-- `metric` (Number) Indicates a preference order between several routes to the same destination.
+- `metric` (Number) Requires 9.11.1. Indicates a preference order between several routes to the same destination.
 - `svm_name` (String) IPInterface vserver name
 
 ### Read-Only
