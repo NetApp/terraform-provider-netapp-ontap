@@ -162,9 +162,9 @@ func GetClusterNodes(errorHandler *utils.ErrorHandler, r restclient.RestClient) 
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read cluster data source NODES - records: %#v", records))
 
-	var dataONTAP ClusterNodeGetDataModelONTAP
-	nodes := []ClusterNodeGetDataModelONTAP{}
+	var nodes []ClusterNodeGetDataModelONTAP
 	for _, record := range records {
+		var dataONTAP ClusterNodeGetDataModelONTAP
 		if err := mapstructure.Decode(record, &dataONTAP); err != nil {
 			return nil, errorHandler.MakeAndReportError("error decoding cluster nodes info", fmt.Sprintf("error: %s, statusCode %d, record %#v", err, statusCode, record))
 		}
