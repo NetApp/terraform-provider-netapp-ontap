@@ -14,7 +14,7 @@ type IPRouteGetDataModelONTAP struct {
 	Destination DestinationDataSourceModel `mapstructure:"destination,omitempty"`
 	UUID        string                     `mapstructure:"uuid"`
 	Gateway     string                     `mapstructure:"gateway"`
-	Metric      int64                      `mapstructure:"metric,omitempty"`
+	internal/interfaces/networking_ip_route.go      int64                      `mapstructure:"metric,omitempty"`
 	SVMName     svm                        `mapstructure:"svm"`
 }
 
@@ -113,7 +113,7 @@ func GetListIPRoutes(errorHandler *utils.ErrorHandler, r restclient.RestClient, 
 	}
 
 	var fields = []string{"destination", "gateway"}
-	if version.Generation == 9 && version.Major > 11 {
+	if version.Generation == 9 && version.Major > 10 {
 		fields = append(fields, "metric")
 	}
 	query.Fields(fields)
