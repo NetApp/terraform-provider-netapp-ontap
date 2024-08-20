@@ -59,6 +59,7 @@ type Body struct {
 
 // NewClient creates a new AWS Lambda client
 func NewClient(ctx context.Context, profile AWSLambdaProfile) (*AWSLambdaClient, error) {
+	// If profile and terraform has set region, terraform overrides profile.
 	sdkConfig, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(profile.AWSConfig.Region), config.WithSharedConfigProfile(profile.AWSConfig.SharedConfigProfile))
 	if err != nil {
 		return nil, err
