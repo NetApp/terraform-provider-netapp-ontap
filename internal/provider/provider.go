@@ -44,7 +44,7 @@ type ConnectionProfileModel struct {
 	Username              types.String `tfsdk:"username"`
 	Password              types.String `tfsdk:"password"`
 	ValidateCerts         types.Bool   `tfsdk:"validate_certs"`
-	ONTAPProviderAWSModel types.Object `tfsdk:"aws"`
+	ONTAPProviderAWSModel types.Object `tfsdk:"aws_lambda"`
 }
 
 // ONTAPProviderModel describes the provider data model.
@@ -54,9 +54,9 @@ type ONTAPProviderModel struct {
 	ConnectionProfiles   types.List   `tfsdk:"connection_profiles"`
 }
 
-type ONTAPProviderAWSModel struct {
-	Lambda types.Object `tfsdk:"lambda"`
-}
+// type ONTAPProviderAWSModel struct {
+// 	Lambda types.Object `tfsdk:"lambda"`
+// }
 
 type ONTAPProviderAWSLambdaModel struct {
 	Region              types.String `tfsdk:"region"`
@@ -109,27 +109,21 @@ func (p *ONTAPProvider) Schema(ctx context.Context, req provider.SchemaRequest, 
 							MarkdownDescription: "Whether to enforce SSL certificate validation, defaults to true",
 							Optional:            true,
 						},
-						"aws": schema.SingleNestedAttribute{
+						"aws_lambda": schema.SingleNestedAttribute{
 							MarkdownDescription: "AWS configuration for Lambda",
 							Optional:            true,
 							Attributes: map[string]schema.Attribute{
-								"lambda": schema.SingleNestedAttribute{
-									MarkdownDescription: "AWS Lambda configuration",
+								"region": schema.StringAttribute{
+									MarkdownDescription: "AWS region.",
 									Optional:            true,
-									Attributes: map[string]schema.Attribute{
-										"region": schema.StringAttribute{
-											MarkdownDescription: "AWS region",
-											Optional:            true,
-										},
-										"function_name": schema.StringAttribute{
-											MarkdownDescription: "AWS Lambda function name",
-											Optional:            true,
-										},
-										"shared_config_profile": schema.StringAttribute{
-											MarkdownDescription: "AWS shared config profile",
-											Optional:            true,
-										},
-									},
+								},
+								"function_name": schema.StringAttribute{
+									MarkdownDescription: "AWS Lambda function name",
+									Optional:            true,
+								},
+								"shared_config_profile": schema.StringAttribute{
+									MarkdownDescription: "AWS shared config profile. Region set in the profile will be ignored it it's different from the region set in Terraform. aws_access_key_id and aws_secret_access_key are required to be set in credentials",
+									Required:            true,
 								},
 							},
 						},
@@ -190,28 +184,21 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 			MaxConcurrentRequests: 0,
 		}
 		if !connectionProfile.ONTAPProviderAWSModel.IsNull() {
-			var awsConfig ONTAPProviderAWSModel
-			diags := connectionProfile.ONTAPProviderAWSModel.As(ctx, &awsConfig, basetypes.ObjectAsOptions{})
+			var lambdaConfig ONTAPProviderAWSLambdaModel
+			diags := connectionProfile.ONTAPProviderAWSModel.As(ctx, &lambdaConfig, basetypes.ObjectAsOptions{})
 			if diags.HasError() {
 				resp.Diagnostics.Append(diags...)
 				return
 			}
-			if !awsConfig.Lambda.IsNull() {
-				var lambdaConfig ONTAPProviderAWSLambdaModel
-				diags := awsConfig.Lambda.As(ctx, &lambdaConfig, basetypes.ObjectAsOptions{})
-				if diags.HasError() {
-					resp.Diagnostics.Append(diags...)
-					return
-				}
-				currentProfile := connectionProfiles[connectionProfile.Name.ValueString()]
-				currentProfile.UseAWSLambda = true
-				currentProfile.AWS = connection.AWSConfig{
-					Region:              lambdaConfig.Region.ValueString(),
-					SharedConfigProfile: lambdaConfig.SharedConfigProfile.ValueString(),
-					FunctionName:        lambdaConfig.FunctionName.ValueString(),
-				}
-				connectionProfiles[connectionProfile.Name.ValueString()] = currentProfile
+			currentProfile := connectionProfiles[connectionProfile.Name.ValueString()]
+			currentProfile.UseAWSLambda = true
+			currentProfile.AWS = connection.AWSConfig{
+				Region:              lambdaConfig.Region.ValueString(),
+				SharedConfigProfile: lambdaConfig.SharedConfigProfile.ValueString(),
+				FunctionName:        lambdaConfig.FunctionName.ValueString(),
 			}
+			connectionProfiles[connectionProfile.Name.ValueString()] = currentProfile
+
 		}
 	}
 	jobCompletionTimeOut := data.JobCompletionTimeOut.ValueInt64()
