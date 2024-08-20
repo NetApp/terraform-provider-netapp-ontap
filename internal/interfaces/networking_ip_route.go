@@ -14,7 +14,7 @@ type IPRouteGetDataModelONTAP struct {
 	Destination DestinationDataSourceModel `mapstructure:"destination,omitempty"`
 	UUID        string                     `mapstructure:"uuid"`
 	Gateway     string                     `mapstructure:"gateway"`
-	internal/interfaces/networking_ip_route.go      int64                      `mapstructure:"metric,omitempty"`
+	Metric      int64                      `mapstructure:"metric,omitempty"`
 	SVMName     svm                        `mapstructure:"svm"`
 }
 
