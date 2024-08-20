@@ -54,10 +54,6 @@ type ONTAPProviderModel struct {
 	ConnectionProfiles   types.List   `tfsdk:"connection_profiles"`
 }
 
-// type ONTAPProviderAWSModel struct {
-// 	Lambda types.Object `tfsdk:"lambda"`
-// }
-
 type ONTAPProviderAWSLambdaModel struct {
 	Region              types.String `tfsdk:"region"`
 	SharedConfigProfile types.String `tfsdk:"shared_config_profile"`
