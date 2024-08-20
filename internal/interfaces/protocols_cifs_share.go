@@ -52,20 +52,20 @@ type ProtocolsCIFSShareResourceBodyDataModelONTAP struct {
 	Name                  string `mapstructure:"name,omitempty"` // can't be present in update, so omit empty.
 	SVM                   svm    `mapstructure:"svm"`
 	Acls                  []Acls `mapstructure:"acls,omitempty"` // API complains if this is not omit empty
-	ChangeNotify          bool   `mapstructure:"change_notify"`
+	ChangeNotify          bool   `mapstructure:"change_notify,omitempty"`
 	Comment               string `mapstructure:"comment,omitempty"` // API complains if this is not omit empty
-	ContinuouslyAvailable bool   `mapstructure:"continuously_available"`
-	DirUmask              int64  `mapstructure:"dir_umask"`
-	Encryption            bool   `mapstructure:"encryption"`
-	FileUmask             int64  `mapstructure:"file_umask"`
-	ForceGroupForCreate   string `mapstructure:"force_group_for_create"`
+	ContinuouslyAvailable bool   `mapstructure:"continuously_available,omitempty"`
+	DirUmask              int64  `mapstructure:"dir_umask,omitempty"`
+	Encryption            bool   `mapstructure:"encryption,omitempty"`
+	FileUmask             int64  `mapstructure:"file_umask,omitempty"`
+	ForceGroupForCreate   string `mapstructure:"force_group_for_create,omitempty"`
 	HomeDirectory         bool   `mapstructure:"home_directory,omitempty"` // can't be present in update, so omit empty.
-	NamespaceCaching      bool   `mapstructure:"namespace_caching"`
-	NoStrictSecurity      bool   `mapstructure:"no_strict_security"`
+	NamespaceCaching      bool   `mapstructure:"namespace_caching,omitempty"`
+	NoStrictSecurity      bool   `mapstructure:"no_strict_security,omitempty"`
 	OfflineFiles          string `mapstructure:"offline_files,omitempty"` // API complains if this is not omit empty
-	Oplocks               bool   `mapstructure:"oplocks"`
+	Oplocks               bool   `mapstructure:"oplocks,omitempty"`
 	Path                  string `mapstructure:"path,omitempty"` // can't be present in update, so omit empty.
-	ShowSnapshot          bool   `mapstructure:"show_snapshot"`
+	ShowSnapshot          bool   `mapstructure:"show_snapshot,omitempty"`
 	UnixSymlink           string `mapstructure:"unix_symlink,omitempty"`  // API complains if this is not omit empty
 	VscanProfile          string `mapstructure:"vscan_profile,omitempty"` // API complains if this is not omit empty
 }
@@ -159,14 +159,14 @@ func CreateProtocolsCIFSShare(errorHandler *utils.ErrorHandler, r restclient.Res
 
 // UpdateProtocolsCIFSShare to update protocols_cifs_share
 func UpdateProtocolsCIFSShare(errorHandler *utils.ErrorHandler, r restclient.RestClient, body ProtocolsCIFSShareResourceBodyDataModelONTAP, name string, svmUUID string) error {
-	api := "/protocols/cifs/shares/"
+	api := fmt.Sprintf("/protocols/cifs/shares/%s/%s", svmUUID, name)
 	var bodyMap map[string]interface{}
 	if err := mapstructure.Decode(body, &bodyMap); err != nil {
 		return errorHandler.MakeAndReportError("error encoding protocols_cifs_share body", fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body))
 	}
-	statusCode, _, err := r.CallUpdateMethod(api+"/"+svmUUID+"/"+name, nil, bodyMap)
+	statusCode, _, err := r.CallUpdateMethod(api, nil, bodyMap)
 	if err != nil {
-		return errorHandler.MakeAndReportError("error updating protocols_cifs_share", fmt.Sprintf("error on POST %s: %s, statusCode %d", api, err, statusCode))
+		return errorHandler.MakeAndReportError("error updating protocols_cifs_share", fmt.Sprintf("error on PATCH %s: %s, statusCode %d", api, err, statusCode))
 	}
 	return nil
 }

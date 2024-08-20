@@ -2,11 +2,24 @@
 
 FEATURES:
 * **New Data Source:** `netapp-ontap_volumes_files` ([#8](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/8))
+* **New Data Source:** `netapp-ontap_quota_rules` ([#135](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/135))
+* **New Data Source:** `netapp-ontap_quota_rule` ([#135](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/135))
+* **New Data Source:** `netapp-ontap_security_login_message` ([#17](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/17))
+* **New Data Source:** `netapp-ontap_security_login_messages` ([#17](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/17))
+* **New Resource:** `netapp-ontap_volume_efficiency_policies` ([#80](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/80))
 * **New Resource:** `netapp-ontap_quota_rules` ([#136](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/136))
+* **New Resource:** `netapp-ontap_volumes_files` ([#5](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/5))
 
 ENHANCEMENTS:
 * **netapp-ontap_lun**: added `size_unit` option. ([#227](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/227))
 * **netapp-ontap_security_account**: Add support for import and update ([#243](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/243))
+
+## 1.1.3
+
+BUG FIXES:
+* **netapp-ontap_protocols_cifs_service_resource**: fixed on attribute checking ([#250](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/250))
+* **netapp-ontap_protocols_cifs_share_resource** :`acls` unable to update acls ([#236](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/236))
+* **netapp-ontap_protocols_san_igroups_resource**: fixed bug nil pointer dereference ([#247](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/247))
 
 ## 1.1.2 (2024-06-03)
 

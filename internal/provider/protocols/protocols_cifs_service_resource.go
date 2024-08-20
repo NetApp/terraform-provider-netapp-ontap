@@ -6,7 +6,6 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -256,12 +255,7 @@ func (r *CifsServiceResource) Schema(ctx context.Context, req resource.SchemaReq
 						PlanModifiers: []planmodifier.Bool{
 							boolplanmodifier.UseStateForUnknown(),
 						},
-						Validators: []validator.Bool{
-							boolvalidator.ConflictsWith(path.Expressions{
-								path.MatchRoot("advertised_kdc_encryptions"),
-							}...),
-						},
-						MarkdownDescription: "Specifies whether AES-128 and AES-256 encryption is enabled for all Kerberos-based communication with the Active Directory KDC",
+						MarkdownDescription: "Specifies whether AES-128 and AES-256 encryption is enabled for all Kerberos-based communication with the Active Directory KDC. Deprecated in 9.12. Use 'advertised_kdc_encryptions' instead.",
 					},
 					"lm_compatibility_level": schema.StringAttribute{
 						Optional:            true,
@@ -339,7 +333,7 @@ func (r *CifsServiceResource) Schema(ctx context.Context, req resource.SchemaReq
 						PlanModifiers: []planmodifier.Set{
 							setplanmodifier.UseStateForUnknown(),
 						},
-						MarkdownDescription: "List of advertised KDC encryptions",
+						MarkdownDescription: "List of advertised KDC encryptions (9.12)",
 						ElementType:         types.StringType,
 					},
 				},

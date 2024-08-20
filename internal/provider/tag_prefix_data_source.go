@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -27,7 +28,7 @@ var _ datasource.DataSource = &GoPrefixDataSource{}
 func NewGoPrefixDataSource() datasource.DataSource {
 	return &GoPrefixDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "tag_prefix_data_source",
+			Name: "tag_prefix",
 		},
 	}
 }
