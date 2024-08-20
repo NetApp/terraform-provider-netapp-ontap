@@ -3,6 +3,7 @@ package cluster
 import (
 	"context"
 	"fmt"
+
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -345,13 +346,15 @@ func (d *ClusterDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		return
 	}
 
-	data.Nodes = make([]NodeDataSourceModel, 1)
-	ipAddressesIn := make([]string, 1)
-	ipAddressesIn[0] = nodes[0].ManagementInterfaces[0].IP.Address
-	ipAddressesOut, _ := types.ListValueFrom(ctx, types.StringType, ipAddressesIn)
-	data.Nodes[0] = NodeDataSourceModel{
-		Name:            types.StringValue(nodes[0].Name),
-		MgmtIPAddresses: ipAddressesOut,
+	data.Nodes = make([]NodeDataSourceModel, len(nodes))
+	for i, v := range nodes {
+		ipAddressesIn := make([]string, 1)
+		ipAddressesIn[0] = v.ManagementInterfaces[0].IP.Address
+		ipAddressesOut, _ := types.ListValueFrom(ctx, types.StringType, ipAddressesIn)
+		data.Nodes[i] = NodeDataSourceModel{
+			Name:            types.StringValue(v.Name),
+			MgmtIPAddresses: ipAddressesOut,
+		}
 	}
 
 	// Write logs using the tflog package
