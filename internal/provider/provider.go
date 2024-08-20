@@ -93,7 +93,7 @@ func (p *ONTAPProvider) Schema(ctx context.Context, req provider.SchemaRequest, 
 							Required:            true,
 						},
 						"hostname": schema.StringAttribute{
-							MarkdownDescription: "ONTAP management interface IP address or name",
+							MarkdownDescription: "ONTAP management interface IP address or name. For AWS Lambda, the management endpoints for the FSxN system.",
 							Required:            true,
 						},
 						"username": schema.StringAttribute{
@@ -106,7 +106,7 @@ func (p *ONTAPProvider) Schema(ctx context.Context, req provider.SchemaRequest, 
 							Sensitive:           true,
 						},
 						"validate_certs": schema.BoolAttribute{
-							MarkdownDescription: "Whether to enforce SSL certificate validation, defaults to true",
+							MarkdownDescription: "Whether to enforce SSL certificate validation, defaults to true. Not applicable for AWS Lambda",
 							Optional:            true,
 						},
 						"aws_lambda": schema.SingleNestedAttribute{
