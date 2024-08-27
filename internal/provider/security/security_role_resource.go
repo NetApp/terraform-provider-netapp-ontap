@@ -480,8 +480,8 @@ func (r *SecurityRoleResource) Update(ctx context.Context, req resource.UpdateRe
 			//POST on this path
 			log.Printf("going to create privilege : %v", planPrivilege)
 			err = interfaces.CreateSecurityRolePrivileges(errorHandler, *client, planPrivilege, plan.Name.ValueString(), svm.UUID)
-			errorHandler.MakeAndReportError("error deleting default security_role privileges", "error on DELETE API created default privileges: {path: 'DEFAULT', access: 'none', query: ''}")
 			if err != nil {
+				errorHandler.MakeAndReportError("error deleting default security_role privileges", fmt.Sprint("error on DELETE API created default privileges: {path: 'DEFAULT', access: 'none', query: ''} :", err))
 				return
 			}
 			if !hasDefaultPathInPlan {
