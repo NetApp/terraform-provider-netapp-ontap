@@ -91,11 +91,6 @@ func (c *RestClient) unmarshalAWSLambdaResponse(statusCode int, responseJSON []b
 	tflog.Debug(c.ctx, fmt.Sprintf("awsDataMap %#v", awsDataMap))
 	statusCode = int(awsDataMap["status"].(float64))
 
-	// type awsStagedResponse struct {
-	// 	Status int               `mapstructure:"status"`
-	// 	Data   AWSLambdaRestData `mapstructure:"data"`
-	// }
-
 	// The returned REST response may or may not contain records.
 	// If records is not present, the contents will show in Other.
 	type restStagedResponse struct {
