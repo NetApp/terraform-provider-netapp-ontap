@@ -8,7 +8,13 @@ description: |-
 
 # netapp-ontap_security_roles (Data Source)
 
-SecurityRules data source
+Retreive one or more security roles by filter
+
+### Related ONTAP commands
+```commandline
+* security login role show
+```
+
 
 ## Example Usage
 
