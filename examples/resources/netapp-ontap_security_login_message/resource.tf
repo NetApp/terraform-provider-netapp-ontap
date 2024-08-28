@@ -1,4 +1,12 @@
 
+resource "netapp-ontap_security_login_message" "msg_import_cluster" {
+  banner               = "test banner"
+  cx_profile_name      = "cluster4"
+  message              = "test message"
+  scope                = "cluster"
+  show_cluster_message = true
+}
+
 resource "netapp-ontap_security_login_message" "msg_import_svm" {
   banner               = "test banner"
   cx_profile_name      = "cluster4"
