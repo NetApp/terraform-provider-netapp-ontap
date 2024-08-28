@@ -8,6 +8,8 @@ FEATURES:
 * **New Data Source:** `netapp-ontap_security_roles` ([#139](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/139))
 * **New Data Source:** `netapp-ontap_security_login_message` ([#17](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/17))
 * **New Data Source:** `netapp-ontap_security_login_messages` ([#17](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/17))
+* **New Data Source:** `netapp-ontap_storage_qtree` ([#83](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/83))
+* **New Data Source:** `netapp-ontap_storage_qtrees` ([#83](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/83))
 * **New Resource:** `netapp-ontap_volume_efficiency_policies` ([#80](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/80))
 * **New Resource:** `netapp-ontap_quota_rules` ([#136](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/136))
 * **New Resource:** `netapp-ontap_volumes_files` ([#5](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/5))
