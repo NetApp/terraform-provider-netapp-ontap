@@ -12,9 +12,9 @@ Create/Modify/Delete a lun resource
 
 ### Related ONTAP commands
 ```commandline
-* storage lun create
-* storage lun modify
-* storage lun delete
+* lun create
+* lun modify
+* lun delete
 ```
 
 ## Supported Platforms
@@ -46,20 +46,21 @@ resource "netapp-ontap_lun" "storage_lun" {
 - `cx_profile_name` (String) Connection profile name
 - `name` (String) Lun name or location.logical_unit
 - `os_type` (String) OS type
-- `size` (Number) Size of the lun
+- `size` (Number) Size of the lun in byte if size_unit is not provided, otherwise size in the specified `size_unit`
 - `svm_name` (String) SVM name
 - `volume_name` (String) Volume name
 
 ### Optional
 
 - `qos_policy_name` (String) QoS policy name
+- `size_unit` (String) The unit used to interpret the size parameter
 
 ### Read-Only
 
 - `id` (String) StorageLun UUID
 
 ## Import
-This Resource supports import, which allows you to import existing aggregates into the state of this resoruce.
+This Resource supports import, which allows you to import existing lun into the state of this resoruce.
 Import require a unique ID composed of the lun name, volume name, svm name, and cx_profile_name, separated by a comma.
 
 id = `name`,`volume_name`, `svm_name`, `cx_profile_name`
@@ -102,7 +103,4 @@ resource "netapp-ontap_lun" "lun_import" {
   svm_name        = "carchi-test"
   volume_name     = "lunTest"
 }
-
-}
-``` 
-
+```
