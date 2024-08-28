@@ -2,10 +2,11 @@ package snapmirror_test
 
 import (
 	"fmt"
-	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
 	"os"
 	"regexp"
 	"testing"
+
+	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -17,31 +18,31 @@ func TestAccSnapmirrorResource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Test non existant Vol
 			{
-				Config:      testAccSnapmirrorResourceBasicConfig("snapmirror_dest_svm:testme", "snapmirror_dest_svm:testme"),
+				Config:      testAccSnapmirrorResourceBasicConfig("tf_peer:testme", "terraform:testme"),
 				ExpectError: regexp.MustCompile("6619337"),
 			},
 			// Create snapmirror and read
 			{
-				Config: testAccSnapmirrorResourceBasicConfig("snapmirror_dest_svm:snap_dest3", "snapmirror_dest_svm:snap_dest2"),
+				Config: testAccSnapmirrorResourceBasicConfig("tf_peer:snap_source2", "terraform:snap_dest2"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror.example", "destination_endpoint.path", "snapmirror_dest_svm:snap_dest2"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror.example", "destination_endpoint.path", "terraform:snap_dest2"),
 				),
 			},
 			// Update a policy
 			{
-				Config: testAccSnapmirrorResourceUpdateConfig("snapmirror_dest_svm:snap_dest", "snapmirror_source_svm:snap", "MirrorAndVault"),
+				Config: testAccSnapmirrorResourceUpdateConfig("tf_peer:snap_source", "terraform:snap_dest", "MirrorAndVault"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror.example", "policy.name", "MirrorAndVault"),
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror.example", "destination_endpoint.path", "snapmirror_source_svm:snap"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror.example", "destination_endpoint.path", "terraform:snap_dest"),
 				),
 			},
 			// Import and read
 			{
 				ResourceName:  "netapp-ontap_snapmirror.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s", "snapmirror_dest_svm:snap_dest2", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s", "terraform:snap_dest", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror.example", "destination_endpoint.path", "snapmirror_dest_svm:snap_dest2"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror.example", "destination_endpoint.path", "terraform:snap_dest"),
 				),
 			},
 			// Delete testing automatically occurs in TestCase
@@ -50,11 +51,11 @@ func TestAccSnapmirrorResource(t *testing.T) {
 }
 
 func testAccSnapmirrorResourceBasicConfig(sourceEndpoint string, destinationEndpoint string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST4")
+	host := os.Getenv("TF_ACC_NETAPP_HOST5")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS")
+	password := os.Getenv("TF_ACC_NETAPP_PASS2")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST4, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -82,11 +83,11 @@ resource "netapp-ontap_snapmirror" "example" {
 }
 
 func testAccSnapmirrorResourceUpdateConfig(sourceEndpoint string, destinationEndpoint string, policy string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST4")
+	host := os.Getenv("TF_ACC_NETAPP_HOST5")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS")
+	password := os.Getenv("TF_ACC_NETAPP_PASS2")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST4, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`

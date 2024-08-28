@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -39,6 +40,7 @@ type StorageLunDataSourceModel struct {
 	OSType        types.String                        `tfsdk:"os_type"`
 	QoSPolicy     *StorageLunDataSourceQoSPolicyModel `tfsdk:"qos_policy"`
 	Space         *StorageLunDataSourceSpaceModel     `tfsdk:"space"`
+	SerialNumber  types.String                        `tfsdk:"serial_number"`
 	ID            types.String                        `tfsdk:"id"`
 }
 
@@ -90,11 +92,6 @@ func (d *StorageLunDataSource) Schema(ctx context.Context, req datasource.Schema
 				MarkdownDescription: "svm name for lun",
 				Required:            true,
 			},
-			"privileges": schema.ListAttribute{
-				ElementType:         types.StringType,
-				MarkdownDescription: "List of privileges",
-				Required:            true,
-			},
 			"create_time": schema.StringAttribute{
 				MarkdownDescription: "Time when the lun was created",
 				Computed:            true,
@@ -126,6 +123,10 @@ func (d *StorageLunDataSource) Schema(ctx context.Context, req datasource.Schema
 			},
 			"os_type": schema.StringAttribute{
 				MarkdownDescription: "OS type for lun",
+				Computed:            true,
+			},
+			"serial_number": schema.StringAttribute{
+				MarkdownDescription: "Serial number for lun",
 				Computed:            true,
 			},
 			"qos_policy": schema.SingleNestedAttribute{
@@ -209,6 +210,7 @@ func (d *StorageLunDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	data.Location.Volume.Name = types.StringValue(restInfo.Location.Volume.Name)
 	data.Location.Volume.UUID = types.StringValue(restInfo.Location.Volume.UUID)
 	data.OSType = types.StringValue(restInfo.OSType)
+	data.SerialNumber = types.StringValue(restInfo.SerialNumber)
 	if restInfo.QoSPolicy.Name != "" {
 		data.QoSPolicy.Name = types.StringValue(restInfo.QoSPolicy.Name)
 	}
