@@ -2,6 +2,7 @@
 
 DOC FIXES:
 * **netapp-ontap_storage_flexcache_resource**: Fixed Page display issue ([[#271](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/271)])
+* **netapp-ontap_networking_ip_interface_resource**: Include min version for metrics ([[#265](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/265)])
 
 BUG FIXES:
 * **netapp-ontap_cluster_data_source: fix on nodes to show multiple elements ([#264](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/264))
