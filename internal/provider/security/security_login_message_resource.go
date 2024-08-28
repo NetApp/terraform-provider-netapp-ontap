@@ -68,7 +68,7 @@ func (r *SecurityLoginMessageResource) Schema(ctx context.Context, req resource.
 				Optional:            true,
 			},
 			"message": schema.StringAttribute{
-				MarkdownDescription: "SecurityLoginMessage message",
+				MarkdownDescription: "SecurityLoginMessage the message of the day (MOTD). This message appears just before the clustershell prompt after a successful login.",
 				Optional:            true,
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
@@ -76,7 +76,7 @@ func (r *SecurityLoginMessageResource) Schema(ctx context.Context, req resource.
 				},
 			},
 			"banner": schema.StringAttribute{
-				MarkdownDescription: "SecurityLoginMessage banner",
+				MarkdownDescription: "SecurityLoginMessage login banner",
 				Optional:            true,
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
@@ -89,7 +89,7 @@ func (r *SecurityLoginMessageResource) Schema(ctx context.Context, req resource.
 				Computed:            true,
 			},
 			"scope": schema.StringAttribute{
-				MarkdownDescription: "SecurityLoginMessage scope",
+				MarkdownDescription: "SecurityLoginMessage network scope",
 				Optional:            true,
 				Computed:            true,
 			},
