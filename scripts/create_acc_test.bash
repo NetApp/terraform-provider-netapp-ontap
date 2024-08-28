@@ -45,8 +45,8 @@ cp "internal/provider/snapmirror/${existing_resource_name}_test.go" "${new_test_
 
 # Replace all occurrences of the existing resource name with the new resource name in the new test file
 sed -i -e "s/${existing_resource_name}/${new_resource_name}/g" "${new_test_file}"
-
-sed -i -e "114,115d;111,112d;108,109d;79,80d;76,77d;18,22d;" "${new_test_file}"
+sed -i '' "s/package snapmirror_test/package ${path_for_file}_test/g" "${new_test_file}"
+sed -i -e "114,115d;111,112d;108,109d;79,80d;76,77d;" "${new_test_file}"
 sed -i -e "s/SnapmirrorResource/${go_prefix}/g" "${new_test_file}"
 sed -i -e "s/snapmirror_dest_svm:testme/name/g" "${new_test_file}"
 sed -i -e "s/snapmirror_source_svm:snap3/acc_test/g" "${new_test_file}"
@@ -63,6 +63,7 @@ sed -i -e "s/destination_endpoint = {/svm_name = \"%s\"/g" "${new_test_file}"
 sed -i -e "s/policy = {/option_name = \"%s\"/g" "${new_test_file}"
 sed -i -e "s/policy/option/g" "${new_test_file}"
 sed -i -e "s/snapmirror/${new_test_file_name}/g" "${new_test_file}"
+
 
 rm -rf $bad_test_file
 

@@ -72,7 +72,7 @@ else
     link_if_exist ../../provider/variables.tf
     link_if_exist ../../provider/terraform.tfvars
     cat > resource.tf << EOF
-resource "netapp-ontap_${tag_prefix}_resource" "${tag_prefix}" {
+resource "netapp-ontap_${tag_prefix}" "${tag_prefix}" {
   # required to know which system to interface with
   cx_profile_name = "cluster1"
   name = "testme"
