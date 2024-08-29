@@ -101,6 +101,7 @@ CATAGORYS = {
         "storage_quota_rules_resource.md",
         "storage_qtree_data_source.md",
         "storage_qtrees_data_source.md",
+        "storage_qtree_resource.md",
         "storage_snapshot_policies_data_source.md",
         "storage_snapshot_policy_data_source.md",
         "storage_snapshot_policy_resource.md",
