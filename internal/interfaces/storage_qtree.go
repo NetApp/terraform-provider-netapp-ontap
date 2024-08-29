@@ -105,7 +105,7 @@ func GetStorageQtreeByName(errorHandler *utils.ErrorHandler, r restclient.RestCl
 func GetStorageQtrees(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *StorageQtreeDataSourceFilterModel) ([]StorageQtreeGetDataModelONTAP, error) {
 	api := "storage/qtrees"
 	query := r.NewQuery()
-	query.Fields([]string{"name", "svm.name", "security_style", "nas", "user", "volume"})
+	query.Fields([]string{"name", "svm.name", "security_style", "nas", "user.name", "volume", "group.name", "unix_permissions", "export_policy"})
 	if filter != nil {
 		var filterMap map[string]interface{}
 		if err := mapstructure.Decode(filter, &filterMap); err != nil {

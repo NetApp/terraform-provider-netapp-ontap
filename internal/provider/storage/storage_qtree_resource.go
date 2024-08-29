@@ -215,7 +215,6 @@ func (r *StorageQtreeResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	data.Name = types.StringValue(restInfo.Name)
-
 	data.SecurityStyle = types.StringValue(restInfo.SecurityStyle)
 	data.Volume = types.StringValue(restInfo.Volume.Name)
 	data.ID = types.Int64Value(int64(restInfo.ID))

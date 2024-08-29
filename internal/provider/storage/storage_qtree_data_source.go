@@ -36,13 +36,17 @@ type StorageQtreeDataSource struct {
 
 // StorageQtreeDataSourceModel describes the data source data model.
 type StorageQtreeDataSourceModel struct {
-	CxProfileName types.String `tfsdk:"cx_profile_name"`
-	Name          types.String `tfsdk:"name"`
-	SVMName       types.String `tfsdk:"svm_name"`
-	SecurityStyle types.String `tfsdk:"security_style"`
-	NAS           types.Object `tfsdk:"nas"`
-	User          types.Object `tfsdk:"user"`
-	Volume        types.String `tfsdk:"volume_name"`
+	CxProfileName   types.String `tfsdk:"cx_profile_name"`
+	Name            types.String `tfsdk:"name"`
+	SVMName         types.String `tfsdk:"svm_name"`
+	SecurityStyle   types.String `tfsdk:"security_style"`
+	NAS             types.Object `tfsdk:"nas"`
+	User            types.Object `tfsdk:"user"`
+	Volume          types.String `tfsdk:"volume_name"`
+	UnixPermissions types.Int64  `tfsdk:"unix_permissions"`
+	Group           types.Object `tfsdk:"group"`
+	ExportPolicy    types.Object `tfsdk:"export_policy"`
+	ID              types.Int64  `tfsdk:"id"`
 }
 
 type StorageQtreeDataSourceNASModel struct {
@@ -69,9 +73,21 @@ func (d *StorageQtreeDataSource) Schema(ctx context.Context, req datasource.Sche
 				MarkdownDescription: "StorageQtree name",
 				Required:            true,
 			},
+			"volume_name": schema.StringAttribute{
+				MarkdownDescription: "The volume that contains the qtree.",
+				Required:            true,
+			},
 			"svm_name": schema.StringAttribute{
 				MarkdownDescription: "IPInterface svm name",
 				Required:            true,
+			},
+			"id": schema.Int64Attribute{
+				MarkdownDescription: "The ID of the qtree.",
+				Computed:            true,
+			},
+			"unix_permissions": schema.Int64Attribute{
+				MarkdownDescription: "The UNIX permissions for the qtree.",
+				Computed:            true,
 			},
 			"security_style": schema.StringAttribute{
 				MarkdownDescription: "StorageQtree security style",
@@ -98,16 +114,33 @@ func (d *StorageQtreeDataSource) Schema(ctx context.Context, req datasource.Sche
 						MarkdownDescription: "Alphanumeric username of user who owns the qtree.",
 						Computed:            true,
 					},
-					"id": schema.StringAttribute{
-						MarkdownDescription: "The numeric ID of the user who owns the qtree.",
+				},
+			},
+			"group": schema.SingleNestedAttribute{
+				MarkdownDescription: "The group set as owner of the qtree.",
+				Computed:            true,
+				Attributes: map[string]schema.Attribute{
+					"name": schema.StringAttribute{
+						MarkdownDescription: "Alphanumeric group name of group who owns the qtree.",
 						Computed:            true,
 					},
 				},
 			},
-			"volume_name": schema.StringAttribute{
-				MarkdownDescription: "The volume that contains the qtree.",
-				Required:            true,
+			"export_policy": schema.SingleNestedAttribute{
+				MarkdownDescription: "The export policy for the qtree.",
+				Computed:            true,
+				Attributes: map[string]schema.Attribute{
+					"name": schema.StringAttribute{
+						MarkdownDescription: "The name of the export policy.",
+						Computed:            true,
+					},
+					"id": schema.Int64Attribute{
+						MarkdownDescription: "The ID of the export policy.",
+						Computed:            true,
+					},
+				},
 			},
+
 			// qos_policy gives error in the API swagger when this option is specified.
 			// Commented out for now, further investigation needed.
 
@@ -189,10 +222,12 @@ func (d *StorageQtreeDataSource) Read(ctx context.Context, req datasource.ReadRe
 	}
 
 	data.Name = types.StringValue(restInfo.Name)
-
 	data.SecurityStyle = types.StringValue(restInfo.SecurityStyle)
 	data.Volume = types.StringValue(restInfo.Volume.Name)
+	data.ID = types.Int64Value(int64(restInfo.ID))
+	data.UnixPermissions = types.Int64Value(int64(restInfo.UnixPermissions))
 
+	// NAS
 	elementTypes := map[string]attr.Type{
 		"path": types.StringType,
 	}
@@ -206,13 +241,12 @@ func (d *StorageQtreeDataSource) Read(ctx context.Context, req datasource.ReadRe
 	}
 	data.NAS = objectValue
 
+	//User
 	elementTypes = map[string]attr.Type{
 		"name": types.StringType,
-		"id":   types.StringType,
 	}
 	elements = map[string]attr.Value{
 		"name": types.StringValue(restInfo.User.Name),
-		"id":   types.StringValue(restInfo.User.ID),
 	}
 	objectValue, diags = types.ObjectValue(elementTypes, elements)
 	if diags.HasError() {
@@ -220,6 +254,33 @@ func (d *StorageQtreeDataSource) Read(ctx context.Context, req datasource.ReadRe
 		return
 	}
 	data.User = objectValue
+
+	// Group
+	elements = map[string]attr.Value{
+		"name": types.StringValue(restInfo.Group.Name),
+	}
+	objectValue, diags = types.ObjectValue(elementTypes, elements)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	data.Group = objectValue
+
+	// Export Policy
+	elementTypes = map[string]attr.Type{
+		"name": types.StringType,
+		"id":   types.Int64Type,
+	}
+	elements = map[string]attr.Value{
+		"name": types.StringValue(restInfo.ExportPolicy.Name),
+		"id":   types.Int64Value(restInfo.ExportPolicy.ID),
+	}
+	objectValue, diags = types.ObjectValue(elementTypes, elements)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	data.ExportPolicy = objectValue
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
