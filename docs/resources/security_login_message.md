@@ -9,6 +9,7 @@ description: |-
 # Resource security login message
 
 Update/Import Security Login Message
+The `security_login_message` resource does not support creation or deletion operations. Users must first import the existing resource and then perform updates as needed.
 
 ### Related ONTAP commands
 ```commandline
