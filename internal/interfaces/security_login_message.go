@@ -64,7 +64,7 @@ func GetSecurityLoginMessage(errorHandler *utils.ErrorHandler, r restclient.Rest
 	return &dataONTAP, nil
 }
 
-// GetSecurityLoginMessages to get security_login_message info for all resources matching a filter
+// GetSecurityLoginMessages to get security_login_messages info for all resources matching a filter
 func GetSecurityLoginMessages(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *SecurityLoginMessageDataSourceFilterModel) ([]SecurityLoginMessageGetDataModelONTAP, error) {
 	api := "security/login/messages"
 	query := r.NewQuery()
@@ -97,19 +97,19 @@ func GetSecurityLoginMessages(errorHandler *utils.ErrorHandler, r restclient.Res
 	return dataONTAP, nil
 }
 
-// UpdateSecurityLoginMessage to update security_login_message
+// UpdateSecurityLoginMessage to update security_login_messages
 func UpdateSecurityLoginMessage(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string, body SecurityLoginMessageResourceBodyDataModelONTAP) error {
 	api := "security/login/messages"
 	var bodyMap map[string]interface{}
 	if err := mapstructure.Decode(body, &bodyMap); err != nil {
-		return errorHandler.MakeAndReportError("error encoding security_login_message body", fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body))
+		return errorHandler.MakeAndReportError("error encoding security_login_messages body", fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body))
 	}
-	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Update security login message: %#v", body))
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Update security login messages: %#v", body))
 	query := r.NewQuery()
 	query.Add("return_records", "true")
 	statusCode, _, err := r.CallUpdateMethod(api+"/"+uuid, query, bodyMap)
 	if err != nil {
-		return errorHandler.MakeAndReportError("error updating security_login_message", fmt.Sprintf("error on PUT %s: %s, statusCode %d", api, err, statusCode))
+		return errorHandler.MakeAndReportError("error updating security_login_messages", fmt.Sprintf("error on PUT %s: %s, statusCode %d", api, err, statusCode))
 	}
 	return nil
 }

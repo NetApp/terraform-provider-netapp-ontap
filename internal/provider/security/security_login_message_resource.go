@@ -26,7 +26,7 @@ var _ resource.ResourceWithImportState = &SecurityLoginMessageResource{}
 func NewSecurityLoginMessageResource() resource.Resource {
 	return &SecurityLoginMessageResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "security_login_message",
+			Name: "security_login_messages",
 		},
 	}
 }
@@ -56,7 +56,7 @@ func (r *SecurityLoginMessageResource) Metadata(ctx context.Context, req resourc
 func (r *SecurityLoginMessageResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		// This description is used by the documentation generator and the language server.
-		MarkdownDescription: "SecurityLoginMessage resource",
+		MarkdownDescription: "SecurityLoginMessages resource",
 
 		Attributes: map[string]schema.Attribute{
 			"cx_profile_name": schema.StringAttribute{
