@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
@@ -100,8 +99,20 @@ func (d *StorageQtreesDataSource) Schema(ctx context.Context, req datasource.Sch
 							MarkdownDescription: "StorageQtree name",
 							Computed:            true,
 						},
+						"volume_name": schema.StringAttribute{
+							MarkdownDescription: "The volume that contains the qtree.",
+							Computed:            true,
+						},
 						"svm_name": schema.StringAttribute{
 							MarkdownDescription: "IPInterface svm name",
+							Computed:            true,
+						},
+						"id": schema.Int64Attribute{
+							MarkdownDescription: "The ID of the qtree.",
+							Computed:            true,
+						},
+						"unix_permissions": schema.Int64Attribute{
+							MarkdownDescription: "The UNIX permissions for the qtree.",
 							Computed:            true,
 						},
 						"security_style": schema.StringAttribute{
@@ -129,15 +140,31 @@ func (d *StorageQtreesDataSource) Schema(ctx context.Context, req datasource.Sch
 									MarkdownDescription: "Alphanumeric username of user who owns the qtree.",
 									Computed:            true,
 								},
-								"id": schema.StringAttribute{
-									MarkdownDescription: "The numeric ID of the user who owns the qtree.",
+							},
+						},
+						"group": schema.SingleNestedAttribute{
+							MarkdownDescription: "The group set as owner of the qtree.",
+							Computed:            true,
+							Attributes: map[string]schema.Attribute{
+								"name": schema.StringAttribute{
+									MarkdownDescription: "Alphanumeric group name of group who owns the qtree.",
 									Computed:            true,
 								},
 							},
 						},
-						"volume_name": schema.StringAttribute{
-							MarkdownDescription: "The volume that contains the qtree.",
+						"export_policy": schema.SingleNestedAttribute{
+							MarkdownDescription: "The export policy for the qtree.",
 							Computed:            true,
+							Attributes: map[string]schema.Attribute{
+								"name": schema.StringAttribute{
+									MarkdownDescription: "The name of the export policy.",
+									Computed:            true,
+								},
+								"id": schema.Int64Attribute{
+									MarkdownDescription: "The ID of the export policy.",
+									Computed:            true,
+								},
+							},
 						},
 					},
 				},
@@ -195,15 +222,16 @@ func (d *StorageQtreesDataSource) Read(ctx context.Context, req datasource.ReadR
 		// error reporting done inside GetStorageQtrees
 		return
 	}
-	log.Print("!!!!!!!!!!!")
 	data.StorageQtrees = make([]StorageQtreeDataSourceModel, len(restInfo))
 	for index, record := range restInfo {
 		data.StorageQtrees[index] = StorageQtreeDataSourceModel{
-			CxProfileName: types.String(data.CxProfileName),
-			Name:          types.StringValue(record.Name),
-			SVMName:       types.StringValue(record.SVM.Name),
-			SecurityStyle: types.StringValue(record.SecurityStyle),
-			Volume:        types.StringValue(record.Volume.Name),
+			CxProfileName:   types.String(data.CxProfileName),
+			Name:            types.StringValue(record.Name),
+			SVMName:         types.StringValue(record.SVM.Name),
+			SecurityStyle:   types.StringValue(record.SecurityStyle),
+			Volume:          types.StringValue(record.Volume.Name),
+			ID:              types.Int64Value(int64(record.ID)),
+			UnixPermissions: types.Int64Value(int64(record.UnixPermissions)),
 		}
 		elementTypes := map[string]attr.Type{
 			"path": types.StringType,
@@ -220,11 +248,9 @@ func (d *StorageQtreesDataSource) Read(ctx context.Context, req datasource.ReadR
 
 		elementTypes = map[string]attr.Type{
 			"name": types.StringType,
-			"id":   types.StringType,
 		}
 		elements = map[string]attr.Value{
 			"name": types.StringValue(record.User.Name),
-			"id":   types.StringValue(record.User.ID),
 		}
 		objectValue, diags = types.ObjectValue(elementTypes, elements)
 		if diags.HasError() {
@@ -233,9 +259,32 @@ func (d *StorageQtreesDataSource) Read(ctx context.Context, req datasource.ReadR
 		}
 		data.StorageQtrees[index].User = objectValue
 
-	}
+		elements = map[string]attr.Value{
+			"name": types.StringValue(record.Group.Name),
+		}
+		objectValue, diags = types.ObjectValue(elementTypes, elements)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		data.StorageQtrees[index].Group = objectValue
 
-	log.Print("@@@@@@@@@@@@@@@@@@@@@@@")
+		elementTypes = map[string]attr.Type{
+			"name": types.StringType,
+			"id":   types.Int64Type,
+		}
+		elements = map[string]attr.Value{
+			"name": types.StringValue(record.ExportPolicy.Name),
+			"id":   types.Int64Value(int64(record.ExportPolicy.ID)),
+		}
+		objectValue, diags = types.ObjectValue(elementTypes, elements)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		data.StorageQtrees[index].ExportPolicy = objectValue
+
+	}
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log

@@ -53,12 +53,33 @@ Optional:
 Read-Only:
 
 - `cx_profile_name` (String) Connection profile name
+- `export_policy` (Attributes) The export policy for the qtree. (see [below for nested schema](#nestedatt--storage_qtrees--export_policy))
+- `group` (Attributes) The group set as owner of the qtree. (see [below for nested schema](#nestedatt--storage_qtrees--group))
+- `id` (Number) The ID of the qtree.
 - `name` (String) StorageQtree name
 - `nas` (Attributes) NAS settings (see [below for nested schema](#nestedatt--storage_qtrees--nas))
 - `security_style` (String) StorageQtree security style
 - `svm_name` (String) IPInterface svm name
+- `unix_permissions` (Number) The UNIX permissions for the qtree.
 - `user` (Attributes) The user set as owner of the qtree. (see [below for nested schema](#nestedatt--storage_qtrees--user))
 - `volume_name` (String) The volume that contains the qtree.
+
+<a id="nestedatt--storage_qtrees--export_policy"></a>
+### Nested Schema for `storage_qtrees.export_policy`
+
+Read-Only:
+
+- `id` (Number) The ID of the export policy.
+- `name` (String) The name of the export policy.
+
+
+<a id="nestedatt--storage_qtrees--group"></a>
+### Nested Schema for `storage_qtrees.group`
+
+Read-Only:
+
+- `name` (String) Alphanumeric group name of group who owns the qtree.
+
 
 <a id="nestedatt--storage_qtrees--nas"></a>
 ### Nested Schema for `storage_qtrees.nas`
@@ -73,5 +94,4 @@ Read-Only:
 
 Read-Only:
 
-- `id` (String) The numeric ID of the user who owns the qtree.
 - `name` (String) Alphanumeric username of user who owns the qtree.

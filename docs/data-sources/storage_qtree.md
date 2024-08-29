@@ -8,7 +8,7 @@ description: |-
 
 # netapp-ontap_storage_qtree (Data Source)
 
-Retreive one qtree
+Retreive a qtree
 
 ## Example Usage
 
@@ -16,7 +16,7 @@ Retreive one qtree
 data "netapp-ontap_storage_qtree" "storage_qtree" {
   # required to know which system to interface with
   cx_profile_name = "cluster3"
-  name = "tree1"
+  name = "tree10"
   volume_name =  "temp_root"
   svm_name = "temp"
 }
@@ -34,9 +34,30 @@ data "netapp-ontap_storage_qtree" "storage_qtree" {
 
 ### Read-Only
 
+- `export_policy` (Attributes) The export policy for the qtree. (see [below for nested schema](#nestedatt--export_policy))
+- `group` (Attributes) The group set as owner of the qtree. (see [below for nested schema](#nestedatt--group))
+- `id` (Number) The ID of the qtree.
 - `nas` (Attributes) NAS settings (see [below for nested schema](#nestedatt--nas))
 - `security_style` (String) StorageQtree security style
+- `unix_permissions` (Number) The UNIX permissions for the qtree.
 - `user` (Attributes) The user set as owner of the qtree. (see [below for nested schema](#nestedatt--user))
+
+<a id="nestedatt--export_policy"></a>
+### Nested Schema for `export_policy`
+
+Read-Only:
+
+- `id` (Number) The ID of the export policy.
+- `name` (String) The name of the export policy.
+
+
+<a id="nestedatt--group"></a>
+### Nested Schema for `group`
+
+Read-Only:
+
+- `name` (String) Alphanumeric group name of group who owns the qtree.
+
 
 <a id="nestedatt--nas"></a>
 ### Nested Schema for `nas`
@@ -51,5 +72,4 @@ Read-Only:
 
 Read-Only:
 
-- `id` (String) The numeric ID of the user who owns the qtree.
 - `name` (String) Alphanumeric username of user who owns the qtree.
