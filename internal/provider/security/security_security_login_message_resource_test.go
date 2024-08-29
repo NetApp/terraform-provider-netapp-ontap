@@ -16,27 +16,27 @@ func TestAccSecurityLoginMessage(t *testing.T) {
 		PreCheck:                 func() { ntest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ntest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Creating security_login_message test
+			// Creating security_login_messages test
 			{
 				Config:      testAccSecurityLoginMessageBasicClusterConfig(),
 				ExpectError: regexp.MustCompile("create operation is not supported"),
 			},
 			// Import and read with cluster
 			{
-				ResourceName:  "netapp-ontap_security_login_message.example",
+				ResourceName:  "netapp-ontap_security_login_messages.example",
 				ImportState:   true,
 				ImportStateId: "cluster1",
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_security_login_message.example", "scope", "cluster"),
+					resource.TestCheckResourceAttr("netapp-ontap_security_login_messages.example", "scope", "cluster"),
 				),
 			},
 			// Import and read with svm
 			{
-				ResourceName:  "netapp-ontap_security_login_message.example",
+				ResourceName:  "netapp-ontap_security_login_messages.example",
 				ImportState:   true,
 				ImportStateId: "svm5,cluster1",
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_security_login_message.example", "scope", "svm"),
+					resource.TestCheckResourceAttr("netapp-ontap_security_login_messages.example", "scope", "svm"),
 				),
 			},
 			// Update a option cannot tested in acc test
@@ -66,7 +66,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_security_login_message" "example" {
+resource "netapp-ontap_security_login_messages" "example" {
   cx_profile_name = "cluster1"
   message              = "Test cluster only \n message\n on the cluster"
   show_cluster_message = true
