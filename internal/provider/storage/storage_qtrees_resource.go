@@ -31,7 +31,7 @@ var _ resource.ResourceWithImportState = &StorageQtreeResource{}
 func NewStorageQtreeResource() resource.Resource {
 	return &StorageQtreeResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "storage_qtree",
+			Name: "storage_qtrees",
 		},
 	}
 }
