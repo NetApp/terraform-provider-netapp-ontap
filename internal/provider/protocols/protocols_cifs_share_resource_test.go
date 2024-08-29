@@ -89,7 +89,7 @@ resource "netapp-ontap_cifs_share" "example" {
 	cx_profile_name = "clustercifs"
   	name = "%s"
   	svm_name = "%s"
-	path = "/"
+	path = "/acc_test_cifs_share_volume"
 	acls = [
 		{
 	  		"permission": "read",
@@ -127,7 +127,7 @@ resource "netapp-ontap_cifs_share" "example" {
   cx_profile_name = "clustercifs"
   name = "%s"
   svm_name = "%s"
-  path = "/"
+  path = "/acc_test_cifs_share_volume"
   acls = [
 	{
 		"permission": "full_control",
@@ -166,7 +166,7 @@ resource "netapp-ontap_cifs_share" "example" {
   cx_profile_name = "clustercifs"
   name = "%s"
   svm_name = "%s"
-  path = "/"
+  path = "/acc_test_cifs_share_volume"
   acls = [
 	  {
 			"permission": "read",
@@ -210,7 +210,7 @@ resource "netapp-ontap_cifs_share" "example" {
   cx_profile_name = "clustercifs"
   name = "%s"
   svm_name = "%s"
-  path = "/"
+  path = "/acc_test_cifs_share_volume"
   acls = [
 	  {
 			"permission": "read",
