@@ -88,7 +88,7 @@ else
     link_if_exist ../../provider/variables.tf
     link_if_exist ../../provider/terraform.tfvars
     cat > data-source.tf << EOF
-data "netapp-ontap_${tag_prefix}_data_source" "${tag_prefix}" {
+data "netapp-ontap_${tag_prefix}" "${tag_prefix}" {
   # required to know which system to interface with
   cx_profile_name = "cluster1"
   name = "testme"
@@ -109,7 +109,7 @@ else
     link_if_exist ../../provider/variables.tf
     link_if_exist ../../provider/terraform.tfvars
     cat > data-source.tf << EOF
-data "netapp-ontap_${tag_all_prefix}_data_source" "${tag_all_prefix}" {
+data "netapp-ontap_${tag_all_prefix}" "${tag_all_prefix}" {
   # required to know which system to interface with
   cx_profile_name = "cluster1"
   # filter = {}
