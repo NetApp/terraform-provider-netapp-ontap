@@ -105,9 +105,9 @@ func GetStorageVolumeEfficiencyPoliciesByName(errorHandler *utils.ErrorHandler, 
 
 // GetStorageVolumeEfficiencyPolicies to get storage_volume_efficiency_policies info for all resources matching a filter
 func GetStorageVolumeEfficiencyPolicies(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *StorageVolumeEfficiencyPoliciesDataSourceFilterModel) ([]StorageVolumeEfficiencyPoliciesGetDataModelONTAP, error) {
-	api := "api_url"
+	api := "storage/volume-efficiency-policies"
 	query := r.NewQuery()
-	query.Fields([]string{"name", "svm.name", "scope"})
+	query.Fields([]string{"name", "svm.name", "type", "qos_policy", "comment", "enabled", "schedule", "duration", "start_threshold_percent", "uuid"})
 	if filter != nil {
 		var filterMap map[string]interface{}
 		if err := mapstructure.Decode(filter, &filterMap); err != nil {
