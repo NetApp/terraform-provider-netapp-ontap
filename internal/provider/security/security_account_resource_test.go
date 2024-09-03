@@ -17,24 +17,24 @@ func TestAccSecurityAccountResource(t *testing.T) {
 			{
 				Config: testAccSecurityAccountResourceConfig("carchitest", "password"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_security_account.security_account", "name", "carchitest"),
+					resource.TestCheckResourceAttr("netapp-ontap_security_accounts.security_account", "name", "carchitest"),
 				),
 			},
 			// Test updating a resource
 			{
 				Config: testAccSecurityAccountResourceConfig("carchitest", "password123"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_security_account.security_account", "name", "carchitest"),
-					resource.TestCheckResourceAttr("netapp-ontap_security_account.security_account", "password", "password123"),
+					resource.TestCheckResourceAttr("netapp-ontap_security_accounts.security_account", "name", "carchitest"),
+					resource.TestCheckResourceAttr("netapp-ontap_security_accounts.security_account", "password", "password123"),
 				),
 			},
 			// Test importing a resource
 			{
-				ResourceName:  "netapp-ontap_security_account.security_account",
+				ResourceName:  "netapp-ontap_security_accounts.security_account",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s", "acc_user", "cluster2"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_security_account.security_account", "name", "acc_user"),
+					resource.TestCheckResourceAttr("netapp-ontap_security_accounts.security_account", "name", "acc_user"),
 				),
 			},
 		},
@@ -62,7 +62,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_security_account" "security_account" {
+resource "netapp-ontap_security_accounts" "security_account" {
   # required to know which system to interface with
   cx_profile_name = "cluster2"
   name = "%s"

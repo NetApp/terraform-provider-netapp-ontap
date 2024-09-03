@@ -2,6 +2,8 @@
 
 FEATURES:
 * **New Data Source:** `netapp-ontap_volumes_files` ([#8](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/8))
+* **New Data Source:** `netapp-ontap_qos_policy` ([#77](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/77))
+* **New Data Source:** `netapp-ontap_qos_policies` ([#77](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/77))
 * **New Data Source:** `netapp-ontap_quota_rules` ([#135](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/135))
 * **New Data Source:** `netapp-ontap_quota_rule` ([#135](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/135))
 * **New Data Source:** `netapp-ontap_security_role` ([#139](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/139))
@@ -12,6 +14,8 @@ FEATURES:
 * **New Resource:** `netapp-ontap_quota_rules` ([#136](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/136))
 * **New Resource:** `netapp-ontap_volumes_files` ([#5](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/5))
 * **New Resource:** `netapp-ontap_security_roles` ([#140](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/140))
+* **New Resource:** `netapp-ontap_qos_policies` ([#76](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/76))
+* **New Resource:** `netapp-security_login_messages` ([#18](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/18))
 
 ENHANCEMENTS:
 * **netapp-ontap_lun**: added `size_unit` option. ([#227](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/227))

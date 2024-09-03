@@ -9,13 +9,6 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
-// TODO:
-// copy this file to match you data source (should match internal/interfaces/security_login_message.go)
-// replace SecurityLoginMessage with the name of the resource, following go conventions, eg IPInterface
-// replace security_login_message with the name of the resource, for logging purposes, eg ip_interface
-// replace api_url with API, eg ip/interfaces
-// delete these 5 lines
-
 // SecurityLoginMessageGetDataModelONTAP describes the GET record data model using go types for mapping.
 type SecurityLoginMessageGetDataModelONTAP struct {
 	Message            string `mapstructure:"message"`
@@ -26,10 +19,11 @@ type SecurityLoginMessageGetDataModelONTAP struct {
 	UUID               string `mapstructure:"uuid"`
 }
 
-// SecurityLoginMessageResourceBodyDataModelONTAP describes the body data model using go types for mapping.
+// SecurityLoginMessageResourceBodyDataModelONTAP describes the body data model using go types for mapping. Both svm and scope are not allowed to be updated.
 type SecurityLoginMessageResourceBodyDataModelONTAP struct {
-	Name string `mapstructure:"name"`
-	SVM  svm    `mapstructure:"svm"`
+	Banner             string `mapstructure:"banner"`
+	Message            string `mapstructure:"message"`
+	ShowClusterMessage bool   `mapstructure:"show_cluster_message"`
 }
 
 // SecurityLoginMessageDataSourceFilterModel describes the data source data model for queries.
@@ -40,17 +34,12 @@ type SecurityLoginMessageDataSourceFilterModel struct {
 	SVMName string `mapstructure:"svm.name"`
 }
 
-// GetSecurityLoginMessageByBannerMotd to get security_login_message info
-// Retrieves the login banner and messages of the day (MOTD) configured in the cluster and in specific SVMs.
-func GetSecurityLoginMessageByBannerMotd(errorHandler *utils.ErrorHandler, r restclient.RestClient, banner string, message string, svmName string) (*SecurityLoginMessageGetDataModelONTAP, error) {
+// GetSecurityLoginMessage to get security_login_message info
+// Retrieves the login banner and messages of the day (MOTD) configured in the cluster and in a specific SVM.
+func GetSecurityLoginMessage(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmName string) (*SecurityLoginMessageGetDataModelONTAP, error) {
 	api := "security/login/messages"
 	query := r.NewQuery()
-	if message != "" {
-		query.Set("message", message)
-	}
-	if banner != "" {
-		query.Set("banner", banner)
-	}
+
 	if svmName == "" {
 		query.Set("scope", "cluster")
 	} else {
@@ -75,7 +64,7 @@ func GetSecurityLoginMessageByBannerMotd(errorHandler *utils.ErrorHandler, r res
 	return &dataONTAP, nil
 }
 
-// GetSecurityLoginMessages to get security_login_message info for all resources matching a filter
+// GetSecurityLoginMessages to get security_login_messages info for all resources matching a filter
 func GetSecurityLoginMessages(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *SecurityLoginMessageDataSourceFilterModel) ([]SecurityLoginMessageGetDataModelONTAP, error) {
 	api := "security/login/messages"
 	query := r.NewQuery()
@@ -108,34 +97,19 @@ func GetSecurityLoginMessages(errorHandler *utils.ErrorHandler, r restclient.Res
 	return dataONTAP, nil
 }
 
-// CreateSecurityLoginMessage to create security_login_message
-func CreateSecurityLoginMessage(errorHandler *utils.ErrorHandler, r restclient.RestClient, body SecurityLoginMessageResourceBodyDataModelONTAP) (*SecurityLoginMessageGetDataModelONTAP, error) {
-	api := "api_url"
+// UpdateSecurityLoginMessage to update security_login_messages
+func UpdateSecurityLoginMessage(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string, body SecurityLoginMessageResourceBodyDataModelONTAP) error {
+	api := "security/login/messages"
 	var bodyMap map[string]interface{}
 	if err := mapstructure.Decode(body, &bodyMap); err != nil {
-		return nil, errorHandler.MakeAndReportError("error encoding security_login_message body", fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body))
+		return errorHandler.MakeAndReportError("error encoding security_login_messages body", fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body))
 	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Update security login messages: %#v", body))
 	query := r.NewQuery()
 	query.Add("return_records", "true")
-	statusCode, response, err := r.CallCreateMethod(api, query, bodyMap)
+	statusCode, _, err := r.CallUpdateMethod(api+"/"+uuid, query, bodyMap)
 	if err != nil {
-		return nil, errorHandler.MakeAndReportError("error creating security_login_message", fmt.Sprintf("error on POST %s: %s, statusCode %d", api, err, statusCode))
-	}
-
-	var dataONTAP SecurityLoginMessageGetDataModelONTAP
-	if err := mapstructure.Decode(response.Records[0], &dataONTAP); err != nil {
-		return nil, errorHandler.MakeAndReportError("error decoding security_login_message info", fmt.Sprintf("error on decode storage/security_login_messages info: %s, statusCode %d, response %#v", err, statusCode, response))
-	}
-	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Create security_login_message source - udata: %#v", dataONTAP))
-	return &dataONTAP, nil
-}
-
-// DeleteSecurityLoginMessage to delete security_login_message
-func DeleteSecurityLoginMessage(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) error {
-	api := "api_url"
-	statusCode, _, err := r.CallDeleteMethod(api+"/"+uuid, nil, nil)
-	if err != nil {
-		return errorHandler.MakeAndReportError("error deleting security_login_message", fmt.Sprintf("error on DELETE %s: %s, statusCode %d", api, err, statusCode))
+		return errorHandler.MakeAndReportError("error updating security_login_messages", fmt.Sprintf("error on PUT %s: %s, statusCode %d", api, err, statusCode))
 	}
 	return nil
 }
