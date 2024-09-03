@@ -8,7 +8,7 @@ description: |-
 
 # netapp-ontap_security_role (Resource)
 
-Create/Modify/Delete SecurityRole resource
+Create/Modify/Delete a SecurityRole resource
 
 ### Related ONTAP commands
 ```commandline
