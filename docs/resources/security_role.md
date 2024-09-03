@@ -32,7 +32,7 @@ resource "netapp-ontap_security_role" "security_role" {
       path = "lun"
     },
   	{
-	    access = "all"
+	         access = "all"
 	    path = "vserver"
 	    query = "-vserver acc_test"
 	  }
