@@ -20,6 +20,7 @@ Create/Modify/Delete a SecurityRole resource
 
 ## Example Usage
 
+
 ```terraform
 resource "netapp-ontap_security_role" "security_role" {
   # required to know which system to interface with
@@ -31,6 +32,7 @@ resource "netapp-ontap_security_role" "security_role" {
       access = "all"
       path = "lun"
     },
+    
     {
 	    access = "all"
       path = "vserver"
