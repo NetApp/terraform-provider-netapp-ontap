@@ -1,6 +1,8 @@
 import subprocess
 import os
 import sys
+import argparse
+
 
 # TO find the correct Catagory, check REST API to see what main header this API lives under
 
@@ -118,17 +120,25 @@ CATAGORYS = {
 
 
 def main():
+    parser = argparse.ArgumentParser(description="A simple CLI program.")
+    parser.add_argument("--skip-existent-doc",action="store_true", help="First parameter")
+    # parser.add_argument("param2", help="Second parameter")
+
+    args = parser.parse_args()
+
+    print(f"Param1: {args.skip_existent_doc}")
+    # print(f"Param2: {args.param2}")
     print("===== Generating docs =====")
     generate_doc()
-    remove_example()
-    print("===== Adding Catagories =====")
-    add_catagories()
-    print("===== Validate =====")
-    validate()
-    print("===== Errors =====")
-    issue = warn_missing_catagory(["docs/data-sources/", "docs/resources/"])
-    if issue:
-        sys.exit(1)
+    # remove_example()
+    # print("===== Adding Catagories =====")
+    # add_catagories()
+    # print("===== Validate =====")
+    # validate()
+    # print("===== Errors =====")
+    # issue = warn_missing_catagory(["docs/data-sources/", "docs/resources/"])
+    # if issue:
+    #     sys.exit(1)
 
 
 def generate_doc():
