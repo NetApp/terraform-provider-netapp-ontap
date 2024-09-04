@@ -17,13 +17,6 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
-// TODO:
-// copy this file to match you data source (should match internal/provider/storage_qtree_data_source.go)
-// replace StorageQtrees with the name of the resource, following go conventions, eg IPInterfaces
-// replace storage_qtrees with the name of the resource, for logging purposes, eg ip_interfaces
-// make sure to create internal/interfaces/storage_qtree.go too)
-// delete these 5 lines
-
 // Ensure provider defined types fully satisfy framework interfaces
 var _ datasource.DataSource = &StorageQtreesDataSource{}
 
