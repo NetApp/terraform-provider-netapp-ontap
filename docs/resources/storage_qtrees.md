@@ -94,3 +94,44 @@ Optional:
 Read-Only:
 
 - `path` (String) Client visible path to the qtree. This field is not available if the volume does not have a junction-path configured.
+
+## Import
+This Resource supports import, which allows you to import existing storage qtrees into the state of this resoruce.
+Import require a unique ID composed of the qtree name, volume_name, svm_name and cx_profile_name, separated by a comma.
+ id = `name`,`volume_name`,`svm_name`,`cx_profile_name`
+
+### Terraform Import
+ For example
+ ```shell
+  terraform import netapp-ontap_storage_qtrees.example qtree1,volume1,svm1,cluster1
+ ```
+
+!> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
+
+### Terraform Import Block
+This requires Terraform 1.5 or higher, and will auto create the configuration for you
+
+First create the block
+```terraform
+import {
+  to = netapp-ontap_storage_qtrees.qtree_import
+  id = "qtree1,volume1,svm1,cluster1"
+}
+```
+Next run, this will auto create the configuration for you
+```shell
+terraform plan -generate-config-out=generated.tf
+```
+This will generate a file called generated.tf, which will contain the configuration for the imported resource
+```terraform
+# __generated__ by Terraform
+# Please review these resources and move them into your main configuration files.
+# __generated__ by Terraform from "qtree1,volume1,svm1,cluster1"
+resource "netapp-ontap_storage_qtrees" "qtree1_import" {
+  cx_profile_name = "cluster1"
+  name       = "qtree1"
+  volume_name = "volume1"
+  svm_name   = "svm1"
+  ...
+}
+```
