@@ -31,7 +31,7 @@ var _ resource.ResourceWithImportState = &SecurityAccountResource{}
 func NewSecurityAccountResource() resource.Resource {
 	return &SecurityAccountResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "security_account",
+			Name: "security_accounts",
 		},
 	}
 }
@@ -82,7 +82,7 @@ func (r *SecurityAccountResource) Metadata(ctx context.Context, req resource.Met
 func (r *SecurityAccountResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		// This description is used by the documentation generator and the language server.
-		MarkdownDescription: "SecurityAccount resource",
+		MarkdownDescription: "SecurityAccounts resource",
 
 		Attributes: map[string]schema.Attribute{
 			"cx_profile_name": schema.StringAttribute{

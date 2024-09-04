@@ -59,7 +59,7 @@ func (d *SecurityLoginMessageDataSource) Schema(ctx context.Context, req datasou
 				Required:            true,
 			},
 			"message": schema.StringAttribute{
-				MarkdownDescription: "SecurityLoginMessage name",
+				MarkdownDescription: "SecurityLoginMessage message",
 				Optional:            true,
 				Computed:            true,
 			},
@@ -126,7 +126,7 @@ func (d *SecurityLoginMessageDataSource) Read(ctx context.Context, req datasourc
 		return
 	}
 
-	restInfo, err := interfaces.GetSecurityLoginMessageByBannerMotd(errorHandler, *client, data.Banner.ValueString(), data.Message.ValueString(), data.SVMName.ValueString())
+	restInfo, err := interfaces.GetSecurityLoginMessage(errorHandler, *client, data.SVMName.ValueString())
 	if err != nil {
 		// error reporting done inside GetSecurityLoginMessage
 		return
