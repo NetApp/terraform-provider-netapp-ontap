@@ -1,3 +1,9 @@
+# 2.0.0 ()
+
+FEATURES:
+* **New Data Source:** `netapp-ontap_security_certificate` ([#137](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/137))
+* **New Data Source:** `netapp-ontap_security_certificates` ([#137](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/137))
+
 # 1.2.0 ()
 
 FEATURES:

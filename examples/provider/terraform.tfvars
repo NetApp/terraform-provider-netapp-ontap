@@ -1,3 +1,3 @@
 username = "admin"
-password = "xxxxxxxxx"
-validate_certs = true
+password = "Netapp1!"
+validate_certs = false
