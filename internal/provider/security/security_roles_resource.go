@@ -27,10 +27,10 @@ var _ resource.Resource = &SecurityRoleResource{}
 var _ resource.ResourceWithImportState = &SecurityRoleResource{}
 
 // NewSecurityRoleResource is a helper function to simplify the provider implementation.
-func NewSecurityRoleResource() resource.Resource {
+func NewSecurityRolesResource() resource.Resource {
 	return &SecurityRoleResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "security_role",
+			Name: "security_roles",
 		},
 	}
 }
