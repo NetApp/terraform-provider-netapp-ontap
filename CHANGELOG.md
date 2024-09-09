@@ -1,5 +1,8 @@
 # 1.2.0 ()
 
+BREAKING CHANGES:
+* **Rename Resource:** `netapp-ontap_cluster_licensing_license` is now renamed to `netapp-ontap_cluster_licensing_licenses`
+
 FEATURES:
 * **New Data Source:** `netapp-ontap_volumes_files` ([#8](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/8))
 * **New Data Source:** `netapp-ontap_qos_policy` ([#77](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/77))
