@@ -10,18 +10,11 @@ description: |-
 
 Create/Modify/Delete a SecurityRoles resource
 
-### Related ONTAP commands
-```commandline
-* security login role create
-* security login role show
-* security login role delete
-* security login role modify
-```
-
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher
 
 ## Example Usage
+
 ```terraform
 resource "netapp-ontap_security_roles" "security_role" {
   # required to know which system to interface with
@@ -34,10 +27,10 @@ resource "netapp-ontap_security_roles" "security_role" {
       path = "lun"
     },
     {
-      access = "all"
-      path = "vserver"
-      query = "-vserver acc_test"
-    }
+	    access = "all"
+	    path = "vserver"
+	    query = "-vserver acc_test"
+	  }
   ]
 }
 ```
