@@ -42,7 +42,7 @@ provider "netapp-ontap" {
     },
     {
       name = "cluster5"
-      hostname = "10.193.73.2"
+      hostname = "********2"
       username = var.username
       password = var.password
       validate_certs = var.validate_certs
