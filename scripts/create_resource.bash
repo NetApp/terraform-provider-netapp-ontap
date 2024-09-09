@@ -21,10 +21,21 @@ echo "Resource name: eg ip_interface"
 read tag_prefix
 echo "Resource GO prefix: eg IPInterface"
 read go_prefix
+tag_prefix_string=${tag_prefix}
+module_name=${tag_prefix_string%%_*}
+go_all_prefix=${go_prefix}s
+
+# check if the module directory exists
+DIRECTORY=internal/provider/${module_name}
+if [ ! -d "$DIRECTORY" ]; then
+  echo "$DIRECTORY does not exist. creating it"
+    mkdir $DIRECTORY
+fi
+
 
 # resource file
-provider_file=internal/provider/${tag_prefix}_resource.go
-bad_provider_file=internal/provider/${tag_prefix}_resource.go-e
+provider_file=internal/provider/${module_name}/${tag_prefix}_resource.go
+bad_provider_file=internal/provider/${module_name}/${tag_prefix}_resource.go-e
 if [ -e  $provider_file ]; then
     echo "resource file $provider_file already exists"
 else
@@ -46,6 +57,7 @@ else
 fi
     sed -i'' -e s/tag_prefix/${tag_prefix}/g $interface_file
     sed -i'' -e s/GoPrefix/${go_prefix}/g $interface_file
+    sed -i'' -e s/GoAllPrefix/${go_all_prefix}/g $interface_file
     rm -rf $bad_provider_file
 
 example_dir=examples/resources/netapp-ontap_${tag_prefix}
@@ -60,7 +72,7 @@ else
     link_if_exist ../../provider/variables.tf
     link_if_exist ../../provider/terraform.tfvars
     cat > resource.tf << EOF
-resource "netapp-ontap_${tag_prefix}_resource" "${tag_prefix}" {
+resource "netapp-ontap_${tag_prefix}" "${tag_prefix}" {
   # required to know which system to interface with
   cx_profile_name = "cluster1"
   name = "testme"

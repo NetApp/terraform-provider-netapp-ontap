@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -25,15 +27,15 @@ var _ datasource.DataSource = &GoAllPrefixDataSource{}
 // NewGoAllPrefixDataSource is a helper function to simplify the provider implementation.
 func NewGoAllPrefixDataSource() datasource.DataSource {
 	return &GoAllPrefixDataSource{
-		config: resourceOrDataSourceConfig{
-			name: "tag_all_prefix_data_source",
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "tag_all_prefix",
 		},
 	}
 }
 
 // GoAllPrefixDataSource defines the data source implementation.
 type GoAllPrefixDataSource struct {
-	config resourceOrDataSourceConfig
+	config connection.ResourceOrDataSourceConfig
 }
 
 // GoAllPrefixDataSourceModel describes the data source data model.
@@ -51,7 +53,7 @@ type GoAllPrefixDataSourceFilterModel struct {
 
 // Metadata returns the data source type name.
 func (d *GoAllPrefixDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + d.config.name
+	resp.TypeName = req.ProviderTypeName + "_" + d.config.Name
 }
 
 // Schema defines the schema for the data source.
@@ -104,14 +106,14 @@ func (d *GoAllPrefixDataSource) Configure(ctx context.Context, req datasource.Co
 	if req.ProviderData == nil {
 		return
 	}
-	config, ok := req.ProviderData.(Config)
+	config, ok := req.ProviderData.(connection.Config)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Data Source Configure Type",
 			fmt.Sprintf("Expected Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 	}
-	d.config.providerConfig = config
+	d.config.ProviderConfig = config
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -127,7 +129,7 @@ func (d *GoAllPrefixDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
-	client, err := getRestClient(errorHandler, d.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, d.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return

@@ -85,12 +85,12 @@ type versionModelONTAP struct {
 
 // ipAddress describes the IP data model used in mgmtInterface.
 type ipAddress struct {
-	Address string
+	Address string `mapstructure:"address"`
 }
 
 // noddMgmtInterface describes the Management Interface data model used in ClusterNodeGetDataModelONTAP.
 type noddMgmtInterface struct {
-	IP ipAddress
+	IP ipAddress `mapstructure:"ip"`
 }
 
 // ClusterNodeGetDataModelONTAP describes the GET record data model using go types for mapping.

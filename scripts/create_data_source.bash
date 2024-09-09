@@ -24,10 +24,18 @@ read go_prefix
 
 tag_all_prefix=${tag_prefix}s
 go_all_prefix=${go_prefix}s
+module_name=${tag_prefix%%_*}
+
+#create the module directory if it does not exist
+DIRECTORY=internal/provider/${module_name}
+if [ ! -d "$DIRECTORY" ]; then
+  echo "$DIRECTORY does not exist. creating it"
+    mkdir $DIRECTORY
+fi
 
 # data source for a single resource
-provider_file=internal/provider/${tag_prefix}_data_source.go
-bad_provider_file=internal/provider/${tag_prefix}_data_source.go-e
+provider_file=internal/provider/${module_name}/${tag_prefix}_data_source.go
+bad_provider_file=internal/provider/${module_name}/${tag_prefix}_data_source.go-e
 if [ -e  $provider_file ]; then
     echo "data source file $provider_file already exists"
 else
@@ -39,8 +47,8 @@ else
 fi
 
 # data source for a list of resources
-provider_file=internal/provider/${tag_all_prefix}_data_source.go
-bad_provider_file=internal/provider/${tag_all_prefix}_data_source.go-e
+provider_file=internal/provider/${module_name}/${tag_all_prefix}_data_source.go
+bad_provider_file=internal/provider/${module_name}/${tag_all_prefix}_data_source.go-e
 if [ -e  $provider_file ]; then
     echo "data source file $provider_file already exists"
 else
@@ -80,7 +88,7 @@ else
     link_if_exist ../../provider/variables.tf
     link_if_exist ../../provider/terraform.tfvars
     cat > data-source.tf << EOF
-data "netapp-ontap_${tag_prefix}_data_source" "${tag_prefix}" {
+data "netapp-ontap_${tag_prefix}" "${tag_prefix}" {
   # required to know which system to interface with
   cx_profile_name = "cluster1"
   name = "testme"
@@ -101,7 +109,7 @@ else
     link_if_exist ../../provider/variables.tf
     link_if_exist ../../provider/terraform.tfvars
     cat > data-source.tf << EOF
-data "netapp-ontap_${tag_all_prefix}_data_source" "${tag_all_prefix}" {
+data "netapp-ontap_${tag_all_prefix}" "${tag_all_prefix}" {
   # required to know which system to interface with
   cx_profile_name = "cluster1"
   # filter = {}

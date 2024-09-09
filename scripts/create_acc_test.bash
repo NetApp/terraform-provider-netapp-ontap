@@ -12,6 +12,8 @@ echo "Resource name for test: eg snapmirror"
 read new_test_file_name
 echo "Resource GO prefix: eg SnapmirrorResource"
 read go_prefix_name
+echo "Resource path: eg storage"
+read path_name
 
 # Define the existing resource name
 existing_resource_name="snapmirror_resource"
@@ -23,10 +25,11 @@ new_resource_name=${new_test_file_name}_resource
 go_prefix=${go_prefix_name}
 
 # Define the path to the test directory
-test_directory="internal/provider"
+test_directory="internal/provider/${path_name}"
+path_for_file=${path_name}
 
 # Define the path to the new test file
-new_test_file="${test_directory}/${new_resource_name}_test.go"
+new_test_file="${test_directory}/${path_name}_${new_resource_name}_test.go"
 
 # Check if the new test file already exists
 if [[ -f ${new_test_file} ]]; then
@@ -34,16 +37,16 @@ if [[ -f ${new_test_file} ]]; then
     exit 1
 fi
 
-bad_test_file=internal/provider/${new_resource_name}_test.go-e
+bad_test_file=internal/provider/${path_name}/${path_name}_${new_resource_name}_test.go-e
 echo "creating $new_test_file"
 
 # Copy the existing test file to create a new test file
-cp "${test_directory}/${existing_resource_name}_test.go" "${new_test_file}"
+cp "internal/provider/snapmirror/${existing_resource_name}_test.go" "${new_test_file}"
 
 # Replace all occurrences of the existing resource name with the new resource name in the new test file
 sed -i -e "s/${existing_resource_name}/${new_resource_name}/g" "${new_test_file}"
-
-sed -i -e "113,114d;110,111d;107,108d;78,79d;75,76d;17,21d;6d;" "${new_test_file}"
+sed -i '' "s/package snapmirror_test/package ${path_for_file}_test/g" "${new_test_file}"
+sed -i -e "114,115d;111,112d;108,109d;79,80d;76,77d;" "${new_test_file}"
 sed -i -e "s/SnapmirrorResource/${go_prefix}/g" "${new_test_file}"
 sed -i -e "s/snapmirror_dest_svm:testme/name/g" "${new_test_file}"
 sed -i -e "s/snapmirror_source_svm:snap3/acc_test/g" "${new_test_file}"
@@ -60,6 +63,7 @@ sed -i -e "s/destination_endpoint = {/svm_name = \"%s\"/g" "${new_test_file}"
 sed -i -e "s/policy = {/option_name = \"%s\"/g" "${new_test_file}"
 sed -i -e "s/policy/option/g" "${new_test_file}"
 sed -i -e "s/snapmirror/${new_test_file_name}/g" "${new_test_file}"
+
 
 rm -rf $bad_test_file
 

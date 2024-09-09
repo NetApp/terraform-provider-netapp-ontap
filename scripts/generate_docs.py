@@ -77,6 +77,9 @@ CATAGORYS = {
         "security_account_data_source.md",
         "security_accounts_data_source.md",
         "security_account_resource.md",
+        "security_login_message_data_source.md",
+        "security_login_messages_data_source.md",
+        "security_login_message_resource.md",
     ],
     'snaplock': [],
     'snapmirror': [
@@ -96,11 +99,13 @@ CATAGORYS = {
         "storage_lun_data_source.md",
         "storage_luns_data_source.md",
         "storage_lun_resource.md",
+        "storage_quota_rules_resource.md",
         "storage_snapshot_policies_data_source.md",
         "storage_snapshot_policy_data_source.md",
         "storage_snapshot_policy_resource.md",
         "storage_volume_data_source.md",
         "storage_volumes_data_source.md",
+        "storage_volumes_files_data_source.md",
         "storage_volume_resource.md",
         "storage_volume_snapshot_data_source.md",
         "storage_volume_snapshots_data_source.md"

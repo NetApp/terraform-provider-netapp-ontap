@@ -8,11 +8,11 @@
  viewBox="0.00 0.00 653.75 332.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 328)">
 <polygon fill="white" stroke="none" points="-4,4 -4,-328 649.75,-328 649.75,4 -4,4"/>
-<!-- [root] netapp&#45;ontap_storage_volume_resource.volume1 (expand) -->
+<!-- [root] netapp&#45;ontap_volume_resource.volume1 (expand) -->
 <g id="node1" class="node">
-<title>[root] netapp&#45;ontap_storage_volume_resource.volume1 (expand)</title>
+<title>[root] netapp&#45;ontap_volume_resource.volume1 (expand)</title>
 <polygon fill="none" stroke="black" points="283,-180 0,-180 0,-144 283,-144 283,-180"/>
-<text text-anchor="middle" x="141.5" y="-156.95" font-family="Times,serif" font-size="14.00">netapp&#45;ontap_storage_volume_resource.volume1</text>
+<text text-anchor="middle" x="141.5" y="-156.95" font-family="Times,serif" font-size="14.00">netapp&#45;ontap_volume_resource.volume1</text>
 </g>
 <!-- [root] provider[&quot;registry.terraform.io/netapp/netapp&#45;ontap&quot;] -->
 <g id="node3" class="node">
@@ -20,21 +20,21 @@
 <polygon fill="none" stroke="black" points="307.5,-108 11.22,-90 307.5,-72 603.78,-90 307.5,-108"/>
 <text text-anchor="middle" x="307.5" y="-84.95" font-family="Times,serif" font-size="14.00">provider[&quot;registry.terraform.io/netapp/netapp&#45;ontap&quot;]</text>
 </g>
-<!-- [root] netapp&#45;ontap_storage_volume_resource.volume1 (expand)&#45;&gt;[root] provider[&quot;registry.terraform.io/netapp/netapp&#45;ontap&quot;] -->
+<!-- [root] netapp&#45;ontap_volume_resource.volume1 (expand)&#45;&gt;[root] provider[&quot;registry.terraform.io/netapp/netapp&#45;ontap&quot;] -->
 <g id="edge1" class="edge">
-<title>[root] netapp&#45;ontap_storage_volume_resource.volume1 (expand)&#45;&gt;[root] provider[&quot;registry.terraform.io/netapp/netapp&#45;ontap&quot;]</title>
+<title>[root] netapp&#45;ontap_volume_resource.volume1 (expand)&#45;&gt;[root] provider[&quot;registry.terraform.io/netapp/netapp&#45;ontap&quot;]</title>
 <path fill="none" stroke="black" d="M182.96,-143.52C206.63,-133.53 236.38,-120.99 260.87,-110.66"/>
 <polygon fill="black" stroke="black" points="262.11,-113.94 269.96,-106.83 259.39,-107.49 262.11,-113.94"/>
 </g>
-<!-- [root] netapp&#45;ontap_storage_volume_snapshot_resource.snapshot1 (expand) -->
+<!-- [root] netapp&#45;ontap_volume_snapshot_resource.snapshot1 (expand) -->
 <g id="node2" class="node">
-<title>[root] netapp&#45;ontap_storage_volume_snapshot_resource.snapshot1 (expand)</title>
+<title>[root] netapp&#45;ontap_volume_snapshot_resource.snapshot1 (expand)</title>
 <polygon fill="none" stroke="black" points="645.75,-180 301.25,-180 301.25,-144 645.75,-144 645.75,-180"/>
-<text text-anchor="middle" x="473.5" y="-156.95" font-family="Times,serif" font-size="14.00">netapp&#45;ontap_storage_volume_snapshot_resource.snapshot1</text>
+<text text-anchor="middle" x="473.5" y="-156.95" font-family="Times,serif" font-size="14.00">netapp&#45;ontap_volume_snapshot_resource.snapshot1</text>
 </g>
-<!-- [root] netapp&#45;ontap_storage_volume_snapshot_resource.snapshot1 (expand)&#45;&gt;[root] provider[&quot;registry.terraform.io/netapp/netapp&#45;ontap&quot;] -->
+<!-- [root] netapp&#45;ontap_volume_snapshot_resource.snapshot1 (expand)&#45;&gt;[root] provider[&quot;registry.terraform.io/netapp/netapp&#45;ontap&quot;] -->
 <g id="edge2" class="edge">
-<title>[root] netapp&#45;ontap_storage_volume_snapshot_resource.snapshot1 (expand)&#45;&gt;[root] provider[&quot;registry.terraform.io/netapp/netapp&#45;ontap&quot;]</title>
+<title>[root] netapp&#45;ontap_volume_snapshot_resource.snapshot1 (expand)&#45;&gt;[root] provider[&quot;registry.terraform.io/netapp/netapp&#45;ontap&quot;]</title>
 <path fill="none" stroke="black" d="M432.04,-143.52C408.37,-133.53 378.62,-120.99 354.13,-110.66"/>
 <polygon fill="black" stroke="black" points="355.61,-107.49 345.04,-106.83 352.89,-113.94 355.61,-107.49"/>
 </g>
@@ -86,15 +86,15 @@
 <ellipse fill="none" stroke="black" cx="307.5" cy="-234" rx="260.68" ry="18"/>
 <text text-anchor="middle" x="307.5" y="-228.95" font-family="Times,serif" font-size="14.00">[root] provider[&quot;registry.terraform.io/netapp/netapp&#45;ontap&quot;] (close)</text>
 </g>
-<!-- [root] provider[&quot;registry.terraform.io/netapp/netapp&#45;ontap&quot;] (close)&#45;&gt;[root] netapp&#45;ontap_storage_volume_resource.volume1 (expand) -->
+<!-- [root] provider[&quot;registry.terraform.io/netapp/netapp&#45;ontap&quot;] (close)&#45;&gt;[root] netapp&#45;ontap_volume_resource.volume1 (expand) -->
 <g id="edge3" class="edge">
-<title>[root] provider[&quot;registry.terraform.io/netapp/netapp&#45;ontap&quot;] (close)&#45;&gt;[root] netapp&#45;ontap_storage_volume_resource.volume1 (expand)</title>
+<title>[root] provider[&quot;registry.terraform.io/netapp/netapp&#45;ontap&quot;] (close)&#45;&gt;[root] netapp&#45;ontap_volume_resource.volume1 (expand)</title>
 <path fill="none" stroke="black" d="M266.89,-215.88C244.75,-206.54 217.11,-194.88 193.42,-184.89"/>
 <polygon fill="black" stroke="black" points="194.81,-181.68 184.24,-181.02 192.09,-188.13 194.81,-181.68"/>
 </g>
-<!-- [root] provider[&quot;registry.terraform.io/netapp/netapp&#45;ontap&quot;] (close)&#45;&gt;[root] netapp&#45;ontap_storage_volume_snapshot_resource.snapshot1 (expand) -->
+<!-- [root] provider[&quot;registry.terraform.io/netapp/netapp&#45;ontap&quot;] (close)&#45;&gt;[root] netapp&#45;ontap_volume_snapshot_resource.snapshot1 (expand) -->
 <g id="edge4" class="edge">
-<title>[root] provider[&quot;registry.terraform.io/netapp/netapp&#45;ontap&quot;] (close)&#45;&gt;[root] netapp&#45;ontap_storage_volume_snapshot_resource.snapshot1 (expand)</title>
+<title>[root] provider[&quot;registry.terraform.io/netapp/netapp&#45;ontap&quot;] (close)&#45;&gt;[root] netapp&#45;ontap_volume_snapshot_resource.snapshot1 (expand)</title>
 <path fill="none" stroke="black" d="M348.11,-215.88C370.25,-206.54 397.89,-194.88 421.58,-184.89"/>
 <polygon fill="black" stroke="black" points="422.91,-188.13 430.76,-181.02 420.19,-181.68 422.91,-188.13"/>
 </g>
