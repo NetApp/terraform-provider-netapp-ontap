@@ -3,8 +3,9 @@ package cluster
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -28,7 +29,7 @@ var _ resource.ResourceWithImportState = &ClusterScheduleResource{}
 func NewClusterScheduleResource() resource.Resource {
 	return &ClusterScheduleResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "cluster_schedule",
+			Name: "cluster_schedules",
 		},
 	}
 }

@@ -18,7 +18,7 @@ CATAGORYS = {
         "cluster_peer_resource.md",
         "cluster_schedule_data_source.md",
         "cluster_schedules_data_source.md",
-        "cluster_schedule_resource.md"],
+        "cluster_schedules_resource.md"],
     'nas': [
         "protocols_cifs_local_group_data_source.md",
         "protocols_cifs_local_groups_data_source.md",
