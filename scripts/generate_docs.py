@@ -12,7 +12,7 @@ CATAGORYS = {
         "cluster_data_source.md",
         "cluster_license_data_source.md",
         "cluster_licenses_data_source.md",
-        "cluster_licensing_license_resource.md",
+        "cluster_licensing_licenses_resource.md",
         "cluster_peer_data_source.md",
         "cluster_peers_data_source.md",
         "cluster_peer_resource.md",
