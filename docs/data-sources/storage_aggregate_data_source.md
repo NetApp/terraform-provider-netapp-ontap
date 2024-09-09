@@ -1,5 +1,5 @@
 ---
-page_title: "netapp-ontap_storage_aggregate_data_source Data Source - terraform-provider-netapp-ontap"
+page_title: "netapp-ontap_aggregate Data Source - terraform-provider-netapp-ontap"
 subcategory: "Storage"
 description: |-
   Retrieves the storage aggregation details of SVMs.
@@ -11,7 +11,7 @@ Retrieves the storage aggregation details of SVMs.
 
 ## Example Usage
 ```terraform
-data "netapp-ontap_storage_aggregate_data_source" "storage_aggregate" {
+data "netapp-ontap_aggregate" "storage_aggregate" {
 	# required to know which system to interface with
 	cx_profile_name = "cluster4"
 	name = "aggr1"

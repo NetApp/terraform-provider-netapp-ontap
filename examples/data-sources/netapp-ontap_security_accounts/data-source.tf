@@ -1,4 +1,4 @@
-data "netapp-ontap_security_accounts_data_source" "security_accounts" {
+data "netapp-ontap_security_accounts" "security_accounts" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   filter = {
@@ -6,7 +6,7 @@ data "netapp-ontap_security_accounts_data_source" "security_accounts" {
   }
 }
 
-data "netapp-ontap_security_accounts_data_source" "security_accounts2" {
+data "netapp-ontap_security_accounts" "security_accounts2" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   filter = {
@@ -14,7 +14,7 @@ data "netapp-ontap_security_accounts_data_source" "security_accounts2" {
   }
 }
 
-data "netapp-ontap_security_accounts_data_source" "security_accounts3" {
+data "netapp-ontap_security_accounts" "security_accounts3" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   filter = {
@@ -22,7 +22,7 @@ data "netapp-ontap_security_accounts_data_source" "security_accounts3" {
   }
 }
 
-data "netapp-ontap_security_accounts_data_source" "security_accounts4" {
+data "netapp-ontap_security_accounts" "security_accounts4" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   filter = {
