@@ -8,7 +8,7 @@ description: |-
 
 # netapp-ontap_security_roles (Resource)
 
-Create/Modify/Delete a SecurityRoles resource
+Create/Modify/Delete a Security role
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher
