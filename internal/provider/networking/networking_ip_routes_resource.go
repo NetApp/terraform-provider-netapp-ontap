@@ -3,8 +3,9 @@ package networking
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
@@ -29,10 +30,10 @@ var _ resource.Resource = &IPRouteResource{}
 var _ resource.ResourceWithImportState = &IPRouteResource{}
 
 // NewIPRouteResource is a helper function to simplify the provider implementation.
-func NewIPRouteResource() resource.Resource {
+func NewIPRoutesResource() resource.Resource {
 	return &IPRouteResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "networking_ip_route",
+			Name: "networking_ip_routes",
 		},
 	}
 }
