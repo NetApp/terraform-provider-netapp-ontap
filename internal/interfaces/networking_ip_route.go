@@ -113,7 +113,7 @@ func GetListIPRoutes(errorHandler *utils.ErrorHandler, r restclient.RestClient, 
 	}
 
 	var fields = []string{"destination", "gateway"}
-	if version.Generation == 9 && version.Major > 11 {
+	if version.Generation == 9 && version.Major > 10 {
 		fields = append(fields, "metric")
 	}
 	query.Fields(fields)

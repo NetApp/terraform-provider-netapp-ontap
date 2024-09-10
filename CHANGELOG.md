@@ -22,7 +22,16 @@ ENHANCEMENTS:
 * **netapp-ontap_lun**: added `size_unit` option. ([#227](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/227))
 * **netapp-ontap_security_account**: Add support for import and update ([#243](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/243))
 
-## 1.1.3
+## 1.1.4 (2024-09-05)
+
+DOC FIXES:
+* **netapp-ontap_storage_flexcache_resource**: Fixed Page display issue ([[#271](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/271)])
+* **netapp-ontap_networking_ip_interface_resource**: Include min version for metrics ([[#265](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/265)])
+
+BUG FIXES:
+* **netapp-ontap_cluster_data_source: fix on nodes to show multiple elements ([#264](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/264))
+
+## 1.1.3 (2024-08-08)
 
 BUG FIXES:
 * **netapp-ontap_protocols_cifs_service_resource**: fixed on attribute checking ([#250](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/250))
