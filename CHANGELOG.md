@@ -1,5 +1,6 @@
 # 1.2.0 ()
 
+
 BREAKING CHANGES:
 * **Rename Resource:** `netapp-ontap_cluster_licensing_license` is now renamed to `netapp-ontap_cluster_licensing_licenses`
 * **Rename Resource:** `netapp-ontap_cluster_schedule` is now renamed to `netapp-ontap_cluster_schedules`
