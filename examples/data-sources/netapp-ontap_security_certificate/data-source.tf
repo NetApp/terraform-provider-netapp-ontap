@@ -8,4 +8,5 @@ data "netapp-ontap_security_certificate" "security_certificate2" {
   # required to know which system to interface with
   cx_profile_name = "cluster5"
   common_name = "tfsvm"
+  type = "server"
 }
