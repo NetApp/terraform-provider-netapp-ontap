@@ -87,16 +87,16 @@ func (d *SecurityCertificatesDataSource) Schema(ctx context.Context, req datasou
 							MarkdownDescription: "Common name of the certificate.",
 							Optional:            true,
 						},
+						"type": schema.StringAttribute{
+							MarkdownDescription: "Type of Certificate.",
+							Optional:            true,
+						},
 						"svm_name": schema.StringAttribute{
 							MarkdownDescription: "SVM name in which the certificate is installed.",
 							Optional:            true,
 						},
 						"scope": schema.StringAttribute{
 							MarkdownDescription: "Set to 'svm' for certificates installed in a SVM. Otherwise, set to 'cluster'.",
-							Computed:            true,
-						},
-						"type": schema.StringAttribute{
-							MarkdownDescription: "Type of Certificate.",
 							Computed:            true,
 						},
 						"serial_number": schema.StringAttribute{
@@ -167,6 +167,16 @@ func (d *SecurityCertificatesDataSource) Read(ctx context.Context, req datasourc
 		return
 	}
 
+	cluster, err := interfaces.GetCluster(errorHandler, *client)
+	if err != nil {
+		// error reporting done inside GetCluster
+		return
+	}
+	if cluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", "cluster not found")
+		return
+	}
+
 	var filter *interfaces.SecurityCertificateDataSourceFilterModel = nil
 	if data.Filter != nil {
 		filter = &interfaces.SecurityCertificateDataSourceFilterModel{
@@ -174,7 +184,7 @@ func (d *SecurityCertificatesDataSource) Read(ctx context.Context, req datasourc
 			Scope:   data.Filter.Scope.ValueString(),
 		}
 	}
-	restInfo, err := interfaces.GetSecurityCertificates(errorHandler, *client, filter)
+	restInfo, err := interfaces.GetSecurityCertificates(errorHandler, *client, cluster.Version, filter)
 	if err != nil {
 		// error reporting done inside GetSecurityCertificates
 		return
