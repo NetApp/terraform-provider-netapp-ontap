@@ -8,7 +8,7 @@ description: |-
 
 # netapp-ontap_storage_qtrees (Resource)
 
-Create/modify/delete a qtree
+Create/modify/delete a storage qtree
 
 ### Related ONTAP commands
 ```commandline
