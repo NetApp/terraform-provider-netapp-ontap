@@ -69,6 +69,7 @@ Optional:
 
 - `common_name` (String) Common name of the certificate.
 - `name` (String) The unique name of the security certificate per SVM. This parameter is supported with ONTAP 9.8 or later.
+- `type` (String) Type of Certificate.
 - `svm_name` (String) SVM name in which the certificate is installed.
 
 Read-Only:
@@ -80,4 +81,3 @@ Read-Only:
 - `key_size` (Number) Key size of the certificate in bits.
 - `scope` (String) Set to 'svm' for certificates installed in a SVM. Otherwise, set to 'cluster'.
 - `serial_number` (String) Serial number of certificate.
-- `type` (String) Type of Certificate.
