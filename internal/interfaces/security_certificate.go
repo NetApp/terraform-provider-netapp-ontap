@@ -32,23 +32,29 @@ type SecurityCertificateDataSourceFilterModel struct {
 }
 
 // GetSecurityCertificate to get security_certificate info
-func GetSecurityCertificate(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, common_name string) (*SecurityCertificateGetDataModelONTAP, error) {
+func GetSecurityCertificate(errorHandler *utils.ErrorHandler, r restclient.RestClient, version versionModelONTAP, name string, common_name string, type_ string) (*SecurityCertificateGetDataModelONTAP, error) {
 	api := "security/certificates"
 	query := r.NewQuery()
 	if name != "" {
 		query.Set("name", name)
-	} else if common_name != "" {
-		query.Set("common_name", common_name)
 	} else {
-		return nil, errorHandler.MakeAndLogError("Error: 'name' or 'common_name' are required parameters.")
+		query.Set("common_name", common_name)
+		query.Set("type", type_)
 	}
-	query.Fields([]string{"uuid", "name", "common_name", "svm.name", "scope", "type", "serial_number", "ca", "hash_function", "key_size", "expiry_time"})
+	var fields = []string{"uuid", "common_name", "svm.name", "scope", "type", "serial_number", "ca", "hash_function", "key_size", "expiry_time"}
+	if version.Generation == 9 && version.Major >= 8 {
+		fields = append(fields, "name")
+	}
+	query.Fields(fields)
 
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
 		err = fmt.Errorf("no response for GET %s", api)
 	}
 	if err != nil {
+		if strings.Contains(err.Error(), "or more records when only one is expected") {
+			return nil, errorHandler.MakeAndReportError("error reading security_certificate info", "Duplicate records found with the same common_name.")
+		}
 		return nil, errorHandler.MakeAndReportError("error reading security_certificate info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
 	}
 
@@ -62,10 +68,14 @@ func GetSecurityCertificate(errorHandler *utils.ErrorHandler, r restclient.RestC
 }
 
 // GetSecurityCertificateByUUID to get security_certificate info
-func GetSecurityCertificateByUUID(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) (*SecurityCertificateGetDataModelONTAP, error) {
+func GetSecurityCertificateByUUID(errorHandler *utils.ErrorHandler, r restclient.RestClient, version versionModelONTAP, uuid string) (*SecurityCertificateGetDataModelONTAP, error) {
 	api := "security/certificates/" + uuid
 	query := r.NewQuery()
-	query.Fields([]string{"uuid", "name", "common_name", "svm.name", "scope", "type", "serial_number", "ca", "hash_function", "key_size", "expiry_time"})
+	var fields = []string{"uuid", "common_name", "svm.name", "scope", "type", "serial_number", "ca", "hash_function", "key_size", "expiry_time"}
+	if version.Generation == 9 && version.Major >= 8 {
+		fields = append(fields, "name")
+	}
+	query.Fields(fields)
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
 		err = fmt.Errorf("no response for GET %s", api)
@@ -84,10 +94,14 @@ func GetSecurityCertificateByUUID(errorHandler *utils.ErrorHandler, r restclient
 }
 
 // GetSecurityCertificates to get security_certificate info for all resources matching a filter
-func GetSecurityCertificates(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *SecurityCertificateDataSourceFilterModel) ([]SecurityCertificateGetDataModelONTAP, error) {
+func GetSecurityCertificates(errorHandler *utils.ErrorHandler, r restclient.RestClient, version versionModelONTAP, filter *SecurityCertificateDataSourceFilterModel) ([]SecurityCertificateGetDataModelONTAP, error) {
 	api := "security/certificates"
 	query := r.NewQuery()
-	query.Fields([]string{"uuid", "name", "common_name", "svm.name", "scope", "type", "serial_number", "ca", "hash_function", "key_size", "expiry_time"})
+	var fields = []string{"uuid", "common_name", "svm.name", "scope", "type", "serial_number", "ca", "hash_function", "key_size", "expiry_time"}
+	if version.Generation == 9 && version.Major >= 8 {
+		fields = append(fields, "name")
+	}
+	query.Fields(fields)
 	if filter != nil {
 		if filter.SVMName != "" {
 			query.Add("svm.name", filter.SVMName)
