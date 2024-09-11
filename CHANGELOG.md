@@ -1,6 +1,7 @@
 # 1.2.0 ()
 
 FEATURES:
+* **provider**: add `aws_lambda` option. ([#262](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/262))
 * **New Data Source:** `netapp-ontap_volumes_files` ([#8](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/8))
 * **New Data Source:** `netapp-ontap_qos_policy` ([#77](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/77))
 * **New Data Source:** `netapp-ontap_qos_policies` ([#77](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/77))
@@ -10,10 +11,15 @@ FEATURES:
 * **New Data Source:** `netapp-ontap_security_roles` ([#139](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/139))
 * **New Data Source:** `netapp-ontap_security_login_message` ([#17](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/17))
 * **New Data Source:** `netapp-ontap_security_login_messages` ([#17](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/17))
+* **New Data Source:** `netapp-ontap_storage_qtree` ([#83](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/83))
+* **New Data Source:** `netapp-ontap_storage_qtrees` ([#83](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/83))
+* **New Data Source:** `netapp-ontap_volume_efficiency_policy` ([#81](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/81))
+* **New Data Source:** `netapp-ontap_volume_efficiency_policies` ([#81](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/81))
 * **New Resource:** `netapp-ontap_volume_efficiency_policies` ([#80](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/80))
 * **New Resource:** `netapp-ontap_quota_rules` ([#136](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/136))
 * **New Resource:** `netapp-ontap_volumes_files` ([#5](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/5))
 * **New Resource:** `netapp-ontap_security_roles` ([#140](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/140))
+* **New Resource:** `netapp-ontap_storage_qtrees` ([#82](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/82))
 * **New Resource:** `netapp-ontap_qos_policies` ([#76](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/76))
 * **New Resource:** `netapp-security_login_messages` ([#18](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/18))
 
@@ -21,7 +27,16 @@ ENHANCEMENTS:
 * **netapp-ontap_lun**: added `size_unit` option. ([#227](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/227))
 * **netapp-ontap_security_account**: Add support for import and update ([#243](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/243))
 
-## 1.1.3
+## 1.1.4 (2024-09-05)
+
+DOC FIXES:
+* **netapp-ontap_storage_flexcache_resource**: Fixed Page display issue ([[#271](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/271)])
+* **netapp-ontap_networking_ip_interface_resource**: Include min version for metrics ([[#265](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/265)])
+
+BUG FIXES:
+* **netapp-ontap_cluster_data_source: fix on nodes to show multiple elements ([#264](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/264))
+
+## 1.1.3 (2024-08-08)
 
 BUG FIXES:
 * **netapp-ontap_protocols_cifs_service_resource**: fixed on attribute checking ([#250](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/250))

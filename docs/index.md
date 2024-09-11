@@ -15,6 +15,10 @@ Use the navigation to the left to read about the available resources. These are 
 
 To learn the basics of Terraform using this provider, follow the hands-on [get started tutorials](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/infrastructure-as-code)
 
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
+
 ## Example Usage
 
 ```terraform
@@ -45,6 +49,17 @@ provider "netapp-ontap" {
       password = "Password"
       validate_certs = false
     },
+    {
+      name = "fsx"
+      hostname = "aws.management.endpoint.com"
+      username = "admin"
+      password = "Password"
+      aws = {
+        function_name = "lambda_func"
+        region = "aws_region"
+        shared_config_profile = "fsx_profile"
+      }
+    }
   ]
 }
 ```
@@ -66,11 +81,24 @@ provider "netapp-ontap" {
 
 Required:
 
-- `hostname` (String) ONTAP management interface IP address or name
+- `hostname` (String) ONTAP management interface IP address or name. For AWS Lambda, the management endpoints for the FSxN system.
 - `name` (String) Profile name
 - `password` (String, Sensitive) ONTAP management password for username
 - `username` (String) ONTAP management user name (cluster or svm)
 
 Optional:
 
-- `validate_certs` (Boolean) Whether to enforce SSL certificate validation, defaults to true
+- `aws_lambda` (Attributes) AWS configuration for Lambda (see [below for nested schema](#nestedatt--connection_profiles--aws_lambda))
+- `validate_certs` (Boolean) Whether to enforce SSL certificate validation, defaults to true. Not applicable for AWS Lambda
+
+<a id="nestedatt--connection_profiles--aws_lambda"></a>
+### Nested Schema for `connection_profiles.aws_lambda`
+
+Required:
+
+- `shared_config_profile` (String) AWS shared config profile. Region set in the profile will be ignored it it's different from the region set in Terraform. aws_access_key_id and aws_secret_access_key are required to be set in credentials
+
+Optional:
+
+- `function_name` (String) AWS Lambda function name
+- `region` (String) AWS region.

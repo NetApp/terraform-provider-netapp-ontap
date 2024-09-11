@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -38,18 +39,25 @@ type ONTAPProvider struct {
 // ConnectionProfileModel associate a connection profile with a name
 // TODO: augment address with hostname, ...
 type ConnectionProfileModel struct {
-	Name          types.String `tfsdk:"name"`
-	Hostname      types.String `tfsdk:"hostname"`
-	Username      types.String `tfsdk:"username"`
-	Password      types.String `tfsdk:"password"`
-	ValidateCerts types.Bool   `tfsdk:"validate_certs"`
+	Name                  types.String `tfsdk:"name"`
+	Hostname              types.String `tfsdk:"hostname"`
+	Username              types.String `tfsdk:"username"`
+	Password              types.String `tfsdk:"password"`
+	ValidateCerts         types.Bool   `tfsdk:"validate_certs"`
+	ONTAPProviderAWSModel types.Object `tfsdk:"aws_lambda"`
 }
 
 // ONTAPProviderModel describes the provider data model.
 type ONTAPProviderModel struct {
-	Endpoint             types.String             `tfsdk:"endpoint"`
-	JobCompletionTimeOut types.Int64              `tfsdk:"job_completion_timeout"`
-	ConnectionProfiles   []ConnectionProfileModel `tfsdk:"connection_profiles"`
+	Endpoint             types.String `tfsdk:"endpoint"`
+	JobCompletionTimeOut types.Int64  `tfsdk:"job_completion_timeout"`
+	ConnectionProfiles   types.List   `tfsdk:"connection_profiles"`
+}
+
+type ONTAPProviderAWSLambdaModel struct {
+	Region              types.String `tfsdk:"region"`
+	SharedConfigProfile types.String `tfsdk:"shared_config_profile"`
+	FunctionName        types.String `tfsdk:"function_name"`
 }
 
 // Metadata defines the provider type name for inclusion in each data source and resource type name
@@ -81,7 +89,7 @@ func (p *ONTAPProvider) Schema(ctx context.Context, req provider.SchemaRequest, 
 							Required:            true,
 						},
 						"hostname": schema.StringAttribute{
-							MarkdownDescription: "ONTAP management interface IP address or name",
+							MarkdownDescription: "ONTAP management interface IP address or name. For AWS Lambda, the management endpoints for the FSxN system.",
 							Required:            true,
 						},
 						"username": schema.StringAttribute{
@@ -94,8 +102,26 @@ func (p *ONTAPProvider) Schema(ctx context.Context, req provider.SchemaRequest, 
 							Sensitive:           true,
 						},
 						"validate_certs": schema.BoolAttribute{
-							MarkdownDescription: "Whether to enforce SSL certificate validation, defaults to true",
+							MarkdownDescription: "Whether to enforce SSL certificate validation, defaults to true. Not applicable for AWS Lambda",
 							Optional:            true,
+						},
+						"aws_lambda": schema.SingleNestedAttribute{
+							MarkdownDescription: "AWS configuration for Lambda",
+							Optional:            true,
+							Attributes: map[string]schema.Attribute{
+								"region": schema.StringAttribute{
+									MarkdownDescription: "AWS region.",
+									Optional:            true,
+								},
+								"function_name": schema.StringAttribute{
+									MarkdownDescription: "AWS Lambda function name",
+									Optional:            true,
+								},
+								"shared_config_profile": schema.StringAttribute{
+									MarkdownDescription: "AWS shared config profile. Region set in the profile will be ignored it it's different from the region set in Terraform. aws_access_key_id and aws_secret_access_key are required to be set in credentials",
+									Required:            true,
+								},
+							},
 						},
 					},
 				},
@@ -115,24 +141,60 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 	}
 	// Required attributes
 	// For optional values we can use data.Endpoint.IsNull(), ...
-	if len(data.ConnectionProfiles) == 0 {
+
+	if data.ConnectionProfiles.IsUnknown() {
+		resp.Diagnostics.AddError("no connection profiles", "At least one connection profile must be defined.")
+		return
+	}
+	if len(data.ConnectionProfiles.Elements()) == 0 {
 		resp.Diagnostics.AddError("no connection profile", "At least one connection profile must be defined.")
 		return
 	}
-	connectionProfiles := make(map[string]connection.Profile, len(data.ConnectionProfiles))
-	for _, profile := range data.ConnectionProfiles {
+	connectionProfilesElements := make([]types.Object, 0, len(data.ConnectionProfiles.Elements()))
+	diags := data.ConnectionProfiles.ElementsAs(ctx, &connectionProfilesElements, false)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+
+	connectionProfiles := make(map[string]connection.Profile, len(data.ConnectionProfiles.Elements()))
+
+	for _, profile := range connectionProfilesElements {
+		var connectionProfile ConnectionProfileModel
+		diags := profile.As(ctx, &connectionProfile, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
 		var validateCerts bool
-		if profile.ValidateCerts.IsNull() {
+		if connectionProfile.ValidateCerts.IsNull() {
 			validateCerts = true
 		} else {
-			validateCerts = profile.ValidateCerts.ValueBool()
+			validateCerts = connectionProfile.ValidateCerts.ValueBool()
 		}
-		connectionProfiles[profile.Name.ValueString()] = connection.Profile{
-			Hostname:              profile.Hostname.ValueString(),
-			Username:              profile.Username.ValueString(),
-			Password:              profile.Password.ValueString(),
+		connectionProfiles[connectionProfile.Name.ValueString()] = connection.Profile{
+			Hostname:              connectionProfile.Hostname.ValueString(),
+			Username:              connectionProfile.Username.ValueString(),
+			Password:              connectionProfile.Password.ValueString(),
 			ValidateCerts:         validateCerts,
 			MaxConcurrentRequests: 0,
+		}
+		if !connectionProfile.ONTAPProviderAWSModel.IsNull() {
+			var lambdaConfig ONTAPProviderAWSLambdaModel
+			diags := connectionProfile.ONTAPProviderAWSModel.As(ctx, &lambdaConfig, basetypes.ObjectAsOptions{})
+			if diags.HasError() {
+				resp.Diagnostics.Append(diags...)
+				return
+			}
+			currentProfile := connectionProfiles[connectionProfile.Name.ValueString()]
+			currentProfile.UseAWSLambda = true
+			currentProfile.AWS = connection.AWSConfig{
+				Region:              lambdaConfig.Region.ValueString(),
+				SharedConfigProfile: lambdaConfig.SharedConfigProfile.ValueString(),
+				FunctionName:        lambdaConfig.FunctionName.ValueString(),
+			}
+			connectionProfiles[connectionProfile.Name.ValueString()] = currentProfile
+
 		}
 	}
 	jobCompletionTimeOut := data.JobCompletionTimeOut.ValueInt64()
@@ -185,6 +247,7 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		storage.NewStorageFlexcacheRsource,
 		storage.NewStorageVolumeResource,
 		storage.NewVolumesFilesResource,
+		storage.NewStorageQtreeResource,
 		storage.NewStorageVolumeEfficiencyPoliciesResource,
 		storage.NewStorageVolumeSnapshotResource,
 		svm.NewSVMPeersResource,
@@ -255,8 +318,12 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		storage.NewStorageQOSPoliciesDataSource,
 		storage.NewStorageQuotaRuleDataSource,
 		storage.NewStorageQuotaRulesDataSource,
+		storage.NewStorageQtreeDataSource,
+		storage.NewStorageQtreesDataSource,
 		storage.NewStorageVolumeSnapshotDataSource,
 		storage.NewStorageVolumeSnapshotsDataSource,
+		storage.NewVolumeEfficiencyPolicyDataSource,
+		storage.NewVolumeEfficiencyPoliciesDataSource,
 		storage.NewStorageVolumeDataSource,
 		storage.NewStorageVolumesDataSource,
 		storage.NewStorageVolumesFilesDataSource,
