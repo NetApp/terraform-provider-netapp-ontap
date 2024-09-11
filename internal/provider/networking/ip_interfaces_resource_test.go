@@ -44,7 +44,7 @@ func TestAccNetworkIpInterfacesResource(t *testing.T) {
 			},
 			// Test importing a resource
 			{
-				ResourceName:  "netapp-ontap_networking_ip_interfaces.example",
+				ResourceName:  "netapp-ontap_network_ip_interfaces.example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s", "test-interface", "svm0", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
