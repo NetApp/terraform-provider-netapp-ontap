@@ -4,12 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"net/url"
 	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mitchellh/mapstructure"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient/awsclient"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient/httpclient"
 )
 
@@ -22,6 +24,14 @@ type ConnectionProfile struct {
 	Password              string
 	ValidateCerts         bool
 	MaxConcurrentRequests int
+	UseAWSLambda          bool
+	AWS                   AWSConfig `mapstructure:"AWS,omitempty"`
+}
+
+type AWSConfig struct {
+	Region              string `mapstructure:"region,omitempty"`
+	SharedConfigProfile string
+	FunctionName        string
 }
 
 // RestClient to interact with the ONTAP REST API
@@ -30,6 +40,7 @@ type RestClient struct {
 	ctx                   context.Context
 	maxConcurrentRequests int
 	httpClient            httpclient.HTTPClient
+	awsClient             awsclient.AWSLambdaClient
 	requestSlots          chan int
 	mode                  string
 	responses             []MockResponse
@@ -140,6 +151,7 @@ func (r *RestClient) GetZeroOrMoreRecords(baseURL string, query *RestQuery, body
 
 // callAPIMethod can be used to make a request to any REST API method, receiving response as bytes
 func (r *RestClient) callAPIMethod(method string, baseURL string, query *RestQuery, body map[string]interface{}) (int, RestResponse, error) {
+	log.Print("callAPIMethod")
 	if r.mode == "mock" {
 		return r.mockCallAPIMethod(method, baseURL, query, body)
 	}
@@ -149,6 +161,10 @@ func (r *RestClient) callAPIMethod(method string, baseURL string, query *RestQue
 	values := url.Values{}
 	if query != nil {
 		values = query.Values
+	}
+	if r.connectionProfile.UseAWSLambda {
+		statusCode, response, awsClientErr := r.awsClient.Invoke(baseURL, method, body, values)
+		return r.unmarshalAWSLambdaResponse(statusCode, response, awsClientErr)
 	}
 	statusCode, response, httpClientErr := r.httpClient.Do(baseURL, &httpclient.Request{
 		Method: method,
@@ -161,8 +177,40 @@ func (r *RestClient) callAPIMethod(method string, baseURL string, query *RestQue
 	return r.unmarshalResponse(statusCode, response, httpClientErr)
 }
 
-// NewClient creates a new REST client and a supporting HTTP client
+// NewClient creates a new REST client and a supporting HTTP or AWS Lambda client.
+// Lambda client is created if UseAWSLambdaLink is set to true.
+// If UseAWSLambdaLink is false, a new HTTP client is created.
 func NewClient(ctx context.Context, cxProfile ConnectionProfile, tag string, jobCompletionTimeOut int) (*RestClient, error) {
+	if cxProfile.UseAWSLambda {
+		var awsLambdaProfile awsclient.AWSLambdaProfile
+		awsLambdaProfile.APIRoot = "api"
+		err := mapstructure.Decode(cxProfile, &awsLambdaProfile)
+		if err != nil {
+			msg := fmt.Sprintf("decode error on ConnectionProfile %#v to AWSLambdaProfile", cxProfile)
+			tflog.Error(ctx, msg)
+			return nil, errors.New(msg)
+		}
+		maxConcurrentRequests := cxProfile.MaxConcurrentRequests
+		if maxConcurrentRequests == 0 {
+			maxConcurrentRequests = 6
+		}
+		newClient, err := awsclient.NewClient(ctx, awsLambdaProfile)
+		if err != nil {
+			return nil, err
+		}
+		client := RestClient{
+			connectionProfile:     cxProfile,
+			ctx:                   ctx,
+			awsClient:             *newClient,
+			maxConcurrentRequests: maxConcurrentRequests,
+			mode:                  "prod",
+			requestSlots:          make(chan int, maxConcurrentRequests),
+			jobCompletionTimeOut:  jobCompletionTimeOut,
+			tag:                   tag,
+		}
+		return &client, nil
+	}
+
 	var httpProfile httpclient.HTTPProfile
 	err := mapstructure.Decode(cxProfile, &httpProfile)
 	if err != nil {

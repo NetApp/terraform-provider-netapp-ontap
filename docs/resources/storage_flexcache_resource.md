@@ -21,6 +21,7 @@ Flexcache resource
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+```terraform
 resource "netapp-ontap_flexcache" "storage_flexcache" {
   # required to know which system to interface with
   cx_profile_name = "cluster1"
