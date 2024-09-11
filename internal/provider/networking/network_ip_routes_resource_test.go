@@ -30,27 +30,27 @@ func TestAccNetworkIpRouteResource(t *testing.T) {
 			{
 				Config: testAccNetworkIPIRouteResourceConfig("ansibleSVM"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_network_ip_route.example", "svm_name", "ansibleSVM"),
-					resource.TestCheckResourceAttr("netapp-ontap_network_ip_route.example", "destination.address", "0.0.0.0"),
-					resource.TestCheckResourceAttr("netapp-ontap_network_ip_route.example", "destination.netmask", "0"),
+					resource.TestCheckResourceAttr("netapp-ontap_network_ip_routes.example", "svm_name", "ansibleSVM"),
+					resource.TestCheckResourceAttr("netapp-ontap_network_ip_routes.example", "destination.address", "0.0.0.0"),
+					resource.TestCheckResourceAttr("netapp-ontap_network_ip_routes.example", "destination.netmask", "0"),
 				),
 			},
 			// test create with a gateway
 			{
 				Config: testAccNetworkIPIRouteResourceWithGatewayConfig("ansibleSVM", "10.10.10.254", 20),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_network_ip_route.example", "svm_name", "ansibleSVM"),
-					resource.TestCheckResourceAttr("netapp-ontap_network_ip_route.example", "destination.address", "10.10.10.254"),
-					resource.TestCheckResourceAttr("netapp-ontap_network_ip_route.example", "destination.netmask", "20"),
+					resource.TestCheckResourceAttr("netapp-ontap_network_ip_routes.example", "svm_name", "ansibleSVM"),
+					resource.TestCheckResourceAttr("netapp-ontap_network_ip_routes.example", "destination.address", "10.10.10.254"),
+					resource.TestCheckResourceAttr("netapp-ontap_network_ip_routes.example", "destination.netmask", "20"),
 				),
 			},
 			// Import and read
 			{
-				ResourceName:  "netapp-ontap_network_ip_route.example",
+				ResourceName:  "netapp-ontap_network_ip_routes.example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s", "carchi-test", "10.10.10.254", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_network_ip_route.example", "svm_name", "carchi-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_network_ip_routes.example", "svm_name", "carchi-test"),
 				),
 			},
 		},
@@ -78,7 +78,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_network_ip_route" "example" {
+resource "netapp-ontap_network_ip_routes" "example" {
   cx_profile_name = "cluster4"
   svm_name = "%s"
   gateway = "10.10.10.1"
@@ -107,7 +107,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_network_ip_route" "example" {
+resource "netapp-ontap_network_ip_routes" "example" {
   cx_profile_name = "cluster4"
   svm_name = "%s"
   gateway = "10.10.10.1"
@@ -140,7 +140,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_network_ip_route" "example" {
+resource "netapp-ontap_network_ip_routes" "example" {
   cx_profile_name = "cluster4"
   svm_name = "%s"
 }
