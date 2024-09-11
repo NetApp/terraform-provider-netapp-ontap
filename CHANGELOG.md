@@ -1,8 +1,8 @@
 # 1.2.0 ()
 
 BREAKING CHANGES:
-* **Rename Resource:** `netapp-ontap_networking_ip_interface` is now renamed to `netapp-ontap_networking_ip_interfaces`
-* **Rename Resource:** `netapp-ontap_networking_ip_route` is now renamed to `netapp-ontap_networking_ip_routes`
+* **Rename Resource:** `netapp-ontap_networking_ip_interface` is now renamed to `netapp-ontap_network_ip_interfaces`
+* **Rename Resource:** `netapp-ontap_networking_ip_route` is now renamed to `netapp-ontap_network_ip_routes`
 
 FEATURES:
 * **provider**: add `aws_lambda` option. ([#262](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/262))
