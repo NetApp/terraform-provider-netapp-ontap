@@ -8,7 +8,7 @@ description: |-
 
 # Resource IP Interfaces
 
-Create/Update/Delete networking IP Interfaces resource
+Create/Update/Delete network IP Interfaces resource
 
 ### Related ONTAP commands
 ```commandline
@@ -24,7 +24,7 @@ Create/Update/Delete networking IP Interfaces resource
 ## Example Usage
 
 ```terraform
-resource "netapp-ontap_networking_ip_interfaces" "example" {
+resource "netapp-ontap_network_ip_interfaces" "example" {
 	cx_profile_name = "cluster4"
 	name = "test-interface"
 	svm_name = "carchi-test"
@@ -80,7 +80,7 @@ Import require a unique ID composed of the interface name, svm_name and cx_profi
 ### Terraform Import
  For example
  ```shell
-  terraform import netapp-ontap_networking_ip_interfaces.example if1,svm1,cluster4
+  terraform import netapp-ontap_network_ip_interfaces.example if1,svm1,cluster4
  ```
 
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
@@ -91,7 +91,7 @@ This requires Terraform 1.5 or higher, and will auto create the configuration fo
 First create the block
 ```terraform
 import {
-  to = netapp-ontap_networking_ip_interfaces.if_import
+  to = netapp-ontap_network_ip_interfaces.if_import
   id = "if1,svm1,cluster4"
 }
 ```
@@ -104,7 +104,7 @@ This will generate a file called generated.tf, which will contain the configurat
 # __generated__ by Terraform
 # Please review these resources and move them into your main configuration files.
 # __generated__ by Terraform from "if1,svm1,cluster4"
-resource "netapp-ontap_networking_ip_interfaces" "if1_import" {
+resource "netapp-ontap_network_ip_interfaces" "if1_import" {
   cx_profile_name = "cluster4"
   name       = "if1"
   svm_name   = "svm1"

@@ -57,12 +57,12 @@ CATAGORYS = {
     ],
     'ndmp': [],
     'networking': [
-        "networking_ip_interface_data_source.md",
-        "networking_ip_interfaces_data_source.md",
-        "networking_ip_interfaces_resource.md",
-        "networking_ip_route_data_source.md",
-        "networking_ip_routes_data_source.md",
-        "networking_ip_routes_resource.md"],
+        "network_ip_interface_data_source.md",
+        "network_ip_interfaces_data_source.md",
+        "network_ip_interfaces_resource.md",
+        "network_ip_route_data_source.md",
+        "network_ip_routes_data_source.md",
+        "network_ip_routes_resource.md"],
     'nvme': [],
     'object-store': [],
     'san': [
