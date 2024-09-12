@@ -61,7 +61,7 @@ Optional:
 
 - `access` (String) Access level for the REST endpoint or command/command directory path. If it denotes the access level for a command/command directory path, the only supported enum values are 'none','readonly' and 'all'.
 - `path` (String) Either of REST URI/endpoint OR command/command directory path.
-- `query` (String) Optional attribute that can be specified only if the 'path' attribute refers to a command/command directory path. The privilege tuple implicitly defines a set of objects the role can or cannot access at the specified access level. The query further reduces this set of objects to a subset of objects that the role is allowed to access. The query attribute must be applicable to the command/command directory specified by the 'path' attribute. It is defined using one or more parameters of the command/command directory path specified by the 'path' attribute.
+- `query` (String) Requires 9.11 system or above. Optional attribute that can be specified only if the 'path' attribute refers to a command/command directory path. The privilege tuple implicitly defines a set of objects the role can or cannot access at the specified access level. The query further reduces this set of objects to a subset of objects that the role is allowed to access. The query attribute must be applicable to the command/command directory specified by the 'path' attribute. It is defined using one or more parameters of the command/command directory path specified by the 'path' attribute.
 
 ## Import
 This Resource supports import, which allows you to import existing security role into the state of this resoruce.
