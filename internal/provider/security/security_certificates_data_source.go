@@ -119,6 +119,10 @@ func (d *SecurityCertificatesDataSource) Schema(ctx context.Context, req datasou
 							MarkdownDescription: "Certificate expiration time, in ISO 8601 duration format or date and time format.",
 							Computed:            true,
 						},
+						"public_certificate": schema.StringAttribute{
+							MarkdownDescription: "Public key Certificate in PEM format.",
+							Computed:            true,
+						},
 						"id": schema.StringAttribute{
 							MarkdownDescription: "Certificate uuid.",
 							Computed:            true,
@@ -193,18 +197,19 @@ func (d *SecurityCertificatesDataSource) Read(ctx context.Context, req datasourc
 	data.SecurityCertificates = make([]SecurityCertificateDataSourceModel, len(restInfo))
 	for index, record := range restInfo {
 		data.SecurityCertificates[index] = SecurityCertificateDataSourceModel{
-			CxProfileName: types.String(data.CxProfileName),
-			Name:          types.StringValue(record.Name),
-			CommonName:    types.StringValue(record.CommonName),
-			SVMName:       types.StringValue(record.SVM.Name),
-			Scope:         types.StringValue(record.Scope),
-			Type:          types.StringValue(record.Type),
-			SerialNumber:  types.StringValue(record.SerialNumber),
-			CA:            types.StringValue(record.CA),
-			HashFunction:  types.StringValue(record.HashFunction),
-			KeySize:       types.Int64Value(record.KeySize),
-			ExpiryTime:    types.StringValue(record.ExpiryTime),
-			ID:            types.StringValue(record.UUID),
+			CxProfileName:     types.String(data.CxProfileName),
+			Name:              types.StringValue(record.Name),
+			CommonName:        types.StringValue(record.CommonName),
+			SVMName:           types.StringValue(record.SVM.Name),
+			Scope:             types.StringValue(record.Scope),
+			Type:              types.StringValue(record.Type),
+			SerialNumber:      types.StringValue(record.SerialNumber),
+			CA:                types.StringValue(record.CA),
+			HashFunction:      types.StringValue(record.HashFunction),
+			KeySize:           types.Int64Value(record.KeySize),
+			ExpiryTime:        types.StringValue(record.ExpiryTime),
+			PublicCertificate: types.StringValue(record.PublicCertificate),
+			ID:            	   types.StringValue(record.UUID),
 		}
 	}
 

@@ -34,18 +34,19 @@ type SecurityCertificateDataSource struct {
 
 // SecurityCertificateDataSourceModel describes the data source data model.
 type SecurityCertificateDataSourceModel struct {
-	CxProfileName types.String `tfsdk:"cx_profile_name"`
-	Name          types.String `tfsdk:"name"`
-	CommonName    types.String `tfsdk:"common_name"`
-	SVMName       types.String `tfsdk:"svm_name"`
-	Scope         types.String `tfsdk:"scope"`
-	Type          types.String `tfsdk:"type"`
-	SerialNumber  types.String `tfsdk:"serial_number"`
-	CA            types.String `tfsdk:"ca"`
-	HashFunction  types.String `tfsdk:"hash_function"`
-	KeySize       types.Int64  `tfsdk:"key_size"`
-	ExpiryTime    types.String `tfsdk:"expiry_time"`
-	ID            types.String `tfsdk:"id"`
+	CxProfileName     types.String `tfsdk:"cx_profile_name"`
+	Name          	  types.String `tfsdk:"name"`
+	CommonName    	  types.String `tfsdk:"common_name"`
+	SVMName       	  types.String `tfsdk:"svm_name"`
+	Scope         	  types.String `tfsdk:"scope"`
+	Type          	  types.String `tfsdk:"type"`
+	SerialNumber  	  types.String `tfsdk:"serial_number"`
+	CA            	  types.String `tfsdk:"ca"`
+	HashFunction      types.String `tfsdk:"hash_function"`
+	KeySize           types.Int64  `tfsdk:"key_size"`
+	ExpiryTime        types.String `tfsdk:"expiry_time"`
+	PublicCertificate types.String `tfsdk:"public_certificate"`
+	ID                types.String `tfsdk:"id"`
 }
 
 // Metadata returns the data source type name.
@@ -102,6 +103,10 @@ func (d *SecurityCertificateDataSource) Schema(ctx context.Context, req datasour
 			},
 			"expiry_time": schema.StringAttribute{
 				MarkdownDescription: "Certificate expiration time, in ISO 8601 duration format or date and time format.",
+				Computed:            true,
+			},
+			"public_certificate": schema.StringAttribute{
+				MarkdownDescription: "Public key Certificate in PEM format.",
 				Computed:            true,
 			},
 			"id": schema.StringAttribute{
@@ -187,6 +192,7 @@ func (d *SecurityCertificateDataSource) Read(ctx context.Context, req datasource
 	data.HashFunction = types.StringValue(restInfo.HashFunction)
 	data.KeySize = types.Int64Value(restInfo.KeySize)
 	data.ExpiryTime = types.StringValue(restInfo.ExpiryTime)
+	data.PublicCertificate = types.StringValue(restInfo.PublicCertificate)
 	data.ID = types.StringValue(restInfo.UUID)
 
 	// Write logs using the tflog package
