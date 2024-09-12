@@ -53,3 +53,4 @@ data "netapp-ontap_security_certificate" "security_certificate2" {
 - `key_size` (Number) Key size of the certificate in bits.
 - `scope` (String) Set to 'svm' for certificates installed in a SVM. Otherwise, set to 'cluster'.
 - `serial_number` (String) Serial number of certificate.
+- `public_certificate` (String) Public key Certificate in PEM format.
