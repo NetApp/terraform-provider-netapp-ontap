@@ -12,17 +12,18 @@ import (
 
 // SecurityCertificateGetDataModelONTAP describes the GET record data model using go types for mapping.
 type SecurityCertificateGetDataModelONTAP struct {
-	Name         string `mapstructure:"name"`
-	UUID         string `mapstructure:"uuid"`
-	CommonName   string `mapstructure:"common_name"`
-	SVM          svm    `mapstructure:"svm"`
-	Scope        string `mapstructure:"scope"`
-	Type         string `mapstructure:"type"`
-	SerialNumber string `mapstructure:"serial_number"`
-	CA           string `mapstructure:"ca"`
-	HashFunction string `mapstructure:"hash_function"`
-	KeySize      int64  `mapstructure:"key_size"`
-	ExpiryTime   string `mapstructure:"expiry_time"`
+	Name              string `mapstructure:"name"`
+	UUID              string `mapstructure:"uuid"`
+	CommonName        string `mapstructure:"common_name"`
+	SVM               svm    `mapstructure:"svm"`
+	Scope             string `mapstructure:"scope"`
+	Type              string `mapstructure:"type"`
+	SerialNumber      string `mapstructure:"serial_number"`
+	CA                string `mapstructure:"ca"`
+	HashFunction      string `mapstructure:"hash_function"`
+	KeySize           int64  `mapstructure:"key_size"`
+	ExpiryTime        string `mapstructure:"expiry_time"`
+	PublicCertificate string `mapstructure:"public_certificate"`
 }
 
 // SecurityCertificateDataSourceFilterModel describes the data source data model for queries.
@@ -41,7 +42,7 @@ func GetSecurityCertificate(errorHandler *utils.ErrorHandler, r restclient.RestC
 		query.Set("common_name", common_name)
 		query.Set("type", type_)
 	}
-	var fields = []string{"uuid", "common_name", "svm.name", "scope", "type", "serial_number", "ca", "hash_function", "key_size", "expiry_time"}
+	var fields = []string{"uuid", "common_name", "svm.name", "scope", "type", "serial_number", "ca", "hash_function", "key_size", "expiry_time", "public_certificate"}
 	if version.Generation == 9 && version.Major >= 8 {
 		fields = append(fields, "name")
 	}
@@ -97,7 +98,7 @@ func GetSecurityCertificateByUUID(errorHandler *utils.ErrorHandler, r restclient
 func GetSecurityCertificates(errorHandler *utils.ErrorHandler, r restclient.RestClient, version versionModelONTAP, filter *SecurityCertificateDataSourceFilterModel) ([]SecurityCertificateGetDataModelONTAP, error) {
 	api := "security/certificates"
 	query := r.NewQuery()
-	var fields = []string{"uuid", "common_name", "svm.name", "scope", "type", "serial_number", "ca", "hash_function", "key_size", "expiry_time"}
+	var fields = []string{"uuid", "common_name", "svm.name", "scope", "type", "serial_number", "ca", "hash_function", "key_size", "expiry_time", "public_certificate"}
 	if version.Generation == 9 && version.Major >= 8 {
 		fields = append(fields, "name")
 	}
