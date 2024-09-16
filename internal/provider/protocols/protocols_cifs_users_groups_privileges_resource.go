@@ -3,9 +3,10 @@ package protocols
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"regexp"
 	"strings"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -26,10 +27,10 @@ var _ resource.Resource = &CifsUserGroupPrivilegeResource{}
 var _ resource.ResourceWithImportState = &CifsUserGroupPrivilegeResource{}
 
 // NewCifsUserGroupPrivilegeResource is a helper function to simplify the provider implementation.
-func NewCifsUserGroupPrivilegeResource() resource.Resource {
+func NewCifsUsersGroupsPrivilegesResource() resource.Resource {
 	return &CifsUserGroupPrivilegeResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "cifs_user_group_privilege",
+			Name: "cifs_users_groups_privileges",
 		},
 	}
 }
