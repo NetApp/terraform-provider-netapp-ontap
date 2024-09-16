@@ -217,7 +217,7 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		storage.NewAggregateResource,
 		protocols.NewCifsLocalGroupResource,
 		protocols.NewCifsLocalGroupsMembersResource,
-		protocols.NewCifsLocalUserResource,
+		protocols.NewCifsLocalUsersResource,
 		protocols.NewCifsServiceResource,
 		protocols.NewCifsUserGroupPrivilegeResource,
 		cluster.NewClusterResource,
