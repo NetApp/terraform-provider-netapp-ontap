@@ -11,59 +11,59 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccProtocolsCIFSShareResource(t *testing.T) {
+func TestAccProtocolsCIFSSharesResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { ntest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ntest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Test non existant SVM
 			{
-				Config:      testAccProtocolsCIFSShareResourceConfig("non-existant", "terraformTest4"),
+				Config:      testAccProtocolsCIFSSharesResourceConfig("non-existant", "terraformTest4"),
 				ExpectError: regexp.MustCompile("2621462"),
 			},
 			// Read testing
 			{
-				Config: testAccProtocolsCIFSShareResourceConfig("tfsvm", "acc_test_cifs_share"),
+				Config: testAccProtocolsCIFSSharesResourceConfig("tfsvm", "acc_test_cifs_share"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_cifs_share.example", "name", "acc_test_cifs_share"),
-					resource.TestCheckResourceAttr("netapp-ontap_cifs_share.example", "comment", "this is a comment"),
-					resource.TestCheckResourceAttr("netapp-ontap_cifs_share.example", "continuously_available", "false"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_shares.example", "name", "acc_test_cifs_share"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_shares.example", "comment", "this is a comment"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_shares.example", "continuously_available", "false"),
 				),
 			},
 			{
-				Config: testAccProtocolsCIFSShareResourceConfigUpdate("tfsvm", "acc_test_cifs_share"),
+				Config: testAccProtocolsCIFSSharesResourceConfigUpdate("tfsvm", "acc_test_cifs_share"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_cifs_share.example", "name", "acc_test_cifs_share"),
-					resource.TestCheckResourceAttr("netapp-ontap_cifs_share.example", "comment", "update comment"),
-					resource.TestCheckResourceAttr("netapp-ontap_cifs_share.example", "continuously_available", "true"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_shares.example", "name", "acc_test_cifs_share"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_shares.example", "comment", "update comment"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_shares.example", "continuously_available", "true"),
 				),
 			},
 			{
-				Config: testAccProtocolsCIFSShareResourceConfigUpdateAddACL("tfsvm", "acc_test_cifs_share"),
+				Config: testAccProtocolsCIFSSharesResourceConfigUpdateAddACL("tfsvm", "acc_test_cifs_share"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_cifs_share.example", "name", "acc_test_cifs_share"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_shares.example", "name", "acc_test_cifs_share"),
 				),
 			},
 			{
-				Config: testAccProtocolsCIFSShareResourceConfigUpdateDeleteACL("tfsvm", "acc_test_cifs_share"),
+				Config: testAccProtocolsCIFSSharesResourceConfigUpdateDeleteACL("tfsvm", "acc_test_cifs_share"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_cifs_share.example", "name", "acc_test_cifs_share"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_shares.example", "name", "acc_test_cifs_share"),
 				),
 			},
 			// Test importing a resource
 			{
-				ResourceName:  "netapp-ontap_cifs_share.example",
+				ResourceName:  "netapp-ontap_cifs_shares.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s", "acc_test_cifs_share_import", "tfsvm", "clustercifs"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s", "acc_test_cifs_shares_import", "tfsvm", "clustercifs"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_cifs_share.example", "name", "acc_test_cifs_share_import"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_shares.example", "name", "acc_test_cifs_share_import"),
 				),
 			},
 		},
 	})
 }
 
-func testAccProtocolsCIFSShareResourceConfig(svm, shareName string) string {
+func testAccProtocolsCIFSSharesResourceConfig(svm, shareName string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST_CIFS")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS2")
@@ -85,7 +85,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_cifs_share" "example" {
+resource "netapp-ontap_cifs_shares" "example" {
 	cx_profile_name = "clustercifs"
   	name = "%s"
   	svm_name = "%s"
@@ -101,7 +101,7 @@ resource "netapp-ontap_cifs_share" "example" {
 }`, host, admin, password, shareName, svm)
 }
 
-func testAccProtocolsCIFSShareResourceConfigUpdate(svm, volName string) string {
+func testAccProtocolsCIFSSharesResourceConfigUpdate(svm, volName string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST_CIFS")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS2")
@@ -123,7 +123,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_cifs_share" "example" {
+resource "netapp-ontap_cifs_shares" "example" {
   cx_profile_name = "clustercifs"
   name = "%s"
   svm_name = "%s"
@@ -140,7 +140,7 @@ resource "netapp-ontap_cifs_share" "example" {
 }`, host, admin, password, volName, svm)
 }
 
-func testAccProtocolsCIFSShareResourceConfigUpdateAddACL(svm, volName string) string {
+func testAccProtocolsCIFSSharesResourceConfigUpdateAddACL(svm, volName string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST_CIFS")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS2")
@@ -162,7 +162,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_cifs_share" "example" {
+resource "netapp-ontap_cifs_shares" "example" {
   cx_profile_name = "clustercifs"
   name = "%s"
   svm_name = "%s"
@@ -184,7 +184,7 @@ resource "netapp-ontap_cifs_share" "example" {
 }`, host, admin, password, volName, svm)
 }
 
-func testAccProtocolsCIFSShareResourceConfigUpdateDeleteACL(svm, volName string) string {
+func testAccProtocolsCIFSSharesResourceConfigUpdateDeleteACL(svm, volName string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST_CIFS")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS2")
@@ -206,7 +206,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_cifs_share" "example" {
+resource "netapp-ontap_cifs_shares" "example" {
   cx_profile_name = "clustercifs"
   name = "%s"
   svm_name = "%s"

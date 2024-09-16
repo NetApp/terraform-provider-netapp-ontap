@@ -1,4 +1,4 @@
-resource "netapp-ontap_cifs_share" "protocols_cifs_share" {
+resource "netapp-ontap_cifs_shares" "protocols_cifs_share" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name = "testme"

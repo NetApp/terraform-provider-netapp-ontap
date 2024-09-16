@@ -6,6 +6,7 @@ BREAKING CHANGES:
 * **Rename Resource:** `netapp-ontap_cifs_local_user` is now renamed to `netapp-ontap_cifs_local_users`
 * **Rename Resource:** `netapp-ontap_cifs_local_user` is now renamed to `netapp-ontap_cifs_local_users`
 * **Rename Resource:** `netapp-ontap_cifs_service` is now renamed to `netapp-ontap_cifs_services`
+* **Rename Resource:** `netapp-ontap_cifs_share` is now renamed to `netapp-ontap_cifs_shares`
 
 FEATURES:
 * **provider**: add `aws_lambda` option. ([#262](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/262))

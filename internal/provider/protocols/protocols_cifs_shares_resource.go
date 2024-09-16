@@ -3,8 +3,9 @@ package protocols
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -30,7 +31,7 @@ var _ resource.ResourceWithImportState = &ProtocolsCIFSShareResource{}
 func NewProtocolsCIFSShareResource() resource.Resource {
 	return &ProtocolsCIFSShareResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "cifs_share",
+			Name: "cifs_shares",
 		},
 	}
 }
