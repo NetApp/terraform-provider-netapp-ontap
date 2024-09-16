@@ -3,6 +3,7 @@ package protocols
 import (
 	"context"
 	"fmt"
+
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -17,10 +18,10 @@ import (
 var _ datasource.DataSource = &CifsUserGroupPrivilegesDataSource{}
 
 // NewCifsUserGroupPrivilegesDataSource is a helper function to simplify the provider implementation.
-func NewCifsUserGroupPrivilegesDataSource() datasource.DataSource {
+func NewCifsUsersGroupsPrivilegesDataSource() datasource.DataSource {
 	return &CifsUserGroupPrivilegesDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "cifs_user_group_privileges",
+			Name: "cifs_users_groups_privileges",
 		},
 	}
 }

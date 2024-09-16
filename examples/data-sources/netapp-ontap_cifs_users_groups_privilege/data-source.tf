@@ -1,4 +1,4 @@
-data "netapp-ontap_cifs_user_group_privilege" "protocols_cifs_user_group_privilege" {
+data "netapp-ontap_cifs_users_groups_privilege" "protocols_cifs_user_group_privilege" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name = "user1"
