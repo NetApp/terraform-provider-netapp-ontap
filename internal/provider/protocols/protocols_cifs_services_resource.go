@@ -3,8 +3,9 @@ package protocols
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -35,7 +36,7 @@ var _ resource.ResourceWithImportState = &CifsServiceResource{}
 func NewCifsServiceResource() resource.Resource {
 	return &CifsServiceResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "cifs_service",
+			Name: "cifs_services",
 		},
 	}
 }
