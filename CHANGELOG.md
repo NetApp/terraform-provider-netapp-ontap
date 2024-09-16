@@ -2,6 +2,7 @@
 
 BREAKING CHANGES:
 * **Rename Resource:** `netapp-ontap_cifs_local_group` is now renamed to `netapp-ontap_cifs_local_groups`
+* **Rename Resource:** `netapp-ontap_cifs_local_group_member` is now renamed to `netapp-ontap_cifs_local_groups_member`
 
 FEATURES:
 * **provider**: add `aws_lambda` option. ([#262](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/262))
