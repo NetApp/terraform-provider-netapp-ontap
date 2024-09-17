@@ -1,4 +1,4 @@
-resource "netapp-ontap_cifs_local_group_member" "protocols_cifs_local_group_member" {
+resource "netapp-ontap_cifs_local_group_members" "protocols_cifs_local_group_member" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   group_name = "SVM_SERVER\\testme"
