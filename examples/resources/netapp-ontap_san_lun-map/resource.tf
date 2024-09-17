@@ -1,4 +1,4 @@
-resource "netapp-ontap_san_lun-maps" "protocols_san_lun-maps" {
+resource "netapp-ontap_san_lun-map" "protocols_san_lun-map" {
   # required to know which system to interface with
   cx_profile_name = "cluster2"
   svm = {

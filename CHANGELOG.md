@@ -3,6 +3,8 @@
 BREAKING CHANGES:
 * **Rename Resource:** `netapp-ontap_cluster_peers` is now renamed to `netapp-ontap_cluster_peer`
 * **Rename Resource:** `netapp-ontap_cifs_local_group_member` is now renamed to `netapp-ontap_cifs_local_group_members`
+* **Rename Resource:** `netapp-ontap_cifs_user_group_privilege` is now renamed to `netapp-ontap_cifs_user_group_privileges`
+* **Rename Resource:** `netapp-ontap_san_lun-maps` is now renamed to `netapp-ontap_san_lun-map`
 
 
 FEATURES:

@@ -3,9 +3,10 @@ package protocols
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"regexp"
 	"strings"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -29,7 +30,7 @@ var _ resource.ResourceWithImportState = &CifsUserGroupPrivilegeResource{}
 func NewCifsUserGroupPrivilegeResource() resource.Resource {
 	return &CifsUserGroupPrivilegeResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "cifs_user_group_privilege",
+			Name: "cifs_user_group_privileges",
 		},
 	}
 }

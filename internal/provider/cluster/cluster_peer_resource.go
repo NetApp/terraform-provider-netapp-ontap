@@ -26,7 +26,7 @@ var _ resource.Resource = &ClusterPeersResource{}
 var _ resource.ResourceWithImportState = &ClusterPeersResource{}
 
 // NewClusterPeersResource is a helper function to simplify the provider implementation.
-func NewClusterPeersResource() resource.Resource {
+func NewClusterPeerResource() resource.Resource {
 	return &ClusterPeersResource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "cluster_peer",

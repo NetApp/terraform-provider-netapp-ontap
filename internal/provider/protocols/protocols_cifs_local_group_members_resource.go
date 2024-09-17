@@ -26,7 +26,7 @@ var _ resource.Resource = &CifsLocalGroupMemberResource{}
 var _ resource.ResourceWithImportState = &CifsLocalGroupMemberResource{}
 
 // NewCifsLocalGroupMemberResource is a helper function to simplify the provider implementation.
-func NewCifsLocalGroupMemberResource() resource.Resource {
+func NewCifsLocalGroupMembersResource() resource.Resource {
 	return &CifsLocalGroupMemberResource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "cifs_local_group_members",
