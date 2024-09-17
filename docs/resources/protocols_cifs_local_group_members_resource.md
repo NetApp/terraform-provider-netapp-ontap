@@ -6,11 +6,11 @@ description: |-
   CifsLocalGroupMembers resource
 ---
 
-# Resource Protocols Cifs Local Group Mmember
+# Resource Protocols Cifs Local Group Mmembers
 
 Create/Read/Delete one or more members in a local group resource
 
-~> **NOTE:** This module does not support member modification
+~> **NOTE:** This module does not support members modification
 
 ### Related ONTAP commands
 ```commandline
@@ -23,7 +23,7 @@ Create/Read/Delete one or more members in a local group resource
 ## Example Usage
 
 ```terraform
-resource "netapp-ontap_cifs_local_group_members" "protocols_cifs_local_group_member" {
+resource "netapp-ontap_cifs_local_group_members" "protocols_cifs_local_group_members" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   group_name = "SVM_SERVER\\testme"
@@ -37,12 +37,12 @@ resource "netapp-ontap_cifs_local_group_members" "protocols_cifs_local_group_mem
 ### Required
 
 - `cx_profile_name` (String) Connection profile name
-- `svm_name` (String) CifsLocalGroupMember svm name
-- `group_name` (String) CifsLocalGroupMember name
+- `svm_name` (String) CifsLocalGroupMembers svm name
+- `group_name` (String) CifsLocalGroupMembers name
 - `member` (String) Member name. Local user, Active Directory user, or Active Directory group which is a member of the specified local group.
 
 ### Read-Only
 
-- `id` (String) CifsLocalGroupMember ID
+- `id` (String) CifsLocalGroupMembers ID
 
 

@@ -1,4 +1,4 @@
-resource "netapp-ontap_security_accounts" "security_account" {
+resource "netapp-ontap_security_account" "security_account" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name = "carchitest"

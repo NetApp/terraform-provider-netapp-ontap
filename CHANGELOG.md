@@ -5,6 +5,9 @@ BREAKING CHANGES:
 * **Rename Resource:** `netapp-ontap_cifs_local_group_member` is now renamed to `netapp-ontap_cifs_local_group_members`
 * **Rename Resource:** `netapp-ontap_cifs_user_group_privilege` is now renamed to `netapp-ontap_cifs_user_group_privileges`
 * **Rename Resource:** `netapp-ontap_san_lun-maps` is now renamed to `netapp-ontap_san_lun-map`
+* **Rename Resource:** `netapp-ontap_security_accounts` is now renamed to `netapp-ontap_security_account`
+* **Rename Resource:** `netapp-ontap_security_login_messages` is now renamed to `netapp-ontap_security_login_message`
+* **Rename Resource:** `netapp-ontap_security_roles` is now renamed to `netapp-ontap_security_role`
 
 
 FEATURES:

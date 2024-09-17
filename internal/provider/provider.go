@@ -236,7 +236,7 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		protocols.NewProtocolsSanIgroupResource,
 		protocols.NewProtocolsSanLunMapResource,
 		security.NewSecurityAccountResource,
-		security.NewSecurityRolesResource,
+		security.NewSecurityRoleResource,
 		security.NewSecurityLoginMessageResource,
 		snapmirror.NewSnapmirrorResource,
 		snapmirror.NewSnapmirrorPolicyResource,

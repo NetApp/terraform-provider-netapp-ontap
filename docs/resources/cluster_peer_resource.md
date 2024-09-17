@@ -23,7 +23,7 @@ Create/Modify/Delete a cluster peer.
 ## Example Usage
 
 ```
-resource "netapp-ontap_cluster_peer" "cluster_peers" {
+resource "netapp-ontap_cluster_peer" "cluster_peer" {
   # required to know which system to interface with
   cx_profile_name = "cluster3"
   name = "testme"
@@ -50,7 +50,7 @@ resource "netapp-ontap_cluster_peer" "cluster_peers" {
 ### Optional
 
 - `passphrase` (String) User generated passphrase for use in authentication
-- `generate_passphrase` (String) When true, ONTAP automatically generates a passphrase to authenticate cluster peers
+- `generate_passphrase` (String) When true, ONTAP automatically generates a passphrase to authenticate cluster peer
 - `name` (String) Name of the peering relationship or name of the remote peer
 - `peer_applications` (String) SVM peering applications
 - `peer_cx_profile_name` (String) Peer connection profile name, to be accepted from peer side to make the status OK
@@ -110,7 +110,7 @@ This will generate a file called generated.tf, which will contain the configurat
 # __generated__ by Terraform
 # Please review these resources and move them into your main configuration files.
 # __generated__ by Terraform from "clutername-1,cluster4"
-resource "netapp-ontap_cluster_peer.example" "cluster_peers_import" {
+resource "netapp-ontap_cluster_peer.example" "cluster_peer_import" {
   cx_profile_name = "cluster3"
   name       = "test"
   generate_passphrase = false
