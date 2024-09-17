@@ -10,25 +10,25 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccProtocolsSanLunMapsResource(t *testing.T) {
+func TestAccProtocolsSanLunMapResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { ntest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ntest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create protocols_san_lun-maps and read
 			{
-				Config: testAccProtocolsSanLunMapsResourceBasicConfig("/vol/lunTest/ACC-import-lun", "test", "carchi-test"),
+				Config: testAccProtocolsSanLunMapResourceBasicConfig("/vol/lunTest/ACC-import-lun", "test", "carchi-test"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_san_lun-maps.example", "svm.name", "carchi-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_san_lun-map.example", "svm.name", "carchi-test"),
 				),
 			},
 			// Import and read
 			{
-				ResourceName:  "netapp-ontap_san_lun-maps.example",
+				ResourceName:  "netapp-ontap_san_lun-map.example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "carchi-test", "acc_test", "/vol/lunTest/test", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_san_lun-maps.example", "svm.name", "carchi-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_san_lun-map.example", "svm.name", "carchi-test"),
 				),
 			},
 			// Delete testing automatically occurs in TestCase
@@ -36,7 +36,7 @@ func TestAccProtocolsSanLunMapsResource(t *testing.T) {
 	})
 }
 
-func testAccProtocolsSanLunMapsResourceBasicConfig(lunName string, igroupName string, svmName string) string {
+func testAccProtocolsSanLunMapResourceBasicConfig(lunName string, igroupName string, svmName string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS")
@@ -57,7 +57,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_san_lun-maps" "example" {
+resource "netapp-ontap_san_lun-map" "example" {
   cx_profile_name = "cluster4"
   svm = {
     name = "%s"

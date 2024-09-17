@@ -3,9 +3,10 @@ package protocols
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/svm"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -24,10 +25,10 @@ var _ resource.Resource = &ProtocolsSanLunMapsResource{}
 var _ resource.ResourceWithImportState = &ProtocolsSanLunMapsResource{}
 
 // NewProtocolsSanLunMapsResource is a helper function to simplify the provider implementation.
-func NewProtocolsSanLunMapsResource() resource.Resource {
+func NewProtocolsSanLunMapResource() resource.Resource {
 	return &ProtocolsSanLunMapsResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "san_lun-maps",
+			Name: "san_lun-map",
 		},
 	}
 }
