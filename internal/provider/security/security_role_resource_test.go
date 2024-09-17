@@ -9,7 +9,7 @@ import (
 	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
 )
 
-func TestAccSecurityRolesResource(t *testing.T) {
+func TestAccSecurityRoleResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { ntest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ntest.TestAccProtoV6ProviderFactories,
@@ -17,30 +17,30 @@ func TestAccSecurityRolesResource(t *testing.T) {
 			{
 				Config: testAccSecurityRoleResourceConfig("acc_test_security_role"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_security_roles.security_role", "name", "acc_test_security_role"),
+					resource.TestCheckResourceAttr("netapp-ontap_security_role.security_role", "name", "acc_test_security_role"),
 				),
 			},
 			// Test adding a new  priviledge to the security role
 			{
 				Config: AddPriviledge("acc_test_security_role"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_security_roles.security_role", "name", "acc_test_security_role"),
+					resource.TestCheckResourceAttr("netapp-ontap_security_role.security_role", "name", "acc_test_security_role"),
 				),
 			},
 			// Test editing a priviledge and deleting a priviledge from the security role
 			{
 				Config: EditPriviledgeAndDeletePriviledge("acc_test_security_role"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_security_roles.security_role", "name", "acc_test_security_role"),
+					resource.TestCheckResourceAttr("netapp-ontap_security_role.security_role", "name", "acc_test_security_role"),
 				),
 			},
 			// Test importing a security role
 			{
-				ResourceName:  "netapp-ontap_security_roles.security_role",
+				ResourceName:  "netapp-ontap_security_role.security_role",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s", "acc_test_import_security_role", "acc_test", "cluster2"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_security_roles.security_role", "name", "acc_test_import_security_role"),
+					resource.TestCheckResourceAttr("netapp-ontap_security_role.security_role", "name", "acc_test_import_security_role"),
 				),
 			},
 		},
@@ -68,7 +68,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_security_roles" "security_role" {
+resource "netapp-ontap_security_role" "security_role" {
 	# required to know which system to interface with
 	cx_profile_name = "cluster2"
 	name = "%s"
@@ -104,7 +104,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_security_roles" "security_role" {
+resource "netapp-ontap_security_role" "security_role" {
 	# required to know which system to interface with
 	cx_profile_name = "cluster2"
 	name = "%s"
@@ -145,7 +145,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_security_roles" "security_role" {
+resource "netapp-ontap_security_role" "security_role" {
 	# required to know which system to interface with
 	cx_profile_name = "cluster2"
 	name = "%s"
