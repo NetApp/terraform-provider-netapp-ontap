@@ -3,9 +3,10 @@ package cluster
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"reflect"
 	"strings"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -28,7 +29,7 @@ var _ resource.ResourceWithImportState = &ClusterPeersResource{}
 func NewClusterPeersResource() resource.Resource {
 	return &ClusterPeersResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "cluster_peers",
+			Name: "cluster_peer",
 		},
 	}
 }
