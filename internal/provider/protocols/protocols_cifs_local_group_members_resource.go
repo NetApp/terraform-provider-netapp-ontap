@@ -3,9 +3,10 @@ package protocols
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"regexp"
 	"strings"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -28,7 +29,7 @@ var _ resource.ResourceWithImportState = &CifsLocalGroupMemberResource{}
 func NewCifsLocalGroupMemberResource() resource.Resource {
 	return &CifsLocalGroupMemberResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "cifs_local_group_member",
+			Name: "cifs_local_group_members",
 		},
 	}
 }
