@@ -1,5 +1,8 @@
 # 1.2.0 ()
 
+BREAKING CHANGES:
+* **Rename Resource:** `netapp-ontap_cluster_peers` is now renamed to `netapp-ontap_cluster_peer`
+
 FEATURES:
 * **provider**: add `aws_lambda` option. ([#262](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/262))
 * **New Data Source:** `netapp-ontap_volumes_files` ([#8](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/8))

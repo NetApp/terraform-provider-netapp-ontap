@@ -2,45 +2,46 @@ package cluster_test
 
 import (
 	"fmt"
-	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
 	"os"
 	"testing"
+
+	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccClusterPeersResource(t *testing.T) {
+func TestAccClusterPeerResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { ntest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ntest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create svm peer and read
 			{
-				Config: testAccClusterPeersResourceConfig("10.193.180.110", "10.193.176.189"),
+				Config: testAccClusterPeerResourceConfig("10.193.180.110", "10.193.176.189"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_cluster_peers.example", "remote.ip_addresses.0", "10.193.180.110"),
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_peer.example", "remote.ip_addresses.0", "10.193.180.110"),
 				),
 			},
 			// Update applications
 			{
-				Config: testAccClusterPeersResourceConfig("10.193.180.109", "10.193.176.189"),
+				Config: testAccClusterPeerResourceConfig("10.193.180.109", "10.193.176.189"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_cluster_peers.example", "remote.ip_addresses.0", "10.193.180.109"),
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_peer.example", "remote.ip_addresses.0", "10.193.180.109"),
 				),
 			},
 			// Import and read
 			{
-				ResourceName:  "netapp-ontap_cluster_peers.example",
+				ResourceName:  "netapp-ontap_cluster_peer.example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s", "acc_test_cluster2", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_cluster_peers.example", "name", "acc_test_cluster2"),
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_peer.example", "name", "acc_test_cluster2"),
 				),
 			},
 		},
 	})
 }
-func testAccClusterPeersResourceConfig(remotIP, sourceIP string) string {
+func testAccClusterPeerResourceConfig(remotIP, sourceIP string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST2")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS")
@@ -70,7 +71,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_cluster_peers" "example" {
+resource "netapp-ontap_cluster_peer" "example" {
   cx_profile_name = "cluster4"
   remote = {
     ip_addresses = ["%s"]

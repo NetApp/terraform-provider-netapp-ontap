@@ -1,11 +1,11 @@
 ---
-page_title: "ONTAP: Cluster Peers"
+page_title: "ONTAP: Cluster Peer"
 subcategory: "Cluster"
 description: |-
-  Cluster peers resource
+  Cluster peer resource
 ---
 
-# Resource Cluster Peers
+# Resource Cluster Peer
 
 Create/Modify/Delete a cluster peer.
 
@@ -23,7 +23,7 @@ Create/Modify/Delete a cluster peer.
 ## Example Usage
 
 ```
-resource "netapp-ontap_cluster_peers" "cluster_peers" {
+resource "netapp-ontap_cluster_peer" "cluster_peers" {
   # required to know which system to interface with
   cx_profile_name = "cluster3"
   name = "testme"
@@ -86,7 +86,7 @@ Import require a unique ID composed of the cluster name and cx_profile_name, sep
 
  For example
  ```shell
-  terraform import netapp-ontap_cluster_peers.example clutername-1,cluster4
+  terraform import netapp-ontap_cluster_peer.example clutername-1,cluster4
  ```
 
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
@@ -97,7 +97,7 @@ This requires Terraform 1.5 or higher, and will auto create the configuration fo
 First create the block
 ```terraform
 import {
-  to = netapp-ontap_cluster_peers.example.cluster_import
+  to = netapp-ontap_cluster_peer.example.cluster_import
   id = "clutername-1,cluster4"
 }
 ```
@@ -110,7 +110,7 @@ This will generate a file called generated.tf, which will contain the configurat
 # __generated__ by Terraform
 # Please review these resources and move them into your main configuration files.
 # __generated__ by Terraform from "clutername-1,cluster4"
-resource "netapp-ontap_cluster_peers.example" "cluster_peers_import" {
+resource "netapp-ontap_cluster_peer.example" "cluster_peers_import" {
   cx_profile_name = "cluster3"
   name       = "test"
   generate_passphrase = false
