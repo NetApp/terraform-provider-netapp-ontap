@@ -1,4 +1,4 @@
-# 1.2.0 ()
+# 2.0.0 ()
 
 FEATURES:
 * **provider**: add `aws_lambda` option. ([#262](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/262))
