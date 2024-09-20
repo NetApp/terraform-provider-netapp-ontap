@@ -1,4 +1,4 @@
-resource "netapp-ontap_cluster_peer" "cluster_peers" {
+resource "netapp-ontap_cluster_peer" "cluster_peer" {
   # required to know which system to interface with
   cx_profile_name = "cluster3"
   # name = "testme"

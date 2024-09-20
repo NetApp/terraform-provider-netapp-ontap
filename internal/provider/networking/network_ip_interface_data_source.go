@@ -3,8 +3,9 @@ package networking
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strconv"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -21,7 +22,7 @@ var _ datasource.DataSource = &IPInterfaceDataSource{}
 func NewIPInterfaceDataSource() datasource.DataSource {
 	return &IPInterfaceDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "networking_ip_interface",
+			Name: "network_ip_interface",
 		},
 	}
 }

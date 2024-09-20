@@ -162,7 +162,7 @@ func CreateNameServicesLDAP(errorHandler *utils.ErrorHandler, r restclient.RestC
 
 	var dataONTAP NameServicesLDAPGetDataModelONTAP
 	if err := mapstructure.Decode(response.Records[0], &dataONTAP); err != nil {
-		return nil, errorHandler.MakeAndReportError("error decoding name_services_ldap info", fmt.Sprintf("error on decode storage/name_services_ldaps info: %s, statusCode %d, response %#v", err, statusCode, response))
+		return nil, errorHandler.MakeAndReportError("error decoding name_services_ldap info", fmt.Sprintf("error on decode name_services_ldaps info: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Create name_services_ldap source - udata: %#v", dataONTAP))
 	return &dataONTAP, nil

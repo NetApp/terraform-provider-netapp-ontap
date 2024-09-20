@@ -3,8 +3,9 @@ package networking
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
@@ -32,7 +33,7 @@ var _ resource.ResourceWithImportState = &IPRouteResource{}
 func NewIPRouteResource() resource.Resource {
 	return &IPRouteResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "networking_ip_route",
+			Name: "network_ip_route",
 		},
 	}
 }
