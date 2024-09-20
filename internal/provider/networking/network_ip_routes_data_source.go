@@ -3,6 +3,7 @@ package networking
 import (
 	"context"
 	"fmt"
+
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -20,7 +21,7 @@ var _ datasource.DataSource = &IPRoutesDataSource{}
 func NewIPRoutesDataSource() datasource.DataSource {
 	return &IPRoutesDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "networking_ip_routes",
+			Name: "network_ip_routes",
 		},
 	}
 }

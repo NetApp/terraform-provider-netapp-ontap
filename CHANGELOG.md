@@ -8,7 +8,14 @@ BREAKING CHANGES:
 * **Rename Resource:** `netapp-ontap_security_accounts` is now renamed to `netapp-ontap_security_account`
 * **Rename Resource:** `netapp-ontap_security_login_messages` is now renamed to `netapp-ontap_security_login_message`
 * **Rename Resource:** `netapp-ontap_security_roles` is now renamed to `netapp-ontap_security_role`
+* **Rename Resource:** `netapp-ontap_networking_ip_interface` is now renamed to `netapp-ontap_network_ip_interface`
+* **Rename Resource:** `netapp-ontap_networking_ip_route` is now renamed to `netapp-ontap_network_ip_route`
 
+
+* **Rename Data Source:** `netapp-ontap_networking_ip_interface` is now renamed to `netapp-ontap_network_ip_interface`
+* **Rename Data Source:** `netapp-ontap_networking_ip_interfaces` is now renamed to `netapp-ontap_network_ip_interfaces`
+* **Rename Data Source:** `netapp-ontap_networking_ip_route` is now renamed to `netapp-ontap_network_ip_route`
+* **Rename Data Source:** `netapp-ontap_networking_ip_routes` is now renamed to `netapp-ontap_network_ip_routes`
 
 FEATURES:
 * **provider**: add `aws_lambda` option. ([#262](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/262))
