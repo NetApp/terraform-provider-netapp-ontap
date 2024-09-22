@@ -6,27 +6,17 @@ BREAKING CHANGES:
 * **Rename Resource:** `netapp-ontap_cifs_user_group_privilege` is now renamed to `netapp-ontap_cifs_user_group_privileges`
 * **Rename Resource:** `netapp-ontap_san_lun-maps` is now renamed to `netapp-ontap_san_lun-map`
 * **Rename Resource:** `netapp-ontap_security_accounts` is now renamed to `netapp-ontap_security_account`
-* **Rename Resource:** `netapp-ontap_security_login_messages` is now renamed to `netapp-ontap_security_login_message`
-* **Rename Resource:** `netapp-ontap_security_roles` is now renamed to `netapp-ontap_security_role`
 * **Rename Resource:** `netapp-ontap_networking_ip_interface` is now renamed to `netapp-ontap_network_ip_interface`
 * **Rename Resource:** `netapp-ontap_networking_ip_route` is now renamed to `netapp-ontap_network_ip_route`
-* **Rename Resource:** `netapp-ontap_storage_qos_policies` is now renamed to `netapp-ontap_storage_qos_policy`
-* **Rename Resource:** `netapp-ontap_storage_qtrees` is now renamed to `netapp-ontap_storage_qtree`
-* **Rename Resource:** `netapp-ontap_storage_quota_rules` is now renamed to `netapp-ontap_storage_quota_rule`
-* **Rename Resource:** `netapp-ontap_storage_volume_efficiency_policies` is now renamed to `netapp-ontap_storage_volume_efficiency_policy`
-* **Rename Resource:** `netapp-ontap_storage_volumes_files` is now renamed to `netapp-ontap_storage_volume_file`
 * **Rename Resource:** `netapp-ontap_svm_peers` is now renamed to `netapp-ontap_svm_peer`
-
-
 * **Rename Data Source:** `netapp-ontap_networking_ip_interface` is now renamed to `netapp-ontap_network_ip_interface`
 * **Rename Data Source:** `netapp-ontap_networking_ip_interfaces` is now renamed to `netapp-ontap_network_ip_interfaces`
 * **Rename Data Source:** `netapp-ontap_networking_ip_route` is now renamed to `netapp-ontap_network_ip_route`
 * **Rename Data Source:** `netapp-ontap_networking_ip_routes` is now renamed to `netapp-ontap_network_ip_routes`
-* **Rename Data Source:** `netapp-ontap_volumes_files` is now renamed to `netapp-ontap_volume_files`
 
 FEATURES:
 * **provider**: add `aws_lambda` option. ([#262](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/262))
-* **New Data Source:** `netapp-ontap_volumes_files` ([#8](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/8))
+* **New Data Source:** `netapp-ontap_volume_file` ([#8](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/8))
 * **New Data Source:** `netapp-ontap_qos_policy` ([#77](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/77))
 * **New Data Source:** `netapp-ontap_qos_policies` ([#77](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/77))
 * **New Data Source:** `netapp-ontap_quota_rules` ([#135](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/135))
@@ -39,13 +29,13 @@ FEATURES:
 * **New Data Source:** `netapp-ontap_storage_qtrees` ([#83](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/83))
 * **New Data Source:** `netapp-ontap_volume_efficiency_policy` ([#81](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/81))
 * **New Data Source:** `netapp-ontap_volume_efficiency_policies` ([#81](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/81))
-* **New Resource:** `netapp-ontap_volume_efficiency_policies` ([#80](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/80))
-* **New Resource:** `netapp-ontap_quota_rules` ([#136](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/136))
-* **New Resource:** `netapp-ontap_volumes_files` ([#5](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/5))
-* **New Resource:** `netapp-ontap_security_roles` ([#140](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/140))
-* **New Resource:** `netapp-ontap_storage_qtrees` ([#82](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/82))
-* **New Resource:** `netapp-ontap_qos_policies` ([#76](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/76))
-* **New Resource:** `netapp-security_login_messages` ([#18](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/18))
+* **New Resource:** `netapp-ontap_volume_efficiency_policy` ([#80](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/80))
+* **New Resource:** `netapp-ontap_quota_rule` ([#136](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/136))
+* **New Resource:** `netapp-ontap_volume_file` ([#5](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/5))
+* **New Resource:** `netapp-ontap_security_role` ([#140](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/140))
+* **New Resource:** `netapp-ontap_storage_qtree` ([#82](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/82))
+* **New Resource:** `netapp-ontap_qos_policy` ([#76](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/76))
+* **New Resource:** `netapp-security_login_message` ([#18](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/18))
 
 ENHANCEMENTS:
 * **netapp-ontap_lun**: added `size_unit` option. ([#227](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/227))
