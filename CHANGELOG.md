@@ -10,12 +10,19 @@ BREAKING CHANGES:
 * **Rename Resource:** `netapp-ontap_security_roles` is now renamed to `netapp-ontap_security_role`
 * **Rename Resource:** `netapp-ontap_networking_ip_interface` is now renamed to `netapp-ontap_network_ip_interface`
 * **Rename Resource:** `netapp-ontap_networking_ip_route` is now renamed to `netapp-ontap_network_ip_route`
+* **Rename Resource:** `netapp-ontap_storage_qos_policies` is now renamed to `netapp-ontap_storage_qos_policy`
+* **Rename Resource:** `netapp-ontap_storage_qtrees` is now renamed to `netapp-ontap_storage_qtree`
+* **Rename Resource:** `netapp-ontap_storage_quota_rules` is now renamed to `netapp-ontap_storage_quota_rule`
+* **Rename Resource:** `netapp-ontap_storage_volume_efficiency_policies` is now renamed to `netapp-ontap_storage_volume_efficiency_policy`
+* **Rename Resource:** `netapp-ontap_storage_volumes_files` is now renamed to `netapp-ontap_storage_volume_file`
+* **Rename Resource:** `netapp-ontap_svm_peers` is now renamed to `netapp-ontap_svm_peer`
 
 
 * **Rename Data Source:** `netapp-ontap_networking_ip_interface` is now renamed to `netapp-ontap_network_ip_interface`
 * **Rename Data Source:** `netapp-ontap_networking_ip_interfaces` is now renamed to `netapp-ontap_network_ip_interfaces`
 * **Rename Data Source:** `netapp-ontap_networking_ip_route` is now renamed to `netapp-ontap_network_ip_route`
 * **Rename Data Source:** `netapp-ontap_networking_ip_routes` is now renamed to `netapp-ontap_network_ip_routes`
+* **Rename Data Source:** `netapp-ontap_volumes_files` is now renamed to `netapp-ontap_volume_files`
 
 FEATURES:
 * **provider**: add `aws_lambda` option. ([#262](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/262))

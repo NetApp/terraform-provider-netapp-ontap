@@ -10,33 +10,33 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccQOSPoliciesResource(t *testing.T) {
+func TestAccQOSPolicyResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { ntest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ntest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Create qos_policies and read
+			// Create qos_policy and read
 			{
-				Config: testAccQOSPoliciesResourceBasicConfig("terraform", "terraform", "1"),
+				Config: testAccQOSPolicyResourceBasicConfig("terraform", "terraform", "1"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_qos_policies.example", "name", "terraform"),
+					resource.TestCheckResourceAttr("netapp-ontap_qos_policy.example", "name", "terraform"),
 				),
 			},
 			// Update a option
 			{
-				Config: testAccQOSPoliciesResourceBasicConfig("terraform", "terraform", "2"),
+				Config: testAccQOSPolicyResourceBasicConfig("terraform", "terraform", "2"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_qos_policies.example", "fixed.max_throughput_iops", "2"),
-					resource.TestCheckResourceAttr("netapp-ontap_qos_policies.example", "name", "terraform"),
+					resource.TestCheckResourceAttr("netapp-ontap_qos_policy.example", "fixed.max_throughput_iops", "2"),
+					resource.TestCheckResourceAttr("netapp-ontap_qos_policy.example", "name", "terraform"),
 				),
 			},
 			// Import and read
 			{
-				ResourceName:  "netapp-ontap_qos_policies.example",
+				ResourceName:  "netapp-ontap_qos_policy.example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s", "test", "terraform", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_qos_policies.example", "name", "test"),
+					resource.TestCheckResourceAttr("netapp-ontap_qos_policy.example", "name", "test"),
 				),
 			},
 			// Delete testing automatically occurs in TestCase
@@ -44,7 +44,7 @@ func TestAccQOSPoliciesResource(t *testing.T) {
 	})
 }
 
-func testAccQOSPoliciesResourceBasicConfig(name string, svmName string, maxThroughputIOPS string) string {
+func testAccQOSPolicyResourceBasicConfig(name string, svmName string, maxThroughputIOPS string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST5")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS2")
@@ -65,7 +65,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_qos_policies" "example" {
+resource "netapp-ontap_qos_policy" "example" {
   cx_profile_name = "cluster4"
   name = "%s"
   svm_name = "%s"

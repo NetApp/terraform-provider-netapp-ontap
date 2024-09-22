@@ -1,4 +1,4 @@
-resource "netapp-ontap_qos_policies" "qos_policies" {
+resource "netapp-ontap_qos_policy" "qos_policy" {
   # required to know which system to interface with
   cx_profile_name = "cluster1"
   name = "terraform2"

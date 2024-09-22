@@ -3,10 +3,11 @@ package svm
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/snapmirror"
 	"reflect"
 	"strings"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/snapmirror"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -24,10 +25,10 @@ var _ resource.Resource = &SVMPeersResource{}
 var _ resource.ResourceWithImportState = &SVMPeersResource{}
 
 // NewSVMPeersResource is a helper function to simplify the provider implementation.
-func NewSVMPeersResource() resource.Resource {
+func NewSVMPeerResource() resource.Resource {
 	return &SVMPeersResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "svm_peers",
+			Name: "svm_peer",
 		},
 	}
 }

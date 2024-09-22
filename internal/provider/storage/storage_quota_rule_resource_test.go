@@ -10,33 +10,33 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccStorageQuotaRulesResource(t *testing.T) {
+func TestAccStorageQuotaRuleResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { ntest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ntest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Create storage_quota_rules and read
+			// Create storage_quota_rule and read
 			{
-				Config: testAccStorageQuotaRulesResourceBasicConfig("lunTest", "carchi-test", 100, 80),
+				Config: testAccStorageQuotaRuleResourceBasicConfig("lunTest", "carchi-test", 100, 80),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_quota_rules.example", "qtree.name", ""),
+					resource.TestCheckResourceAttr("netapp-ontap_quota_rule.example", "qtree.name", ""),
 				),
 			},
 			// Update a option
 			{
-				Config: testAccStorageQuotaRulesResourceBasicConfig("lunTest", "carchi-test", 100, 70),
+				Config: testAccStorageQuotaRuleResourceBasicConfig("lunTest", "carchi-test", 100, 70),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_quota_rules.example", "files.hard_limit", "100"),
-					resource.TestCheckResourceAttr("netapp-ontap_quota_rules.example", "files.soft_limit", "70"),
+					resource.TestCheckResourceAttr("netapp-ontap_quota_rule.example", "files.hard_limit", "100"),
+					resource.TestCheckResourceAttr("netapp-ontap_quota_rule.example", "files.soft_limit", "70"),
 				),
 			},
 			// Import and read
 			{
-				ResourceName:  "netapp-ontap_quota_rules.example",
+				ResourceName:  "netapp-ontap_quota_rule.example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s,%s,%s", "lunTest", "carchi-test", "tree", "testacc", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_quota_rules.example", "name", "name2"),
+					resource.TestCheckResourceAttr("netapp-ontap_quota_rule.example", "name", "name2"),
 				),
 			},
 			// Delete testing automatically occurs in TestCase
@@ -44,7 +44,7 @@ func TestAccStorageQuotaRulesResource(t *testing.T) {
 	})
 }
 
-func testAccStorageQuotaRulesResourceBasicConfig(volumeName string, svmName string, hardLimit int64, softLimit int64) string {
+func testAccStorageQuotaRuleResourceBasicConfig(volumeName string, svmName string, hardLimit int64, softLimit int64) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS")
@@ -65,7 +65,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_quota_rules" "example" {
+resource "netapp-ontap_quota_rule" "example" {
 	cx_profile_name = "cluster4"
 	volume = {
 	  name = "%s"

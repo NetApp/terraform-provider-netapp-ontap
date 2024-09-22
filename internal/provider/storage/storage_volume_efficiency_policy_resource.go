@@ -29,10 +29,10 @@ var _ resource.Resource = &StorageVolumeEfficiencyPoliciesResource{}
 var _ resource.ResourceWithImportState = &StorageVolumeEfficiencyPoliciesResource{}
 
 // NewStorageVolumeEfficiencyPoliciesResource is a helper function to simplify the provider implementation.
-func NewStorageVolumeEfficiencyPoliciesResource() resource.Resource {
+func NewStorageVolumeEfficiencyPolicyResource() resource.Resource {
 	return &StorageVolumeEfficiencyPoliciesResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "volume_efficiency_policies",
+			Name: "volume_efficiency_policy",
 		},
 	}
 }

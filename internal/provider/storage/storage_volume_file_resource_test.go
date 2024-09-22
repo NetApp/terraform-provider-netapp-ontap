@@ -10,32 +10,32 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccVolumesFilesResource(t *testing.T) {
+func TestAccVolumeFileResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { ntest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ntest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create volumes_files and read
 			{
-				Config: testAccVolumesFilesResourceBasicConfig("terraform", "terraform", "test"),
+				Config: testAccVolumeFileResourceBasicConfig("terraform", "terraform", "test"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_volumes_files.example", "path", "test"),
+					resource.TestCheckResourceAttr("netapp-ontap_volume_file.example", "path", "test"),
 				),
 			},
 			// Update a option
 			{
-				Config: testAccVolumesFilesResourceUpdateConfig("terraform", "terraform", "vol1"),
+				Config: testAccVolumeFileResourceUpdateConfig("terraform", "terraform", "vol1"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_volumes_files.example", "path", "vol1"),
+					resource.TestCheckResourceAttr("netapp-ontap_volume_file.example", "path", "vol1"),
 				),
 			},
 			// Import and read
 			{
-				ResourceName:  "netapp-ontap_volumes_files.example",
+				ResourceName:  "netapp-ontap_volume_file.example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "snap_dest2", "terraform", ".snapshot", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_volumes_files.example", "path", ".snapshot"),
+					resource.TestCheckResourceAttr("netapp-ontap_volume_file.example", "path", ".snapshot"),
 				),
 			},
 			// Delete testing automatically occurs in TestCase
@@ -43,7 +43,7 @@ func TestAccVolumesFilesResource(t *testing.T) {
 	})
 }
 
-func testAccVolumesFilesResourceBasicConfig(volName string, svmName string, path string) string {
+func testAccVolumeFileResourceBasicConfig(volName string, svmName string, path string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST5")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS2")
@@ -64,7 +64,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_volumes_files" "example" {
+resource "netapp-ontap_volume_file" "example" {
   cx_profile_name = "cluster4"
   volume_name = "%s"
   svm_name = "%s"
@@ -74,7 +74,7 @@ resource "netapp-ontap_volumes_files" "example" {
 }`, host, admin, password, volName, svmName, path)
 }
 
-func testAccVolumesFilesResourceUpdateConfig(volName string, svmName string, path string) string {
+func testAccVolumeFileResourceUpdateConfig(volName string, svmName string, path string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST5")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS2")
@@ -95,7 +95,7 @@ provider "netapp-ontap" {
 	  ]
 	}
 	
-	resource "netapp-ontap_volumes_files" "example" {
+	resource "netapp-ontap_volume_file" "example" {
 	  cx_profile_name = "cluster4"
 	  volume_name = "%s"
 	  svm_name = "%s"

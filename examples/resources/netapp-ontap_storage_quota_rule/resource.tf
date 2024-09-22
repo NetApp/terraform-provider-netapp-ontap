@@ -1,4 +1,4 @@
-resource "netapp-ontap_quota_rules" "storage_quota_rules" {
+resource "netapp-ontap_quota_rule" "storage_quota_rule" {
   # required to know which system to interface with
   cx_profile_name = "cluster2"
   volume = {

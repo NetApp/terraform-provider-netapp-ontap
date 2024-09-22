@@ -24,10 +24,10 @@ var _ resource.Resource = &VolumesFilesResource{}
 var _ resource.ResourceWithImportState = &VolumesFilesResource{}
 
 // NewVolumesFilesResource is a helper function to simplify the provider implementation.
-func NewVolumesFilesResource() resource.Resource {
+func NewVolumesFileResource() resource.Resource {
 	return &VolumesFilesResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "volumes_files",
+			Name: "volumes_file",
 		},
 	}
 }
