@@ -27,10 +27,10 @@ var _ resource.Resource = &StorageQuotaRulesResource{}
 var _ resource.ResourceWithImportState = &StorageQuotaRulesResource{}
 
 // NewStorageQuotaRulesResource is a helper function to simplify the provider implementation.
-func NewStorageQuotaRulesResource() resource.Resource {
+func NewStorageQuotaRuleResource() resource.Resource {
 	return &StorageQuotaRulesResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "quota_rules",
+			Name: "quota_rule",
 		},
 	}
 }

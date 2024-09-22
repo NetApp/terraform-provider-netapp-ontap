@@ -30,10 +30,10 @@ var _ resource.Resource = &QOSPoliciesResource{}
 var _ resource.ResourceWithImportState = &QOSPoliciesResource{}
 
 // NewQOSPoliciesResource is a helper function to simplify the provider implementation.
-func NewQOSPoliciesResource() resource.Resource {
+func NewQOSPolicyResource() resource.Resource {
 	return &QOSPoliciesResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "qos_policies",
+			Name: "qos_policy",
 		},
 	}
 }

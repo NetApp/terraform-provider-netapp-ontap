@@ -11,14 +11,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccSvmPeersResource(t *testing.T) {
+func TestAccSvmPeerResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { ntest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ntest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Test cluster peer non existant to do svm peer
 			{
-				Config:      testAccSvmPeersResourceConfig("testme", "testme2", "abcd", "snapmirror"),
+				Config:      testAccSvmPeerResourceConfig("testme", "testme2", "abcd", "snapmirror"),
 				ExpectError: regexp.MustCompile("9895941"),
 			},
 			// Testing in VSIM is failing to peer
@@ -39,17 +39,17 @@ func TestAccSvmPeersResource(t *testing.T) {
 			// },
 			// Import and read
 			{
-				ResourceName:  "netapp-ontap_svm_peers.example",
+				ResourceName:  "netapp-ontap_svm_peer.example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "terraform", "tf_peer", "swenjuncluster-1", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_svm_peers.example", "svm.name", "snapmirror_dest_dp"),
+					resource.TestCheckResourceAttr("netapp-ontap_svm_peer.example", "svm.name", "snapmirror_dest_dp"),
 				),
 			},
 		},
 	})
 }
-func testAccSvmPeersResourceConfig(svm, peerSvm, peerCluster, applications string) string {
+func testAccSvmPeerResourceConfig(svm, peerSvm, peerCluster, applications string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST5")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS")
@@ -79,7 +79,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_svm_peers" "example" {
+resource "netapp-ontap_svm_peer" "example" {
   cx_profile_name = "cluster4"
   svm = {
     name = "%s"

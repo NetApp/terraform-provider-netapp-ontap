@@ -1,4 +1,4 @@
-resource "netapp-ontap_svm_peers" "svm_peers" {
+resource "netapp-ontap_svm_peer" "svm_peer" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   # name = "svm_peers_test"

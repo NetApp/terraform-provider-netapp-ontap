@@ -10,33 +10,33 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccStorageVolumeEfficiencyPoliciesResource(t *testing.T) {
+func TestAccStorageVolumeEfficiencyPolicyResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { ntest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ntest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Create volume_efficiency_policies and read
+			// Create volume_efficiency_policy and read
 			{
-				Config: testAccStorageVolumeEfficiencyPoliciesResourceBasicConfig("testacc", "terraform"),
+				Config: testAccStorageVolumeEfficiencyPolicyResourceBasicConfig("testacc", "terraform"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_volume_efficiency_policies.example", "name", "testacc"),
+					resource.TestCheckResourceAttr("netapp-ontap_volume_efficiency_policy.example", "name", "testacc"),
 				),
 			},
 			// Update a option
 			{
-				Config: testAccStorageVolumeEfficiencyPoliciesResourceUpdateConfig("testacc", "terraform", "test_comment"),
+				Config: testAccStorageVolumeEfficiencyPolicyResourceUpdateConfig("testacc", "terraform", "test_comment"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_volume_efficiency_policies.example", "comment", "test_comment"),
-					resource.TestCheckResourceAttr("netapp-ontap_volume_efficiency_policies.example", "name", "testacc"),
+					resource.TestCheckResourceAttr("netapp-ontap_volume_efficiency_policy.example", "comment", "test_comment"),
+					resource.TestCheckResourceAttr("netapp-ontap_volume_efficiency_policy.example", "name", "testacc"),
 				),
 			},
 			// Import and read
 			{
-				ResourceName:  "netapp-ontap_volume_efficiency_policies.example",
+				ResourceName:  "netapp-ontap_volume_efficiency_policy.example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s", "test", "terraform", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_volume_efficiency_policies.example", "name", "test"),
+					resource.TestCheckResourceAttr("netapp-ontap_volume_efficiency_policy.example", "name", "test"),
 				),
 			},
 			// Delete testing automatically occurs in TestCase
@@ -44,7 +44,7 @@ func TestAccStorageVolumeEfficiencyPoliciesResource(t *testing.T) {
 	})
 }
 
-func testAccStorageVolumeEfficiencyPoliciesResourceBasicConfig(name string, svmName string) string {
+func testAccStorageVolumeEfficiencyPolicyResourceBasicConfig(name string, svmName string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST5")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS2")
@@ -65,7 +65,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_volume_efficiency_policies" "example" {
+resource "netapp-ontap_volume_efficiency_policy" "example" {
   cx_profile_name = "cluster4"
   name = "%s"
   svm = {
@@ -74,7 +74,7 @@ resource "netapp-ontap_volume_efficiency_policies" "example" {
 }`, host, admin, password, name, svmName)
 }
 
-func testAccStorageVolumeEfficiencyPoliciesResourceUpdateConfig(name string, svmName string, comment string) string {
+func testAccStorageVolumeEfficiencyPolicyResourceUpdateConfig(name string, svmName string, comment string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST5")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS2")
@@ -95,7 +95,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_volume_efficiency_policies" "example" {
+resource "netapp-ontap_volume_efficiency_policy" "example" {
   cx_profile_name = "cluster4"
   name = "%s"
   svm = {

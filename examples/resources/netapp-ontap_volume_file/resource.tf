@@ -1,4 +1,4 @@
-resource "netapp-ontap_volumes_files" "volumes_files" {
+resource "netapp-ontap_volume_file" "volumes_file" {
   # required to know which system to interface with
   cx_profile_name = "cluster1"
   path = "vol3"
