@@ -35,7 +35,7 @@ func TestAccStorageQtreesResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_storage_qtrees.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "acc_import", "terraform_root", "terraform", "cluster5"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "acc_import", "acc_test_root", "acc_test", "cluster2"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_storage_qtrees.example", "name", "accFlexcache"),
 				),
