@@ -16,6 +16,12 @@ type ExportpolicyResourceModel struct {
 	ID   int               `mapstructure:"id"`
 }
 
+// ExportpolicyResourceBodyDataModelONTAP describes the resource data model.
+type ExportpolicyResourceBodyDataModelONTAP struct {
+	Name string            `mapstructure:"name"`
+	Svm  SvmDataModelONTAP `mapstructure:"svm"`
+}
+
 // ExportPolicyGetDataModelONTAP describes the GET record data model using go types for mapping.
 type ExportPolicyGetDataModelONTAP struct {
 	Name string `mapstructure:"name"`
@@ -30,7 +36,7 @@ type ExportPolicyGetDataFilterModel struct {
 }
 
 // CreateExportPolicy to create export policy
-func CreateExportPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClient, data ExportpolicyResourceModel) (*ExportPolicyGetDataModelONTAP, error) {
+func CreateExportPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClient, data ExportpolicyResourceBodyDataModelONTAP) (*ExportPolicyGetDataModelONTAP, error) {
 	var body map[string]interface{}
 	if err := mapstructure.Decode(data, &body); err != nil {
 		return nil, errorHandler.MakeAndReportError("error encoding export policy body", fmt.Sprintf("error on encoding export policy body: %s, body: %#v", err, data))
@@ -136,7 +142,7 @@ func DeleteExportPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClien
 }
 
 // UpdateExportPolicy updates export policy
-func UpdateExportPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClient, data ExportpolicyResourceModel, id string) error {
+func UpdateExportPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClient, data ExportpolicyResourceBodyDataModelONTAP, id string) error {
 	var body map[string]interface{}
 	if err := mapstructure.Decode(data, &body); err != nil {
 		return errorHandler.MakeAndReportError("error encoding export policy body", fmt.Sprintf("error on encoding export policy body: %s, body: %#v", err, data))
