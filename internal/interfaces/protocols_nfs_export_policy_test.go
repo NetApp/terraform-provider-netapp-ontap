@@ -24,38 +24,35 @@ var basicExportPolicyRecord = ExportPolicyGetDataModelONTAP{
 var badExportPolicyRecord = struct{ Name int }{123}
 
 // create export policy with basic request body
-var basicExportPolicyBody = ExportpolicyResourceModel{
+var basicExportPolicyBody = ExportpolicyResourceBodyDataModelONTAP{
 	Name: "string",
 	Svm: SvmDataModelONTAP{
 		Name: "string",
 		UUID: "string",
 	},
-	ID: 122880,
 }
 
 // create export policy with empty comment
-var badExportPolicyBody = ExportpolicyResourceModel{
+var badExportPolicyBody = ExportpolicyResourceBodyDataModelONTAP{
 	Name: "",
 }
 
 // update export policy name
-var renameExportPolicyBody = ExportpolicyResourceModel{
+var renameExportPolicyBody = ExportpolicyResourceBodyDataModelONTAP{
 	Name: "newname",
 	Svm: SvmDataModelONTAP{
 		Name: "string",
 		UUID: "string",
 	},
-	ID: 122880,
 }
 
 // update export policy with basic request body
-var updateExportPolicyErrorBody = ExportpolicyResourceModel{
+var updateExportPolicyErrorBody = ExportpolicyResourceBodyDataModelONTAP{
 	Name: "string",
 	Svm: SvmDataModelONTAP{
 		Name: "newsvm",
 		UUID: "string",
 	},
-	ID: 122880,
 }
 
 func TestGetExportPolicy(t *testing.T) {
@@ -148,7 +145,7 @@ func TestCreateExportPolicy(t *testing.T) {
 	tests := []struct {
 		name        string
 		responses   []restclient.MockResponse
-		requestbody ExportpolicyResourceModel
+		requestbody ExportpolicyResourceBodyDataModelONTAP
 		want        *ExportPolicyGetDataModelONTAP
 		wantErr     bool
 	}{
@@ -229,7 +226,7 @@ func TestUpdateExportPolicy(t *testing.T) {
 	tests := []struct {
 		name        string
 		responses   []restclient.MockResponse
-		requestbody ExportpolicyResourceModel
+		requestbody ExportpolicyResourceBodyDataModelONTAP
 		wantErr     bool
 	}{
 		{name: "test_update_rename_export_policy", responses: responses["test_update_rename_export_policy"], requestbody: renameExportPolicyBody, wantErr: false},
@@ -272,8 +269,8 @@ func TestGetExportPoliciesList(t *testing.T) {
 	twoRecordsResponse := restclient.RestResponse{NumRecords: 2, Records: []map[string]any{recordInterface, recordInterface}}
 	badRecordResponse := restclient.RestResponse{NumRecords: 1, Records: []map[string]any{badRecordInterface}}
 
-	var wantOneRecord = []ExportpolicyResourceModel{basicExportPolicyBody}
-	var wantTwoRecords = []ExportpolicyResourceModel{basicExportPolicyBody, basicExportPolicyBody}
+	var wantOneRecord = []ExportPolicyGetDataModelONTAP{basicExportPolicyRecord}
+	var wantTwoRecords = []ExportPolicyGetDataModelONTAP{basicExportPolicyRecord, basicExportPolicyRecord}
 
 	responses := map[string][]restclient.MockResponse{
 		"test_no_records_1": {
@@ -294,7 +291,7 @@ func TestGetExportPoliciesList(t *testing.T) {
 		name      string
 		responses []restclient.MockResponse
 		// args      args
-		want    []ExportpolicyResourceModel
+		want    []ExportPolicyGetDataModelONTAP
 		wantErr bool
 	}{
 		{name: "test_no_records_1", responses: responses["test_no_records_1"], want: nil, wantErr: false},
