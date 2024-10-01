@@ -15,8 +15,10 @@ import (
 
 // basic get data record
 var basicExportPolicyRecord = ExportPolicyGetDataModelONTAP{
-	Name: "string",
-	Svm:  "string",
+	Name:    "string",
+	Svm:     "string",
+	SvmUUID: "string",
+	ID:      123,
 }
 
 // bad record
@@ -253,7 +255,7 @@ func TestGetExportPoliciesList(t *testing.T) {
 	errorHandler := utils.NewErrorHandler(context.Background(), &diag.Diagnostics{})
 	badRecord := struct{ Name int }{123}
 	var recordInterface map[string]any
-	err := mapstructure.Decode(basicExportPolicyBody, &recordInterface)
+	err := mapstructure.Decode(basicExportPolicyRecord, &recordInterface)
 	if err != nil {
 		panic(err)
 	}
