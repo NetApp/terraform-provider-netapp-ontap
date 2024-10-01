@@ -13,12 +13,21 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
-// basic get data record
-var basicExportPolicyRecord = ExportPolicyGetDataModelONTAP{
+// basic get data records
+var oneBasicExportPolicyRecord = ExportPolicyGetDataModelONTAP{
 	Name:    "string",
 	Svm:     "string",
 	SvmUUID: "string",
 	ID:      123,
+}
+
+// basic get data record
+var basicExportPolicyRecord = ExportpolicyResourceModel{
+	Name: "string",
+	Svm: SvmDataModelONTAP{
+		Name: "string",
+		UUID: "string",
+	},
 }
 
 // bad record
@@ -91,7 +100,7 @@ func TestGetExportPolicy(t *testing.T) {
 	tests := []struct {
 		name      string
 		responses []restclient.MockResponse
-		want      *ExportPolicyGetDataModelONTAP
+		want      *ExportpolicyResourceModel
 		wantErr   bool
 	}{
 		{name: "test_no_records_1", responses: responses["test_no_records_1"], want: nil, wantErr: true},
@@ -147,7 +156,7 @@ func TestCreateExportPolicy(t *testing.T) {
 		name        string
 		responses   []restclient.MockResponse
 		requestbody ExportpolicyResourceBodyDataModelONTAP
-		want        *ExportPolicyGetDataModelONTAP
+		want        *ExportpolicyResourceModel
 		wantErr     bool
 	}{
 		{name: "test_create_basic_record_1", responses: responses["test_create_basic_record_1"], requestbody: basicExportPolicyBody, want: &basicExportPolicyRecord, wantErr: false},
@@ -255,7 +264,7 @@ func TestGetExportPoliciesList(t *testing.T) {
 	errorHandler := utils.NewErrorHandler(context.Background(), &diag.Diagnostics{})
 	badRecord := struct{ Name int }{123}
 	var recordInterface map[string]any
-	err := mapstructure.Decode(basicExportPolicyRecord, &recordInterface)
+	err := mapstructure.Decode(oneBasicExportPolicyRecord, &recordInterface)
 	if err != nil {
 		panic(err)
 	}
@@ -270,8 +279,8 @@ func TestGetExportPoliciesList(t *testing.T) {
 	twoRecordsResponse := restclient.RestResponse{NumRecords: 2, Records: []map[string]any{recordInterface, recordInterface}}
 	badRecordResponse := restclient.RestResponse{NumRecords: 1, Records: []map[string]any{badRecordInterface}}
 
-	var wantOneRecord = []ExportPolicyGetDataModelONTAP{basicExportPolicyRecord}
-	var wantTwoRecords = []ExportPolicyGetDataModelONTAP{basicExportPolicyRecord, basicExportPolicyRecord}
+	var wantOneRecord = []ExportPolicyGetDataModelONTAP{oneBasicExportPolicyRecord}
+	var wantTwoRecords = []ExportPolicyGetDataModelONTAP{oneBasicExportPolicyRecord, oneBasicExportPolicyRecord}
 
 	responses := map[string][]restclient.MockResponse{
 		"test_no_records_1": {
