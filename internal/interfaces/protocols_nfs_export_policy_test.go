@@ -17,7 +17,6 @@ import (
 var basicExportPolicyRecord = ExportPolicyGetDataModelONTAP{
 	Name: "string",
 	Svm:  "string",
-	ID:   122880,
 }
 
 // bad record
