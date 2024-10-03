@@ -8,8 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework-validators/datasourcevalidator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
@@ -67,15 +65,15 @@ func (d *SecurityCertificateDataSource) Schema(ctx context.Context, req datasour
 			},
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The unique name of the security certificate per SVM.",
-				Optional:            true,
+				Required:            true,
 			},
 			"common_name": schema.StringAttribute{
 				MarkdownDescription: "Common name of the certificate.",
-				Optional:            true,
+				Computed:            true,
 			},
 			"type": schema.StringAttribute{
 				MarkdownDescription: "Type of Certificate.",
-				Optional:            true,
+				Computed:            true,
 			},
 			"svm_name": schema.StringAttribute{
 				MarkdownDescription: "SVM name in which the certificate is installed.",
@@ -133,20 +131,6 @@ func (d *SecurityCertificateDataSource) Configure(ctx context.Context, req datas
 	d.config.ProviderConfig = config
 }
 
-// ConfigValidators validates entire data source configurations
-func (d *SecurityCertificateDataSource) ConfigValidators(ctx context.Context) []datasource.ConfigValidator {
-    return []datasource.ConfigValidator{
-        datasourcevalidator.AtLeastOneOf(
-            path.MatchRoot("name"),
-            path.MatchRoot("common_name"),
-        ),
-		datasourcevalidator.RequiredTogether(
-            path.MatchRoot("common_name"),
-			path.MatchRoot("type"),
-        ),
-    }
-}
-
 // Read refreshes the Terraform state with the latest data.
 func (d *SecurityCertificateDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data SecurityCertificateDataSourceModel
@@ -176,9 +160,9 @@ func (d *SecurityCertificateDataSource) Read(ctx context.Context, req datasource
 		return
 	}
 
-	restInfo, err := interfaces.GetSecurityCertificate(errorHandler, *client, cluster.Version, data.Name.ValueString(), data.CommonName.ValueString(), data.Type.ValueString())
+	restInfo, err := interfaces.GetSecurityCertificateByName(errorHandler, *client, cluster.Version, data.Name.ValueString())
 	if err != nil {
-		// error reporting done inside GetSecurityCertificate
+		// error reporting done inside GetSecurityCertificateByName
 		return
 	}
 
