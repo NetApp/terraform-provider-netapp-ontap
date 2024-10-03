@@ -28,11 +28,14 @@ type SecurityCertificateGetDataModelONTAP struct {
 
 // SecurityCertificateDataSourceFilterModel describes the data source data model for queries.
 type SecurityCertificateDataSourceFilterModel struct {
-	SVMName string `mapstructure:"svm.name"`
-	Scope   string `mapstructure:"scope"`
+	SVMName    string `mapstructure:"svm.name"`
+	Scope      string `mapstructure:"scope"`
+	CommonName string `mapstructure:"common_name"`
+	Type       string `mapstructure:"type"`
 }
 
 // GetSecurityCertificate to get security_certificate info
+// Retrieves the certificate with the given name and/or (common name & type)
 func GetSecurityCertificate(errorHandler *utils.ErrorHandler, r restclient.RestClient, version versionModelONTAP, name string, common_name string, type_ string) (*SecurityCertificateGetDataModelONTAP, error) {
 	api := "security/certificates"
 	query := r.NewQuery()
@@ -68,11 +71,41 @@ func GetSecurityCertificate(errorHandler *utils.ErrorHandler, r restclient.RestC
 	return &dataONTAP, nil
 }
 
+// GetSecurityCertificateByName to get security_certificate info
+// Retrieves the certificate using its unique name
+func GetSecurityCertificateByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, version versionModelONTAP, name string) (*SecurityCertificateGetDataModelONTAP, error) {
+	api := "security/certificates"
+	query := r.NewQuery()
+	if version.Generation == 9 && version.Major >= 8 {
+		query.Add("name", name)
+	} else {
+		return nil, errorHandler.MakeAndReportError("error reading security_certificate info", "Attribute 'name' requires ONTAP 9.8 or later.")
+	}
+	query.Fields([]string{"uuid", "name", "common_name", "svm.name", "scope", "type", "serial_number", "ca", "hash_function", "key_size", "expiry_time", "public_certificate"})
+
+	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading security_certificate info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
+	}
+
+	var dataONTAP SecurityCertificateGetDataModelONTAP
+	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
+		return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
+			fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read security_certificate data source: %#v", dataONTAP))
+	return &dataONTAP, nil
+}
+
 // GetSecurityCertificateByUUID to get security_certificate info
+// Retrieves the certificate using its UUID
 func GetSecurityCertificateByUUID(errorHandler *utils.ErrorHandler, r restclient.RestClient, version versionModelONTAP, uuid string) (*SecurityCertificateGetDataModelONTAP, error) {
 	api := "security/certificates/" + uuid
 	query := r.NewQuery()
-	var fields = []string{"uuid", "common_name", "svm.name", "scope", "type", "serial_number", "ca", "hash_function", "key_size", "expiry_time"}
+	var fields = []string{"uuid", "common_name", "svm.name", "scope", "type", "serial_number", "ca", "hash_function", "key_size", "expiry_time", "public_certificate"}
 	if version.Generation == 9 && version.Major >= 8 {
 		fields = append(fields, "name")
 	}
@@ -103,17 +136,16 @@ func GetSecurityCertificates(errorHandler *utils.ErrorHandler, r restclient.Rest
 		fields = append(fields, "name")
 	}
 	query.Fields(fields)
+
 	if filter != nil {
-		if filter.SVMName != "" {
-			query.Add("svm.name", filter.SVMName)
-			query.Add("scope", "svm")
-		} else {
-			// set scope to cluster
-			query.Add("scope", strings.ToLower(filter.Scope))
+		var filterMap map[string]interface{}
+		if err := mapstructure.Decode(filter, &filterMap); err != nil {
+			return nil, errorHandler.MakeAndReportError("error encoding security_certificates filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
 		}
+		query.SetValues(filterMap)
 	}
 
-	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("security account filter: %+v", query))
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("security certificates filter: %+v", query))
 	statusCode, response, err := r.GetZeroOrMoreRecords(api, query, nil)
 	if err == nil && response == nil {
 		err = fmt.Errorf("no response for GET %s", api)

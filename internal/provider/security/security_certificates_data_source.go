@@ -39,8 +39,10 @@ type SecurityCertificatesDataSourceModel struct {
 
 // SecurityCertificatesDataSourceFilterModel describes the data source data model for queries.
 type SecurityCertificatesDataSourceFilterModel struct {
-	SVMName types.String `tfsdk:"svm_name"`
-	Scope   types.String `tfsdk:"scope"`
+	SVMName    types.String `tfsdk:"svm_name"`
+	Scope      types.String `tfsdk:"scope"`
+	CommonName types.String `tfsdk:"common_name"`
+	Type       types.String `tfsdk:"type"`
 }
 
 // Metadata returns the data source type name.
@@ -69,6 +71,14 @@ func (d *SecurityCertificatesDataSource) Schema(ctx context.Context, req datasou
 						MarkdownDescription: "Set to 'svm' for certificates installed in a SVM. Otherwise, set to 'cluster'.",
 						Optional:            true,
 					},
+					"common_name": schema.StringAttribute{
+						MarkdownDescription: "Common name of the certificate.",
+						Optional:            true,
+					},
+					"type": schema.StringAttribute{
+						MarkdownDescription: "Type of certificate.",
+						Optional:            true,
+					},
 				},
 				Optional: true,
 			},
@@ -77,23 +87,23 @@ func (d *SecurityCertificatesDataSource) Schema(ctx context.Context, req datasou
 					Attributes: map[string]schema.Attribute{
 						"cx_profile_name": schema.StringAttribute{
 							MarkdownDescription: "Connection profile name",
-							Required:            true,
+							Computed:            true,
 						},
 						"name": schema.StringAttribute{
 							MarkdownDescription: "The unique name of the security certificate per SVM.",
-							Optional:            true,
+							Computed:            true,
 						},
 						"common_name": schema.StringAttribute{
 							MarkdownDescription: "Common name of the certificate.",
-							Optional:            true,
+							Computed:            true,
 						},
 						"type": schema.StringAttribute{
-							MarkdownDescription: "Type of Certificate.",
-							Optional:            true,
+							MarkdownDescription: "Type of certificate.",
+							Computed:            true,
 						},
 						"svm_name": schema.StringAttribute{
 							MarkdownDescription: "SVM name in which the certificate is installed.",
-							Optional:            true,
+							Computed:            true,
 						},
 						"scope": schema.StringAttribute{
 							MarkdownDescription: "Set to 'svm' for certificates installed in a SVM. Otherwise, set to 'cluster'.",
@@ -184,8 +194,10 @@ func (d *SecurityCertificatesDataSource) Read(ctx context.Context, req datasourc
 	var filter *interfaces.SecurityCertificateDataSourceFilterModel = nil
 	if data.Filter != nil {
 		filter = &interfaces.SecurityCertificateDataSourceFilterModel{
-			SVMName: data.Filter.SVMName.ValueString(),
-			Scope:   data.Filter.Scope.ValueString(),
+			SVMName:    data.Filter.SVMName.ValueString(),
+			Scope:      data.Filter.Scope.ValueString(),
+			CommonName: data.Filter.CommonName.ValueString(),
+			Type:       data.Filter.Type.ValueString(),
 		}
 	}
 	restInfo, err := interfaces.GetSecurityCertificates(errorHandler, *client, cluster.Version, filter)
