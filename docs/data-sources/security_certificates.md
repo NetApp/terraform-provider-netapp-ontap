@@ -10,6 +10,9 @@ description: |-
 
 Retrieve Security Certificates data source
 
+### Related ONTAP commands
+* security certificate show
+
 ## Example Usage
 
 ```terraform
