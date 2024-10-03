@@ -10,23 +10,14 @@ description: |-
 
 Retrieve Security Certificate data source
 
-### Related ONTAP commands
-* security certificate show
-
 ## Example Usage
 
 ```terraform
+# retrieving a certificate using its unique name
 data "netapp-ontap_security_certificate" "security_certificate1" {
   # required to know which system to interface with
   cx_profile_name = "cluster5"
-  name = "tfsvm_17B9B4C1696136FC"
-}
-
-data "netapp-ontap_security_certificate" "security_certificate2" {
-  # required to know which system to interface with
-  cx_profile_name = "cluster5"
-  common_name = "tfsvm"
-  type = "server"
+  name            = "tfsvm_17B9B4C1696136FC"
 }
 ```
 
@@ -36,21 +27,21 @@ data "netapp-ontap_security_certificate" "security_certificate2" {
 ### Required
 
 - `cx_profile_name` (String) Connection profile name
+- `name` (String) The unique name of the security certificate per SVM.
 
 ### Optional
 
-- `common_name` (String) Common name of the certificate.
-- `name` (String) The unique name of the security certificate per SVM. This parameter is supported with ONTAP 9.8 or later.
-- `type` (String) Type of Certificate.
 - `svm_name` (String) SVM name in which the certificate is installed.
 
 ### Read-Only
 
+- `common_name` (String) Common name of the certificate.
+- `type` (String) Type of Certificate.
 - `ca` (String) Certificate authority.
 - `expiry_time` (String) Certificate expiration time, in ISO 8601 duration format or date and time format.
 - `hash_function` (String) Hashing function.
 - `id` (String) Certificate uuid.
 - `key_size` (Number) Key size of the certificate in bits.
+- `public_certificate` (String) Public key Certificate in PEM format.
 - `scope` (String) Set to 'svm' for certificates installed in a SVM. Otherwise, set to 'cluster'.
 - `serial_number` (String) Serial number of certificate.
-- `public_certificate` (String) Public key Certificate in PEM format.

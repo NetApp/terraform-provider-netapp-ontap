@@ -3,33 +3,42 @@
 page_title: "netapp-ontap_security_certificates Data Source - terraform-provider-netapp-ontap"
 subcategory: "Security"
 description: |-
-  Retrieve Security Login Certificates data source
+  Retrieve Security Certificates data source
 ---
 
 # netapp-ontap_security_certificates (Data Source)
 
-Retrieve Security Login Certificates data source
-
-### Related ONTAP commands
-* security certificate show
+Retrieve Security Certificates data source
 
 ## Example Usage
 
 ```terraform
+# retrieving certificates installed on a specific SVM
 data "netapp-ontap_security_certificates" "security_certificates1" {
   # required to know which system to interface with
   cx_profile_name = "cluster5"
   filter = {
-    scope = "svm"
+    scope    = "svm"
     svm_name = "tfsvm"
   }
 }
 
+# retrieving all certificates installed at cluster-scope
 data "netapp-ontap_security_certificates" "security_certificates2" {
   # required to know which system to interface with
   cx_profile_name = "cluster5"
   filter = {
     scope = "cluster"
+  }
+}
+
+# retrieving certificate using its common_name and type
+data "netapp-ontap_security_certificates" "security_certificates3" {
+  # required to know which system to interface with
+  cx_profile_name = "cluster5"
+  filter = {
+    common_name = "tfsvm"
+    type        = "server"
   }
 }
 ```
@@ -56,29 +65,25 @@ Optional:
 
 - `scope` (String) Set to 'svm' for certificates installed in a SVM. Otherwise, set to 'cluster'.
 - `svm_name` (String) SVM name in which the certificate is installed.
+- `common_name` (String) Common name of the certificate.
+- `type` (String) Type of certificate.
 
 
 <a id="nestedatt--security_certificates"></a>
 ### Nested Schema for `security_certificates`
 
-Required:
-
-- `cx_profile_name` (String) Connection profile name
-
-Optional:
-
-- `common_name` (String) Common name of the certificate.
-- `name` (String) The unique name of the security certificate per SVM. This parameter is supported with ONTAP 9.8 or later.
-- `type` (String) Type of Certificate.
-- `svm_name` (String) SVM name in which the certificate is installed.
-
 Read-Only:
 
-- `ca` (String) Certificate authority.
+- `cx_profile_name` (String) Connection profile name.
+- `name` (String) The unique name of the security certificate per SVM.
+- `common_name` (String) Common name of the certificate.
+- `type` (String) Type of certificate.
+- `scope` (String) Set to 'svm' for certificates installed in a SVM. Otherwise, set to 'cluster'.
 - `expiry_time` (String) Certificate expiration time, in ISO 8601 duration format or date and time format.
 - `hash_function` (String) Hashing function.
-- `id` (String) Certificate uuid.
 - `key_size` (Number) Key size of the certificate in bits.
-- `scope` (String) Set to 'svm' for certificates installed in a SVM. Otherwise, set to 'cluster'.
-- `serial_number` (String) Serial number of certificate.
 - `public_certificate` (String) Public key Certificate in PEM format.
+- `ca` (String) Certificate authority.
+- `serial_number` (String) Serial number of certificate.
+- `svm_name` (String) SVM name in which the certificate is installed.
+- `id` (String) Certificate uuid.
