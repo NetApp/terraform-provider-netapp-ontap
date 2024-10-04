@@ -2,11 +2,12 @@ package name_services_test
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
 	"os"
 	"regexp"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
 )
 
 func TestAccNameServicesDNSResource(t *testing.T) {
@@ -23,12 +24,12 @@ func TestAccNameServicesDNSResource(t *testing.T) {
 			},
 			// Test importing a resource
 			{
-				ResourceName:  "netapp-ontap_name_services_dns.name_services_dns",
+				ResourceName:  "netapp-ontap_dns.name_services_dns",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s", svmName, credName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_name_services_dns.name_services_dns", "svm_name", "ansibleSVM"),
-					resource.TestCheckResourceAttr("netapp-ontap_name_services_dns.name_services_dns", "name_servers.0", "netappad.com"),
+					resource.TestCheckResourceAttr("netapp-ontap_dns.name_services_dns", "svm_name", "ansibleSVM"),
+					resource.TestCheckResourceAttr("netapp-ontap_dns.name_services_dns", "name_servers.0", "netappad.com"),
 				),
 			},
 		},
@@ -56,7 +57,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_name_services_dns" "name_services_dns" {
+resource "netapp-ontap_dns" "dns" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   svm_name = "%s"

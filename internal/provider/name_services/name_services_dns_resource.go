@@ -3,8 +3,9 @@ package name_services
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -23,7 +24,7 @@ var _ resource.ResourceWithImportState = &NameServicesDNSResource{}
 func NewNameServicesDNSResource() resource.Resource {
 	return &NameServicesDNSResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "name_services_dns",
+			Name: "dns",
 		},
 	}
 }
