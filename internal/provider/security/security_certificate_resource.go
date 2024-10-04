@@ -371,7 +371,7 @@ func (r *SecurityCertificateResource) Create(ctx context.Context, req resource.C
 			if cluster.Version.Generation == 9 && cluster.Version.Major >= 8 {
 				body.Name = data.Name.ValueString()
 			} else {
-				tflog.Error(ctx, fmt.Sprintf("'name' is supported with ONTAP 9.8 or higher."))
+				tflog.Error(ctx, "'name' is supported with ONTAP 9.8 or higher.")
 			}
 		}
 		body.CommonName = data.CommonName.ValueString()
