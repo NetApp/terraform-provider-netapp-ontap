@@ -18,6 +18,7 @@ vserver cifs users-and-groups privilege reset-privilege
 
 ## Supported Platforms
 * On-perm ONTAP system 9.10.1 or higher
+* Amazon FSx for NetApp ONTAP
 
 ## Example Usage
 ```terraform
