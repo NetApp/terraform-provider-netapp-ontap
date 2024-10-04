@@ -197,7 +197,7 @@ func (c *RestClient) unmarshalResponse(statusCode int, responseJSON []byte, http
 	// if rawResponse.NumRecords == 0 && len(rawResponse.Records) == 0 && len(rawResponse.Other) > 1 {
 	if rawResponse.NumRecords == 0 && len(rawResponse.Records) == 0 {
 		_, found := rawResponse.Other["_links"]
-		if (len(rawResponse.Other) == 1 && found == false) || len(rawResponse.Other) > 1 {
+		if (len(rawResponse.Other) == 1 && !found) || len(rawResponse.Other) > 1 {
 			rawResponse.NumRecords = 1
 			rawResponse.Records = append(rawResponse.Records, rawResponse.Other)
 		}
