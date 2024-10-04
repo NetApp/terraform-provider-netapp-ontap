@@ -41,6 +41,13 @@ provider "netapp-ontap" {
       validate_certs = var.validate_certs
     },
     {
+      name = "cluster5"
+      hostname = "********2"
+      username = var.username
+      password = var.password
+      validate_certs = var.validate_certs
+    },
+    {
       name = "clustercifs"
       hostname = "********189"
       username = var.username
