@@ -14,7 +14,7 @@ resource "netapp-ontap_security_certificate" "sign_certificate" {
   name            = "tfsvm_ca_cert1"
   common_name     = "tfsvm_ca_cert"
   type            = "root_ca"
-  svm_name        = "svm1"
+  svm_name        = "svm1"  # SVM on which the signed certificate will exist
   expiry_time     = "P90DT"
   signing_request = <<-EOT
 -----BEGIN CERTIFICATE REQUEST-----
