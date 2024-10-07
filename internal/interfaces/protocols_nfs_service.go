@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient"
@@ -10,6 +11,19 @@ import (
 
 // ProtocolsNfsServiceGetDataModelONTAP describes the GET record data model using go types for mapping.
 type ProtocolsNfsServiceGetDataModelONTAP struct {
+	Enabled          bool              `mapstructure:"enabled"`
+	Protocol         Protocol          `mapstructure:"protocol"`
+	Root             Root              `mapstructure:"root"`
+	Security         Security          `mapstructure:"security"`
+	ShowmountEnabled bool              `mapstructure:"showmount_enabled"`
+	Transport        Transport         `mapstructure:"transport"`
+	VstorageEnabled  bool              `mapstructure:"vstorage_enabled"`
+	Windows          Windows           `mapstructure:"windows"`
+	SVM              SvmDataModelONTAP `mapstructure:"svm"`
+}
+
+// ProtocolsNfsServiceResourceDataModelONTAP describes the GET record data model using go types for mapping.
+type ProtocolsNfsServiceResourceDataModelONTAP struct {
 	Enabled          bool              `mapstructure:"enabled"`
 	Protocol         Protocol          `mapstructure:"protocol"`
 	Root             Root              `mapstructure:"root"`
@@ -159,7 +173,7 @@ func GetProtocolsNfsServices(errorHandler *utils.ErrorHandler, r restclient.Rest
 }
 
 // CreateProtocolsNfsService Create a NFS Service
-func CreateProtocolsNfsService(errorHandler *utils.ErrorHandler, r restclient.RestClient, data ProtocolsNfsServiceGetDataModelONTAP, svnUUID string) (*ProtocolsNfsServiceGetDataModelONTAP, error) {
+func CreateProtocolsNfsService(errorHandler *utils.ErrorHandler, r restclient.RestClient, data ProtocolsNfsServiceResourceDataModelONTAP) (*ProtocolsNfsServiceGetDataModelONTAP, error) {
 	var body map[string]interface{}
 	if err := mapstructure.Decode(data, &body); err != nil {
 		return nil, errorHandler.MakeAndReportError("error encoding NFS Service body", fmt.Sprintf("error on encoding protocols/nfs/services body: %s, body: %#v", err, data))
@@ -188,7 +202,7 @@ func DeleteProtocolsNfsService(errorHandler *utils.ErrorHandler, r restclient.Re
 }
 
 // UpdateProtocolsNfsService Update a NFS service
-func UpdateProtocolsNfsService(errorHandler *utils.ErrorHandler, r restclient.RestClient, request ProtocolsNfsServiceGetDataModelONTAP, uuid string) error {
+func UpdateProtocolsNfsService(errorHandler *utils.ErrorHandler, r restclient.RestClient, request ProtocolsNfsServiceResourceDataModelONTAP, uuid string) error {
 	var body map[string]interface{}
 	if err := mapstructure.Decode(request, &body); err != nil {
 		return errorHandler.MakeAndReportError("error encoding NFS Services body", fmt.Sprintf("error on encoding NFS Services body: %s, body: %#v", err, request))
