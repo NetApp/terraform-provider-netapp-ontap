@@ -83,6 +83,7 @@ CATAGORYS = {
         "security_roles_data_source.md",
         "security_roles_resource.md",
         "security_login_message_resource.md",
+        "security_certificate_resource.md",
     ],
     'snaplock': [],
     'snapmirror': [
