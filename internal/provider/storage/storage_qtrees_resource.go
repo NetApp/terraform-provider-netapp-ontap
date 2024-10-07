@@ -96,7 +96,6 @@ func (r *StorageQtreeResource) Schema(ctx context.Context, req resource.SchemaRe
 			"id": schema.Int64Attribute{
 				MarkdownDescription: "StorageQtree UUID",
 				Computed:            true,
-				Optional:            true,
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.UseStateForUnknown(),
 				},
@@ -312,9 +311,6 @@ func (r *StorageQtreeResource) Create(ctx context.Context, req resource.CreateRe
 	body.SVM.Name = data.SVMName.ValueString()
 	body.Volume.Name = data.Volume.ValueString()
 
-	if !data.ID.IsUnknown() {
-		body.ID = int(data.ID.ValueInt64())
-	}
 	if !data.SecurityStyle.IsUnknown() {
 		body.SecurityStyle = data.SecurityStyle.ValueString()
 	}

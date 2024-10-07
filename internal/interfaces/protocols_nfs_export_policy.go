@@ -16,11 +16,18 @@ type ExportpolicyResourceModel struct {
 	ID   int               `mapstructure:"id"`
 }
 
+// ExportpolicyResourceBodyDataModelONTAP describes the resource data model.
+type ExportpolicyResourceBodyDataModelONTAP struct {
+	Name string            `mapstructure:"name"`
+	Svm  SvmDataModelONTAP `mapstructure:"svm"`
+}
+
 // ExportPolicyGetDataModelONTAP describes the GET record data model using go types for mapping.
 type ExportPolicyGetDataModelONTAP struct {
-	Name string `mapstructure:"name"`
-	Svm  string `mapstructure:"svm_name"`
-	ID   int    `mapstructure:"id"`
+	Name    string `mapstructure:"name"`
+	Svm     string `mapstructure:"svm_name"`
+	SvmUUID string `mapstructure:"svm_uuid"`
+	ID      int    `mapstructure:"id"`
 }
 
 // ExportPolicyGetDataFilterModel describes filter model
@@ -30,7 +37,7 @@ type ExportPolicyGetDataFilterModel struct {
 }
 
 // CreateExportPolicy to create export policy
-func CreateExportPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClient, data ExportpolicyResourceModel) (*ExportPolicyGetDataModelONTAP, error) {
+func CreateExportPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClient, data ExportpolicyResourceBodyDataModelONTAP) (*ExportpolicyResourceModel, error) {
 	var body map[string]interface{}
 	if err := mapstructure.Decode(data, &body); err != nil {
 		return nil, errorHandler.MakeAndReportError("error encoding export policy body", fmt.Sprintf("error on encoding export policy body: %s, body: %#v", err, data))
@@ -42,7 +49,7 @@ func CreateExportPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClien
 		return nil, errorHandler.MakeAndReportError("error creating export policy", fmt.Sprintf("error on POST protocols/nfs/export-policies: %s, statusCode %d", err, statusCode))
 	}
 
-	var dataONTAP ExportPolicyGetDataModelONTAP
+	var dataONTAP ExportpolicyResourceModel
 	if err := mapstructure.Decode(response.Records[0], &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError("error decoding export policies info", fmt.Sprintf("error on decode protocols/nfs/export-policies info: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
@@ -51,7 +58,7 @@ func CreateExportPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClien
 }
 
 // GetExportPolicy to get export policy
-func GetExportPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClient, id string) (*ExportPolicyGetDataModelONTAP, error) {
+func GetExportPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClient, id string) (*ExportpolicyResourceModel, error) {
 	api := "protocols/nfs/export-policies/" + id
 	statusCode, response, err := r.GetNilOrOneRecord(api, nil, nil)
 	if err == nil && response == nil {
@@ -61,7 +68,7 @@ func GetExportPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClient, 
 		return nil, errorHandler.MakeAndReportError("error reading export policy info", fmt.Sprintf("error on GET protocols/nfs/export-policies/%s: %s", id, err))
 	}
 
-	var dataONTAP ExportPolicyGetDataModelONTAP
+	var dataONTAP ExportpolicyResourceModel
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError("error decoding export policy info", fmt.Sprintf("error on decode protocols/nfs/export-policies/%s: %s, statusCode %d, response %#v", id, err, statusCode, response))
 	}
@@ -70,7 +77,7 @@ func GetExportPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClient, 
 }
 
 // GetNfsExportPolicyByName to get export policy by filter
-func GetNfsExportPolicyByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter interface{}) (*ExportPolicyGetDataModelONTAP, error) {
+func GetNfsExportPolicyByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter interface{}) (*ExportpolicyResourceModel, error) {
 	query := r.NewQuery()
 	query.Fields([]string{"name"})
 	if filter != nil {
@@ -85,7 +92,7 @@ func GetNfsExportPolicyByName(errorHandler *utils.ErrorHandler, r restclient.Res
 		return nil, errorHandler.MakeAndReportError("error reading export policy info", fmt.Sprintf("error on GET protocols/nfs/export-policies: %s", err))
 	}
 
-	var dataONTAP ExportPolicyGetDataModelONTAP
+	var dataONTAP ExportpolicyResourceModel
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError("error decoding export policy info", fmt.Sprintf("error on decode protocols/nfs/export-policies: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
@@ -94,7 +101,7 @@ func GetNfsExportPolicyByName(errorHandler *utils.ErrorHandler, r restclient.Res
 }
 
 // GetExportPoliciesList to get export policies
-func GetExportPoliciesList(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *ExportPolicyGetDataFilterModel) ([]ExportpolicyResourceModel, error) {
+func GetExportPoliciesList(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *ExportPolicyGetDataFilterModel) ([]ExportPolicyGetDataModelONTAP, error) {
 	api := "protocols/nfs/export-policies"
 	query := r.NewQuery()
 	query.Fields([]string{"name", "id", "svm.name", "svm.uuid"})
@@ -113,9 +120,9 @@ func GetExportPoliciesList(errorHandler *utils.ErrorHandler, r restclient.RestCl
 		return nil, errorHandler.MakeAndReportError("error reading export policies info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
 	}
 
-	var dataONTAP []ExportpolicyResourceModel
+	var dataONTAP []ExportPolicyGetDataModelONTAP
 	for _, info := range response {
-		var record ExportpolicyResourceModel
+		var record ExportPolicyGetDataModelONTAP
 		if err := mapstructure.Decode(info, &record); err != nil {
 			return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
 				fmt.Sprintf("error: %s, statusCode %d, info %#v", err, statusCode, info))
@@ -136,7 +143,7 @@ func DeleteExportPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClien
 }
 
 // UpdateExportPolicy updates export policy
-func UpdateExportPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClient, data ExportpolicyResourceModel, id string) error {
+func UpdateExportPolicy(errorHandler *utils.ErrorHandler, r restclient.RestClient, data ExportpolicyResourceBodyDataModelONTAP, id string) error {
 	var body map[string]interface{}
 	if err := mapstructure.Decode(data, &body); err != nil {
 		return errorHandler.MakeAndReportError("error encoding export policy body", fmt.Sprintf("error on encoding export policy body: %s, body: %#v", err, data))
