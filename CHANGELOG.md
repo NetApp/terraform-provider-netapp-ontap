@@ -35,7 +35,6 @@ DOC FIXES:
 
 BUG FIXES:
 * **netapp-ontap_cluster_data_source: fix on nodes to show multiple elements ([#264](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/264))
-* **netapp-ontap_protocols_nfs_export_policy_resource: fix id error during the creation ([[#290](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/290)])
 
 ## 1.1.3 (2024-08-08)
 
