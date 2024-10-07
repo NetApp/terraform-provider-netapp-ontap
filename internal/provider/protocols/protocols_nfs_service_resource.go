@@ -3,9 +3,8 @@ package protocols
 import (
 	"context"
 	"fmt"
-	"strings"
-
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
@@ -551,7 +550,7 @@ func (r *ProtocolsNfsServiceResource) Create(ctx context.Context, req resource.C
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-	var body interfaces.ProtocolsNfsServiceResourceDataModelONTAP
+	var body interfaces.ProtocolsNfsServiceGetDataModelONTAP
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
@@ -704,7 +703,7 @@ func (r *ProtocolsNfsServiceResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	_, err = interfaces.CreateProtocolsNfsService(errorHandler, *client, body)
+	_, err = interfaces.CreateProtocolsNfsService(errorHandler, *client, body, svm.UUID)
 	if err != nil {
 		return
 	}
@@ -750,7 +749,7 @@ func (r *ProtocolsNfsServiceResource) Update(ctx context.Context, req resource.U
 		errorHandler.MakeAndReportError("No cluster found", "Cluster not found.")
 		return
 	}
-	var request interfaces.ProtocolsNfsServiceResourceDataModelONTAP
+	var request interfaces.ProtocolsNfsServiceGetDataModelONTAP
 	var errors []string
 	if !data.Enabled.IsNull() {
 		request.Enabled = data.Enabled.ValueBool()

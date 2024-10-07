@@ -3,7 +3,6 @@ package protocols
 import (
 	"context"
 	"fmt"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -161,8 +160,8 @@ func (d *ExportPoliciesDataSource) Read(ctx context.Context, req datasource.Read
 			CxProfileName: types.String(data.CxProfileName),
 			Name:          types.StringValue(record.Name),
 			ID:            types.Int64Value(int64(record.ID)),
-			SVMName:       types.StringValue(record.Svm),
-			SVMUUID:       types.StringValue(record.SvmUUID),
+			SVMName:       types.StringValue(record.Svm.Name),
+			SVMUUID:       types.StringValue(record.Svm.UUID),
 		}
 	}
 

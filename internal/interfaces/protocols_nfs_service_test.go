@@ -201,9 +201,8 @@ func TestCreateProtocolsNfsService(t *testing.T) {
 		name      string
 		responses []restclient.MockResponse
 		// args      args
-		requestBody ProtocolsNfsServiceResourceDataModelONTAP
-		want        *ProtocolsNfsServiceGetDataModelONTAP
-		wantErr     bool
+		want    *ProtocolsNfsServiceGetDataModelONTAP
+		wantErr bool
 	}{
 		{name: "test_one_record_1", responses: responses["test_one_record_1"], want: &nfsServiceRecord, wantErr: false},
 		{name: "test_one_910_record_1", responses: responses["test_one_910_record_1"], want: &record910, wantErr: false},
@@ -216,7 +215,7 @@ func TestCreateProtocolsNfsService(t *testing.T) {
 			if err != nil {
 				panic(err)
 			}
-			got, err := CreateProtocolsNfsService(errorHandler, *r, tt.requestBody)
+			got, err := CreateProtocolsNfsService(errorHandler, *r, nfsServiceRecord, "svmname")
 			if err != nil {
 				fmt.Printf("err: %s\n", err)
 			}
