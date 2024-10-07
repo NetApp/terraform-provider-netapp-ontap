@@ -3,9 +3,10 @@ package protocols
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strconv"
 	"strings"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -104,7 +105,7 @@ func (r *ExportPolicyResource) Create(ctx context.Context, req resource.CreateRe
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-	var request interfaces.ExportpolicyResourceModel
+	var request interfaces.ExportpolicyResourceBodyDataModelONTAP
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -201,7 +202,7 @@ func (r *ExportPolicyResource) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	var request interfaces.ExportpolicyResourceModel
+	var request interfaces.ExportpolicyResourceBodyDataModelONTAP
 	request.Name = data.Name.ValueString()
 
 	err = interfaces.UpdateExportPolicy(errorHandler, *client, request, data.ID.ValueString())
