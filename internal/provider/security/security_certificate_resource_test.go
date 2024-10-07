@@ -19,16 +19,16 @@ func TestAccSecurityCertificateResource(t *testing.T) {
 			{
 				Config: testAccSecurityCertificateResourceCertificateConfig(),
 				Check:  resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_security_certificate.example", "name", "tfsvm_ca_cert1"),
+					resource.TestCheckResourceAttr("netapp-ontap_security_certificate.example", "name", "acc_test_ca_cert2"),
 				),
 			},
 			// Import and read
 			{
 				ResourceName:  "netapp-ontap_security_certificate.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s", "tfsvm_ca_cert1", "cluster1"),
+				ImportStateId: fmt.Sprintf("%s,%s", "acc_test_ca_cert1", "cluster1"),
 				Check:         resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_security_certificate.example", "name", "tfsvm_ca_cert1"),
+					resource.TestCheckResourceAttr("netapp-ontap_security_certificate.example", "name", "acc_test_ca_cert1"),
 				),
 			},
 			// Delete testing automatically occurs in TestCase
@@ -37,11 +37,11 @@ func TestAccSecurityCertificateResource(t *testing.T) {
 }
 
 func testAccSecurityCertificateResourceCertificateConfig() string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST")
+	host := os.Getenv("TF_ACC_NETAPP_HOST_CIFS")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS")
+	password := os.Getenv("TF_ACC_NETAPP_PASS2")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST_CIFS, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -59,9 +59,9 @@ provider "netapp-ontap" {
 
 resource "netapp-ontap_security_certificate" "example" {
   cx_profile_name = "cluster1"
-  name            = "tfsvm_ca_cert1"
-  common_name     = "tfsvm_ca_cert"
+  name            = "acc_test_ca_cert2"
+  common_name     = "acc_test_ca_cert"
   type            = "root_ca"
-  svm_name        = "tfsvm"
+  svm_name        = "acc_test"
 }`, host, admin, password)
 }
