@@ -25,7 +25,7 @@ func TestAccNameServicesDNSResource(t *testing.T) {
 			{
 				Config: testAccNameServicesDNSResourceConfig("svm5"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_name_services_dns.name_services_dns", "svm_name", "svm5"),
+					resource.TestCheckResourceAttr("netapp-ontap_dns.name_services_dns", "svm_name", "svm5"),
 				),
 			},
 			// Test importing a resource
