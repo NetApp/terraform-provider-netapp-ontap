@@ -100,15 +100,22 @@ EOT
 
 ## Import
 This resource supports import, which allows you to import existing security certificate into the state of this resource.
-Import require a unique ID composed of the security certificate name and connection profile, separated by a comma.
+Import require a unique ID composed of the security certificate name, common name, type and connection profile, separated by a comma or security certificate common name, type, and connection profile, separated by a comma.
 
-id = `name`, `cx_profile_name`
+id = `name`,`common_name`,`type`,`cx_profile_name`
 
 ### Terraform Import
 
  For example
+
+ Import with certificate name; recommended for ONTAP 9.8 or later
  ```shell
-  terraform import netapp-ontap_security_certificate.cert_import tfsvm_ca_cert1,cluster5
+  terraform import netapp-ontap_security_certificate.cert_import tfsvm_ca_cert1,tfsvm_ca_cert,root_ca,cluster5
+ ```
+
+ Import with certificate common name & type; applicable for ONTAP 9.6 or 9.7
+ ```shell
+  terraform import netapp-ontap_security_certificate.cert_import svm1_cert1,server,cluster5
  ```
 
 ### Terraform Import Block
@@ -118,7 +125,7 @@ First create the block
 ```terraform
 import {
   to = netapp-ontap_security_certificate.cert_import
-  id = "tfsvm_ca_cert1,cluster5"
+  id = "tfsvm_ca_cert1,tfsvm_ca_cert,root_ca,cluster5"
 }
 ```
 Next run, this will auto create the configuration for you
@@ -130,7 +137,7 @@ This will generate a file called generated.tf, which will contain the configurat
 # __generated__ by Terraform
 # Please review these resources and move them into your main configuration files.
 
-# __generated__ by Terraform from "tfsvm_ca_cert1,cluster5"
+# __generated__ by Terraform from "tfsvm_ca_cert1,tfsvm_ca_cert,root_ca,cluster5"
 resource "netapp-ontap_security_certificate" "cert_import" {
   common_name        = "tfsvm_ca_cert"
   cx_profile_name    = "cluster5"
