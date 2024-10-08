@@ -26,7 +26,7 @@ func TestAccSecurityCertificateResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_security_certificate.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s", "acc_test_ca_cert1", "cluster1"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "acc_test_ca_cert1", "acc_test_ca_cert", "root_ca", "cluster1"),
 				Check:         resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_security_certificate.example", "name", "acc_test_ca_cert1"),
 				),
