@@ -22,6 +22,12 @@ func TestAccNameServicesDNSResource(t *testing.T) {
 				Config:      testAccNameServicesDNSResourceConfig("non-existant"),
 				ExpectError: regexp.MustCompile("2621462"),
 			},
+			{
+				Config: testAccNameServicesDNSResourceConfig("svm5"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_name_services_dns.name_services_dns", "svm_name", "svm5"),
+				),
+			},
 			// Test importing a resource
 			{
 				ResourceName:  "netapp-ontap_dns.name_services_dns",
@@ -63,6 +69,7 @@ resource "netapp-ontap_dns" "dns" {
   svm_name = "%s"
   name_servers = ["1.1.1.1", "2.2.2.2"]
   dns_domains = ["foo.bar.com", "boo.bar.com"]
+  skip_config_validation = true
 }
 `, host, admin, password, svmName)
 }

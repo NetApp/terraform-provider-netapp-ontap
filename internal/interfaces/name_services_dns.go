@@ -12,9 +12,10 @@ import (
 
 // NameServicesDNSGetDataModelONTAP describes the GET record data model using go types for mapping.
 type NameServicesDNSGetDataModelONTAP struct {
-	Domains []string          `mapstructure:"domains"`
-	Servers []string          `mapstructure:"servers"`
-	SVM     SvmDataModelONTAP `mapstructure:"svm"`
+	Domains              []string          `mapstructure:"domains"`
+	Servers              []string          `mapstructure:"servers"`
+	SVM                  SvmDataModelONTAP `mapstructure:"svm"`
+	SkipConfigValidation bool              `mapstructure:"skip_config_validation"`
 }
 
 // NameServicesDNSDataSourceFilterModel describes filter model.
@@ -111,7 +112,7 @@ func CreateNameServicesDNS(errorHandler *utils.ErrorHandler, r restclient.RestCl
 
 // DeleteNameServicesDNS deletes a DNS
 func DeleteNameServicesDNS(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) error {
-	statusCode, _, err := r.CallDeleteMethod("name-services/dns"+uuid, nil, nil)
+	statusCode, _, err := r.CallDeleteMethod("name-services/dns/"+uuid, nil, nil)
 	if err != nil {
 		return errorHandler.MakeAndReportError("error deleting DNS", fmt.Sprintf("error on DELETE name-services/dns: %s, statusCode %d", err, statusCode))
 	}

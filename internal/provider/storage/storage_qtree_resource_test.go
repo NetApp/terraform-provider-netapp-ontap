@@ -35,9 +35,9 @@ func TestAccStorageQtreeResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_qtree.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "acc_import", "temp_root", "temp", "cluster5"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "acc_import", "acc_test_root", "acc_test", "cluster5"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_qtree.example", "name", "accFlexcache"),
+					resource.TestCheckResourceAttr("netapp-ontap_qtree.example", "name", "acc_import"),
 				),
 			},
 		},
