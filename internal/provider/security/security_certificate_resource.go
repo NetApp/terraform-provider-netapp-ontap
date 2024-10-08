@@ -281,30 +281,41 @@ func (r *SecurityCertificateResource) Create(ctx context.Context, req resource.C
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
+	if err != nil {
+		// error reporting done inside NewClient
+		return
+	}
+
+	cluster, err := interfaces.GetCluster(errorHandler, *client)
+	if cluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", "Cluster not found.")
+		return
+	}
+	if err != nil {
+		// error reporting done inside GetCluster
+		return
+	}
+	
+	name_supported := false
+	if !data.Name.IsNull() &&  data.Name.ValueString() != "" {
+		if cluster.Version.Generation == 9 && cluster.Version.Major < 8 {
+			tflog.Error(ctx, "'name' is supported with ONTAP 9.8 or higher.")
+			errorHandler.MakeAndReportError("Unsupported parameter", "'name' is supported with ONTAP 9.8 or higher.")
+			return
+		} else {
+			name_supported = true
+		}
+	}
+
 	if !data.SigningRequest.IsNull() {
 		// this if block is for signing security certificate
 		var body interfaces.SecurityCertificateResourceSignBodyDataModelONTAP
-		errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-
-		if resp.Diagnostics.HasError() {
-			return
-		}
-
-		client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
-		if err != nil {
-			// error reporting done inside NewClient
-			return
-		}
-
-		cluster, err := interfaces.GetCluster(errorHandler, *client)
-		if cluster == nil {
-			errorHandler.MakeAndReportError("No cluster found", "Cluster not found.")
-			return
-		}
-		if err != nil {
-			// error reporting done inside GetCluster
-			return
-		}
 
 		// Read the updated data from the API
 		restInfo, err := interfaces.GetSecurityCertificate(errorHandler, *client, cluster.Version, data.Name.ValueString(), data.CommonName.ValueString(), data.Type.ValueString())
@@ -345,33 +356,10 @@ func (r *SecurityCertificateResource) Create(ctx context.Context, req resource.C
 	} else {
 		// This else block is for creating or installing security certificate
 		var body interfaces.SecurityCertificateResourceCreateBodyDataModelONTAP
-		errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 
-		if resp.Diagnostics.HasError() {
-			return
-		}
-
-		client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
-		if err != nil {
-			// error reporting done inside NewClient
-			return
-		}
-
-		cluster, err := interfaces.GetCluster(errorHandler, *client)
-		if cluster == nil {
-			errorHandler.MakeAndReportError("No cluster found", "Cluster not found.")
-			return
-		}
-		if err != nil {
-			// error reporting done inside GetCluster
-			return
-		}
-
-		if !data.Name.IsUnknown() {
-			if cluster.Version.Generation == 9 && cluster.Version.Major >= 8 {
+		if !data.Name.IsNull() &&  data.Name.ValueString() != "" {
+			if name_supported {
 				body.Name = data.Name.ValueString()
-			} else {
-				tflog.Error(ctx, "'name' is supported with ONTAP 9.8 or higher.")
 			}
 		}
 		body.CommonName = data.CommonName.ValueString()
@@ -396,8 +384,8 @@ func (r *SecurityCertificateResource) Create(ctx context.Context, req resource.C
 		}
 
 		var operation string
-		if !data.PublicCertificate.IsUnknown() || !data.PrivateKey.IsUnknown() {
-			operation = "signing"
+		if !data.PublicCertificate.IsUnknown() || !data.PrivateKey.IsNull() {
+			operation = "installing"
 		} else {
 			operation = "creating"
 		}
@@ -492,15 +480,25 @@ func (r *SecurityCertificateResource) ImportState(ctx context.Context, req resou
 	// Parse the ID
 	idParts := strings.Split(req.ID, ",")
 
-	// import name and cx_profile
-	if len(idParts) == 2 {
+	// import name, common_name, type and cx_profile
+	if len(idParts) == 4 {
 		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[0])...)
-		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[1])...)
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("common_name"), idParts[1])...)
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("type"), idParts[2])...)
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[3])...)
+		return
+	}
+
+	// import common_name, type, and cx_profile
+	if len(idParts) == 3 {
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("common_name"), idParts[0])...)
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("type"), idParts[1])...)
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[2])...)
 		return
 	}
 
 	resp.Diagnostics.AddError(
 		"Unexpected Import Identifier",
-		fmt.Sprintf("Expected import identifier with format: name,cx_profile_name. Got: %q", req.ID),
+		fmt.Sprintf("Expected import identifier with format: name,common_name,type,cx_profile_name or common_name,type,cx_profile_name. Got: %q", req.ID),
 	)
 }
