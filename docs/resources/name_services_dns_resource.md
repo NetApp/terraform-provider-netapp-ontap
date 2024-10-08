@@ -19,10 +19,8 @@ Create/Modify/Delete and Import a name services DNS resource
 ```
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+* On-perm ONTAP system 9.9 or higher
 * Amazon FSx for NetApp ONTAP
-
-[comment]: <> (TODO: Add support for Amazon FSx for NetApp ONTAP )
 
 ## Example Usage
 ```terraform
@@ -47,6 +45,7 @@ resource "netapp-ontap_dns" "dns" {
 
 - `dns_domains` (Set of String) List of DNS domains such as 'sales.bar.com'. The first domain is the one that the svm belongs to
 - `name_servers` (Set of String) List of IPv4 addresses of name servers such as '123.123.123.123'.
+- `skip_config_validation` (Bool) Indicates whether or not the validation for the specified DNS configuration is disabled. (9.9)
 
 ### Read-Only
 

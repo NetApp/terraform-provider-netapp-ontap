@@ -62,7 +62,6 @@ type StorageQtreeResourceBodyDataModelONTAP struct {
 	SVM             svm               `mapstructure:"svm"`
 	UnixPermissions int               `mapstructure:"unix_permissions,omitempty"`
 	Volume          qtreeVloume       `mapstructure:"volume"`
-	ID              int               `mapstructure:"id,omitempty"`
 	SecurityStyle   string            `mapstructure:"security_style,omitempty"`
 	ExportPolicy    qtreeExportPolicy `mapstructure:"export_policy,omitempty"`
 	User            qtreeUser         `mapstructure:"user,omitempty"`

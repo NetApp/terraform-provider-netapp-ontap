@@ -133,6 +133,7 @@ FEATURES:
 ENHANCEMENTS:
 * **netapp-ontap_lun**: added `size_unit` option. ([#227](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/227))
 * **netapp-ontap_security_account**: Add support for import and update ([#243](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/243))
+* **netapp-ontap_name_services_dns**: Add `skip_config_validation`([#316](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/316))
 
 ## 1.1.4 (2024-09-05)
 
@@ -142,6 +143,7 @@ DOC FIXES:
 
 BUG FIXES:
 * **netapp-ontap_cluster_data_source: fix on nodes to show multiple elements ([#264](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/264))
+* **netapp-ontap_protocols_nfs_export_policy_resource: fix id error during the creation ([[#290](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/290)])
 
 ## 1.1.3 (2024-08-08)
 

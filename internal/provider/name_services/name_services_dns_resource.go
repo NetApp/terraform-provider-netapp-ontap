@@ -10,6 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
@@ -36,11 +39,12 @@ type NameServicesDNSResource struct {
 
 // NameServicesDNSResourceModel describes the resource data model.
 type NameServicesDNSResourceModel struct {
-	CxProfileName types.String   `tfsdk:"cx_profile_name"`
-	SVMName       types.String   `tfsdk:"svm_name"`
-	ID            types.String   `tfsdk:"id"`
-	Domains       []types.String `tfsdk:"dns_domains"`
-	NameServers   []types.String `tfsdk:"name_servers"`
+	CxProfileName        types.String   `tfsdk:"cx_profile_name"`
+	SVMName              types.String   `tfsdk:"svm_name"`
+	ID                   types.String   `tfsdk:"id"`
+	SkipConfigValidation types.Bool     `tfsdk:"skip_config_validation"`
+	Domains              []types.String `tfsdk:"dns_domains"`
+	NameServers          []types.String `tfsdk:"name_servers"`
 }
 
 // Metadata returns the resource type name.
@@ -76,6 +80,15 @@ func (r *NameServicesDNSResource) Schema(ctx context.Context, req resource.Schem
 				ElementType:         types.StringType,
 				MarkdownDescription: "List of IPv4 addresses of name servers such as '123.123.123.123'.",
 				Optional:            true,
+			},
+			"skip_config_validation": schema.BoolAttribute{
+				MarkdownDescription: "Indicates whether or not the validation for the specified DNS configuration is disabled. (9.9)",
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 		},
 	}
@@ -130,20 +143,20 @@ func (r *NameServicesDNSResource) Read(ctx context.Context, req resource.ReadReq
 
 	data.SVMName = types.StringValue(restInfo.SVM.Name)
 	data.ID = types.StringValue(restInfo.SVM.UUID)
-	var servers []types.String
-	for _, v := range restInfo.Servers {
-		if !connection.StringInSlice(v, data.NameServers) {
-			servers = append(servers, types.StringValue(v))
+
+	if restInfo.Servers != nil {
+		data.NameServers = make([]types.String, len(restInfo.Servers))
+		for index, server := range restInfo.Servers {
+			data.NameServers[index] = types.StringValue(server)
 		}
 	}
-	data.NameServers = servers
-	var domains []types.String
-	for _, v := range restInfo.Domains {
-		if !connection.StringInSlice(v, data.Domains) {
-			domains = append(domains, types.StringValue(v))
+
+	if restInfo.Domains != nil {
+		data.Domains = make([]types.String, len(restInfo.Domains))
+		for index, domain := range restInfo.Domains {
+			data.Domains[index] = types.StringValue(domain)
 		}
 	}
-	data.Domains = domains
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
@@ -169,6 +182,7 @@ func (r *NameServicesDNSResource) Create(ctx context.Context, req resource.Creat
 
 	body.SVM.Name = data.SVMName.ValueString()
 	body.SVM.UUID = data.ID.ValueString()
+
 	var servers, domains []string
 	for _, v := range data.NameServers {
 		servers = append(servers, v.ValueString())
@@ -178,7 +192,7 @@ func (r *NameServicesDNSResource) Create(ctx context.Context, req resource.Creat
 	}
 	body.Servers = servers
 	body.Domains = domains
-
+	body.SkipConfigValidation = data.SkipConfigValidation.ValueBool()
 	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
