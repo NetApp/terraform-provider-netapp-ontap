@@ -20,7 +20,7 @@ func TestAccStorageQtreeResource(t *testing.T) {
 				Config: createQtree("acc_test_qtree", "temp_root", "temp"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_qtree.example", "name", "acc_test_qtree"),
-					resource.TestCheckResourceAttr("netapp-ontap_storage_qtree.example", "user.name", "nobody"),
+					resource.TestCheckResourceAttr("netapp-ontap_qtree.example", "user.name", "nobody"),
 				),
 			},
 			{

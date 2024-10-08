@@ -17,8 +17,10 @@ Create/Read/Delete one or more members in a local group resource
 * vserver cifs users-and-groups local-group add-members
 * vserver cifs users-and-groups local-group remove-members
 ```
+
 ## Supported Platforms
 * On-perm ONTAP system 9.10 or higher
+* * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
 
