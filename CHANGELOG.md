@@ -26,6 +26,7 @@ FEATURES:
 ENHANCEMENTS:
 * **netapp-ontap_lun**: added `size_unit` option. ([#227](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/227))
 * **netapp-ontap_security_account**: Add support for import and update ([#243](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/243))
+* **netapp-ontap_name_services_dns**: Add `skip_config_validation`([#316](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/316))
 
 ## 1.1.4 (2024-09-05)
 
