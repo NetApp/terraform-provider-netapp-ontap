@@ -2,11 +2,12 @@ package name_services_test
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
 	"os"
 	"regexp"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
 )
 
 func TestAccNameServicesDNSResource(t *testing.T) {
@@ -20,6 +21,12 @@ func TestAccNameServicesDNSResource(t *testing.T) {
 			{
 				Config:      testAccNameServicesDNSResourceConfig("non-existant"),
 				ExpectError: regexp.MustCompile("2621462"),
+			},
+			{
+				Config: testAccNameServicesDNSResourceConfig("svm5"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_name_services_dns.name_services_dns", "svm_name", "svm5"),
+				),
 			},
 			// Test importing a resource
 			{
@@ -62,6 +69,7 @@ resource "netapp-ontap_name_services_dns" "name_services_dns" {
   svm_name = "%s"
   name_servers = ["1.1.1.1", "2.2.2.2"]
   dns_domains = ["foo.bar.com", "boo.bar.com"]
+  skip_config_validation = true
 }
 `, host, admin, password, svmName)
 }
