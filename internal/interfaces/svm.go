@@ -24,29 +24,29 @@ type SvmDataModelONTAP struct {
 
 // SvmResourceModel describes the resource data model.
 type SvmResourceModel struct {
-	Name           string              `mapstructure:"name,omitempty"`
-	Ipspace        Ipspace             `mapstructure:"ipspace"`
-	SnapshotPolicy SnapshotPolicy      `mapstructure:"snapshot_policy,omitempty"`
-	SubType        string              `mapstructure:"subtype,omitempty"`
+	Aggregates     []map[string]string `mapstructure:"aggregates"`
 	Comment        string              `mapstructure:"comment"`
+	Ipspace        Ipspace             `mapstructure:"ipspace"`
 	Language       string              `mapstructure:"language,omitempty"`
 	MaxVolumes     string              `mapstructure:"max_volumes,omitempty"`
-	Aggregates     []map[string]string `mapstructure:"aggregates"`
+	Name           string              `mapstructure:"name,omitempty"`
+	SnapshotPolicy SnapshotPolicy      `mapstructure:"snapshot_policy,omitempty"`
 	Storage        Storage             `mapstructure:"storage"`
+	SubType        string              `mapstructure:"subtype,omitempty"`
 }
 
 // SvmGetDataSourceModel describes the data source model.
 type SvmGetDataSourceModel struct {
-	Name           string         `mapstructure:"name"`
-	UUID           string         `mapstructure:"uuid"`
-	Ipspace        Ipspace        `mapstructure:"ipspace"`
-	SnapshotPolicy SnapshotPolicy `mapstructure:"snapshot_policy"`
-	SubType        string         `mapstructure:"subtype,omitempty"`
-	Comment        string         `mapstructure:"comment,omitempty"`
-	Language       string         `mapstructure:"language,omitempty"`
 	Aggregates     []Aggregate    `mapstructure:"aggregates,omitempty"`
+	Comment        string         `mapstructure:"comment,omitempty"`
+	Ipspace        Ipspace        `mapstructure:"ipspace"`
+	Language       string         `mapstructure:"language,omitempty"`
 	MaxVolumes     string         `mapstructure:"max_volumes,omitempty"`
+	Name           string         `mapstructure:"name"`
+	SnapshotPolicy SnapshotPolicy `mapstructure:"snapshot_policy"`
 	Storage        Storage        `mapstructure:"storage"`
+	SubType        string         `mapstructure:"subtype,omitempty"`
+	UUID           string         `mapstructure:"uuid"`
 }
 
 // Ipspace describes the resource data model.
