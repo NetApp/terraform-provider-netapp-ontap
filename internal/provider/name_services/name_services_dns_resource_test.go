@@ -25,17 +25,17 @@ func TestAccNameServicesDNSResource(t *testing.T) {
 			{
 				Config: testAccNameServicesDNSResourceConfig("svm5"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_name_services_dns.name_services_dns", "svm_name", "svm5"),
+					resource.TestCheckResourceAttr("netapp-ontap_dns.dns", "svm_name", "svm5"),
 				),
 			},
 			// Test importing a resource
 			{
-				ResourceName:  "netapp-ontap_name_services_dns.name_services_dns",
+				ResourceName:  "netapp-ontap_dns.dns",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s", svmName, credName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_name_services_dns.name_services_dns", "svm_name", "ansibleSVM"),
-					resource.TestCheckResourceAttr("netapp-ontap_name_services_dns.name_services_dns", "name_servers.0", "netappad.com"),
+					resource.TestCheckResourceAttr("netapp-ontap_dns.dns", "svm_name", "ansibleSVM"),
+					resource.TestCheckResourceAttr("netapp-ontap_dns.dns", "name_servers.0", "netappad.com"),
 				),
 			},
 		},
@@ -63,7 +63,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_name_services_dns" "name_services_dns" {
+resource "netapp-ontap_dns" "dns" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   svm_name = "%s"

@@ -1,17 +1,17 @@
 ---
-page_title: "netapp-ontap_name_services_dnss Data Source - terraform-provider-netapp-ontap"
+page_title: "netapp-ontap_dnss Data Source - terraform-provider-netapp-ontap"
 subcategory: "Name-Services"
 description: |-
   Retrieves the DNSs Configuration of SVMs.
 ---
 
-# Data Source name_services_dnss
+# Data Source dnss
 
 Retrieves the DNSs Configuration of an SVMs.
 
 ## Example Usage
 ```terraform
-data "netapp-ontap_name_services_dnss" "name_services_dnss" {
+data "netapp-ontap_dnss" "dnss" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   filter = {
@@ -48,8 +48,8 @@ Optional:
 - `svm_name` (String) IPInterface svm name.
 
 
-<a id="nestedatt--name_services_dnss"></a>
-### Nested Schema for `name_services_dnss`
+<a id="nestedatt--dnss"></a>
+### Nested Schema for `dnss`
 
 Required:
 
