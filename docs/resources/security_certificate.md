@@ -24,8 +24,17 @@ Create/ install/ sign a certificate
 ## Example Usage
 
 ```terraform
+# creating a cluster-scoped certificate
+resource "netapp-ontap_security_certificate" "create_certificate1" {
+  cx_profile_name = "cluster5"
+  name            = "test_ca_cert1"
+  common_name     = "test_ca_cert"
+  type            = "root_ca"
+  expiry_time     = "P365DT"
+}
+
 # creating a certificate
-resource "netapp-ontap_security_certificate" "create_certificate" {
+resource "netapp-ontap_security_certificate" "create_certificate2" {
   cx_profile_name = "cluster5"
   name            = "tfsvm_ca_cert1"
   common_name     = "tfsvm_ca_cert"
