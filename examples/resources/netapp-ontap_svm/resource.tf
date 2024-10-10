@@ -10,5 +10,6 @@ resource "netapp-ontap_svm" "example" {
     { name = "aggr1" },
     { name = "test" },
   ]
-  max_volumes = "200"
+  max_volumes   = "200"
+  storage_limit = 1073741824
 }
