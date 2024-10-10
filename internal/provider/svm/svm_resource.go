@@ -3,12 +3,14 @@ package svm
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -46,6 +48,7 @@ type SvmResourceModel struct {
 	Language       types.String `tfsdk:"language"`
 	Aggregates     []Aggregate  `tfsdk:"aggregates"`
 	MaxVolumes     types.String `tfsdk:"max_volumes"`
+	StorageLimit   types.Int64  `tfsdk:"storage_limit"`
 	ID             types.String `tfsdk:"id"`
 }
 
@@ -109,6 +112,12 @@ func (r *SvmResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 			"max_volumes": schema.StringAttribute{
 				MarkdownDescription: "Maximum number of volumes that can be created on the svm. Expects an integer or unlimited",
 				Optional:            true,
+			},
+			"storage_limit": schema.Int64Attribute{
+				MarkdownDescription: "Maximum storage permitted on svm, in bytes",
+				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(0),
 			},
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -181,6 +190,12 @@ func (r *SvmResource) Create(ctx context.Context, req resource.CreateRequest, re
 		request.MaxVolumes = data.MaxVolumes.ValueString()
 	}
 
+	setStorageLimitEmpty := true
+	if !data.StorageLimit.Equal(types.Int64Value(0)) {
+		setStorageLimitEmpty = false
+		request.Storage.Limit = int(data.StorageLimit.ValueInt64())
+	}
+
 	setAggrEmpty := false
 	if len(data.Aggregates) != 0 {
 		aggregates := []interfaces.Aggregate{}
@@ -204,7 +219,14 @@ func (r *SvmResource) Create(ctx context.Context, req resource.CreateRequest, re
 		// error reporting done inside NewClient
 		return
 	}
-	svm, err := interfaces.CreateSvm(errorHandler, *client, request, setAggrEmpty, setCommentEmpty)
+	svm, err := interfaces.CreateSvm(
+		errorHandler,
+		*client,
+		request,
+		setAggrEmpty,
+		setCommentEmpty,
+		setStorageLimitEmpty,
+	)
 	if err != nil {
 		return
 	}
@@ -285,6 +307,8 @@ func (r *SvmResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		data.MaxVolumes = types.StringValue(svm.MaxVolumes)
 	}
 
+	data.StorageLimit = types.Int64Value(int64(svm.Storage.Limit))
+
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -363,6 +387,10 @@ func (r *SvmResource) Update(ctx context.Context, req resource.UpdateRequest, re
 			return
 		}
 		request.MaxVolumes = data.MaxVolumes.ValueString()
+	}
+
+	if !data.StorageLimit.Equal(state.StorageLimit) {
+		request.Storage.Limit = int(data.StorageLimit.ValueInt64())
 	}
 
 	// aggregates can be modified as empty list

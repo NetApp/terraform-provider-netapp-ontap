@@ -32,6 +32,7 @@ type SvmResourceModel struct {
 	Language       string              `mapstructure:"language,omitempty"`
 	MaxVolumes     string              `mapstructure:"max_volumes,omitempty"`
 	Aggregates     []map[string]string `mapstructure:"aggregates"`
+	Storage        Storage             `mapstructure:"storage"`
 }
 
 // SvmGetDataSourceModel describes the data source model.
@@ -60,7 +61,7 @@ type SnapshotPolicy struct {
 
 // Storage describes the resource data model.
 type Storage struct {
-	Limit int `mapstructure:"limit,omitempty"`
+	Limit int `mapstructure:"limit"`
 }
 
 // SvmDataSourceFilterModel describes the data source data model for queries.
@@ -163,7 +164,17 @@ func GetSvmByNameDataSource(errorHandler *utils.ErrorHandler, r restclient.RestC
 func GetSvmsByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *SvmDataSourceFilterModel) ([]SvmGetDataSourceModel, error) {
 	api := "svm/svms"
 	query := r.NewQuery()
-	query.Fields([]string{"name", "ipspace", "snapshot_policy", "subtype", "comment", "language", "max_volumes", "aggregates"})
+	query.Fields([]string{
+		"name",
+		"ipspace",
+		"snapshot_policy",
+		"subtype",
+		"comment",
+		"language",
+		"max_volumes",
+		"aggregates",
+		"storage.limit",
+	})
 
 	if filter != nil {
 		var filterMap map[string]interface{}
@@ -195,7 +206,7 @@ func GetSvmsByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, fi
 }
 
 // CreateSvm to create svm
-func CreateSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, data SvmResourceModel, setAggrEmpty bool, setCommentEmpty bool) (*SvmGetDataModelONTAP, error) {
+func CreateSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, data SvmResourceModel, setAggrEmpty bool, setCommentEmpty bool, setStorageLimitEmpty bool) (*SvmGetDataModelONTAP, error) {
 	var body map[string]interface{}
 	if err := mapstructure.Decode(data, &body); err != nil {
 		return nil, errorHandler.MakeAndReportError("error encoding svm body", fmt.Sprintf("error on encoding svm/svms body: %s, body: %#v", err, data))
@@ -206,6 +217,13 @@ func CreateSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, data S
 	if setCommentEmpty {
 		delete(body, "comment")
 	}
+	if setStorageLimitEmpty {
+		// delete storage.limit from request body, so that ONTAP uses default value
+		if v, ok := body["storage"].(map[string]interface{}); ok {
+			delete(v, "limit")
+		}
+	}
+
 	query := r.NewQuery()
 	query.Add("return_records", "true")
 	statusCode, response, err := r.CallCreateMethod("svm/svms", query, body)
