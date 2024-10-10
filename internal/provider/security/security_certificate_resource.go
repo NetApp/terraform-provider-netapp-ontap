@@ -95,6 +95,7 @@ func (r *SecurityCertificateResource) Schema(ctx context.Context, req resource.S
 			"svm_name": schema.StringAttribute{
 				MarkdownDescription: "Name of the SVM in which the certificate is created or installed or the SVM on which the signed certificate will exist.",
 				Optional:            true,
+				Computed:            true,
 			},
 			"scope": schema.StringAttribute{
 				MarkdownDescription: "Set to 'svm' for certificates installed in a SVM. Otherwise, set to 'cluster'.",
@@ -132,6 +133,9 @@ func (r *SecurityCertificateResource) Schema(ctx context.Context, req resource.S
 				MarkdownDescription: "Signed public key Certificate in PEM format that is returned while signing a certificate.",
 				Optional:            false,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"private_key": schema.StringAttribute{
 				MarkdownDescription: "Private key Certificate in PEM format. Only valid when installing a CA-signed certificate.",
@@ -262,7 +266,7 @@ func (r *SecurityCertificateResource) Read(ctx context.Context, req resource.Rea
 	if data.ExpiryTime.IsNull() {
 		data.ExpiryTime = types.StringValue(restInfo.ExpiryTime)
 	}
-	if data.SVMName.IsNull() {
+	if data.SVMName.IsUnknown() {
 		data.SVMName = types.StringValue(restInfo.SVM.Name)
 	}
 
@@ -303,7 +307,7 @@ func (r *SecurityCertificateResource) Create(ctx context.Context, req resource.C
 	}
 	
 	name_supported := false
-	if !data.Name.IsNull() &&  data.Name.ValueString() != "" {
+	if !data.Name.IsNull() && data.Name.ValueString() != "" {
 		if cluster.Version.Generation == 9 && cluster.Version.Major < 8 {
 			tflog.Error(ctx, "'name' is supported with ONTAP 9.8 or higher.")
 			errorHandler.MakeAndReportError("Unsupported parameter", "'name' is supported with ONTAP 9.8 or higher.")
@@ -334,6 +338,9 @@ func (r *SecurityCertificateResource) Create(ctx context.Context, req resource.C
 		data.PublicCertificate = types.StringValue(restInfo.PublicCertificate)
 		data.HashFunction = types.StringValue(restInfo.HashFunction)
 		data.KeySize = types.Int64Value(restInfo.KeySize)
+		if data.SVMName.IsUnknown() {
+			data.SVMName = types.StringValue(restInfo.SVM.Name)
+		}
 
 		body.SigningRequest = data.SigningRequest.ValueString()
 		if !data.HashFunction.IsUnknown() {
