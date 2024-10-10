@@ -1,5 +1,5 @@
 # creating a cluster-scoped certificate
-resource "netapp-ontap_security_certificate" "create_certificate" {
+resource "netapp-ontap_security_certificate" "create_certificate1" {
   cx_profile_name = "cluster5"
   name            = "test_ca_cert1"
   common_name     = "test_ca_cert"
@@ -8,7 +8,7 @@ resource "netapp-ontap_security_certificate" "create_certificate" {
 }
 
 # creating a certificate
-resource "netapp-ontap_security_certificate" "create_certificate" {
+resource "netapp-ontap_security_certificate" "create_certificate2" {
   cx_profile_name = "cluster5"
   name            = "tfsvm_ca_cert1"
   common_name     = "tfsvm_ca_cert"
