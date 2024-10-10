@@ -27,7 +27,7 @@ var _ resource.ResourceWithImportState = &NameServicesDNSResource{}
 func NewNameServicesDNSResource() resource.Resource {
 	return &NameServicesDNSResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "name_services_dns",
+			Name: "dns",
 		},
 	}
 }

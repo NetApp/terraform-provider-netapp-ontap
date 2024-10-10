@@ -26,7 +26,7 @@ var _ resource.ResourceWithImportState = &SecurityLoginMessageResource{}
 func NewSecurityLoginMessageResource() resource.Resource {
 	return &SecurityLoginMessageResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "security_login_messages",
+			Name: "security_login_message",
 		},
 	}
 }
