@@ -1,3 +1,12 @@
+# creating a cluster-scoped certificate
+resource "netapp-ontap_security_certificate" "create_certificate" {
+  cx_profile_name = "cluster5"
+  name            = "test_ca_cert1"
+  common_name     = "test_ca_cert"
+  type            = "root_ca"
+  expiry_time     = "P365DT"
+}
+
 # creating a certificate
 resource "netapp-ontap_security_certificate" "create_certificate" {
   cx_profile_name = "cluster5"
