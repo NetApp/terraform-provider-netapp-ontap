@@ -1,7 +1,7 @@
 data "netapp-ontap_cluster_peers" "cluster_peers" {
   # required to know which system to interface with
-  cx_profile_name = "fsx"
+  cx_profile_name = "cluster4"
   filter = {
-    name = "*"
+    name = "netapp*"
   }
 }

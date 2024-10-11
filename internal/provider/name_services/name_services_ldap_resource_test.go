@@ -80,7 +80,6 @@ resource "netapp-ontap_name_services_ldap" "name_services_ldap" {
   svm_name = "%s"
   servers = ["1.1.1.1", "2.2.2.2"]
   base_scope = "%s"
-  skip_config_validation = true
 }
 `, host, admin, password, svmName, baseScope)
 }
