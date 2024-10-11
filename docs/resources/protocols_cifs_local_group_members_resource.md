@@ -20,7 +20,7 @@ Create/Read/Delete one or more members in a local group resource
 
 ## Supported Platforms
 * On-perm ONTAP system 9.10 or higher
-* * Amazon FSx for NetApp ONTAP
+* Amazon FSx for NetApp ONTAP
 
 ## Example Usage
 

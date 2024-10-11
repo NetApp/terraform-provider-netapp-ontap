@@ -15,6 +15,9 @@ Retreive one or more security roles by filter
 * security login role show
 ```
 
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
 
 ## Example Usage
 

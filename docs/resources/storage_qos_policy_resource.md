@@ -20,6 +20,10 @@ Create/Modify/Delete a QOSPolicy resource
 * qos adaptive-policy-group delete
 ```
 
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
+
 ## Example Usage
 
 ```terraform

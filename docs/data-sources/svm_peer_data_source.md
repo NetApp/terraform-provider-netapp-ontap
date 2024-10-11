@@ -10,7 +10,9 @@ description: |-
 
 Retrieves the configuration of SVM Peer.
 
-
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
 ## Example Usage
 
 ```terraform

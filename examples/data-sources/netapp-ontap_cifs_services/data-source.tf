@@ -1,7 +1,14 @@
+# data "netapp-ontap_cifs_services" "protocols_cifs_services" {
+#   # required to know which system to interface with
+#   cx_profile_name = "cluster1"
+#   filter = {
+#     svm_name = "test3"
+#   }
+# }
 data "netapp-ontap_cifs_services" "protocols_cifs_services" {
   # required to know which system to interface with
-  cx_profile_name = "cluster1"
+  cx_profile_name = "fsx"
   filter = {
-    svm_name = "test3"
+    svm_name = "fsx"
   }
 }
