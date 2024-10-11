@@ -32,7 +32,7 @@ func TestAccNetworkIpRouteResource(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_network_ip_route.example", "svm_name", "ansibleSVM"),
 					resource.TestCheckResourceAttr("netapp-ontap_network_ip_route.example", "destination.address", "0.0.0.0"),
-					resource.TestCheckResourceAttr("netapp-ontap_network_ip_route.example", "destination.netmask", "20"),
+					resource.TestCheckResourceAttr("netapp-ontap_network_ip_route.example", "destination.netmask", "0"),
 				),
 			},
 			// test create with a gateway
