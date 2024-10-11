@@ -3,8 +3,9 @@ package name_services
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -349,29 +350,29 @@ func (r *NameServicesLDAPResource) Create(ctx context.Context, req resource.Crea
 			body.Servers = append(body.Servers, server.ValueString())
 		}
 	}
-	if !data.Schema.IsNull() {
+	if !data.Schema.IsUnknown() {
 		body.Schema = data.Schema.ValueString()
 	}
-	if !data.AdDomain.IsNull() {
+	if !data.AdDomain.IsUnknown() {
 		body.AdDomain = data.AdDomain.ValueString()
 	}
-	if !data.BaseDN.IsNull() {
+	if !data.BaseDN.IsUnknown() {
 		body.BaseDN = data.BaseDN.ValueString()
 	}
-	if !data.BaseScope.IsNull() {
+	if !data.BaseScope.IsUnknown() {
 		body.BaseScope = data.BaseScope.ValueString()
 	}
-	if !data.BindDN.IsNull() {
+	if !data.BindDN.IsUnknown() {
 		body.BindDN = data.BindDN.ValueString()
 	}
-	if !data.BindAsCIFSServer.IsNull() {
+	if !data.BindAsCIFSServer.IsUnknown() {
 		if cluster.Version.Generation == 9 && cluster.Version.Major >= 9 {
 			body.BindAsCIFSServer = data.BindAsCIFSServer.ValueBool()
 		} else {
 			errors = append(errors, "bind_as_cifs_server")
 		}
 	}
-	if !data.BindPassword.IsNull() {
+	if !data.BindPassword.IsUnknown() {
 		body.BindPassword = data.BindPassword.ValueString()
 	}
 	if data.PreferredADServers != nil {
@@ -379,40 +380,40 @@ func (r *NameServicesLDAPResource) Create(ctx context.Context, req resource.Crea
 			body.PreferredADServers = append(body.PreferredADServers, adserver.ValueString())
 		}
 	}
-	if !data.Port.IsNull() {
+	if !data.Port.IsUnknown() {
 		body.Port = data.Port.ValueInt64()
 	}
-	if !data.QueryTimeout.IsNull() {
+	if !data.QueryTimeout.IsUnknown() {
 		if cluster.Version.Generation == 9 && cluster.Version.Major >= 9 {
 			body.QueryTimeout = data.QueryTimeout.ValueInt64()
 		} else {
 			errors = append(errors, "query_timeout")
 		}
 	}
-	if !data.MinBindLevel.IsNull() {
+	if !data.MinBindLevel.IsUnknown() {
 		body.MinBindLevel = data.MinBindLevel.ValueString()
 	}
-	if !data.UseStartTLS.IsNull() {
+	if !data.UseStartTLS.IsUnknown() {
 		body.UseStartTLS = data.UseStartTLS.ValueBool()
 	}
-	if !data.ReferralEnabled.IsNull() {
+	if !data.ReferralEnabled.IsUnknown() {
 		if cluster.Version.Generation == 9 && cluster.Version.Major >= 9 {
 			body.ReferralEnabled = data.ReferralEnabled.ValueBool()
 		} else {
 			errors = append(errors, "referral_enabled")
 		}
 	}
-	if !data.SessionSecurity.IsNull() {
+	if !data.SessionSecurity.IsUnknown() {
 		body.SessionSecurity = data.SessionSecurity.ValueString()
 	}
-	if !data.LDAPSEnabled.IsNull() {
+	if !data.LDAPSEnabled.IsUnknown() {
 		if cluster.Version.Generation == 9 && cluster.Version.Major >= 9 {
 			body.LDAPSEnabled = data.LDAPSEnabled.ValueBool()
 		} else {
 			errors = append(errors, "ldaps_enabled")
 		}
 	}
-	if !data.SkipConfigValidation.IsNull() {
+	if !data.SkipConfigValidation.IsUnknown() {
 		if cluster.Version.Generation == 9 && cluster.Version.Major >= 9 {
 			body.SkipConfigValidation = data.SkipConfigValidation.ValueBool()
 		} else {
