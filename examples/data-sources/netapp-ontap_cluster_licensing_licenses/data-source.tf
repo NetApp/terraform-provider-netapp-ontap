@@ -1,6 +1,6 @@
 data "netapp-ontap_cluster_licensing_licenses" "cluster_licensing_licenses" {
   # required to know which system to interface with
-  cx_profile_name = "cluster4"
+  cx_profile_name = "fsx"
   #filter = {
   #  name = "snapmirror_sy*"
   #}

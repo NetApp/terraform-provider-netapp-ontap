@@ -15,6 +15,10 @@ vserver cifs share create
 vserver cifs share properties add
 vserver cifs share access-control create
 
+## Supported Platforms
+* On-perm ONTAP system 9.10 or higher
+* Amazon FSx for NetApp ONTAP
+
 ## Example Usage
 
 ```terraform

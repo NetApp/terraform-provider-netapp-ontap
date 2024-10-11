@@ -1,15 +1,32 @@
+# data "netapp-ontap_svm_peers" "svm_peers" {
+#   cx_profile_name = "cluster4"
+#   filter = {
+#     svm = {
+#       name = "acc*"
+#     }
+#     peer = {
+#       svm = {
+#         name = "acc*"
+#       }
+#       cluster = {
+#         name = "abc-1"
+#       }
+#     }
+#   }
+# }
+
 data "netapp-ontap_svm_peers" "svm_peers" {
-  cx_profile_name = "cluster4"
+  cx_profile_name = "fsx"
   filter = {
     svm = {
-      name = "acc*"
+      name = "fsx*"
     }
     peer = {
       svm = {
-        name = "acc*"
+        name = "*"
       }
       cluster = {
-        name = "abc-1"
+        name = "fsx"
       }
     }
   }
