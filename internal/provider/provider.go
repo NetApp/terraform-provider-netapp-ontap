@@ -298,6 +298,8 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		protocols.NewProtocolsSanLunMapsDataSource,
 		security.NewSecurityAccountDataSource,
 		security.NewSecurityAccountsDataSource,
+		security.NewSecurityCertificateDataSource,
+		security.NewSecurityCertificatesDataSource,
 		security.NewSecurityRoleDataSource,
 		security.NewSecurityRolesDataSource,
 		security.NewSecurityLoginMessageDataSource,

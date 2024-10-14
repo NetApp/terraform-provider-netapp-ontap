@@ -2,9 +2,9 @@ import subprocess
 import os
 import sys
 
-# TO find the correct Catagory, check REST API to see what main header this API lives under
+# TO find the correct Category, check REST API to see what main header this API lives under
 
-CATAGORYS = {
+CATEGORIES = {
     'application': [],
     'cloud': [],
     'cluster': [
@@ -82,7 +82,11 @@ CATAGORYS = {
         "security_login_messages_data_source.md",
         "security_role_data_source.md",
         "security_roles_data_source.md",
-        "security_role_resource.md",
+        "security_roles_resource.md",
+        "security_login_message_resource.md",
+        "security_certificate_data_source.md",
+        "security_certificates_data_source.md",
+
     ],
     'snaplock': [],
     'snapmirror': [
@@ -133,12 +137,12 @@ def main():
     print("===== Generating docs =====")
     generate_doc()
     remove_example()
-    print("===== Adding Catagories =====")
+    print("===== Adding Categories =====")
     add_catagories()
     print("===== Validate =====")
     validate()
     print("===== Errors =====")
-    issue = warn_missing_catagory(["docs/data-sources/", "docs/resources/"])
+    issue = warn_missing_category(["docs/data-sources/", "docs/resources/"])
     if issue:
         sys.exit(1)
 
@@ -161,25 +165,25 @@ def remove_example():
 
 
 def add_catagories():
-    for catagory in CATAGORYS:
-        for page in CATAGORYS[catagory]:
+    for category in CATEGORIES:
+        for page in CATEGORIES[category]:
             if 'data_source' in page:
-                update_datasource(page, catagory)
+                update_datasource(page, category)
             if 'resource' in page:
-                update_resouces(page, catagory)
+                update_resouces(page, category)
 
 
-def update_datasource(page, catagory):
+def update_datasource(page, category):
     path = "docs/data-sources/" + page
-    update_md_file(path, catagory)
+    update_md_file(path, category)
 
 
-def update_resouces(page, catagory):
+def update_resouces(page, category):
     path = "docs/resources/" + page
-    update_md_file(path, catagory)
+    update_md_file(path, category)
 
 
-def update_md_file(path, catagory):
+def update_md_file(path, category):
     print("Updating %s" % path)
     try:
         with open(path) as f:
@@ -187,7 +191,7 @@ def update_md_file(path, catagory):
         for i, line in enumerate(lines):
             if line.startswith('subcategory: "'):
                 split_line = line.split('subcategory: "')
-                new_line = split_line[0] + 'subcategory: "' + catagory + split_line[1]
+                new_line = split_line[0] + 'subcategory: "' + category + split_line[1]
                 lines[i] = new_line
                 break
         with open(path, 'w') as f:
@@ -195,7 +199,7 @@ def update_md_file(path, catagory):
     except:
         return
 
-def warn_missing_catagory(directory_paths):
+def warn_missing_category(directory_paths):
     issue = False
     for directory_path in directory_paths:
         full_path = os.path.join(os.getcwd(), directory_path)
@@ -204,7 +208,7 @@ def warn_missing_catagory(directory_paths):
                 with open(os.path.join(full_path, filename), 'r') as f:
                     file_content = f.read()
                     if 'subcategory: ""' in file_content:
-                        print('%s is missing a catagory' % filename)
+                        print('%s is missing a category' % filename)
                         issue = True
     return issue
 
