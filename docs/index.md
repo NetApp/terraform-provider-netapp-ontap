@@ -97,8 +97,8 @@ Optional:
 Required:
 
 - `shared_config_profile` (String) AWS shared config profile. Region set in the profile will be ignored it it's different from the region set in Terraform. aws_access_key_id and aws_secret_access_key are required to be set in credentials
+- `function_name` (String) AWS Lambda function name
 
 Optional:
 
-- `function_name` (String) AWS Lambda function name
 - `region` (String) AWS region.
