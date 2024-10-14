@@ -24,7 +24,7 @@ func TestAccClusterPeerResourceAlias(t *testing.T) {
 			},
 			// Update applications
 			{
-				Config: testAccClusterPeerResourceConfig("10.193.180.109", "10.193.176.189"),
+				Config: testAccClusterPeerResourceConfigAlias("10.193.180.109", "10.193.176.189"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_cluster_peers_resource.example", "remote.ip_addresses.0", "10.193.180.109"),
 				),
