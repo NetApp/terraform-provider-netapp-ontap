@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"fmt"
+
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -21,6 +22,15 @@ func NewStorageAggregatesDataSource() datasource.DataSource {
 	return &StorageAggregatesDataSource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "aggregates",
+		},
+	}
+}
+
+// NewStorageAggregatesDataSourceAlias is a helper function to simplify the provider implementation.
+func NewStorageAggregatesDataSourceAlias() datasource.DataSource {
+	return &StorageAggregatesDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "storage_aggregates_data_source",
 		},
 	}
 }

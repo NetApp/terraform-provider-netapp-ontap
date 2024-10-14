@@ -25,6 +25,15 @@ func NewStorageLunsDataSource() datasource.DataSource {
 	}
 }
 
+// NewStorageLunsDataSourceAlias is a helper function to simplify the provider implementation.
+func NewStorageLunsDataSourceAlias() datasource.DataSource {
+	return &StorageLunsDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "storage_luns_data_source",
+		},
+	}
+}
+
 // StorageLunsDataSource defines the data source implementation.
 type StorageLunsDataSource struct {
 	config connection.ResourceOrDataSourceConfig

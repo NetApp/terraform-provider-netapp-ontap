@@ -38,6 +38,15 @@ func NewStorageVolumeResource() resource.Resource {
 	}
 }
 
+// NewStorageVolumeResourceAlias is a helper function to simplify the provider implementation.
+func NewStorageVolumeResourceAlias() resource.Resource {
+	return &StorageVolumeResource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "storage_volume_resource",
+		},
+	}
+}
+
 // StorageVolumeResource defines the resource implementation.
 type StorageVolumeResource struct {
 	config connection.ResourceOrDataSourceConfig
