@@ -18,6 +18,7 @@ Add/Remove License from ONTAP
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
 
 ## Example Usage
 Example when using a license string

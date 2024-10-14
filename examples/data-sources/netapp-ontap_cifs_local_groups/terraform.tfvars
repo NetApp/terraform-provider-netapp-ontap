@@ -1,3 +1,1 @@
-username = "admin"
-password = "xxxxxxxxx"
-validate_certs = true
+../../provider/terraform.tfvars

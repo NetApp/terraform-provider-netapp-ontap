@@ -7,6 +7,10 @@ description: |-
 
 # Netapp Ontap Cluster Licensing Licenses Data Source
 
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
+
 ClusterLicensingLicenses data source
 ## Example Usage
 ```terraform

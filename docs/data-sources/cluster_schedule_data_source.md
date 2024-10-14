@@ -10,6 +10,10 @@ description: |-
 
 Retrieves Cluster Schedule configuration of SVMs.
 
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
+
 ## Example Usage
 ```terraform
 data "netapp-ontap_cluster_schedule" "cluster_schedule" {
