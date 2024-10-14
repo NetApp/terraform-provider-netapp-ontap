@@ -35,6 +35,15 @@ func NewNameServicesLDAPResource() resource.Resource {
 	}
 }
 
+// NewNameServicesLDAPResourceAlias is a helper function to simplify the provider implementation.
+func NewNameServicesLDAPResourceAlias() resource.Resource {
+	return &NameServicesLDAPResource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "name_services_ldap_resource",
+		},
+	}
+}
+
 // NameServicesLDAPResource defines the resource implementation.
 type NameServicesLDAPResource struct {
 	config connection.ResourceOrDataSourceConfig

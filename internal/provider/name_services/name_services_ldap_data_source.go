@@ -3,6 +3,7 @@ package name_services
 import (
 	"context"
 	"fmt"
+
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -21,6 +22,15 @@ func NewNameServicesLDAPDataSource() datasource.DataSource {
 	return &NameServicesLDAPDataSource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "name_services_ldap",
+		},
+	}
+}
+
+// NewNameServicesLDAPDataSourceAlias is a helper function to simplify the provider implementation.
+func NewNameServicesLDAPDataSourceAlias() datasource.DataSource {
+	return &NameServicesLDAPDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "name_services_ldap_data_source",
 		},
 	}
 }
