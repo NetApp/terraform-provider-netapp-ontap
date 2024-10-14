@@ -3,8 +3,9 @@ package snapmirror
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strconv"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -22,6 +23,15 @@ func NewSnapmirrorPoliciesDataSource() datasource.DataSource {
 	return &SnapmirrorPoliciesDataSource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "snapmirror_policies",
+		},
+	}
+}
+
+// NewSnapmirrorPoliciesDataSourceAlias is a helper function to simplify the provider implementation.
+func NewSnapmirrorPoliciesDataSourceAlias() datasource.DataSource {
+	return &SnapmirrorPoliciesDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "snapmirror_policies_data_source",
 		},
 	}
 }

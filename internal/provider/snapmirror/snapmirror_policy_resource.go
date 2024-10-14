@@ -3,9 +3,10 @@ package snapmirror
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strconv"
 	"strings"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -34,6 +35,15 @@ func NewSnapmirrorPolicyResource() resource.Resource {
 	return &SnapmirrorPolicyResource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "snapmirror_policy",
+		},
+	}
+}
+
+// NewSnapmirrorPolicyResourceAlias is a helper function to simplify the provider implementation.
+func NewSnapmirrorPolicyResourceAlias() resource.Resource {
+	return &SnapmirrorPolicyResource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "snapmirror_policy_resource",
 		},
 	}
 }

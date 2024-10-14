@@ -3,6 +3,7 @@ package snapmirror
 import (
 	"context"
 	"fmt"
+
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -21,6 +22,15 @@ func NewSnapmirrorsDataSource() datasource.DataSource {
 	return &SnapmirrorsDataSource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "snapmirrors",
+		},
+	}
+}
+
+// NewSnapmirrorsDataSourceAlias is a helper function to simplify the provider implementation.
+func NewSnapmirrorsDataSourceAlias() datasource.DataSource {
+	return &SnapmirrorsDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "snapmirrors_data_source",
 		},
 	}
 }
