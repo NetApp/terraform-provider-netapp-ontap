@@ -10,6 +10,10 @@ description: |-
 
 Retrieve Protocol Cifs User or Group Privileges data source
 
+## Supported Platforms
+* On-perm ONTAP system 9.10.1 or higher
+* Amazon FSx for NetApp ONTAP
+
 ## Example Usage
 ```terraform
 data "netapp-ontap_cifs_user_group_privileges" "by_name_privileges" {

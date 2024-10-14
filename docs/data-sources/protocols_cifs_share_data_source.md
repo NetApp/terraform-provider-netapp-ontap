@@ -14,6 +14,10 @@ Retrieves the details of a cifs share
 * vserver cifs share show
 * vserver cifs share properties show
 
+## Supported Platforms
+* On-perm ONTAP system 9.10 or higher
+* Amazon FSx for NetApp ONTAP
+
 ## Example Usage
 ```terraform
 data "netapp-ontap_cifs_share" "protocols_cifs_share" {

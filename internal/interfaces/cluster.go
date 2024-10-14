@@ -105,6 +105,7 @@ func GetCluster(errorHandler *utils.ErrorHandler, r restclient.RestClient) (*Clu
 	statusCode, response, err := r.GetNilOrOneRecord("cluster", nil, nil)
 	query := r.NewQuery()
 	query.Fields([]string{"name", "location", "contact", "dns_domains", "name_servers", "ntp_servers", "management_interfaces", "timezone", "certificate", "uuid"})
+	// statusCode, response, err := r.GetNilOrOneRecord("cluster", query, nil)
 	if err == nil && response == nil {
 		err = fmt.Errorf("no response for GET cluster")
 	}
