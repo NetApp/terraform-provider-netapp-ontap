@@ -3,8 +3,9 @@ package storage
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -26,6 +27,15 @@ func NewStorageVolumeSnapshotResource() resource.Resource {
 	return &StorageVolumeSnapshotResource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "volume_snapshot",
+		},
+	}
+}
+
+// NewStorageVolumeSnapshotResourceAlias is a helper function to simplify the provider implementation.
+func NewStorageVolumeSnapshotResourceAlias() resource.Resource {
+	return &StorageVolumeSnapshotResource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "storage_volume_snapshot_resource",
 		},
 	}
 }

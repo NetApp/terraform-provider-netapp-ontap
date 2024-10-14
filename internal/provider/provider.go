@@ -275,6 +275,12 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		security.NewSecurityAccountResourceAlias,
 		snapmirror.NewSnapmirrorPolicyResourceAlias,
 		snapmirror.NewSnapmirrorResourceAlias,
+		storage.NewAggregateResourceAlias,
+		storage.NewStorageFlexcacheRsourceAlias,
+		storage.NewStorageLunResourceAlias,
+		storage.NewSnapshotPolicyResourceAlias,
+		storage.NewStorageVolumeResourceAlias,
+		storage.NewStorageVolumeSnapshotResourceAlias,
 	}
 }
 
@@ -399,6 +405,18 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		snapmirror.NewSnapmirrorPoliciesDataSourceAlias,
 		snapmirror.NewSnapmirrorPolicyDataSourceAlias,
 		snapmirror.NewSnapmirrorsDataSourceAlias,
+		storage.NewStorageAggregateDataSourceAlias,
+		storage.NewStorageAggregatesDataSourceAlias,
+		storage.NewStorageFlexcacheDataSourceAlias,
+		storage.NewStorageFlexcachesDataSourceAlias,
+		storage.NewStorageLunDataSourceAlias,
+		storage.NewStorageLunsDataSourceAlias,
+		storage.NewSnapshotPoliciesDataSourceAlias,
+		storage.NewSnapshotPolicyDataSourceAlias,
+		storage.NewStorageVolumeDataSourceAlias,
+		storage.NewStorageVolumeSnapshotDataSourceAlias,
+		storage.NewStorageVolumeSnapshotsDataSourceAlias,
+		storage.NewStorageVolumesDataSourceAlias,
 	}
 }
 

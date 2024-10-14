@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"fmt"
+
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -21,6 +22,15 @@ func NewSnapshotPolicyDataSource() datasource.DataSource {
 	return &SnapshotPolicyDataSource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "snapshot_policy",
+		},
+	}
+}
+
+// NewSnapshotPolicyDataSourceAlias is a helper function to simplify the provider implementation.
+func NewSnapshotPolicyDataSourceAlias() datasource.DataSource {
+	return &SnapshotPolicyDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "storage_snapshot_policy_data_source",
 		},
 	}
 }

@@ -3,8 +3,9 @@ package storage
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"log"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -23,6 +24,15 @@ func NewStorageFlexcachesDataSource() datasource.DataSource {
 	return &StorageFlexcachesDataSource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "flexcaches",
+		},
+	}
+}
+
+// NewStorageFlexcachesDataSourceAlias is a helper function to simplify the provider implementation.
+func NewStorageFlexcachesDataSourceAlias() datasource.DataSource {
+	return &StorageFlexcachesDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "storage_flexcaches_data_source",
 		},
 	}
 }
