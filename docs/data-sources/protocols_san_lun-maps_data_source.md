@@ -10,6 +10,11 @@ description: |-
 
 ProtocolsSanLunMaps data source
 
+
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
+
 ## Example Usage
 ```terraform
 data "netapp-ontap_san_lun-maps" "example" {

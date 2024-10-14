@@ -9,6 +9,10 @@ description: |-
 
 Retrieves list of the snapmirrors
 
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
+
 ## Example Usage
 ```terraform
 data "netapp-ontap_snapmirrors" "snapmirrors" {

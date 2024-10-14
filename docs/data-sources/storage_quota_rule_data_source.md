@@ -10,6 +10,10 @@ description: |-
 
 QuotaRule data source
 
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
+
 ## Example Usage
 ```terraform
 data "netapp-ontap_quota_rule" "storage_quota_rule" {
