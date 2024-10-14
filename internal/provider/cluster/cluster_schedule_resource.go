@@ -3,8 +3,9 @@ package cluster
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -29,6 +30,15 @@ func NewClusterScheduleResource() resource.Resource {
 	return &ClusterScheduleResource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "cluster_schedule",
+		},
+	}
+}
+
+// NewClusterScheduleResourceAlias is a helper function to simplify the provider implementation.
+func NewClusterScheduleResourceAlias() resource.Resource {
+	return &ClusterScheduleResource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "cluster_schedule_resource",
 		},
 	}
 }

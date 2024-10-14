@@ -34,6 +34,15 @@ func NewClusterPeerResource() resource.Resource {
 	}
 }
 
+// NewClusterPeerResourceAlias is a helper function to simplify the provider implementation.
+func NewClusterPeerResourceAlias() resource.Resource {
+	return &ClusterPeersResource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "cluster_peers_resource",
+		},
+	}
+}
+
 // ClusterPeersResource defines the resource implementation.
 type ClusterPeersResource struct {
 	config connection.ResourceOrDataSourceConfig

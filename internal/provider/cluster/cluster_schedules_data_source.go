@@ -3,6 +3,7 @@ package cluster
 import (
 	"context"
 	"fmt"
+
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -21,6 +22,15 @@ func NewClusterSchedulesDataSource() datasource.DataSource {
 	return &ClusterSchedulesDataSource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "cluster_schedules",
+		},
+	}
+}
+
+// NewClusterSchedulesDataSourceAlias is a helper function to simplify the provider implementation.
+func NewClusterSchedulesDataSourceAlias() datasource.DataSource {
+	return &ClusterSchedulesDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "cluster_schedules_data_source",
 		},
 	}
 }
