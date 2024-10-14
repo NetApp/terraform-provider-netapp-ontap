@@ -32,6 +32,15 @@ func NewNameServicesDNSResource() resource.Resource {
 	}
 }
 
+// NewNameServicesDNSResourceAlias is a helper function to simplify the provider implementation.
+func NewNameServicesDNSResourceAlias() resource.Resource {
+	return &NameServicesDNSResource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "name_services_dns_resource",
+		},
+	}
+}
+
 // NameServicesDNSResource defines the resource implementation.
 type NameServicesDNSResource struct {
 	config connection.ResourceOrDataSourceConfig
