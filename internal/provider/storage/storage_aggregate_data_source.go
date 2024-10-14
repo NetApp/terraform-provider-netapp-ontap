@@ -26,6 +26,15 @@ func NewStorageAggregateDataSource() datasource.DataSource {
 	}
 }
 
+// NewStorageAggregateDataSourceAlias is a helper function to simplify the provider implementation.
+func NewStorageAggregateDataSourceAlias() datasource.DataSource {
+	return &StorageAggregateDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "storage_aggregate_data_source",
+		},
+	}
+}
+
 // StorageAggregateDataSource defines the data source implementation.
 type StorageAggregateDataSource struct {
 	config connection.ResourceOrDataSourceConfig

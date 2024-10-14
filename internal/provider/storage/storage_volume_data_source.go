@@ -24,6 +24,15 @@ func NewStorageVolumeDataSource() datasource.DataSource {
 	}
 }
 
+// NewStorageVolumeDataSourceAlias is a helper function to simplify the provider implementation.
+func NewStorageVolumeDataSourceAlias() datasource.DataSource {
+	return &StorageVolumeDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "storage_volume_data_source",
+		},
+	}
+}
+
 // StorageVolumeDataSource defines the data source implementation.
 type StorageVolumeDataSource struct {
 	config connection.ResourceOrDataSourceConfig

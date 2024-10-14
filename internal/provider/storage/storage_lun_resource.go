@@ -31,6 +31,15 @@ func NewStorageLunResource() resource.Resource {
 	}
 }
 
+// NewStorageLunResourceAlias is a helper function to simplify the provider implementation.
+func NewStorageLunResourceAlias() resource.Resource {
+	return &StorageLunResource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "storage_lun_resource",
+		},
+	}
+}
+
 // StorageLunResource defines the resource implementation.
 type StorageLunResource struct {
 	config connection.ResourceOrDataSourceConfig
