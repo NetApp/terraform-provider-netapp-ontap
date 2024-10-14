@@ -36,6 +36,15 @@ func NewSecurityAccountResource() resource.Resource {
 	}
 }
 
+// NewSecurityAccountResourceAlias is a helper function to simplify the provider implementation.
+func NewSecurityAccountResourceAlias() resource.Resource {
+	return &SecurityAccountResource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "security_account_resource",
+		},
+	}
+}
+
 // SecurityAccountResource defines the resource implementation.
 type SecurityAccountResource struct {
 	config connection.ResourceOrDataSourceConfig
