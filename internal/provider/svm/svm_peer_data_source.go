@@ -3,6 +3,7 @@ package svm
 import (
 	"context"
 	"fmt"
+
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/snapmirror"
 
@@ -22,6 +23,15 @@ func NewSVMPeerDataSource() datasource.DataSource {
 	return &SVMPeerDataSource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "svm_peer",
+		},
+	}
+}
+
+// NewSVMPeerDataSourceAlias is a helper function to simplify the provider implementation.
+func NewSVMPeerDataSourceAlias() datasource.DataSource {
+	return &SVMPeerDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "svm_peer_data_source",
 		},
 	}
 }

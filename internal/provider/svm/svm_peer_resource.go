@@ -33,6 +33,15 @@ func NewSVMPeerResource() resource.Resource {
 	}
 }
 
+// NewSVMPeerResourceAlias is a helper function to simplify the provider implementation.
+func NewSVMPeerResourceAlias() resource.Resource {
+	return &SVMPeersResource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "svm_peers_resource",
+		},
+	}
+}
+
 // SVMPeersResource defines the resource implementation.
 type SVMPeersResource struct {
 	config connection.ResourceOrDataSourceConfig
