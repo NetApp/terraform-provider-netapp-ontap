@@ -252,6 +252,11 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		storage.NewVolumeFileResource,
 		svm.NewSVMPeerResource,
 		svm.NewSvmResource,
+		// The following resources are Alias for the version 1 names
+		cluster.NewClusterLicensingLicenseResourceAlias,
+		cluster.NewClusterPeerResourceAlias,
+		cluster.NewClusterResourceAlias,
+		cluster.NewClusterScheduleResourceAlias,
 	}
 }
 
@@ -332,6 +337,14 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		svm.NewSVMPeersDataSource,
 		svm.NewSvmDataSource,
 		svm.NewSvmsDataSource,
+		// The following datasource are Alias for the version 1 names
+		cluster.NewClusterDataSourceAlias,
+		cluster.NewClusterLicensingLicensesDataSourceAlias,
+		cluster.NewClusterLicensingLicenseDataSourceAlias,
+		cluster.NewClusterPeerDataSourceAlias,
+		cluster.NewClusterPeersDataSourceAlias,
+		cluster.NewClusterScheduleDataSourceAlias,
+		cluster.NewClusterSchedulesDataSourceAlias,
 	}
 }
 

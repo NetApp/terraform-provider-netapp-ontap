@@ -3,9 +3,10 @@ package cluster
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"log"
 	"strings"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -31,6 +32,15 @@ func NewClusterResource() resource.Resource {
 	return &ClusterResource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "cluster",
+		},
+	}
+}
+
+// NewClusterResourceAlias is a helper function to simplify the provider implementation.
+func NewClusterResourceAlias() resource.Resource {
+	return &ClusterResource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "cluster_resource",
 		},
 	}
 }

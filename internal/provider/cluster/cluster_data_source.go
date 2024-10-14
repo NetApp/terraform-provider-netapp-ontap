@@ -28,6 +28,15 @@ func NewClusterDataSource() datasource.DataSource {
 	}
 }
 
+// NewClusterDataSourceAlias is a helper function to simplify the provider implementation.
+func NewClusterDataSourceAlias() datasource.DataSource {
+	return &ClusterDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "cluster_data_source",
+		},
+	}
+}
+
 // ClusterDataSource defines the data source implementation.
 //
 //nolint:golint
