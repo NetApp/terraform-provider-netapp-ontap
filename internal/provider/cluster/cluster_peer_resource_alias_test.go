@@ -19,23 +19,23 @@ func TestAccClusterPeerResourceAlias(t *testing.T) {
 			{
 				Config: testAccClusterPeerResourceConfigAlias("10.193.180.110", "10.193.176.189"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_cluster_peer.example", "remote.ip_addresses.0", "10.193.180.110"),
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_peers_resource.example", "remote.ip_addresses.0", "10.193.180.110"),
 				),
 			},
 			// Update applications
 			{
-				Config: testAccClusterPeerResourceConfigAlias("10.193.180.109", "10.193.176.189"),
+				Config: testAccClusterPeerResourceConfig("10.193.180.109", "10.193.176.189"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_cluster_peer.example", "remote.ip_addresses.0", "10.193.180.109"),
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_peers_resource.example", "remote.ip_addresses.0", "10.193.180.109"),
 				),
 			},
 			// Import and read
 			{
-				ResourceName:  "netapp-ontap_cluster_peer.example",
+				ResourceName:  "netapp-ontap_cluster_peers_resource.example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s", "acc_test_cluster2", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_cluster_peer.example", "name", "acc_test_cluster2"),
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_peers_resource.example", "name", "acc_test_cluster2"),
 				),
 			},
 		},

@@ -25,15 +25,15 @@ func TestLicensingLicenseResouceAlias(t *testing.T) {
 			{
 				Config: testAccLicensingLicenseResourceConfigAlias(testLicense),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_cluster_licensing_license.cluster_licensing_license", "name", "insight_balance")),
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_licensing_license_resource.cluster_licensing_license", "name", "insight_balance")),
 			},
 			// Test importing a resource
 			{
-				ResourceName:  "netapp-ontap_cluster_licensing_license.cluster_licensing_license",
+				ResourceName:  "netapp-ontap_cluster_licensing_license_resource.cluster_licensing_license",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s", name, credName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_cluster_licensing_license.cluster_licensing_license", "name", "insight_balance")),
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_licensing_license_resource.cluster_licensing_license", "name", "insight_balance")),
 			},
 		},
 	})
