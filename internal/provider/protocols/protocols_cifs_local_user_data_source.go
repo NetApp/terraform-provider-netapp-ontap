@@ -25,6 +25,15 @@ func NewCifsLocalUserDataSource() datasource.DataSource {
 	}
 }
 
+// NewCifsLocalUserDataSourceAlias is a helper function to simplify the provider implementation.
+func NewCifsLocalUserDataSourceAlias() datasource.DataSource {
+	return &CifsLocalUserDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_cifs_local_user_data_source",
+		},
+	}
+}
+
 // CifsLocalUserDataSource defines the data source implementation.
 type CifsLocalUserDataSource struct {
 	config connection.ResourceOrDataSourceConfig

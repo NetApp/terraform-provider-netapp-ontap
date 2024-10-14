@@ -34,6 +34,15 @@ func NewCifsLocalGroupMembersResource() resource.Resource {
 	}
 }
 
+// NewCifsLocalGroupMembersResourceAlias is a helper function to simplify the provider implementation.
+func NewCifsLocalGroupMembersResourceAlias() resource.Resource {
+	return &CifsLocalGroupMemberResource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_cifs_local_group_member_resource",
+		},
+	}
+}
+
 // CifsLocalGroupMemberResource defines the resource implementation.
 type CifsLocalGroupMemberResource struct {
 	config connection.ResourceOrDataSourceConfig

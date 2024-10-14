@@ -33,6 +33,15 @@ func NewProtocolsSanLunMapResource() resource.Resource {
 	}
 }
 
+// NewProtocolsSanLunMapResourceAlias is a helper function to simplify the provider implementation.
+func NewProtocolsSanLunMapResourceAlias() resource.Resource {
+	return &ProtocolsSanLunMapsResource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_san_lun-maps_resource",
+		},
+	}
+}
+
 // ProtocolsSanLunMapsResource defines the resource implementation.
 type ProtocolsSanLunMapsResource struct {
 	config connection.ResourceOrDataSourceConfig

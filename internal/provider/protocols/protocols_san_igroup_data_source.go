@@ -3,6 +3,7 @@ package protocols
 import (
 	"context"
 	"fmt"
+
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -21,6 +22,15 @@ func NewProtocolsSanIgroupDataSource() datasource.DataSource {
 	return &ProtocolsSanIgroupDataSource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "san_igroup",
+		},
+	}
+}
+
+// NewProtocolsSanIgroupDataSourceAlias is a helper function to simplify the provider implementation.
+func NewProtocolsSanIgroupDataSourceAlias() datasource.DataSource {
+	return &ProtocolsSanIgroupDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_san_igroup_data_source",
 		},
 	}
 }

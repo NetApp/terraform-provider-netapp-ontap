@@ -40,6 +40,15 @@ func NewProtocolsNfsServiceResource() resource.Resource {
 	}
 }
 
+// NewProtocolsNfsServiceResourceAlias is a helper function to simplify the provider implementation.
+func NewProtocolsNfsServiceResourceAlias() resource.Resource {
+	return &ProtocolsNfsServiceResource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_nfs_service_resource",
+		},
+	}
+}
+
 // ProtocolsNfsServiceResource defines the resource implementation.
 type ProtocolsNfsServiceResource struct {
 	config connection.ResourceOrDataSourceConfig

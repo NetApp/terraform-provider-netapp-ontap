@@ -3,6 +3,7 @@ package protocols
 import (
 	"context"
 	"fmt"
+
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -21,6 +22,15 @@ func NewProtocolsNfsServicesDataSource() datasource.DataSource {
 	return &ProtocolsNfsServicesDataSource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "nfs_services",
+		},
+	}
+}
+
+// NewProtocolsNfsServicesDataSource is a helper function to simplify the provider implementation.
+func NewProtocolsNfsServicesDataSourceAlias() datasource.DataSource {
+	return &ProtocolsNfsServicesDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_nfs_services_data_source",
 		},
 	}
 }
