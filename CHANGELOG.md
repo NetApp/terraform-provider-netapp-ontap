@@ -122,6 +122,8 @@ FEATURES:
 * **New Data Source:** `netapp-ontap_qtrees` ([#83](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/83))
 * **New Data Source:** `netapp-ontap_volume_efficiency_policy` ([#81](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/81))
 * **New Data Source:** `netapp-ontap_volume_efficiency_policies` ([#81](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/81))
+* **New Data Source:** `netapp-ontap_security_certificate` ([#137](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/137))
+* **New Data Source:** `netapp-ontap_security_certificates` ([#137](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/137))
 * **New Resource:** `netapp-ontap_volume_efficiency_policy` ([#80](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/80))
 * **New Resource:** `netapp-ontap_quota_rule` ([#136](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/136))
 * **New Resource:** `netapp-ontap_volume_file` ([#5](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/5))
