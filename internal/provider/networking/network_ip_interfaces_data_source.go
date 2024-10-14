@@ -27,6 +27,15 @@ func NewIPInterfacesDataSource() datasource.DataSource {
 	}
 }
 
+// NewIPInterfacesDataSourceAlias is a helper function to simplify the provider implementation.
+func NewIPInterfacesDataSourceAlias() datasource.DataSource {
+	return &IPInterfacesDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "networking_ip_interfaces_data_source",
+		},
+	}
+}
+
 // IPInterfacesDataSource defines the data source implementation.
 type IPInterfacesDataSource struct {
 	config connection.ResourceOrDataSourceConfig
