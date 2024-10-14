@@ -3,9 +3,10 @@ package snapmirror
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
 	"time"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
@@ -30,6 +31,15 @@ func NewSnapmirrorResource() resource.Resource {
 	return &SnapmirrorResource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "snapmirror",
+		},
+	}
+}
+
+// NewSnapmirrorResourceAlias is a helper function to simplify the provider implementation.
+func NewSnapmirrorResourceAlias() resource.Resource {
+	return &SnapmirrorResource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "snapmirror_resource",
 		},
 	}
 }
