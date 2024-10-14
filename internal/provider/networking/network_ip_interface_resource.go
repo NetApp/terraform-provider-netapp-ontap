@@ -32,6 +32,15 @@ func NewIPInterfaceResource() resource.Resource {
 	}
 }
 
+// NewIPInterfaceResourceAlias is a helper function to simplify the provider implementation.
+func NewIPInterfaceResourceAlias() resource.Resource {
+	return &IPInterfaceResource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "networking_ip_interface_resource",
+		},
+	}
+}
+
 // IPInterfaceResource defines the resource implementation.
 type IPInterfaceResource struct {
 	config connection.ResourceOrDataSourceConfig
