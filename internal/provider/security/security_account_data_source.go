@@ -3,6 +3,7 @@ package security
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -20,6 +21,15 @@ func NewSecurityAccountDataSource() datasource.DataSource {
 	return &SecurityAccountDataSource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "security_account",
+		},
+	}
+}
+
+// NewSecurityAccountDataSourceAlias is a helper function to simplify the provider implementation.
+func NewSecurityAccountDataSourceAlias() datasource.DataSource {
+	return &SecurityAccountDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "security_account_data_source",
 		},
 	}
 }
