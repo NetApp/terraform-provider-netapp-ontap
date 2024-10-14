@@ -19,6 +19,7 @@ Create/Modify/Delete a quota rule resource
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
 
 ## Example Usage
 

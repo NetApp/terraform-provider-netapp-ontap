@@ -30,4 +30,3 @@ data "netapp-ontap_security_accounts" "security_accounts4" {
     svm_name = "carchi-test"
   }
 }
-

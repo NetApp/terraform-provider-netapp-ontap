@@ -6,3 +6,4 @@ data "netapp-ontap_cifs_local_groups" "protocols_cifs_local_groups" {
     name     = "Administrators"
   }
 }
+
