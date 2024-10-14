@@ -281,6 +281,8 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		storage.NewSnapshotPolicyResourceAlias,
 		storage.NewStorageVolumeResourceAlias,
 		storage.NewStorageVolumeSnapshotResourceAlias,
+		svm.NewSVMPeerResourceAlias,
+		svm.NewSvmResourceAlias,
 	}
 }
 
@@ -417,6 +419,10 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		storage.NewStorageVolumeSnapshotDataSourceAlias,
 		storage.NewStorageVolumeSnapshotsDataSourceAlias,
 		storage.NewStorageVolumesDataSourceAlias,
+		svm.NewSvmDataSourceAlias,
+		svm.NewSVMPeerDataSourceAlias,
+		svm.NewSVMPeersDataSourceAlias,
+		svm.NewSvmsDataSourceAlias,
 	}
 }
 
