@@ -26,6 +26,15 @@ func NewNameServicesDNSsDataSource() datasource.DataSource {
 	}
 }
 
+// NewNameServicesDNSsDataSourceAlias is a helper function to simplify the provider implementation.
+func NewNameServicesDNSsDataSourceAlias() datasource.DataSource {
+	return &NameServicesDNSsDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "name_services_dnss_data_source",
+		},
+	}
+}
+
 // NameServicesDNSsDataSource defines the data source implementation.
 type NameServicesDNSsDataSource struct {
 	config connection.ResourceOrDataSourceConfig
