@@ -25,6 +25,15 @@ func NewCifsServiceDataSource() datasource.DataSource {
 	}
 }
 
+// NewCifsServiceDataSourceAlias is a helper function to simplify the provider implementation.
+func NewCifsServiceDataSourceAlias() datasource.DataSource {
+	return &CifsServiceDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_cifs_service_data_source",
+		},
+	}
+}
+
 // CifsServiceDataSource defines the data source implementation.
 type CifsServiceDataSource struct {
 	config connection.ResourceOrDataSourceConfig

@@ -3,8 +3,9 @@ package protocols
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -36,6 +37,15 @@ func NewCifsServiceResource() resource.Resource {
 	return &CifsServiceResource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "cifs_service",
+		},
+	}
+}
+
+// NewCifsServiceResourceAlias is a helper function to simplify the provider implementation.
+func NewCifsServiceResourceAlias() resource.Resource {
+	return &CifsServiceResource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_cifs_service_resource",
 		},
 	}
 }

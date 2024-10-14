@@ -3,8 +3,9 @@ package protocols
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -28,6 +29,15 @@ func NewCifsLocalGroupResource() resource.Resource {
 	return &CifsLocalGroupResource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "cifs_local_group",
+		},
+	}
+}
+
+// NewCifsLocalGroupResourceAlias is a helper function to simplify the provider implementation.
+func NewCifsLocalGroupResourceAlias() resource.Resource {
+	return &CifsLocalGroupResource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_cifs_local_group_resource",
 		},
 	}
 }

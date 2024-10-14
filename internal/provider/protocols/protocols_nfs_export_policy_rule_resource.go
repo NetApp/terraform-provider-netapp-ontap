@@ -3,9 +3,10 @@ package protocols
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strconv"
 	"strings"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -34,6 +35,15 @@ func NewExportPolicyRuleResource() resource.Resource {
 	return &ExportPolicyRuleResource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "nfs_export_policy_rule",
+		},
+	}
+}
+
+// NewExportPolicyRuleResourceAlias is a helper function to simplify the provider implementation.
+func NewExportPolicyRuleResourceAlias() resource.Resource {
+	return &ExportPolicyRuleResource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_nfs_export_policy_rule_resource",
 		},
 	}
 }

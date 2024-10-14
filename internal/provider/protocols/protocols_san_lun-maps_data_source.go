@@ -3,6 +3,7 @@ package protocols
 import (
 	"context"
 	"fmt"
+
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/svm"
 
@@ -22,6 +23,15 @@ func NewProtocolsSanLunMapsDataSource() datasource.DataSource {
 	return &ProtocolsSanLunMapsDataSource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "san_lun-maps",
+		},
+	}
+}
+
+// NewProtocolsSanLunMapsDataSourceAlias is a helper function to simplify the provider implementation.
+func NewProtocolsSanLunMapsDataSourceAlias() datasource.DataSource {
+	return &ProtocolsSanLunMapsDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_san_lun-maps_data_source",
 		},
 	}
 }

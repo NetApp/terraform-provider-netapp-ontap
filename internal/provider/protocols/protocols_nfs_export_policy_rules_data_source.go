@@ -3,8 +3,9 @@ package protocols
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strconv"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -22,6 +23,15 @@ func NewExportPolicyRulesDataSource() datasource.DataSource {
 	return &ProtocolsNFSExportPolicyRulesDataSource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "nfs_export_policy_rules",
+		},
+	}
+}
+
+// NewExportPolicyRulesDataSourceAlias is a helper function to simplify the provider implementation.
+func NewExportPolicyRulesDataSourceAlias() datasource.DataSource {
+	return &ProtocolsNFSExportPolicyRulesDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_nfs_export_policy_rules_data_source",
 		},
 	}
 }
