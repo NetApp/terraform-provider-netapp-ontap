@@ -188,13 +188,19 @@ func (c *RestClient) unmarshalResponse(statusCode int, responseJSON []byte, http
 
 	// If Other is present, add it to records.
 	// But ignore it if we already have some records.
-	// Other will always have 1 element called _link, so only do this if Other has more than 1 element
+	// Add the records under Other if Other has more than 1 element
+	// and if Other has only one element and it is not _links
 	// Examples:
 	// {NumRecords:0 Records:[] Error:{Code: Message: Target:} Job:map[] Jobs:[] Other:map[_links:map[self:map[href:/api/cluster/schedules?fields=name%2Cuuid%2Ccron%2Cinterval%2Ctype%2Cscope&name=mytest]]]}
 	// {NumRecords:0 Records:[] Error:{Code: Message: Target:} Job:map[] Jobs:[] Other:map[_links:map[self:map[href:/api/cluster]] certificate:map[_links:map[self:map[href:/api/security/certificates/2f632ea7-92cd-11ed-8f2b-005056b3357c]] uuid:2f632ea7-92cd-11ed-8f2b-005056b3357c] metric:map[duration:PT15S iops:map[other:0 read:0 total:0 write:0] latency:map[other:0 read:0 total:0 write:0] status:ok throughput:map[other:0 read:0 total:0 write:0] timestamp:2023-03-16T18:36:30Z] name:laurentncluster-2 peering_policy:map[authentication_required:true encryption_required:false minimum_passphrase_length:8] san_optimized:false statistics:map[iops_raw:map[other:0 read:0 total:0 write:0] latency_raw:map[other:0 read:0 total:0 write:0] status:ok throughput_raw:map[other:0 read:0 total:0 write:0] timestamp:2023-03-16T18:36:31Z] timezone:map[name:Etc/UTC] uuid:2115008a-92cd-11ed-8f2b-005056b3357c version:map[full:NetApp Release Metropolitan__9.11.1: Sat Dec 10 19:08:07 UTC 2022 generation:9 major:11 minor:1]]}
-	if rawResponse.NumRecords == 0 && len(rawResponse.Records) == 0 && len(rawResponse.Other) > 1 {
-		rawResponse.NumRecords = 1
-		rawResponse.Records = append(rawResponse.Records, rawResponse.Other)
+	// {NumRecords:0 Records:[] Error:{Code: Message: Target:} Job:map[] Jobs:[] Other:map[public_certificate:-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----\n]}
+	// if rawResponse.NumRecords == 0 && len(rawResponse.Records) == 0 && len(rawResponse.Other) > 1 {
+	if rawResponse.NumRecords == 0 && len(rawResponse.Records) == 0 {
+		_, found := rawResponse.Other["_links"]
+		if (len(rawResponse.Other) == 1 && !found) || len(rawResponse.Other) > 1 {
+			rawResponse.NumRecords = 1
+			rawResponse.Records = append(rawResponse.Records, rawResponse.Other)
+		}
 	}
 
 	var finalResponse RestResponse

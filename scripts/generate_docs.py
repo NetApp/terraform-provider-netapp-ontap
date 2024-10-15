@@ -86,6 +86,7 @@ CATEGORIES = {
         "security_login_message_resource.md",
         "security_certificate_data_source.md",
         "security_certificates_data_source.md",
+        "security_certificate_resource.md",
 
     ],
     'snaplock': [],
