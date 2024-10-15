@@ -1,8 +1,115 @@
 # 2.0.0 ()
 
+BREAKING CHANGES:
+
+Cluster
+* **Rename Resource:** `netapp-ontap_cluster_licensing_license_resource` is now renamed to `netapp-ontap_cluster_licensing_license`
+* **Rename Resource:** `netapp-ontap_cluster_peers_resource` is now renamed to `netapp-ontap_cluster_peer`
+* **Rename Resource:** `netapp-ontap_cluster_schedule_resource` is now renamed to `netapp-ontap_cluster_schedule`
+* **Rename Data Source:** `netapp-ontap_cluster_licensing_license_data_source` is now renamed to `netapp-ontap_cluster_licensing_license`
+* **Rename Data Source:** `netapp-ontap_cluster_licensing_licenses_data_source` is now renamed to `netapp-ontap_cluster_licensing_licenses`
+* **Rename Data Source:** `netapp-ontap_cluster_peer_data_source` is now renamed to `netapp-ontap_cluster_peer`
+* **Rename Data Source:** `netapp-ontap_cluster_peers_data_source` is now renamed to `netapp-ontap_cluster_peers`
+* **Rename Data Source:** `netapp-ontap_cluster_schedule_data_source` is now renamed to `netapp-ontap_cluster_schedule`
+* **Rename Data Source:** `netapp-ontap_cluster_schedules_data_source` is now renamed to `netapp-ontap_cluster_schedules`
+
+Name Services
+* **Rename Resource:** `netapp-ontap_name_services_dns_resource` is now renamed to `netapp-ontap_dns`
+* **Rename Resource:** `netapp-ontap_name_services_ldap_resource` is now renamed to `netapp-ontap_name_services_ldap`
+* **Rename Data Source:** `netapp-ontap_name_services_dns_data_source` is now renamed to `netapp-ontap_dns`
+* **Rename Data Source:** `netapp-ontap_name_services_dnss_data_source` is now renamed to `netapp-ontap_dnss`
+* **Rename Data Source:** `netapp-ontap_name_services_ldap_data_source` is now renamed to `netapp-ontap_name_services_ldap`
+* **Rename Data Source:** `netapp-ontap_name_services_ldaps_data_source` is now renamed to `netapp-ontap_name_services_ldaps`
+
+Networking
+* **Rename Resource:** `netapp-ontap_networking_ip_interface_resource` is now renamed to `netapp-ontap_network_ip_interface`
+* **Rename Resource:** `netapp-ontap_networking_ip_route_resource` is now renamed to `netapp-ontap_network_ip_route`
+* **Rename Data Source:** `netapp-ontap_networking_ip_interface_data_source` is now renamed to `netapp-ontap_network_ip_interface`
+* **Rename Data Source:** `netapp-ontap_networking_ip_interfaces_data_source` is now renamed to `netapp-ontap_network_ip_interfaces`
+* **Rename Data Source:** `netapp-ontap_networking_ip_route_data_source` is now renamed to `netapp-ontap_network_ip_route`
+* **Rename Data Source:** `netapp-ontap_networking_ip_routes_data_source` is now renamed to `netapp-ontap_network_ip_routes`
+
+Protocols
+* **Rename Resource:** `netapp-ontap_cifs_local_group_member_resource` is now renamed to `netapp-ontap_cifs_local_group_members`
+* **Rename Resource:** `netapp-ontap_cifs_local_group_resource` is now renamed to `netapp-ontap_cifs_local_group`
+* **Rename Resource:** `netapp-ontap_cifs_local_user_resource` is now renamed to `netapp-ontap_cifs_local_user`
+* **Rename Resource:** `netapp-ontap_cifs_service_resource` is now renamed to `netapp-ontap_cifs_service`
+* **Rename Resource:** `netapp-ontap_cifs_share_resource` is now renamed to `netapp-ontap_cifs_share`
+* **Rename Resource:** `netapp-ontap_cifs_user_group_privilege_resource` is now renamed to `netapp-ontap_cifs_user_group_privileges`
+* **Rename Resource:** `netapp-ontap_nfs_export_policy_resource` is now renamed to `netapp-ontap_nfs_export_policy`
+* **Rename Resource:** `netapp-ontap_nfs_export_policy_rule_resource` is now renamed to `netapp-ontap_nfs_export_policy_rule`
+* **Rename Resource:** `netapp-ontap_nfs_service_resource` is now renamed to `netapp-ontap_nfs_service`
+* **Rename Resource:** `netapp-ontap_san_igroup_resource` is now renamed to `netapp-ontap_san_igroup`
+* **Rename Resource:** `netapp-ontap_san_lun-maps_resource` is now renamed to `netapp-ontap_san_lun-map`
+
+* **Rename Data Source:** `netapp-ontap_cifs_local_group_member_data_source` is now renamed to `netapp-ontap_cifs_local_group_member`
+* **Rename Data Source:** `netapp-ontap_cifs_local_group_members_data_source` is now renamed to `netapp-ontap_cifs_local_group_members`
+* **Rename Data Source:** `netapp-ontap_cifs_local_group_data_source` is now renamed to `netapp-ontap_cifs_local_group`
+* **Rename Data Source:** `netapp-ontap_cifs_local_groups_data_source` is now renamed to `netapp-ontap_cifs_local_groups`
+* **Rename Data Source:** `netapp-ontap_cifs_local_user_data_source` is now renamed to `netapp-ontap_cifs_local_user`
+* **Rename Data Source:** `netapp-ontap_cifs_local_users_data_source` is now renamed to `netapp-ontap_cifs_local_users`
+* **Rename Data Source:** `netapp-ontap_cifs_service_data_source` is now renamed to `netapp-ontap_cifs_service`
+* **Rename Data Source:** `netapp-ontap_cifs_services_data_source` is now renamed to `netapp-ontap_cifs_services`
+* **Rename Data Source:** `netapp-ontap_cifs_share_data_source` is now renamed to `netapp-ontap_cifs_share`
+* **Rename Data Source:** `netapp-ontap_cifs_shares_data_source` is now renamed to `netapp-ontap_cifs_shares`
+* **Rename Data Source:** `netapp-ontap_cifs_user_group_privilege_data_source` is now renamed to `netapp-ontap_cifs_user_group_privilege`
+* **Rename Data Source:** `netapp-ontap_cifs_user_group_privileges_data_source` is now renamed to `netapp-ontap_cifs_user_group_privileges`
+* **Rename Data Source:** `netapp-ontap_nfs_export_policy_data_source` is now renamed to `netapp-ontap_nfs_export_policy`
+* **Rename Data Source:** `netapp-ontap_nfs_export_policies_data_source` is now renamed to `netapp-ontap_nfs_export_policies`
+* **Rename Data Source:** `netapp-ontap_nfs_export_policy_rule_data_source` is now renamed to `netapp-ontap_nfs_export_policy_rule`
+* **Rename Data Source:** `netapp-ontap_nfs_export_policy_rules_data_source` is now renamed to `netapp-ontap_nfs_export_policy_rules`
+* **Rename Data Source:** `netapp-ontap_nfs_service_data_source` is now renamed to `netapp-ontap_nfs_service`
+* **Rename Data Source:** `netapp-ontap_nfs_services_data_source` is now renamed to `netapp-ontap_nfs_services`
+* **Rename Data Source:** `netapp-ontap_san_igroup_data_source` is now renamed to `netapp-ontap_san_igroup`
+* **Rename Data Source:** `netapp-ontap_san_igroups_data_source` is now renamed to `netapp-ontap_san_igroups`
+* **Rename Data Source:** `netapp-ontap_san_lun-map_data_source` is now renamed to `netapp-ontap_san_lun-map`
+* **Rename Data Source:** `netapp-ontap_san_lun-maps_data_source` is now renamed to `netapp-ontap_san_lun-maps`
+
+Security
+* **Rename Resource:** `netapp-ontap_security_accounts_resource` is now renamed to `netapp-ontap_security_account`
+* **Rename Data Source:** `netapp-ontap_security_account_data_source` is now renamed to `netapp-ontap_security_account`
+* **Rename Data Source:** `netapp-ontap_security_accounts_data_source` is now renamed to `netapp-ontap_security_accounts`
+
+Snapmirror
+* **Rename Resource:** `netapp-ontap_snapmirror_resource` is now renamed to `netapp-ontap_snapmirror`
+* **Rename Resource:** `netapp-ontap_snapmirror_policy_resource` is now renamed to `netapp-ontap_snapmirror_policy`
+* **Rename Data Source:** `netapp-ontap_snapmirror_data_source` is now renamed to `netapp-ontap_snapmirror`
+* **Rename Data Source:** `netapp-ontap_snapmirrors_data_source` is now renamed to `netapp-ontap_snapmirrors`
+* **Rename Data Source:** `netapp-ontap_snapmirror_policy_data_source` is now renamed to `netapp-ontap_snapmirror_policy`
+* **Rename Data Source:** `netapp-ontap_snapmirror_policies_data_source` is now renamed to `netapp-ontap_snapmirror_policies`
+
+Storage
+* **Rename Resource:** `netapp-ontap_aggregate_resource` is now renamed to `netapp-ontap_aggregate`
+* **Rename Resource:** `netapp-ontap_flexcache_resource` is now renamed to `netapp-ontap_flexcache`
+* **Rename Resource:** `netapp-ontap_lun_resource` is now renamed to `netapp-ontap_lun`
+* **Rename Resource:** `netapp-ontap_snapshot_policy_resource` is now renamed to `netapp-ontap_snapshot_policy`
+* **Rename Resource:** `netapp-ontap_volume_resource` is now renamed to `netapp-ontap_volume`
+* **Rename Resource:** `netapp-ontap_volume_snapshot_resource` is now renamed to `netapp-ontap_volume_snapshot`
+
+* **Rename Data Source:** `netapp-ontap_aggregate_data_source` is now renamed to `netapp-ontap_aggregate`
+* **Rename Data Source:** `netapp-ontap_aggregates_data_source` is now renamed to `netapp-ontap_aggregates`
+* **Rename Data Source:** `netapp-ontap_flexcache_data_source` is now renamed to `netapp-ontap_flexcache`
+* **Rename Data Source:** `netapp-ontap_flexcaches_data_source` is now renamed to `netapp-ontap_flexcaches`
+* **Rename Data Source:** `netapp-ontap_lun_data_source` is now renamed to `netapp-ontap_lun`
+* **Rename Data Source:** `netapp-ontap_luns_data_source` is now renamed to `netapp-ontap_luns`
+* **Rename Data Source:** `netapp-ontap_snapshot_policy_data_source` is now renamed to `netapp-ontap_snapshot_policy`
+* **Rename Data Source:** `netapp-ontap_snapshot_policies_data_source` is now renamed to `netapp-ontap_snapshot_policies`
+* **Rename Data Source:** `netapp-ontap_volume_data_source` is now renamed to `netapp-ontap_volume`
+* **Rename Data Source:** `netapp-ontap_volumes_data_source` is now renamed to `netapp-ontap_volumes`
+* **Rename Data Source:** `netapp-ontap_volume_snapshot_data_source` is now renamed to `netapp-ontap_volume_snapshot`
+* **Rename Data Source:** `netapp-ontap_volume_snapshots_data_source` is now renamed to `netapp-ontap_volume_snapshots`
+
+Svm
+* **Rename Resource:** `netapp-ontap_svm_peers_resource` is now renamed to `netapp-ontap_svm_peer`
+* **Rename Resource:** `netapp-ontap_svm_resource` is now renamed to `netapp-ontap_svm`
+* **Rename Data Source:** `netapp-ontap_svm_peer_data_source` is now renamed to `netapp-ontap_svm_peer`
+* **Rename Data Source:** `netapp-ontap_svm_peers_data_source` is now renamed to `netapp-ontap_svm_peers`
+* **Rename Data Source:** `netapp-ontap_svm_data_source` is now renamed to `netapp-ontap_svm`
+* **Rename Data Source:** `netapp-ontap_svms_data_source` is now renamed to `netapp-ontap_svms`
+
 FEATURES:
 * **provider**: add `aws_lambda` option. ([#262](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/262))
-* **New Data Source:** `netapp-ontap_volumes_files` ([#8](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/8))
+* **New Data Source:** `netapp-ontap_volume_file` ([#8](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/8))
 * **New Data Source:** `netapp-ontap_qos_policy` ([#77](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/77))
 * **New Data Source:** `netapp-ontap_qos_policies` ([#77](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/77))
 * **New Data Source:** `netapp-ontap_quota_rules` ([#135](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/135))
@@ -11,22 +118,25 @@ FEATURES:
 * **New Data Source:** `netapp-ontap_security_roles` ([#139](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/139))
 * **New Data Source:** `netapp-ontap_security_login_message` ([#17](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/17))
 * **New Data Source:** `netapp-ontap_security_login_messages` ([#17](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/17))
-* **New Data Source:** `netapp-ontap_storage_qtree` ([#83](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/83))
-* **New Data Source:** `netapp-ontap_storage_qtrees` ([#83](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/83))
+* **New Data Source:** `netapp-ontap_qtree` ([#83](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/83))
+* **New Data Source:** `netapp-ontap_qtrees` ([#83](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/83))
 * **New Data Source:** `netapp-ontap_volume_efficiency_policy` ([#81](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/81))
 * **New Data Source:** `netapp-ontap_volume_efficiency_policies` ([#81](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/81))
-* **New Resource:** `netapp-ontap_volume_efficiency_policies` ([#80](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/80))
-* **New Resource:** `netapp-ontap_quota_rules` ([#136](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/136))
-* **New Resource:** `netapp-ontap_volumes_files` ([#5](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/5))
-* **New Resource:** `netapp-ontap_security_roles` ([#140](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/140))
-* **New Resource:** `netapp-ontap_storage_qtrees` ([#82](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/82))
-* **New Resource:** `netapp-ontap_qos_policies` ([#76](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/76))
-* **New Resource:** `netapp-security_login_messages` ([#18](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/18))
+* **New Data Source:** `netapp-ontap_security_certificate` ([#137](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/137))
+* **New Data Source:** `netapp-ontap_security_certificates` ([#137](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/137))
+* **New Resource:** `netapp-ontap_volume_efficiency_policy` ([#80](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/80))
+* **New Resource:** `netapp-ontap_quota_rule` ([#136](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/136))
+* **New Resource:** `netapp-ontap_volume_file` ([#5](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/5))
+* **New Resource:** `netapp-ontap_security_role` ([#140](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/140))
+* **New Resource:** `netapp-ontap_qtree` ([#82](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/82))
+* **New Resource:** `netapp-ontap_qos_policy` ([#76](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/76))
+* **New Resource:** `netapp-security_login_message` ([#18](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/18))
 * **New Resource:** `netapp-ontap_security_certificate` ([#138](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/138))
 
 ENHANCEMENTS:
 * **netapp-ontap_lun**: added `size_unit` option. ([#227](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/227))
 * **netapp-ontap_security_account**: Add support for import and update ([#243](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/243))
+* **netapp-ontap_name_services_dns**: Add `skip_config_validation`([#316](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/316))
 
 ## 1.1.4 (2024-09-05)
 
@@ -36,6 +146,7 @@ DOC FIXES:
 
 BUG FIXES:
 * **netapp-ontap_cluster_data_source: fix on nodes to show multiple elements ([#264](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/264))
+* **netapp-ontap_protocols_nfs_export_policy_resource: fix id error during the creation ([[#290](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/290)])
 
 ## 1.1.3 (2024-08-08)
 

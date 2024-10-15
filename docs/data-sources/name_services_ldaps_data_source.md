@@ -10,6 +10,10 @@ description: |-
 
 Retrieve LDAP data source of SVMs
 
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
+
 ## Example Usage
 ```terraform
 data "netapp-ontap_name_services_ldaps" "name_services_ldaps" {

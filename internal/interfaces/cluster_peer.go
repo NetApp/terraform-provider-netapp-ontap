@@ -169,7 +169,7 @@ func CreateClusterPeers(errorHandler *utils.ErrorHandler, r restclient.RestClien
 
 	var dataONTAP ClusterPeersGetDataModelONTAP
 	if err := mapstructure.Decode(response.Records[0], &dataONTAP); err != nil {
-		return nil, errorHandler.MakeAndReportError("error decoding cluster_peers info", fmt.Sprintf("error on decode storage/cluster_peerss info: %s, statusCode %d, response %#v", err, statusCode, response))
+		return nil, errorHandler.MakeAndReportError("error decoding cluster_peers info", fmt.Sprintf("error on decode cluster/cluster_peers info: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Create cluster_peers source - udata: %#v", dataONTAP))
 	return &dataONTAP, nil

@@ -10,6 +10,10 @@ description: |-
 
 Retrieves an existing cluster_peer
 
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
+
 ## Example Usage
 ```terraform
 data "netapp-ontap_cluster_peer" "cluster_peer" {

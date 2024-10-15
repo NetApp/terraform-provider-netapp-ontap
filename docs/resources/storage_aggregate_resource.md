@@ -20,8 +20,6 @@ Create/Modify/Delete an aggregate resource
 * On-perm ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
-[comment]: <> (TODO: Add support for Amazon FSx for NetApp ONTAP )
-
 ## Example Usage
 
 ```terraform

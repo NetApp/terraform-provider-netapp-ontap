@@ -10,6 +10,17 @@ description: |-
 
 Retrieves protocols cifs service data source
 
+## Supported Platforms
+* On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
+* In security, parameters only can be used in ONTAP 9.8 or higher:
+  `lm_compatibility_level`, `encrypt_dc_connection`
+* In security, parameters only can be used in ONTAP 9.10 or higher
+  `use_ldaps, use_start_tls`, `aes_netlogon_enabled`, `try_ldap_channel_binding`, `ldap_referral_enabled`, `session_security`
+* In security, parameters only can be used in ONTAP 9.12 or higher
+  `advertised_kdc_encryptions`
+* In security, `kdc_encryption` deprecated in 9.12.1
+
 ## Example Usage
 ```terraform
 data "netapp-ontap_cifs_service" "protocols_cifs_service" {
