@@ -3,7 +3,7 @@
 page_title: "ONTAP: DNS"
 subcategory: "Name-Services"
 description: |-
-  NameServicesDNS resource
+  DNS resource
 ---
 
 # Resource DNS
@@ -19,14 +19,12 @@ Create/Modify/Delete and Import a name services DNS resource
 ```
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+* On-perm ONTAP system 9.9 or higher
 * Amazon FSx for NetApp ONTAP
-
-[comment]: <> (TODO: Add support for Amazon FSx for NetApp ONTAP )
 
 ## Example Usage
 ```terraform
-resource "netapp-ontap_name_services_dns" "name_services_dns" {
+resource "netapp-ontap_dns" "dns" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   svm_name = "testSVM"
@@ -47,6 +45,7 @@ resource "netapp-ontap_name_services_dns" "name_services_dns" {
 
 - `dns_domains` (Set of String) List of DNS domains such as 'sales.bar.com'. The first domain is the one that the svm belongs to
 - `name_servers` (Set of String) List of IPv4 addresses of name servers such as '123.123.123.123'.
+- `skip_config_validation` (Bool) Indicates whether or not the validation for the specified DNS configuration is disabled. (9.9)
 
 ### Read-Only
 
@@ -58,14 +57,14 @@ Import require a unique ID composed of the svm name and the connection profile n
 
 id = svm_name,cx_profile_name
 ### Terraform import
-terraform import netapp-ontap_name_services_dns.`name` `svm_name`,`cx_profile_name`
+terraform import netapp-ontap_dns.`name` `svm_name`,`cx_profile_name`
 * name -- name you want to give the resource in terraform
 * svm_name -- name of the svm the resource belongs to
 * cx_profile_name -- name of the connection profile to use
 
 For example
 ```shell
- terraform import netapp-ontap_name_services_dns.dns_import ansibleSVM,cluster4
+ terraform import netapp-ontap_dns.dns_import ansibleSVM,cluster4
 ```
 
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
@@ -76,7 +75,7 @@ This requires Terraform 1.5 or higher, and will auto create the configuration fo
 First create the import block
 ```terraform
 import {
-  to = netapp-ontap_name_services_dns.dns_import
+  to = netapp-ontap_dns.dns_import
   id = "svm1,cluster4"
 }
 ```
@@ -90,7 +89,7 @@ The auto generated configuration will look like this
 # Please review these resources and move them into your main configuration files.
 
 # __generated__ by Terraform from "svm1,cluster4"
-resource "netapp-ontap_name_services_dns" "dns_import" {
+resource "netapp-ontap_dns" "dns_import" {
   cx_profile_name = "cluster4"
   dns_domains     = ["test.com", "test1.com"]
   name_servers    = ["1.2.3.4", "3.4.5.6"]

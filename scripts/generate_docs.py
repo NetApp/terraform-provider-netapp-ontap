@@ -2,9 +2,9 @@ import subprocess
 import os
 import sys
 
-# TO find the correct Catagory, check REST API to see what main header this API lives under
+# TO find the correct Category, check REST API to see what main header this API lives under
 
-CATAGORYS = {
+CATEGORIES = {
     'application': [],
     'cloud': [],
     'cluster': [
@@ -25,7 +25,7 @@ CATAGORYS = {
         "protocols_cifs_local_group_resource.md",
         "protocols_cifs_local_group_member_data_source.md",
         "protocols_cifs_local_group_members_data_source.md",
-        "protocols_cifs_local_group_member_resource.md",
+        "protocols_cifs_local_group_members_resource.md",
         "protocols_cifs_local_user_data_source.md",
         "protocols_cifs_local_users_data_source.md",
         "protocols_cifs_local_user_resource.md",
@@ -57,12 +57,12 @@ CATAGORYS = {
     ],
     'ndmp': [],
     'networking': [
-        "networking_ip_interface_data_source.md",
-        "networking_ip_interfaces_data_source.md",
-        "networking_ip_interface_resource.md",
-        "networking_ip_route_data_source.md",
-        "networking_ip_routes_data_source.md",
-        "networking_ip_route_resource.md"],
+        "network_ip_interface_data_source.md",
+        "network_ip_interfaces_data_source.md",
+        "network_ip_interface_resource.md",
+        "network_ip_route_data_source.md",
+        "network_ip_routes_data_source.md",
+        "network_ip_route_resource.md"],
     'nvme': [],
     'object-store': [],
     'san': [
@@ -78,12 +78,16 @@ CATAGORYS = {
         "security_accounts_data_source.md",
         "security_account_resource.md",
         "security_login_message_data_source.md",
+        "security_login_message_resource.md",
         "security_login_messages_data_source.md",
         "security_role_data_source.md",
         "security_roles_data_source.md",
         "security_roles_resource.md",
         "security_login_message_resource.md",
+        "security_certificate_data_source.md",
+        "security_certificates_data_source.md",
         "security_certificate_resource.md",
+
     ],
     'snaplock': [],
     'snapmirror': [
@@ -103,7 +107,12 @@ CATAGORYS = {
         "storage_lun_data_source.md",
         "storage_luns_data_source.md",
         "storage_lun_resource.md",
-        "storage_quota_rules_resource.md",
+        "storage_qos_policies_data_source.md",
+        "storage_qos_policy_data_source.md",
+        "storage_qos_policy_resoruce.md",
+        "storage_quota_rule_data_source.md",
+        "storage_quota_rules_data_source.md",
+        "storage_quota_rule_resource.md",
         "storage_qtree_data_source.md",
         "storage_qtrees_data_source.md",
         "storage_qtree_resource.md",
@@ -119,7 +128,7 @@ CATAGORYS = {
         "storage_volume_snapshot_resource.md"],
     'support': [],
     'svm': ["svm_resource.md",
-            "svm_peers_resource.md",
+            "svm_peer_resource.md",
             "svm_peer_data_source.md",
             "svm_peers_data_source.md",],
 }
@@ -129,12 +138,12 @@ def main():
     print("===== Generating docs =====")
     generate_doc()
     remove_example()
-    print("===== Adding Catagories =====")
+    print("===== Adding Categories =====")
     add_catagories()
     print("===== Validate =====")
     validate()
     print("===== Errors =====")
-    issue = warn_missing_catagory(["docs/data-sources/", "docs/resources/"])
+    issue = warn_missing_category(["docs/data-sources/", "docs/resources/"])
     if issue:
         sys.exit(1)
 
@@ -157,25 +166,25 @@ def remove_example():
 
 
 def add_catagories():
-    for catagory in CATAGORYS:
-        for page in CATAGORYS[catagory]:
+    for category in CATEGORIES:
+        for page in CATEGORIES[category]:
             if 'data_source' in page:
-                update_datasource(page, catagory)
+                update_datasource(page, category)
             if 'resource' in page:
-                update_resouces(page, catagory)
+                update_resouces(page, category)
 
 
-def update_datasource(page, catagory):
+def update_datasource(page, category):
     path = "docs/data-sources/" + page
-    update_md_file(path, catagory)
+    update_md_file(path, category)
 
 
-def update_resouces(page, catagory):
+def update_resouces(page, category):
     path = "docs/resources/" + page
-    update_md_file(path, catagory)
+    update_md_file(path, category)
 
 
-def update_md_file(path, catagory):
+def update_md_file(path, category):
     print("Updating %s" % path)
     try:
         with open(path) as f:
@@ -183,7 +192,7 @@ def update_md_file(path, catagory):
         for i, line in enumerate(lines):
             if line.startswith('subcategory: "'):
                 split_line = line.split('subcategory: "')
-                new_line = split_line[0] + 'subcategory: "' + catagory + split_line[1]
+                new_line = split_line[0] + 'subcategory: "' + category + split_line[1]
                 lines[i] = new_line
                 break
         with open(path, 'w') as f:
@@ -191,7 +200,7 @@ def update_md_file(path, catagory):
     except:
         return
 
-def warn_missing_catagory(directory_paths):
+def warn_missing_category(directory_paths):
     issue = False
     for directory_path in directory_paths:
         full_path = os.path.join(os.getcwd(), directory_path)
@@ -200,7 +209,7 @@ def warn_missing_catagory(directory_paths):
                 with open(os.path.join(full_path, filename), 'r') as f:
                     file_content = f.read()
                     if 'subcategory: ""' in file_content:
-                        print('%s is missing a catagory' % filename)
+                        print('%s is missing a category' % filename)
                         issue = True
     return issue
 

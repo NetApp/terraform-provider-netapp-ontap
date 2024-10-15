@@ -1,4 +1,4 @@
-data "netapp-ontap_name_services_dnss" "name_services_dnss" {
+data "netapp-ontap_dnss" "dnss" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   filter = {

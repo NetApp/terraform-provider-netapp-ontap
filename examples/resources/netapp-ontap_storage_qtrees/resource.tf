@@ -1,4 +1,4 @@
-resource "netapp-ontap_storage_qtrees" "storage_qtrees" {
+resource "netapp-ontap_qtrees" "storage_qtrees" {
   # required to know which system to interface with
   cx_profile_name = "cluster3"
   name = "testme5"

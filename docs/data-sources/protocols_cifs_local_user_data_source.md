@@ -10,6 +10,10 @@ description: |-
 
 Retreives protocols cifs local user configuration
 
+## Supported Platforms
+* On-perm ONTAP system 9.10 or higher
+* Amazon FSx for NetApp ONTAP
+
 ## Example Usage
 ```terraform
 data "netapp-ontap_cifs_local_user" "local_user" {

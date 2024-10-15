@@ -4,3 +4,4 @@ data "netapp-ontap_cifs_local_group_members" "protocols_cifs_local_group_members
   svm_name = "test3"
   group_name = "testme"
 }
+
