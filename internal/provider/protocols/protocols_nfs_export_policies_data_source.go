@@ -25,6 +25,15 @@ func NewExportPoliciesDataSource() datasource.DataSource {
 	}
 }
 
+// NewExportPoliciesDataSourceAlias is a helper function to simplify the provider implementation.
+func NewExportPoliciesDataSourceAlias() datasource.DataSource {
+	return &ExportPoliciesDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_nfs_export_policies_data_source",
+		},
+	}
+}
+
 // ExportPoliciesDataSource defines the data source implementation.
 type ExportPoliciesDataSource struct {
 	config connection.ResourceOrDataSourceConfig

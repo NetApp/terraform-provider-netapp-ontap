@@ -37,6 +37,15 @@ func NewProtocolsSanIgroupResource() resource.Resource {
 	}
 }
 
+// NewProtocolsSanIgroupResourceAlias is a helper function to simplify the provider implementation.
+func NewProtocolsSanIgroupResourceAlias() resource.Resource {
+	return &ProtocolsSanIgroupResource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_san_igroup_resource",
+		},
+	}
+}
+
 // ProtocolsSanIgroupResource defines the resource implementation.
 type ProtocolsSanIgroupResource struct {
 	config connection.ResourceOrDataSourceConfig

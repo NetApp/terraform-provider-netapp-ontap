@@ -33,6 +33,15 @@ func NewExportPolicyResource() resource.Resource {
 	}
 }
 
+// NewExportPolicyResourceAlias is a helper function to simplify the provider implementation.
+func NewExportPolicyResourceAlias() resource.Resource {
+	return &ExportPolicyResource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_nfs_export_policy_resource",
+		},
+	}
+}
+
 // ExportPolicyResource defines the resource implementation.
 type ExportPolicyResource struct {
 	config connection.ResourceOrDataSourceConfig

@@ -3,8 +3,9 @@ package protocols
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -31,6 +32,15 @@ func NewProtocolsCIFSShareResource() resource.Resource {
 	return &ProtocolsCIFSShareResource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "cifs_share",
+		},
+	}
+}
+
+// NewProtocolsCIFSShareResourceAlias is a helper function to simplify the provider implementation.
+func NewProtocolsCIFSShareResourceAlias() resource.Resource {
+	return &ProtocolsCIFSShareResource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_cifs_share_resource",
 		},
 	}
 }
