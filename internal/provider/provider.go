@@ -273,6 +273,8 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		protocols.NewProtocolsSanIgroupResourceAlias,
 		protocols.NewProtocolsSanLunMapResourceAlias,
 		security.NewSecurityAccountResourceAlias,
+		snapmirror.NewSnapmirrorPolicyResourceAlias,
+		snapmirror.NewSnapmirrorResourceAlias,
 	}
 }
 
@@ -393,6 +395,10 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		protocols.NewProtocolsSanLunMapsDataSourceAlias,
 		security.NewSecurityAccountDataSourceAlias,
 		security.NewSecurityAccountsDataSourceAlias,
+		snapmirror.NewSnapmirrorDataSourceAlias,
+		snapmirror.NewSnapmirrorPoliciesDataSourceAlias,
+		snapmirror.NewSnapmirrorPolicyDataSourceAlias,
+		snapmirror.NewSnapmirrorsDataSourceAlias,
 	}
 }
 
