@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -20,6 +21,15 @@ func NewStorageVolumesDataSource() datasource.DataSource {
 	return &StorageVolumesDataSource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "volumes",
+		},
+	}
+}
+
+// NewStorageVolumesDataSourceAlias is a helper function to simplify the provider implementation.
+func NewStorageVolumesDataSourceAlias() datasource.DataSource {
+	return &StorageVolumesDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "storage_volumes_data_source",
 		},
 	}
 }
