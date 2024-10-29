@@ -3,6 +3,7 @@ package cluster
 import (
 	"context"
 	"fmt"
+
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -21,6 +22,15 @@ func NewClusterPeersDataSource() datasource.DataSource {
 	return &ClusterPeersDataSource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "cluster_peers",
+		},
+	}
+}
+
+// NewClusterPeersDataSourceAlias is a helper function to simplify the provider implementation.
+func NewClusterPeersDataSourceAlias() datasource.DataSource {
+	return &ClusterPeersDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "cluster_peers_data_source",
 		},
 	}
 }

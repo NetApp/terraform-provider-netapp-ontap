@@ -10,7 +10,7 @@ import (
 	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
 )
 
-func TestLicensingLicenseResouce(t *testing.T) {
+func TestLicensingLicenseResouceAlias(t *testing.T) {
 	testLicense := os.Getenv("TF_ACC_NETAPP_LICENSE")
 	name := "FCP"
 	credName := "cluster4"
@@ -19,27 +19,27 @@ func TestLicensingLicenseResouce(t *testing.T) {
 		ProtoV6ProviderFactories: ntest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccLicensingLicenseResourceConfig("testme"),
+				Config:      testAccLicensingLicenseResourceConfigAlias("testme"),
 				ExpectError: regexp.MustCompile("1115159"),
 			},
 			{
-				Config: testAccLicensingLicenseResourceConfig(testLicense),
+				Config: testAccLicensingLicenseResourceConfigAlias(testLicense),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_cluster_licensing_license.cluster_licensing_license", "name", "insight_balance")),
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_licensing_license_resource.cluster_licensing_license", "name", "insight_balance")),
 			},
 			// Test importing a resource
 			{
-				ResourceName:  "netapp-ontap_cluster_licensing_license.cluster_licensing_license",
+				ResourceName:  "netapp-ontap_cluster_licensing_license_resource.cluster_licensing_license",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s", name, credName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_cluster_licensing_license.cluster_licensing_license", "name", "insight_balance")),
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_licensing_license_resource.cluster_licensing_license", "name", "insight_balance")),
 			},
 		},
 	})
 }
 
-func testAccLicensingLicenseResourceConfig(key string) string {
+func testAccLicensingLicenseResourceConfigAlias(key string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS")
@@ -60,7 +60,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_cluster_licensing_license" "cluster_licensing_license" {
+resource "netapp-ontap_cluster_licensing_license_resource" "cluster_licensing_license" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   keys = ["%s"]
