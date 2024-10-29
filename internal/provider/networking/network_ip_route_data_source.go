@@ -26,6 +26,15 @@ func NewIPRouteDataSource() datasource.DataSource {
 	}
 }
 
+// NewIPRouteDataSourceAlias is a helper function to simplify the provider implementation.
+func NewIPRouteDataSourceAlias() datasource.DataSource {
+	return &IPRouteDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "networking_ip_route_data_source",
+		},
+	}
+}
+
 // IPRouteDataSource defines the data source implementation.
 type IPRouteDataSource struct {
 	config connection.ResourceOrDataSourceConfig
