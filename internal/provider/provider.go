@@ -257,6 +257,8 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		cluster.NewClusterPeerResourceAlias,
 		cluster.NewClusterResourceAlias,
 		cluster.NewClusterScheduleResourceAlias,
+		name_services.NewNameServicesDNSResourceAlias,
+		name_services.NewNameServicesLDAPResourceAlias,
 	}
 }
 
@@ -345,6 +347,10 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		cluster.NewClusterPeersDataSourceAlias,
 		cluster.NewClusterScheduleDataSourceAlias,
 		cluster.NewClusterSchedulesDataSourceAlias,
+		name_services.NewNameServicesDNSDataSourceAlias,
+		name_services.NewNameServicesDNSsDataSourceAlias,
+		name_services.NewNameServicesLDAPDataSourceAlias,
+		name_services.NewNameServicesLDAPsDataSourceAlias,
 	}
 }
 
