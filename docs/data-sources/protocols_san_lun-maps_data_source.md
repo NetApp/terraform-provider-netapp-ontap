@@ -6,10 +6,8 @@ description: |-
   ProtocolsSanLunMaps data source
 ---
 
-# netapp-ontap_san_lun-maps (Data Source)
-
-ProtocolsSanLunMaps data source
-
+# Data Source san_lun-maps
+Retrieves San Lun Maps data source
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher

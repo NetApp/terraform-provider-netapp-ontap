@@ -5,7 +5,6 @@ description: |-
   Export policy resource
 ---
 # Protocols NFS Export Policy Resource
-
 Create/Modify/Delete an Export policy resource
 
 ### Related ONTAP commands

@@ -6,9 +6,8 @@ description: |-
   Retrieve CifsUserGroupPrivilege data source
 ---
 
-# Data Source netapp-ontap_cifs_user_group_privilege
-
-Retrieve Protocol Cifs User or Group Privilege data source
+# Data Source cifs_user_group_privilege
+Retrieves Protocol Cifs User or Group Privilege data source
 
 ## Supported Platforms
 * On-perm ONTAP system 9.10.1 or higher

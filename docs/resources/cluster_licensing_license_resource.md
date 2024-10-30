@@ -7,7 +7,6 @@ description: |-
 ---
 
 # Resource licensing_license
-
 Add/Remove License from ONTAP
 
 ### Related ONTAP commands

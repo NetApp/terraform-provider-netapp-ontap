@@ -5,9 +5,8 @@ description: |-
   Retrieves Snapshot Policies information
 ---
 
-# NetApp Ontap snapshot policies data source
-
-Snapshot Policies data source
+# Data Source snapshot policies
+Retrieves Snapshot Policies data
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher

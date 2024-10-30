@@ -7,7 +7,6 @@ description: |-
 ---
 
 # Resource Protocols Cifs Local Group Mmembers
-
 Create/Read/Delete one or more members in a local group resource
 
 ~> **NOTE:** This module does not support members modification

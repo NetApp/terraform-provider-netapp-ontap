@@ -6,9 +6,8 @@ description: |-
   Retrieves list of Cifs Local Groups.
 ---
 
-# Data Source protocols_cifs_local_groups
-
-Retrieves list of Cifs Local Groups.
+# Data Source cifs_local_groups
+Retrieves list of Cifs Local Groups
 
 ## Supported Platforms
 * On-perm ONTAP system 9.10 or higher

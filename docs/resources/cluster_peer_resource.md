@@ -6,7 +6,6 @@ description: |-
 ---
 
 # Resource Cluster Peer
-
 Create/Modify/Delete a cluster peer.
 
 ### Related ONTAP commands

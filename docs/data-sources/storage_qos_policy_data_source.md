@@ -6,9 +6,8 @@ description: |-
   QOSPolicy data source
 ---
 
-# netapp-ontap_qos_policy (Data Source)
-
-QOSPolicy data source
+# Data Source qos_policy
+Retrieves QOSPolicy data source
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher

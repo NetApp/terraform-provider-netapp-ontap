@@ -5,13 +5,13 @@ description: |-
   ClusterLicensingLicenses data source
 ---
 
-# Netapp Ontap Cluster Licensing Licenses Data Source
+# Data Source cluster licensing licenses
+Retrieves Cluster Licensing Licenses
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
-ClusterLicensingLicenses data source
 ## Example Usage
 ```terraform
 data "netapp-ontap_cluster_licensing_licenses" "cluster_licensing_licenses" {

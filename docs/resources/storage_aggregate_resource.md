@@ -6,7 +6,6 @@ description: |-
 ---
 
 # Resource Storage Aggregate
-
 Create/Modify/Delete an aggregate resource
 
 ### Related ONTAP commands

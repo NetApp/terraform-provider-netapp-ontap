@@ -6,7 +6,6 @@ description: |-
 ---
 
 # Data Source nfs_service
-
 Retrieves the NFS configuration of SVMs.
 
 ## Supported Platforms

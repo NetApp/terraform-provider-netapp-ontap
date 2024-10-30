@@ -142,10 +142,11 @@ ENHANCEMENTS:
 DOC FIXES:
 * **netapp-ontap_storage_flexcache_resource**: Fixed Page display issue ([[#271](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/271)])
 * **netapp-ontap_networking_ip_interface_resource**: Include min version for metrics ([[#265](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/265)])
+* Fix the documentation: snapmirror and the description of other data source and resource ([[#330](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/330)])
 
 BUG FIXES:
-* **netapp-ontap_cluster_data_source: fix on nodes to show multiple elements ([#264](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/264))
-* **netapp-ontap_protocols_nfs_export_policy_resource: fix id error during the creation ([[#290](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/290)])
+* **netapp-ontap_cluster_data_source**: fix on nodes to show multiple elements ([#264](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/264))
+* **netapp-ontap_protocols_nfs_export_policy_resource**: fix id error during the creation ([[#290](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/290)])
 
 ## 1.1.3 (2024-08-08)
 
@@ -165,7 +166,7 @@ BUG FIXES:
 * corrected typos in the CHANGELOG.
 
 BUG FIXES:
-* netapp-ontap_storage_flexcache_resource: Fixed junction_path bug ([#223](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/223))
+* **netapp-ontap_storage_flexcache_resource**: Fixed junction_path bug ([#223](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/223))
 
 ## 1.1.1 (2024-05-15)
 
@@ -251,9 +252,9 @@ BUG FIXES:
 ## 1.0.1 (2023-11-17)
 
 BUG FIXES:
-* netapp-ontap_name_services_dns_resource: Fixed and Documented Import ([#63](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/63))
-* netapp-ontap_cluster_data_source, netapp-ontap_snapmirrors_data_source, netapp-ontap_networking_ip_route_resource and netapp-ontap_sotrage_volume_resource: Fix documentation ([#70](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/70))
-* netapp-ontap_name_services_ldap_resource: Fixed and Document with the version check and workflow ([#163](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/163))
+* **netapp-ontap_name_services_dns_resource**: Fixed and Documented Import ([#63](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/63))
+* **netapp-ontap_cluster_data_source**, **netapp-ontap_snapmirrors_data_source**, **netapp-ontap_networking_ip_route_resource** and **netapp-ontap_sotrage_volume_resource**: Fix documentation ([#70](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/70))
+* **netapp-ontap_name_services_ldap_resource**: Fixed and Document with the version check and workflow ([#163](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/163))
 
 
 ## 1.0.0 (2023-11-06)

@@ -6,9 +6,8 @@ description: |-
   StorageQtrees data source
 ---
 
-# netapp-ontap_qtrees (Data Source)
-
-Retreive one or more qtrees by filter
+# Data Source qtrees
+Retreives one or more qtrees by filter
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher

@@ -7,7 +7,6 @@ description: |-
 ---
 
 # Resource SVM
-
 Create/Modify/Delete a SVM 
 
 ### Related ONTAP commands

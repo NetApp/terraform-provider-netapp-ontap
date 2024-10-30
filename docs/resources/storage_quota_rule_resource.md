@@ -7,7 +7,6 @@ description: |-
 ---
 
 # Resource Quota Rule
-
 Create/Modify/Delete a quota rule resource
 
 ### Related ONTAP commands

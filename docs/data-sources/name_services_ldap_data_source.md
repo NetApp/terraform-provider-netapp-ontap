@@ -6,9 +6,8 @@ description: |-
   Retrieve LDAP data source of a SVM
 ---
 
-# Data source netapp-ontap_name_services_ldap
-
-Retrieve LDAP data source of a SVM
+# Data Source name_services_ldap
+Retrieves LDAP data source of a SVM
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher

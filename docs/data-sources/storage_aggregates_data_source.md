@@ -6,7 +6,6 @@ description: |-
 ---
 
 # Data Sources storage_aggregates
-
 Retrieves the storage aggregations details of SVMs.
 
 ## Supported Platforms

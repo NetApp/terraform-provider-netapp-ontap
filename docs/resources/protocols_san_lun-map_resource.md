@@ -6,8 +6,7 @@ description: |-
   ProtocolsSanLunMap resource
 ---
 
-# netapp-ontap_san_lun-map (Resource)
-
+# Resource san_lun-map
 Create/Delete a protocols_san_lun-map resource
 
 ### Related ONTAP commands

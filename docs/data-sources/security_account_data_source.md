@@ -7,7 +7,6 @@ description: |-
 ---
 
 # Data Source Security_Account
-
 Retrieves a ONTAP User
 
 ## Supported Platforms
