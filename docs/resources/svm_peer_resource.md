@@ -7,7 +7,6 @@ description: |-
 ---
 
 # Resource SVMPeer
-
 Create/Modify/Delete a SVMPeer
 
 ### Related ONTAP commands

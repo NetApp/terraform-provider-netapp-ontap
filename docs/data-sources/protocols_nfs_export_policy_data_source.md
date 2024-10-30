@@ -5,9 +5,8 @@ description: |-
   NFS Export Policy Data source
 ---
 
-# Data source NFS Export Policy
-
-NFS Export Policy Data source
+# Data Source NFS Export Policy
+Retrieves NFS Export Policy Data source
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher

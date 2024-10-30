@@ -7,8 +7,7 @@ description: |-
 ---
 
 # Data Source svm peer
-
-Retrieves the configuration of SVM Peer.
+Retrieves the configuration of SVM Peer
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher

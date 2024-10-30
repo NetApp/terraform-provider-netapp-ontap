@@ -6,7 +6,6 @@ description: |-
 ---
 
 # Resource Snapshot Policy
-
 Create/Modify/Delete a SnapshotPolicy resource
 
 ### Related ONTAP commands

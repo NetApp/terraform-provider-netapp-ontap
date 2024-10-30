@@ -5,8 +5,7 @@ description: |-
   Retrieves the DNSs Configuration of SVMs.
 ---
 
-# Data Source dnss
-
+# Data Source DNSs
 Retrieves the DNSs Configuration of an SVMs.
 
 ## Supported Platforms

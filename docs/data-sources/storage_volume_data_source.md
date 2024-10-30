@@ -7,7 +7,6 @@ description: |-
 ---
 
 # Data Source storage_volume
-
 Retrieves an existing storage_volume
 
 ## Supported Platforms

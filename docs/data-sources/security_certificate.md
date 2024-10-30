@@ -6,9 +6,8 @@ description: |-
   Retrieve Security Certificate data source
 ---
 
-# netapp-ontap_security_certificate (Data Source)
-
-Retrieve Security Certificate data source
+# Data Source security_certificate
+Retrieves Security Certificate data source
 
 ### Related ONTAP commands
 * security certificate show

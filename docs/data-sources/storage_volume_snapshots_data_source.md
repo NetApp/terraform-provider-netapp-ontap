@@ -7,7 +7,6 @@ description: |-
 ---
 
 # Data Source snapshots
-
 Retrieves a collection of volume Snapshot copies
 
 ## Supported Platforms

@@ -7,7 +7,6 @@ description: |-
 ---
 
 # Data Source svm peer
-
 Retrieves the configuration of SVM Peers.
 
 ## Supported Platforms

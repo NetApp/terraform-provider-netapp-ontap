@@ -7,7 +7,6 @@ description: |-
 ---
 
 # Resource Local User
-
 Create/Modify/Delete a Local User resource
 
 ### Related ONTAP commands

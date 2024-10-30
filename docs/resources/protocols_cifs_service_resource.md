@@ -6,8 +6,7 @@ description: |-
   CifsService resource
 ---
 
-# netapp-ontap_cifs_service (Resource)
-
+# Resource cifs_service 
 Create/Modify/Delete a CIFS service resource
 
 ### Related ONTAP commands

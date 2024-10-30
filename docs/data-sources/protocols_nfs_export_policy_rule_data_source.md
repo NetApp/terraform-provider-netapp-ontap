@@ -6,8 +6,7 @@ description: |-
   Retrieves an export policy rule of SVMs
 ---
 
-# Data Source protocols_nfs_export_policy_rule
-
+# Data Source nfs_export_policy_rule
 Retrieves an export policy rule of SVMs
 
 ## Supported Platforms

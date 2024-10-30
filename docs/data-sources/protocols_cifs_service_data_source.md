@@ -6,9 +6,8 @@ description: |-
   Retrieve Cifs Service data source
 ---
 
-# Data Source netapp-ontap_cifs_service
-
-Retrieves protocols cifs service data source
+# Data Source cifs_service
+Retrieves cifs service data
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher

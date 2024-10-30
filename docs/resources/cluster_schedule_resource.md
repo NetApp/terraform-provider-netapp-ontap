@@ -6,8 +6,7 @@ description: |-
 ---
 
 # Resource Cluster Schedule
-
-Create/Modify/Delete a job schedule in a cluster.
+Create/Modify/Delete a job schedule in a cluster
 
 ### Related ONTAP commands
 ```commandline

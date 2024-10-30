@@ -6,8 +6,7 @@ description: |-
   QOSPolicy resource
 ---
 
-# netapp-ontap_qos_policy (Resource)
-
+# Resource qos_policy
 Create/Modify/Delete a QOSPolicy resource
 
 ### Related ONTAP commands

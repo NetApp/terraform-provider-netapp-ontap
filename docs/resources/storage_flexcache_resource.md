@@ -6,9 +6,8 @@ description: |-
   Flexcache resource
 ---
 
-# netapp-ontap_flexcache (Resource)
-
-Flexcache resource
+# Resource flexcache
+Create/Delete Flexcache resource
 
 ### Related ONTAP commands
 ```commandline

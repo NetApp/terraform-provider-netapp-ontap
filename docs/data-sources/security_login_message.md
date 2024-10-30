@@ -6,8 +6,7 @@ description: |-
   Retrieve Security Login Message data source
 ---
 
-# netapp-ontap_security_login_message (Data Source)
-
+# Data Source security_login_message
 Retrieve Security Login Message data source
 
 ## Supported Platforms

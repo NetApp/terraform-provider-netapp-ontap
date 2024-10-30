@@ -6,8 +6,7 @@ description: |-
   Volume resource
 ---
 
-# netapp-ontap_volume (Resource)
-
+# Resource volume
 Create/modify/delete a Volume resource
 
 ### Related ONTAP commands
@@ -20,8 +19,6 @@ Create/modify/delete a Volume resource
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
-
-[comment]: <> (TODO: Add support for Amazon FSx for NetApp ONTAP )
 
 ## Example Usage
 

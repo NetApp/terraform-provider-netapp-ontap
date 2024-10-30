@@ -7,7 +7,6 @@ description: |-
 ---
 
 # Resource Snapmirror Policy
-
 Create/Modify/Delete a snapmirror policy resource
 
 ### Related ONTAP commands

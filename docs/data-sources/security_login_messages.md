@@ -6,9 +6,8 @@ description: |-
   Retrieve Security Login Messages data source
 ---
 
-# netapp-ontap_security_login_messages (Data Source)
-
-Retrieve Security Login Messages data source
+# Data Source security_login_messages
+Retrieves Security Login Messages data source
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher

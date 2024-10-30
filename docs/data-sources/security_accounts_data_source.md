@@ -7,7 +7,6 @@ description: |-
 ---
 
 # Data Source Security Accounts
-
 Retrieves the configuration of multiple user accounts
 
 ## Supported Platforms

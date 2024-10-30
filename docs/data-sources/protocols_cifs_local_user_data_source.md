@@ -6,9 +6,8 @@ description: |-
   Retrieve CifsLocalUser data source
 ---
 
-# Data Source netapp-ontap_cifs_local_user
-
-Retreives protocols cifs local user configuration
+# Data Source cifs_local_user
+Retreives cifs local user configuration
 
 ## Supported Platforms
 * On-perm ONTAP system 9.10 or higher

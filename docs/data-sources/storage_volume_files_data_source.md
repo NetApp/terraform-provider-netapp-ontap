@@ -6,8 +6,7 @@ description: |-
   Storage Volume Files data source
 ---
 
-# netapp-ontap_volume_files (Data Source)
-
+# Data Source nvolume_files
 Retrieves an existing storage volume files
 
 ## Supported Platforms

@@ -6,8 +6,7 @@ description: |-
   Retrieves the details of IP interfaces of SVMs.
 ---
 
-# Data Source ip_interfaces
-
+# Data Source network_ip_interfaces
 Retrieves the details of IP interfaces of SVMs.
 
 ## Supported Platforms

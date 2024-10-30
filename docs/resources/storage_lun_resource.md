@@ -7,7 +7,6 @@ description: |-
 ---
 
 # Resource Storage Lun
-
 Create/Modify/Delete a lun resource
 
 ### Related ONTAP commands
