@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
@@ -49,6 +50,7 @@ type IPInterfaceDataSourceModel struct {
 	Scope         types.String             `tfsdk:"scope"`
 	IP            *IPDataSourceModel       `tfsdk:"ip"`
 	Location      *LocationDataSourceModel `tfsdk:"location"`
+	ServicePolicy types.String             `tfsdk:"service_policy"`
 }
 
 // IPDataSourceModel describes the data source model for IP address and mask.
@@ -117,6 +119,10 @@ func (d *IPInterfaceDataSource) Schema(ctx context.Context, req datasource.Schem
 				},
 				Computed: true,
 			},
+			"service_policy": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "IPInterface service policy",
+			},
 		},
 	}
 }
@@ -182,6 +188,7 @@ func (d *IPInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 		HomeNode: types.StringValue(restInfo.Location.HomeNode.Name),
 		HomePort: types.StringValue(restInfo.Location.HomePort.Name),
 	}
+	data.ServicePolicy = types.StringValue(restInfo.ServicePolicy.Name)
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log

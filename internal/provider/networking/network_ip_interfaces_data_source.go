@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
@@ -133,6 +134,10 @@ func (d *IPInterfacesDataSource) Schema(ctx context.Context, req datasource.Sche
 							},
 							Computed: true,
 						},
+						"service_policy": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "IPInterface service policy",
+						},
 					},
 				},
 				Computed:            true,
@@ -199,6 +204,7 @@ func (d *IPInterfacesDataSource) Read(ctx context.Context, req datasource.ReadRe
 			Name:          types.StringValue(record.Name),
 			Scope:         types.StringValue(record.Scope),
 			SVMName:       types.StringValue(record.SVM.Name),
+			ServicePolicy: types.StringValue(record.ServicePolicy.Name),
 		}
 		intNetmask, err := strconv.Atoi(record.IP.Netmask)
 		if err != nil {
