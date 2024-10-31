@@ -11,12 +11,13 @@ import (
 
 // IPInterfaceGetDataModelONTAP describes the GET record data model using go types for mapping.
 type IPInterfaceGetDataModelONTAP struct {
-	Name     string                      `mapstructure:"name"`
-	Scope    string                      `mapstructure:"scope"`
-	SVM      IPInterfaceSvmName          `mapstructure:"svm"`
-	UUID     string                      `mapstructure:"uuid"`
-	IP       IPInterfaceGetIP            `mapstructure:"ip"`
-	Location IPInterfaceResourceLocation `mapstructure:"location"`
+	IP            IPInterfaceGetIP            `mapstructure:"ip"`
+	Location      IPInterfaceResourceLocation `mapstructure:"location"`
+	Name          string                      `mapstructure:"name"`
+	Scope         string                      `mapstructure:"scope"`
+	ServicePolicy IPInterfaceServicePolicy    `mapstructure:"service_policy"`
+	SVM           IPInterfaceSvmName          `mapstructure:"svm"`
+	UUID          string                      `mapstructure:"uuid"`
 }
 
 // IPInterfaceGetIP describes the GET record data for IP.
@@ -61,6 +62,11 @@ type IPInterfaceResourceHomePort struct {
 	Node IPInterfaceResourceHomeNode `mapstructure:"node"`
 }
 
+// IPInterfaceServicePolicy is the body data model for the service_policy field
+type IPInterfaceServicePolicy struct {
+	Name string `mapstructure:"name"`
+}
+
 // IPInterfaceDataSourceFilterModel describes filter model.
 type IPInterfaceDataSourceFilterModel struct {
 	Name    string `tfsdk:"name"`
@@ -78,7 +84,14 @@ func GetIPInterface(errorHandler *utils.ErrorHandler, r restclient.RestClient, i
 	// 	query.Set("svm.name", svmName)
 	// 	query.Set("scope", "svm")
 	// }
-	query.Fields([]string{"name", "svm.name", "ip", "scope", "location"})
+	query.Fields([]string{
+		"name",
+		"svm.name",
+		"ip",
+		"scope",
+		"location",
+		"service_policy",
+	})
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
 		err = fmt.Errorf("no response for GET %s", api)
@@ -107,7 +120,14 @@ func GetIPInterfaceByName(errorHandler *utils.ErrorHandler, r restclient.RestCli
 		query.Set("svm.name", svmName)
 		query.Set("scope", "svm")
 	}
-	query.Fields([]string{"name", "svm.name", "ip", "scope", "location"})
+	query.Fields([]string{
+		"name",
+		"svm.name",
+		"ip",
+		"scope",
+		"location",
+		"service_policy",
+	})
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
 		err = fmt.Errorf("no response for GET %s", api)
@@ -129,7 +149,14 @@ func GetIPInterfaceByName(errorHandler *utils.ErrorHandler, r restclient.RestCli
 func GetListIPInterfaces(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *IPInterfaceDataSourceFilterModel) ([]IPInterfaceGetDataModelONTAP, error) {
 	api := "network/ip/interfaces"
 	query := r.NewQuery()
-	query.Fields([]string{"name", "svm.name", "ip", "scope", "location"})
+	query.Fields([]string{
+		"name",
+		"svm.name",
+		"ip",
+		"scope",
+		"location",
+		"service_policy",
+	})
 
 	if filter != nil {
 		if filter.Name != "" {
