@@ -12,10 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
@@ -65,6 +67,7 @@ type IPInterfaceResourceModel struct {
 	SVMName       types.String                 `tfsdk:"svm_name"`
 	IP            *IPInterfaceResourceIP       `tfsdk:"ip"`
 	Location      *IPInterfaceResourceLocation `tfsdk:"location"`
+	ServicePolicy types.String                 `tfsdk:"service_policy"`
 	UUID          types.String                 `tfsdk:"id"`
 }
 
@@ -120,6 +123,18 @@ func (r *IPInterfaceResource) Schema(ctx context.Context, req resource.SchemaReq
 					},
 				},
 				Required: true,
+			},
+			"service_policy": schema.StringAttribute{
+				MarkdownDescription: "IPInterface service policy",
+				Optional:            true,
+				Computed:            true,
+				/*
+				 * Default values:
+				 *   "default-data-files" if scope is svm
+				 *   "default-management" if scope is cluster and IPspace is not Cluster (not yet implemented)
+				 *   "default-cluster" if scope is cluster and IPspace is Cluster (not yet implemented)
+				 */
+				Default: stringdefault.StaticString("default-data-files"),
 			},
 			"id": schema.StringAttribute{
 				MarkdownDescription: "IPInterface UUID",
@@ -202,6 +217,9 @@ func (r *IPInterfaceResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 	ip.Netmask = types.Int64Value(int64(intValue))
 	data.IP = &ip
+
+	data.ServicePolicy = types.StringValue(restInfo.ServicePolicy.Name)
+
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
 	tflog.Debug(ctx, fmt.Sprintf("read a resource: %#v", data))
@@ -238,6 +256,7 @@ func (r *IPInterfaceResource) Create(ctx context.Context, req resource.CreateReq
 	body.Location.HomeNode = interfaces.IPInterfaceResourceHomeNode{
 		Name: data.Location.HomeNode.ValueString(),
 	}
+	body.ServicePolicy.Name = data.ServicePolicy.ValueString()
 
 	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
@@ -284,6 +303,7 @@ func (r *IPInterfaceResource) Update(ctx context.Context, req resource.UpdateReq
 	body.Location.HomeNode = interfaces.IPInterfaceResourceHomeNode{
 		Name: data.Location.HomeNode.ValueString(),
 	}
+	body.ServicePolicy.Name = data.ServicePolicy.ValueString()
 
 	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {

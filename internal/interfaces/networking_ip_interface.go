@@ -28,10 +28,11 @@ type IPInterfaceGetIP struct {
 
 // IPInterfaceResourceBodyDataModelONTAP describes the body data model using go types for mapping.
 type IPInterfaceResourceBodyDataModelONTAP struct {
-	Name     string                      `mapstructure:"name"`
-	SVM      IPInterfaceSvmName          `mapstructure:"svm,omitempty"` // API errors if body contains svm name when updating. can not use universal 'svm struct'
-	IP       IPInterfaceResourceIP       `mapstructure:"ip"`
-	Location IPInterfaceResourceLocation `mapstructure:"location"`
+	IP            IPInterfaceResourceIP       `mapstructure:"ip"`
+	Location      IPInterfaceResourceLocation `mapstructure:"location"`
+	Name          string                      `mapstructure:"name"`
+	ServicePolicy IPInterfaceServicePolicy    `mapstructure:"service_policy"`
+	SVM           IPInterfaceSvmName          `mapstructure:"svm,omitempty"` // API errors if body contains svm name when updating. can not use universal 'svm struct'
 }
 
 // IPInterfaceSvmName describes the svm name specifcally for network ip interface.
