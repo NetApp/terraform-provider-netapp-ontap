@@ -56,6 +56,7 @@ func GetBroadcastDomain(errorHandler *utils.ErrorHandler, r restclient.RestClien
 		"ports",
 		"uuid",
 	})
+
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
 		err = fmt.Errorf("no broadcast-domain with id '%s' found", id)
@@ -71,9 +72,12 @@ func GetBroadcastDomain(errorHandler *utils.ErrorHandler, r restclient.RestClien
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError(
 			fmt.Sprintf("failed to decode response from GET %s", api),
-			fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
+			fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response),
+		)
 	}
+
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read broadcast_domain data source: %#v", dataONTAP))
+
 	return &dataONTAP, nil
 }
 
@@ -90,6 +94,7 @@ func GetBroadcastDomainByName(errorHandler *utils.ErrorHandler, r restclient.Res
 		"ports",
 		"uuid",
 	})
+
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
 		err = fmt.Errorf("no broadcast-domain with ipspace '%s' and name '%s' found", ipspace, name)
@@ -105,8 +110,60 @@ func GetBroadcastDomainByName(errorHandler *utils.ErrorHandler, r restclient.Res
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError(
 			fmt.Sprintf("failed to decode response from GET %s", api),
-			fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
+			fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response),
+		)
 	}
+
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read broadcast_domain data source: %#v", dataONTAP))
+
 	return &dataONTAP, nil
+}
+
+// GetListBroadcastDomains to get broadcast_domain info for all resources matching a filter
+func GetListBroadcastDomains(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *BroadcastDomainDataSourceFilterModel) ([]BroadcastDomainGetDataModelONTAP, error) {
+	api := "network/ethernet/broadcast-domains/"
+	query := r.NewQuery()
+	query.Fields([]string{
+		"ipspace",
+		"mtu",
+		"name",
+		"ports",
+		"uuid",
+	})
+
+	if filter != nil {
+		if filter.IPspace != "" {
+			query.Set("ipspace", filter.IPspace)
+		}
+		if filter.Name != "" {
+			query.Set("name", filter.Name)
+		}
+	}
+
+	statusCode, response, err := r.GetZeroOrMoreRecords(api, query, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no broadcast-domains with ipspace '%s' and name '%s' found", filter.IPspace, filter.Name)
+	}
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError(
+			"error reading broadcast-domains info",
+			fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode),
+		)
+	}
+
+	var dataONTAP []BroadcastDomainGetDataModelONTAP
+	for _, info := range response {
+		var record BroadcastDomainGetDataModelONTAP
+		if err := mapstructure.Decode(info, &record); err != nil {
+			return nil, errorHandler.MakeAndReportError(
+				fmt.Sprintf("failed to decode response from GET %s", api),
+				fmt.Sprintf("error: %s, statusCode %d, info %#v", err, statusCode, info),
+			)
+		}
+		dataONTAP = append(dataONTAP, record)
+	}
+
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read broadcast_domain data source: %#v", dataONTAP))
+
+	return dataONTAP, nil
 }
