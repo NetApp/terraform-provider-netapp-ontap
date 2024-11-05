@@ -220,6 +220,7 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		cluster.NewClusterScheduleResource,
 		name_services.NewNameServicesDNSResource,
 		name_services.NewNameServicesLDAPResource,
+		networking.NewBroadcastDomainResource,
 		networking.NewIPInterfaceResource,
 		networking.NewIPRouteResource,
 		NewExampleResource,
