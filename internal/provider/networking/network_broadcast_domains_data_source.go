@@ -62,7 +62,7 @@ func (d *BroadcastDomainsDataSource) Schema(ctx context.Context, req datasource.
 			"filter": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"ipspace": schema.StringAttribute{
-						MarkdownDescription: "Name of the IPspace",
+						MarkdownDescription: "Name of the IPspace the broadcast domain belongs to",
 						Optional:            true,
 					},
 					"name": schema.StringAttribute{
@@ -76,7 +76,7 @@ func (d *BroadcastDomainsDataSource) Schema(ctx context.Context, req datasource.
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"ipspace": schema.StringAttribute{
-							MarkdownDescription: "Name of the IPspace",
+							MarkdownDescription: "Name of the IPspace the broadcast domain belongs to",
 							Computed:            true,
 						},
 						"name": schema.StringAttribute{
@@ -112,7 +112,6 @@ func (d *BroadcastDomainsDataSource) Configure(ctx context.Context, req datasour
 	}
 
 	config, ok := req.ProviderData.(connection.Config)
-
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Data Source Configure Type",
@@ -131,13 +130,12 @@ func (d *BroadcastDomainsDataSource) Read(ctx context.Context, req datasource.Re
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 
 	// Use existing-, or create new REST API client
-	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
 	client, err := connection.GetRestClient(errorHandler, d.config, data.CxProfileName)
 	if err != nil {

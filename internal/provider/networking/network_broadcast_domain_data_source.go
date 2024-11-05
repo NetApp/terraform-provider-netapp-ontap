@@ -57,7 +57,7 @@ func (d *BroadcastDomainDataSource) Schema(ctx context.Context, req datasource.S
 				Required:            true,
 			},
 			"ipspace": schema.StringAttribute{
-				MarkdownDescription: "Name of the IPspace",
+				MarkdownDescription: "Name of the IPspace the broadcast domain belongs to",
 				Required:            true,
 			},
 			"name": schema.StringAttribute{
@@ -89,7 +89,6 @@ func (d *BroadcastDomainDataSource) Configure(ctx context.Context, req datasourc
 	}
 
 	config, ok := req.ProviderData.(connection.Config)
-
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Data Source Configure Type",
@@ -108,13 +107,12 @@ func (d *BroadcastDomainDataSource) Read(ctx context.Context, req datasource.Rea
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 
 	// Use existing-, or create new REST API client
-	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
 	client, err := connection.GetRestClient(errorHandler, d.config, data.CxProfileName)
 	if err != nil {
@@ -135,7 +133,7 @@ func (d *BroadcastDomainDataSource) Read(ctx context.Context, req datasource.Rea
 	}
 	if restInfo == nil {
 		errorHandler.MakeAndReportError(
-			"No Broadcast Domain found",
+			"No broadcast domain found",
 			fmt.Sprintf("No broadcast-domain '%s' found.", data.Name.ValueString()))
 		return
 	}
