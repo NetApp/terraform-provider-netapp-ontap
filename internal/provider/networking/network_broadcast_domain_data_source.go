@@ -133,8 +133,10 @@ func (d *BroadcastDomainDataSource) Read(ctx context.Context, req datasource.Rea
 	}
 	if restInfo == nil {
 		errorHandler.MakeAndReportError(
-			"No broadcast domain found",
-			fmt.Sprintf("No broadcast-domain '%s' found.", data.Name.ValueString()))
+			"No Broadcast Domain Found",
+			fmt.Sprintf("No broadcast domain '%s' found.", data.Name.ValueString()),
+		)
+
 		return
 	}
 

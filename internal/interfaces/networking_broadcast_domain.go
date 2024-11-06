@@ -62,26 +62,26 @@ func GetBroadcastDomain(errorHandler *utils.ErrorHandler, r restclient.RestClien
 
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
-		err = fmt.Errorf("no broadcast-domain with id '%s' found", id)
+		err = fmt.Errorf("no broadcast domain with id '%s' found", id)
 	}
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError(
-			"error reading broadcast-domain info",
-			fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode),
+			"Error Reading Broadcast Domain Info",
+			fmt.Sprintf("Error on GET %s: %s, statusCode %d.", api, err, statusCode),
 		)
 	}
 
 	var dataONTAP BroadcastDomainGetDataModelONTAP
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError(
-			fmt.Sprintf("failed to decode response from GET %s", api),
-			fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response),
+			fmt.Sprintf("Failed To Decode Response From GET %s", api),
+			fmt.Sprintf("Error: %s, statusCode %d, response %#v.", err, statusCode, response),
 		)
 	}
 
 	tflog.Debug(
 		errorHandler.Ctx,
-		fmt.Sprintf("Read broadcast_domain data source: %#v", dataONTAP),
+		fmt.Sprintf("Read broadcast domain data source: %#v", dataONTAP),
 	)
 
 	return &dataONTAP, nil
@@ -104,26 +104,26 @@ func GetBroadcastDomainByName(errorHandler *utils.ErrorHandler, r restclient.Res
 
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
-		err = fmt.Errorf("no broadcast-domain with ipspace '%s' and name '%s' found", ipspace, name)
+		err = fmt.Errorf("no broadcast domain with ipspace '%s' and name '%s' found", ipspace, name)
 	}
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError(
-			"error reading broadcast-domain info",
-			fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode),
+			"Error Reading Broadcast Domain Info",
+			fmt.Sprintf("Error on GET %s: %s, statusCode %d.", api, err, statusCode),
 		)
 	}
 
 	var dataONTAP BroadcastDomainGetDataModelONTAP
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError(
-			fmt.Sprintf("failed to decode response from GET %s", api),
-			fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response),
+			fmt.Sprintf("Failed To Decode Response From GET %s", api),
+			fmt.Sprintf("Error: %s, statusCode %d, response %#v.", err, statusCode, response),
 		)
 	}
 
 	tflog.Debug(
 		errorHandler.Ctx,
-		fmt.Sprintf("Read broadcast_domain data source: %#v", dataONTAP),
+		fmt.Sprintf("Read broadcast domain data source: %#v", dataONTAP),
 	)
 
 	return &dataONTAP, nil
@@ -153,12 +153,12 @@ func GetListBroadcastDomains(errorHandler *utils.ErrorHandler, r restclient.Rest
 
 	statusCode, response, err := r.GetZeroOrMoreRecords(api, query, nil)
 	if err == nil && response == nil {
-		err = fmt.Errorf("no broadcast-domains with ipspace '%s' and name '%s' found", filter.IPspace, filter.Name)
+		err = fmt.Errorf("no broadcast domains with ipspace '%s' and name '%s' found", filter.IPspace, filter.Name)
 	}
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError(
-			"error reading broadcast-domains info",
-			fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode),
+			"Error Reading Broadcast Domains Info",
+			fmt.Sprintf("Error on GET %s: %s, statusCode %d.", api, err, statusCode),
 		)
 	}
 
@@ -167,8 +167,8 @@ func GetListBroadcastDomains(errorHandler *utils.ErrorHandler, r restclient.Rest
 		var record BroadcastDomainGetDataModelONTAP
 		if err := mapstructure.Decode(info, &record); err != nil {
 			return nil, errorHandler.MakeAndReportError(
-				fmt.Sprintf("failed to decode response from GET %s", api),
-				fmt.Sprintf("error: %s, statusCode %d, info %#v", err, statusCode, info),
+				fmt.Sprintf("Failed To Decode Response From GET %s", api),
+				fmt.Sprintf("Error: %s, statusCode %d, info %#v.", err, statusCode, info),
 			)
 		}
 		dataONTAP = append(dataONTAP, record)
@@ -176,7 +176,7 @@ func GetListBroadcastDomains(errorHandler *utils.ErrorHandler, r restclient.Rest
 
 	tflog.Debug(
 		errorHandler.Ctx,
-		fmt.Sprintf("Read broadcast_domain data source: %#v", dataONTAP),
+		fmt.Sprintf("Read broadcast domain data source: %#v", dataONTAP),
 	)
 
 	return dataONTAP, nil
@@ -189,8 +189,8 @@ func CreateBroadcastDomain(errorHandler *utils.ErrorHandler, r restclient.RestCl
 	var bodyMap map[string]interface{}
 	if err := mapstructure.Decode(body, &bodyMap); err != nil {
 		return nil, errorHandler.MakeAndReportError(
-			"error encoding broadcast-domain body",
-			fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body),
+			"Error Encoding Broadcast Domain Body",
+			fmt.Sprintf("Error on encoding %s body: %s, body: %#v.", api, err, body),
 		)
 	}
 	query := r.NewQuery()
@@ -199,22 +199,22 @@ func CreateBroadcastDomain(errorHandler *utils.ErrorHandler, r restclient.RestCl
 	statusCode, response, err := r.CallCreateMethod(api, query, bodyMap)
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError(
-			"error creating broadcast-domain",
-			fmt.Sprintf("error on POST %s: %s, statusCode %d", api, err, statusCode),
+			"Error Creating Broadcast Domain",
+			fmt.Sprintf("Error on POST %s: %s, statusCode %d.", api, err, statusCode),
 		)
 	}
 
 	var dataONTAP BroadcastDomainGetDataModelONTAP
 	if err := mapstructure.Decode(response.Records[0], &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError(
-			"error decoding broadcast-domain info",
-			fmt.Sprintf("error on decode broadcast-domain info: %s, statusCode %d, response %#v", err, statusCode, response),
+			"Error Decoding Broadcast Domain Info",
+			fmt.Sprintf("Error on decode broadcast domain info: %s, statusCode %d, response %#v.", err, statusCode, response),
 		)
 	}
 
 	tflog.Debug(
 		errorHandler.Ctx,
-		fmt.Sprintf("Create broadcast_domain resource: %#v", dataONTAP),
+		fmt.Sprintf("Create broadcast domain resource: %#v", dataONTAP),
 	)
 
 	return &dataONTAP, nil
@@ -227,22 +227,22 @@ func UpdateBroadcastDomain(errorHandler *utils.ErrorHandler, r restclient.RestCl
 	var bodyMap map[string]interface{}
 	if err := mapstructure.Decode(body, &bodyMap); err != nil {
 		return errorHandler.MakeAndReportError(
-			"error encoding broadcast-domain body",
-			fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body),
+			"Error Encoding Broadcast Domain Body",
+			fmt.Sprintf("Error on encoding %s body: %s, body: %#v.", api, err, body),
 		)
 	}
 
 	statusCode, _, err := r.CallUpdateMethod(api, nil, bodyMap)
 	if err != nil {
 		return errorHandler.MakeAndReportError(
-			"error updating broadcast-domain",
-			fmt.Sprintf("error on PATCH %s: %s, statusCode %d", api, err, statusCode),
+			"Error Updating Broadcast Domain",
+			fmt.Sprintf("Error on PATCH %s: %s, statusCode %d.", api, err, statusCode),
 		)
 	}
 
 	tflog.Debug(
 		errorHandler.Ctx,
-		fmt.Sprintf("Update broadcast_domain resource: %#v", bodyMap),
+		fmt.Sprintf("Update broadcast domain resource: %#v", bodyMap),
 	)
 
 	return nil
@@ -256,14 +256,14 @@ func DeleteBroadcastDomain(errorHandler *utils.ErrorHandler, r restclient.RestCl
 	statusCode, _, err := r.CallDeleteMethod(api, nil, nil)
 	if err != nil {
 		return errorHandler.MakeAndReportError(
-			"error deleting broadcast-domain",
-			fmt.Sprintf("error on DELETE %s: %s, statusCode %d", api, err, statusCode),
+			"Error Deleting Broadcast Domain",
+			fmt.Sprintf("Error on DELETE %s: %s, statusCode %d.", api, err, statusCode),
 		)
 	}
 
 	tflog.Debug(
 		errorHandler.Ctx,
-		fmt.Sprintf("Delete broadcast_domain resource: %s", id),
+		fmt.Sprintf("Delete broadcast domain resource: %s", id),
 	)
 
 	return nil

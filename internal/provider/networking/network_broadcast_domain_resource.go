@@ -165,9 +165,10 @@ func (r *BroadcastDomainResource) Read(ctx context.Context, req resource.ReadReq
 	}
 	if restInfo == nil {
 		errorHandler.MakeAndReportError(
-			"No broadcast domain found",
-			fmt.Sprintf("No broadcast-domain, %s found.", data.Name.ValueString()),
+			"No Broadcast Domain Found",
+			fmt.Sprintf("No broadcast domain '%s' found.", data.Name.ValueString()),
 		)
+
 		return
 	}
 
@@ -300,7 +301,8 @@ func (r *BroadcastDomainResource) Delete(ctx context.Context, req resource.Delet
 
 	// Ensure that ID in known
 	if data.ID.IsNull() {
-		errorHandler.MakeAndReportError("ID is null", "broadcast_domain ID is null")
+		errorHandler.MakeAndReportError("ID Is Null", "Broadcast domain ID is null.")
+
 		return
 	}
 
