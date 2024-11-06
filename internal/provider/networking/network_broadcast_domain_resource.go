@@ -3,8 +3,10 @@ package networking
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -19,8 +21,11 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &BroadcastDomainResource{}
-var _ resource.ResourceWithImportState = &BroadcastDomainResource{}
+var (
+	_ resource.Resource                = &BroadcastDomainResource{}
+	_ resource.ResourceWithConfigure   = &BroadcastDomainResource{}
+	_ resource.ResourceWithImportState = &BroadcastDomainResource{}
+)
 
 // NewBroadcastDomainResource is a helper function to simplify the provider implementation.
 func NewBroadcastDomainResource() resource.Resource {
@@ -311,15 +316,20 @@ func (r *BroadcastDomainResource) Delete(ctx context.Context, req resource.Delet
 // ImportState imports a resource using ID from terraform import command by calling the Read method.
 func (r *BroadcastDomainResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	tflog.Debug(ctx, fmt.Sprintf("import req a network broadcast domain resource: %#v", req))
-	// idParts := strings.Split(req.ID, ",")
-	// if len(idParts) != 3 || idParts[0] == "" || idParts[1] == "" || idParts[2] == "" {
-	// 	resp.Diagnostics.AddError(
-	// 		"Unexpected Import Identifier",
-	// 		fmt.Sprintf("Expected import identifier with format: name,svm_name,cx_profile_name. Got: %q", req.ID),
-	// 	)
-	// 	return
-	// }
-	// resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[0])...)
-	// resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("svm_name"), idParts[1])...)
-	// resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[2])...)
+
+	// Extract broadcast_domain info from import identifier
+	idParts := strings.Split(req.ID, ",")
+	if len(idParts) != 3 || idParts[0] == "" || idParts[1] == "" || idParts[2] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: cx_profile_name,ipspace,name, got: %q.", req.ID),
+		)
+
+		return
+	}
+
+	// Save broadcast_domain info to attributes
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("ipspace"), idParts[1])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[2])...)
 }
