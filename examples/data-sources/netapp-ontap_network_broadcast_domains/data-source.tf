@@ -1,6 +1,6 @@
 data "netapp-ontap_network_broadcast_domains" "example" {
   # required to know which system to interface with
-  cx_profile_name = "svacluster"
+  cx_profile_name = "cluster4"
   filter = {
     ipspace = "Default"
     name    = "*"
