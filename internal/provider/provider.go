@@ -303,6 +303,7 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		name_services.NewNameServicesLDAPsDataSource,
 		networking.NewBroadcastDomainDataSource,
 		networking.NewBroadcastDomainsDataSource,
+		networking.NewEthernetPortDataSource,
 		networking.NewIPInterfaceDataSource,
 		networking.NewIPInterfacesDataSource,
 		networking.NewIPRouteDataSource,
