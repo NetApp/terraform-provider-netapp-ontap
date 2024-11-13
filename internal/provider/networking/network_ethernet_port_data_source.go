@@ -20,7 +20,7 @@ var _ datasource.DataSource = &EthernetPortDataSource{}
 func NewEthernetPortDataSource() datasource.DataSource {
 	return &EthernetPortDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "network_ethernet_port",
+			Name: "port",
 		},
 	}
 }
