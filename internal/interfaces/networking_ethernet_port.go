@@ -74,10 +74,11 @@ type EthernetPortVLANBasePort struct {
 	UUID string `mapstructure:"uuid"`
 }
 
-// EthernetPortDataSourceFilterModel describes filter model.
-type EthernetPortDataSourceFilterModel struct {
-	IPspace string `tfsdk:"ipspace"`
-	Name    string `tfsdk:"name"`
+// EthernetPortsDataSourceFilterModel describes filter model.
+type EthernetPortsDataSourceFilterModel struct {
+	Name  string `tfsdk:"name"`
+	State string `tfsdk:"state"`
+	Type  string `tfsdk:"type"`
 }
 
 // Retrieve ethernet port details
@@ -183,7 +184,7 @@ func GetEthernetPortByName(errorHandler *utils.ErrorHandler, r restclient.RestCl
 
 // Retrieve ethernet ports for the entire cluster
 // https://docs.netapp.com/us-en/ontap-restapi/ontap/get-network-ethernet-ports.html
-func GetListEthernetPorts(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *EthernetPortDataSourceFilterModel) ([]EthernetPortGetDataModelONTAP, error) {
+func GetListEthernetPorts(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *EthernetPortsDataSourceFilterModel) ([]EthernetPortGetDataModelONTAP, error) {
 	api := "/network/ethernet/ports/"
 	query := r.NewQuery()
 	query.Fields([]string{
@@ -208,11 +209,22 @@ func GetListEthernetPorts(errorHandler *utils.ErrorHandler, r restclient.RestCli
 		if filter.Name != "" {
 			query.Set("name", filter.Name)
 		}
+		if filter.State != "" {
+			query.Set("state", filter.State)
+		}
+		if filter.Type != "" {
+			query.Set("type", filter.Type)
+		}
 	}
 
 	statusCode, response, err := r.GetZeroOrMoreRecords(api, query, nil)
 	if err == nil && response == nil {
-		err = fmt.Errorf("no ethernet ports with name '%s' found", filter.Name)
+		err = fmt.Errorf(
+			"no ethernet ports with name '%s', state '%s', and type '%s' found",
+			filter.Name,
+			filter.State,
+			filter.Type,
+		)
 	}
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError(
