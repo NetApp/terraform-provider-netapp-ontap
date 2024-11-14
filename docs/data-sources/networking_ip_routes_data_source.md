@@ -6,8 +6,7 @@ description: |-
   Retrieves the IP routes of SVMs.
 ---
 
-# Data Source ip_routes
-
+# Data Source network_ip_routes
 Retrieves the IP routes of SVMs.
 
 ## Supported Platforms

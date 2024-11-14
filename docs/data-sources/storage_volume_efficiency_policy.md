@@ -6,9 +6,8 @@ description: |-
   VolumeEfficiencyPolicy data source
 ---
 
-# netapp-ontap_volume_efficiency_policy (Data Source)
-
-VolumeEfficiencyPolicy data source
+# Data Source volume_efficiency_policy
+Retrieves Volume EfficiencyP olicy data
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher

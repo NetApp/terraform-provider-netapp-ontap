@@ -7,7 +7,6 @@ description: |-
 ---
 
 # Resource DNS
-
 Create/Modify/Delete and Import a name services DNS resource
 
 ### Related ONTAP commands

@@ -6,8 +6,7 @@ description: |-
   ProtocolsCIFSShares data source
 ---
 
-# netapp-ontap_cifs_shares (Data Source)
-
+# Data Source cifs_shares
 Retrieves the details of one or more cifs shares by filter
 
 ### Related ONTAP commands

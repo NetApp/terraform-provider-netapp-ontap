@@ -5,8 +5,7 @@ description: |-
   Retrieves list of NFSs configuration of SVMs.
 ---
 
-# netapp-ontap_nfs_services (Data Source)
-
+# Data Source nfs_services
 Retrieves list of NFSs configuration of SVMs.
 
 ## Supported Platforms

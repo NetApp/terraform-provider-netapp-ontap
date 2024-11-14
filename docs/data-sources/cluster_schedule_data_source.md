@@ -6,8 +6,7 @@ description: |-
   Retrieves Cluster Schedule configuration of SVMs.
 ---
 
-# Data Source cluster_schedule
-
+# Data Source cluster schedule
 Retrieves Cluster Schedule configuration of SVMs.
 
 ## Supported Platforms

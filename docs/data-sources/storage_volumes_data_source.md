@@ -6,8 +6,7 @@ description: |-
   StorageVolumes data source
 ---
 
-# Data Source storage_volumes
-
+# Data Source volumes
 Retrieves existing storage_volumes
 
 ## Supported Platforms

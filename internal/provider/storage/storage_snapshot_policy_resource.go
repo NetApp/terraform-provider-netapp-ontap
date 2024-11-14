@@ -3,8 +3,9 @@ package storage
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -32,6 +33,15 @@ func NewSnapshotPolicyResource() resource.Resource {
 	return &SnapshotPolicyResource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "snapshot_policy",
+		},
+	}
+}
+
+// NewSnapshotPolicyResource is a helper function to simplify the provider implementation.
+func NewSnapshotPolicyResourceAlias() resource.Resource {
+	return &SnapshotPolicyResource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "storage_snapshot_policy_resource",
 		},
 	}
 }

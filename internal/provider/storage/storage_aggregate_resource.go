@@ -3,8 +3,9 @@ package storage
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -33,6 +34,15 @@ func NewAggregateResource() resource.Resource {
 	return &AggregateResource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "aggregate",
+		},
+	}
+}
+
+// NewAggregateResourceAlias is a helper function to simplify the provider implementation.
+func NewAggregateResourceAlias() resource.Resource {
+	return &AggregateResource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "storage_aggregate_resource",
 		},
 	}
 }

@@ -6,8 +6,7 @@ description: |-
   ProtocolsCIFSShare resource
 ---
 
-# netapp-ontap_cifs_share (Resource)
-
+# Resource cifs_share
 Create/Modify/Delete a protocols cifs share resource
 
 ### Related ONTAP commands

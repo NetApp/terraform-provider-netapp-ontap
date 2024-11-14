@@ -6,8 +6,7 @@ description: |-
   cluster resource
 ---
 
-# netapp-ontap_cluster (Resource)
-
+# Resource cluster
 Create/Update a Cluster resource
 
 ### Related ONTAP commands

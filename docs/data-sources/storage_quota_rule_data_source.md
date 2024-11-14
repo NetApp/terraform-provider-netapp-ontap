@@ -6,9 +6,8 @@ description: |-
   QuotaRule data source
 ---
 
-# netapp-ontap_quota_rule (Data Source)
-
-QuotaRule data source
+# Data Source quota_rule
+Retrieves QuotaRule data
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher

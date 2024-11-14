@@ -7,8 +7,7 @@ description: |-
 ---
 
 # Data Source svm
-
-Retrieves the configuration of SVM.
+Retrieves the configuration of SVM
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher

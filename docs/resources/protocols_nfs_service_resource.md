@@ -6,7 +6,6 @@ description: |-
 ---
 
 # Resource NFS Service
-
 Create/Modify/Delete an NFS Configuration of a SVM.
 
 ### Related ONTAP commands

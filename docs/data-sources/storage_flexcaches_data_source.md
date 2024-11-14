@@ -6,8 +6,7 @@ description: |-
   Flexcaches data source
 ---
 
-# netapp-ontap_flexcaches (Data Source)
-
+# Data Source flexcaches
 Retrieves the details of one or more flexcaches by filter.
 
 ### Related ONTAP commands

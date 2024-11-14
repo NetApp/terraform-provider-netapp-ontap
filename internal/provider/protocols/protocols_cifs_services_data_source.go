@@ -3,6 +3,7 @@ package protocols
 import (
 	"context"
 	"fmt"
+
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -21,6 +22,15 @@ func NewCifsServicesDataSource() datasource.DataSource {
 	return &CifsServicesDataSource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "cifs_services",
+		},
+	}
+}
+
+// NewCifsServicesDataSource is a helper function to simplify the provider implementation.
+func NewCifsServicesDataSourceAlias() datasource.DataSource {
+	return &CifsServicesDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_cifs_services_data_source",
 		},
 	}
 }

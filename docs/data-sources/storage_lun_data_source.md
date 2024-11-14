@@ -7,7 +7,6 @@ description: |-
 ---
 
 # Data Source storage_lun
-
 Retrieves existing single lun data
 
 ## Supported Platforms

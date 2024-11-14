@@ -7,8 +7,7 @@ description: |-
 ---
 
 # Data Source Protocols San Igroup
-
-Igroup data source
+Retrieves Igroup data source
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher

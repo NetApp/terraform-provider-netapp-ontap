@@ -7,7 +7,6 @@ description: |-
 ---
 
 # Resource IP Interface
-
 Create/Update/Delete an IPInterface resource
 
 ### Related ONTAP commands

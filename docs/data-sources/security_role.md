@@ -6,9 +6,8 @@ description: |-
   SecurityRole data source
 ---
 
-# netapp-ontap_security_role (Data Source)
-
-Retrieve a security role
+# Data Source security_role
+Retrieves a security role
 
 ### Related ONTAP commands
 ```commandline

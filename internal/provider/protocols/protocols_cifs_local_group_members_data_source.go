@@ -3,6 +3,7 @@ package protocols
 import (
 	"context"
 	"fmt"
+
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -21,6 +22,15 @@ func NewCifsLocalGroupMembersDataSource() datasource.DataSource {
 	return &CifsLocalGroupMembersDataSource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "cifs_local_group_members",
+		},
+	}
+}
+
+// NewCifsLocalGroupMembersDataSourceAlias is a helper function to simplify the provider implementation.
+func NewCifsLocalGroupMembersDataSourceAlias() datasource.DataSource {
+	return &CifsLocalGroupMembersDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_cifs_local_group_members_data_source",
 		},
 	}
 }

@@ -7,7 +7,6 @@ description: |-
 ---
 
 # Data Source ip_interface
-
 Retrieves the details of IP interface of SVMs.
 
 ## Supported Platforms

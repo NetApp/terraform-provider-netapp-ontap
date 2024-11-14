@@ -7,7 +7,6 @@ description: |-
 ---
 
 # Resource name services LDAP
-
 Create/Modify/Delete an LDAP configuration for an SVM
 
 ### Related ONTAP commands

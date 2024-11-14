@@ -6,8 +6,7 @@ description: |-
   Retrieves details of a specific volume Snapshot copy
 ---
 
-# # Data Source snapshot
-
+# Data Source snapshot
 Retrieves details of a specific volume Snapshot copy
 
 ## Supported Platforms

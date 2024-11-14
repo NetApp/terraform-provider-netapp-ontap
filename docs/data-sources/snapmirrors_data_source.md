@@ -6,7 +6,6 @@ description: |-
 ---
 
 # Data Source snapmirrors
-
 Retrieves list of the snapmirrors
 
 ## Supported Platforms
