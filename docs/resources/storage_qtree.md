@@ -6,8 +6,7 @@ description: |-
   Qtree resource
 ---
 
-# netapp-ontap_qtree (Resource)
-
+# Resource qtree
 Create/modify/delete a storage qtree
 
 ### Related ONTAP commands

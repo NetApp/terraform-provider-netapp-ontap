@@ -6,8 +6,7 @@ description: |-
   SecurityRoles resource
 ---
 
-# netapp-ontap_security_roles (Resource)
-
+# Resource security_roles
 Create/Modify/Delete a Security role
 
 ## Supported Platforms

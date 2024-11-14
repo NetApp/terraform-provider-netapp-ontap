@@ -3,6 +3,7 @@ package cluster
 import (
 	"context"
 	"fmt"
+
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -21,6 +22,15 @@ func NewClusterLicensingLicenseDataSource() datasource.DataSource {
 	return &ClusterLicensingLicenseDataSource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "cluster_licensing_license",
+		},
+	}
+}
+
+// NewClusterLicensingLicenseDataSourceAlias is a helper function to simplify the provider implementation.
+func NewClusterLicensingLicenseDataSourceAlias() datasource.DataSource {
+	return &ClusterLicensingLicenseDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "cluster_licensing_license_data_source",
 		},
 	}
 }

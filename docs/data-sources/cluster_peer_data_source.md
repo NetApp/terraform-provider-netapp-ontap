@@ -6,8 +6,7 @@ description: |-
   ClusterPeer data source
 ---
 
-# Data Source cluster_peer
-
+# Data Source cluster peer
 Retrieves an existing cluster_peer
 
 ## Supported Platforms

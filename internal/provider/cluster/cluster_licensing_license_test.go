@@ -2,11 +2,12 @@ package cluster_test
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
 	"os"
 	"regexp"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
 )
 
 func TestLicensingLicenseResouce(t *testing.T) {

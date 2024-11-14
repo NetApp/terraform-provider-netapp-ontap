@@ -6,9 +6,8 @@ description: |-
   StorageQtree data source
 ---
 
-# netapp-ontap_qtree (Data Source)
-
-Retreive a qtree
+# Data Source qtree
+Retreives a qtree
 
 ## Supported Platforms
 * On-perm ONTAP system 9.6 or higher

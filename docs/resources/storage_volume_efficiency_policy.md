@@ -6,8 +6,7 @@ description: |-
   VolumeEfficiencyPolicy resource
 ---
 
-# netapp-ontap_volume_efficiency_policy (Resource)
-
+# Resource volume_efficiency_policy
 Create/Modify/Delete a VolumeEfficiencyPolicy resource
 
 ### Related ONTAP commands

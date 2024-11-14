@@ -3,6 +3,7 @@ package svm
 import (
 	"context"
 	"fmt"
+
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -21,6 +22,15 @@ func NewSvmsDataSource() datasource.DataSource {
 	return &SvmsDataSource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "svms",
+		},
+	}
+}
+
+// NewSvmsDataSourceAlias is a helper function to simplify the provider implementation.
+func NewSvmsDataSourceAlias() datasource.DataSource {
+	return &SvmsDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "svms_data_source",
 		},
 	}
 }

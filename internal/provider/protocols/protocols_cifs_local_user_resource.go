@@ -3,8 +3,9 @@ package protocols
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -29,6 +30,15 @@ func NewCifsLocalUserResource() resource.Resource {
 	return &CifsLocalUserResource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "cifs_local_user",
+		},
+	}
+}
+
+// NewCifsLocalUserResourcAlias is a helper function to simplify the provider implementation.
+func NewCifsLocalUserResourcAlias() resource.Resource {
+	return &CifsLocalUserResource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_cifs_local_user_resource",
 		},
 	}
 }

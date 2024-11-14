@@ -7,7 +7,6 @@ description: |-
 ---
 
 # Data Source Storage Luns
-
 Retrieves existing Luns data
 
 ## Supported Platforms

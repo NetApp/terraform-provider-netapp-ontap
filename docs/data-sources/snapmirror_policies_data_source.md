@@ -6,7 +6,6 @@ description: |-
 ---
 
 # Data Source snapmirror_policies
-
 Retrieves SnapMirror policies of SVMs.
 
 ## Supported Platforms

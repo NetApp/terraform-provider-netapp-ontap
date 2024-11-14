@@ -7,7 +7,6 @@ description: |-
 ---
 
 # Data Source svms
-
 Retrieves the configuration of SVMs.
 
 ## Supported Platforms

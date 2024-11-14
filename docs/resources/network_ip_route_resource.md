@@ -7,7 +7,6 @@ description: |-
 ---
 
 # Resource IP Route
-
 Create/Delete an IP Route resource
 
 ### Related ONTAP commands

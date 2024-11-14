@@ -26,6 +26,15 @@ func NewProtocolsSanLunMapDataSource() datasource.DataSource {
 	}
 }
 
+// NewProtocolsSanLunMapDataSourceAlias is a helper function to simplify the provider implementation.
+func NewProtocolsSanLunMapDataSourceAlias() datasource.DataSource {
+	return &ProtocolsSanLunMapDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_san_lun-map_data_source",
+		},
+	}
+}
+
 // ProtocolsSanLunMapDataSource defines the data source implementation.
 type ProtocolsSanLunMapDataSource struct {
 	config connection.ResourceOrDataSourceConfig

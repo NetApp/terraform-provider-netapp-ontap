@@ -6,9 +6,8 @@ description: |-
   Retrieves list of Cifs Local Users.
 ---
 
-# Data Source protocols_cifs_local_users
-
-Retrieves a list of Cifs Local Users.
+# Data Source cifs_local_users
+Retrieves a list of Cifs Local Users
 
 ## Supported Platforms
 * On-perm ONTAP system 9.10 or higher

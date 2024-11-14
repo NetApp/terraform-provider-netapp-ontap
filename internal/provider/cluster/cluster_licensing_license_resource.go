@@ -3,8 +3,9 @@ package cluster
 import (
 	"context"
 	"fmt"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"strings"
+
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 
@@ -25,6 +26,15 @@ func NewClusterLicensingLicenseResource() resource.Resource {
 	return &ClusterLicensingLicenseResource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "cluster_licensing_license",
+		},
+	}
+}
+
+// NewClusterLicensingLicenseResourceAlias is a helper function to simplify the provider implementation.
+func NewClusterLicensingLicenseResourceAlias() resource.Resource {
+	return &ClusterLicensingLicenseResource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "cluster_licensing_license_resource",
 		},
 	}
 }

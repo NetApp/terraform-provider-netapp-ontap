@@ -38,6 +38,15 @@ func NewIPRouteResource() resource.Resource {
 	}
 }
 
+// NewIPRouteResourceAlias is a helper function to simplify the provider implementation.
+func NewIPRouteResourceAlias() resource.Resource {
+	return &IPRouteResource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "networking_ip_route_resource",
+		},
+	}
+}
+
 // IPRouteResource defines the resource implementation.
 type IPRouteResource struct {
 	config connection.ResourceOrDataSourceConfig

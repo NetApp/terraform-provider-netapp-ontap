@@ -7,7 +7,6 @@ description: |-
 ---
 
 # Resource Security Account
-
 Create/Modify/Delete a ONTAP user account
 
 ### Related ONTAP commands

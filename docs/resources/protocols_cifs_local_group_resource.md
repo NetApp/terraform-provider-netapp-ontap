@@ -7,7 +7,6 @@ description: |-
 ---
 
 # Resource Local Group
-
 Create/Modify/Delete a Local Group resource
 
 ### Related ONTAP commands

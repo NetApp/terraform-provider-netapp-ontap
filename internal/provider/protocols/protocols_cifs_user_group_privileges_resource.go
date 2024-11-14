@@ -35,6 +35,15 @@ func NewCifsUserGroupPrivilegeResource() resource.Resource {
 	}
 }
 
+// NewCifsUserGroupPrivilegeResourceAlias is a helper function to simplify the provider implementation.
+func NewCifsUserGroupPrivilegeResourceAlias() resource.Resource {
+	return &CifsUserGroupPrivilegeResource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_cifs_user_group_privilege_resource",
+		},
+	}
+}
+
 // CifsUserGroupPrivilegeResource defines the resource implementation.
 type CifsUserGroupPrivilegeResource struct {
 	config connection.ResourceOrDataSourceConfig

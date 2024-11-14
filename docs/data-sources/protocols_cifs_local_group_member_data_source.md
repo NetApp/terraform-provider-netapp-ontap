@@ -6,9 +6,8 @@ description: |-
   Retrieve CifsLocalGroupMember data source
 ---
 
-# Data source netapp-ontap_cifs_local_group_member
-
-Retreives protocols cifs local group member configuration
+# Data Source cifs_local_group_member
+Retreives cifs local group member configuration
 
 ## Supported Platforms
 * On-perm ONTAP system 9.10 or higher

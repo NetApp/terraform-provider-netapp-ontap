@@ -3,6 +3,7 @@ package protocols
 import (
 	"context"
 	"fmt"
+
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -21,6 +22,15 @@ func NewCifsUserGroupPrivilegeDataSource() datasource.DataSource {
 	return &CifsUserGroupPrivilegeDataSource{
 		config: connection.ResourceOrDataSourceConfig{
 			Name: "cifs_user_group_privilege",
+		},
+	}
+}
+
+// NewCifsUserGroupPrivilegeDataSourceAlias is a helper function to simplify the provider implementation.
+func NewCifsUserGroupPrivilegeDataSourceAlias() datasource.DataSource {
+	return &CifsUserGroupPrivilegeDataSource{
+		config: connection.ResourceOrDataSourceConfig{
+			Name: "protocols_cifs_user_group_privilege_data_source",
 		},
 	}
 }

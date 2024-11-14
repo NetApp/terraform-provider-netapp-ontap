@@ -7,7 +7,6 @@ description: |-
 ---
 
 # Resource Volume Snapshot
-
 Create/Modify/Delete a Snapshot resource
 
 ### Related ONTAP commands

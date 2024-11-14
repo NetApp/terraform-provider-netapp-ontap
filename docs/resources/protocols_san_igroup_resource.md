@@ -6,8 +6,7 @@ description: |-
   ProtocolsSanIgroup resource
 ---
 
-# netapp-ontap_san_igroup (Resource)
-
+# Resource san_igroup
 Create/Modify/Delete a protocols_san_igroup resource
 
 ### Related ONTAP commands

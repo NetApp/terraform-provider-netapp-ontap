@@ -6,8 +6,7 @@ description: |-
   Cluster data source
 ---
 
-# netapp-ontap_cluster (Data Source)
-
+# Data Source cluster 
 Retrieve the details of a cluster data source
 
 ### Related ONTAP commands

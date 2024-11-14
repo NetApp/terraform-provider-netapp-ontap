@@ -6,8 +6,7 @@ description: |-
   VolumeFile resource
 ---
 
-# netapp-ontap_volume_file (Resource)
-
+# Resource volume_file
 Create/Modify/Delete a VolumeFile resource
 
 ## Supported Platforms
