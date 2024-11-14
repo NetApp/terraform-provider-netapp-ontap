@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -41,7 +42,7 @@ type EthernetPortDataSourceModel struct {
 	MTU               types.Int64          `tfsdk:"mtu"`
 	Name              types.String         `tfsdk:"name"`
 	NodeID            types.String         `tfsdk:"node_id"`
-	RDMAProtocols     []types.String       `tfsdk:"rdma_protocols"`
+	RDMAProtocols     types.Set            `tfsdk:"rdma_protocols"`
 	Reachability      types.String         `tfsdk:"reachability"`
 	Speed             types.Int64          `tfsdk:"speed"`
 	State             types.String         `tfsdk:"state"`
@@ -52,10 +53,10 @@ type EthernetPortDataSourceModel struct {
 
 // LAGDataSourceModel describes the data source model for LAG ports, policy and mode.
 type LAGDataSourceModel struct {
-	ActivePortsID      []types.String `tfsdk:"active_ports_id"`
-	DistributionPolicy types.String   `tfsdk:"distribution_policy"`
-	MemberPortsID      []types.String `tfsdk:"member_ports_id"`
-	Mode               types.String   `tfsdk:"mode"`
+	ActivePortsID      types.Set    `tfsdk:"active_ports_id"`
+	DistributionPolicy types.String `tfsdk:"distribution_policy"`
+	MemberPortsID      types.Set    `tfsdk:"member_ports_id"`
+	Mode               types.String `tfsdk:"mode"`
 }
 
 // VLANDataSourceModel describes the data source model for VLAN base port and tag.
@@ -232,11 +233,6 @@ func (d *EthernetPortDataSource) Read(ctx context.Context, req datasource.ReadRe
 	}
 
 	// Copy ethernet_port info to data source model
-	var protocols []types.String
-	for _, v := range restInfo.RDMAProtocols {
-		protocols = append(protocols, types.StringValue(v))
-	}
-
 	data.BroadcastDomainID = types.StringValue(restInfo.BroadcastDomain.UUID)
 	data.Enabled = types.BoolValue(restInfo.Enabled)
 	data.InterfaceCount = types.Int64Value(restInfo.InterfaceCount)
@@ -244,26 +240,44 @@ func (d *EthernetPortDataSource) Read(ctx context.Context, req datasource.ReadRe
 	data.MTU = types.Int64Value(restInfo.MTU)
 	data.Name = types.StringValue(restInfo.Name)
 	data.NodeID = types.StringValue(restInfo.Node.UUID)
-	data.RDMAProtocols = protocols
 	data.Reachability = types.StringValue(restInfo.Reachability)
 	data.Speed = types.Int64Value(restInfo.Speed)
 	data.State = types.StringValue(restInfo.State)
 	data.Type = types.StringValue(restInfo.Type)
 	data.ID = types.StringValue(restInfo.UUID)
 
+	// rdma_protocols set
+	if len(restInfo.RDMAProtocols) > 0 {
+		var protocols []attr.Value
+		for _, v := range restInfo.RDMAProtocols {
+			protocols = append(protocols, types.StringValue(v))
+		}
+		protocolsSet, diags := types.SetValue(types.StringType, protocols)
+		resp.Diagnostics.Append(diags...)
+		data.RDMAProtocols = protocolsSet
+	}
+
 	switch data.Type.ValueString() {
 	case "lag":
-		var activePorts, memberPorts []types.String
+		// active_ports_id set
+		var activePorts, memberPorts []attr.Value
 		for _, v := range restInfo.LAG.ActivePorts {
 			activePorts = append(activePorts, types.StringValue(v.UUID))
 		}
+		activePortsSet, diags := types.SetValue(types.StringType, activePorts)
+		resp.Diagnostics.Append(diags...)
+
+		// member_ports_id set
 		for _, v := range restInfo.LAG.MemberPorts {
 			memberPorts = append(memberPorts, types.StringValue(v.UUID))
 		}
+		memberPortsSet, diags := types.SetValue(types.StringType, memberPorts)
+		resp.Diagnostics.Append(diags...)
+
 		data.LAG = &LAGDataSourceModel{
-			ActivePortsID:      activePorts,
+			ActivePortsID:      activePortsSet,
 			DistributionPolicy: types.StringValue(restInfo.LAG.DistributionPolicy),
-			MemberPortsID:      memberPorts,
+			MemberPortsID:      memberPortsSet,
 			Mode:               types.StringValue(restInfo.LAG.Mode),
 		}
 	case "vlan":

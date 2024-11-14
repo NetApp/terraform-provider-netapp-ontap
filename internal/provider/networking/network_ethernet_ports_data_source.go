@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -240,11 +241,6 @@ func (d *EthernetPortsDataSource) Read(ctx context.Context, req datasource.ReadR
 	// Copy ethernet_port info to data source model
 	data.Ports = make([]EthernetPortDataSourceModel, len(restInfo))
 	for index, record := range restInfo {
-		var protocols []types.String
-		for _, v := range record.RDMAProtocols {
-			protocols = append(protocols, types.StringValue(v))
-		}
-
 		data.Ports[index] = EthernetPortDataSourceModel{
 			Enabled:        types.BoolValue(record.Enabled),
 			InterfaceCount: types.Int64Value(record.InterfaceCount),
@@ -252,7 +248,6 @@ func (d *EthernetPortsDataSource) Read(ctx context.Context, req datasource.ReadR
 			MTU:            types.Int64Value(record.MTU),
 			Name:           types.StringValue(record.Name),
 			NodeID:         types.StringValue(record.Node.UUID),
-			RDMAProtocols:  protocols,
 			Reachability:   types.StringValue(record.Reachability),
 			Speed:          types.Int64Value(record.Speed),
 			State:          types.StringValue(record.State),
@@ -260,19 +255,36 @@ func (d *EthernetPortsDataSource) Read(ctx context.Context, req datasource.ReadR
 			ID:             types.StringValue(record.UUID),
 		}
 
+		// rdma_protocols set
+		var protocols []attr.Value
+		for _, v := range record.RDMAProtocols {
+			protocols = append(protocols, types.StringValue(v))
+		}
+		protocolsSet, diags := types.SetValue(types.StringType, protocols)
+		resp.Diagnostics.Append(diags...)
+		data.Ports[index].RDMAProtocols = protocolsSet
+
 		switch data.Ports[index].Type.ValueString() {
 		case "lag":
-			var activePorts, memberPorts []types.String
+			// active_ports_id set
+			var activePorts, memberPorts []attr.Value
 			for _, v := range record.LAG.ActivePorts {
 				activePorts = append(activePorts, types.StringValue(v.UUID))
 			}
+			activePortsSet, diags := types.SetValue(types.StringType, activePorts)
+			resp.Diagnostics.Append(diags...)
+
+			// member_ports_id set
 			for _, v := range record.LAG.MemberPorts {
 				memberPorts = append(memberPorts, types.StringValue(v.UUID))
 			}
+			memberPortsSet, diags := types.SetValue(types.StringType, memberPorts)
+			resp.Diagnostics.Append(diags...)
+
 			data.Ports[index].LAG = &LAGDataSourceModel{
-				ActivePortsID:      activePorts,
+				ActivePortsID:      activePortsSet,
 				DistributionPolicy: types.StringValue(record.LAG.DistributionPolicy),
-				MemberPortsID:      memberPorts,
+				MemberPortsID:      memberPortsSet,
 				Mode:               types.StringValue(record.LAG.Mode),
 			}
 		case "vlan":
