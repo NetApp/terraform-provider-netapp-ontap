@@ -182,7 +182,9 @@ func (r *BroadcastDomainResource) Read(ctx context.Context, req resource.ReadReq
 	for _, v := range restInfo.Ports {
 		ports = append(ports, types.StringValue(v.Name))
 	}
-	data.Ports, _ = types.SetValue(types.StringType, ports)
+	portsSet, diags := types.SetValue(types.StringType, ports)
+	resp.Diagnostics.Append(diags...)
+	data.Ports = portsSet
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
@@ -229,7 +231,9 @@ func (r *BroadcastDomainResource) Create(ctx context.Context, req resource.Creat
 	for _, v := range resource.Ports {
 		ports = append(ports, types.StringValue(v.Name))
 	}
-	data.Ports, _ = types.SetValue(types.StringType, ports)
+	portsSet, diags := types.SetValue(types.StringType, ports)
+	resp.Diagnostics.Append(diags...)
+	data.Ports = portsSet
 
 	tflog.Trace(ctx, fmt.Sprintf("created a resource, UUID=%s", data.ID))
 

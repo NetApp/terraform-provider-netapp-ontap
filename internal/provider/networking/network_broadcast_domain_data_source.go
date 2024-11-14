@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -32,12 +33,12 @@ type BroadcastDomainDataSource struct {
 
 // BroadcastDomainDataSourceModel describes the data source data model.
 type BroadcastDomainDataSourceModel struct {
-	CxProfileName types.String   `tfsdk:"cx_profile_name"`
-	IPSpace       types.String   `tfsdk:"ipspace"`
-	Name          types.String   `tfsdk:"name"`
-	MTU           types.Int64    `tfsdk:"mtu"`
-	Ports         []types.String `tfsdk:"ports"`
-	ID            types.String   `tfsdk:"id"`
+	CxProfileName types.String `tfsdk:"cx_profile_name"`
+	IPSpace       types.String `tfsdk:"ipspace"`
+	Name          types.String `tfsdk:"name"`
+	MTU           types.Int64  `tfsdk:"mtu"`
+	Ports         types.Set    `tfsdk:"ports"`
+	ID            types.String `tfsdk:"id"`
 }
 
 // Metadata returns the data source type name.
@@ -68,7 +69,7 @@ func (d *BroadcastDomainDataSource) Schema(ctx context.Context, req datasource.S
 				MarkdownDescription: "Maximum transmission unit, largest packet size on this network",
 				Computed:            true,
 			},
-			"ports": schema.ListAttribute{
+			"ports": schema.SetAttribute{
 				ElementType:         types.StringType,
 				MarkdownDescription: "Ports that belong to the broadcast domain",
 				Computed:            true,
@@ -141,15 +142,18 @@ func (d *BroadcastDomainDataSource) Read(ctx context.Context, req datasource.Rea
 	}
 
 	// Copy broadcast_domain info to data source model
-	var ports []types.String
-	for _, v := range restInfo.Ports {
-		ports = append(ports, types.StringValue(v.Name))
-	}
 	data.IPSpace = types.StringValue(restInfo.IPspace.Name)
 	data.Name = types.StringValue(restInfo.Name)
 	data.MTU = types.Int64Value(restInfo.MTU)
-	data.Ports = ports
 	data.ID = types.StringValue(restInfo.UUID)
+
+	var ports []attr.Value
+	for _, v := range restInfo.Ports {
+		ports = append(ports, types.StringValue(v.Name))
+	}
+	portsSet, diags := types.SetValue(types.StringType, ports)
+	resp.Diagnostics.Append(diags...)
+	data.Ports = portsSet
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log

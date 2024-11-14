@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -75,6 +76,10 @@ func (d *BroadcastDomainsDataSource) Schema(ctx context.Context, req datasource.
 			"broadcast_domains": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
+						"cx_profile_name": schema.StringAttribute{
+							MarkdownDescription: "Connection profile name",
+							Computed:            true,
+						},
 						"ipspace": schema.StringAttribute{
 							MarkdownDescription: "Name of the IPspace the broadcast domain belongs to",
 							Computed:            true,
@@ -87,7 +92,7 @@ func (d *BroadcastDomainsDataSource) Schema(ctx context.Context, req datasource.
 							MarkdownDescription: "Maximum transmission unit, largest packet size on this network",
 							Computed:            true,
 						},
-						"ports": schema.ListAttribute{
+						"ports": schema.SetAttribute{
 							ElementType:         types.StringType,
 							MarkdownDescription: "Ports that belong to the broadcast domain",
 							Computed:            true,
@@ -162,15 +167,18 @@ func (d *BroadcastDomainsDataSource) Read(ctx context.Context, req datasource.Re
 	// Copy broadcast_domain info to data source model
 	data.BroadcastDomains = make([]BroadcastDomainDataSourceModel, len(restInfo))
 	for index, record := range restInfo {
-		var ports []types.String
+		var ports []attr.Value
 		for _, v := range record.Ports {
 			ports = append(ports, types.StringValue(v.Name))
 		}
+		portsSet, diags := types.SetValue(types.StringType, ports)
+		resp.Diagnostics.Append(diags...)
+
 		data.BroadcastDomains[index] = BroadcastDomainDataSourceModel{
 			IPSpace: types.StringValue(record.IPspace.Name),
 			Name:    types.StringValue(record.Name),
 			MTU:     types.Int64Value(record.MTU),
-			Ports:   ports,
+			Ports:   portsSet,
 			ID:      types.StringValue(record.UUID),
 		}
 	}
