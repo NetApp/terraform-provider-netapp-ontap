@@ -125,13 +125,14 @@ func (r *BroadcastDomainResource) Read(ctx context.Context, req resource.ReadReq
 	var data BroadcastDomainResourceModel
 
 	// Read Terraform prior state data into the model
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	diags := req.State.Get(ctx, &data)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 
 	// Use existing-, or create new REST API client
-	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	// we need to defer setting the client until we can read the connection profile name
 	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
@@ -184,6 +185,9 @@ func (r *BroadcastDomainResource) Read(ctx context.Context, req resource.ReadReq
 	}
 	portsSet, diags := types.SetValue(types.StringType, ports)
 	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	data.Ports = portsSet
 
 	// Write logs using the tflog package
@@ -191,7 +195,8 @@ func (r *BroadcastDomainResource) Read(ctx context.Context, req resource.ReadReq
 	tflog.Debug(ctx, fmt.Sprintf("read a resource: %#v", data))
 
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	diags = resp.State.Set(ctx, &data)
+	resp.Diagnostics.Append(diags...)
 }
 
 // Create a resource and retrieve UUID
@@ -199,7 +204,8 @@ func (r *BroadcastDomainResource) Create(ctx context.Context, req resource.Creat
 	var data *BroadcastDomainResourceModel
 
 	// Read Terraform plan data into the model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	diags := req.Plan.Get(ctx, &data)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -233,12 +239,16 @@ func (r *BroadcastDomainResource) Create(ctx context.Context, req resource.Creat
 	}
 	portsSet, diags := types.SetValue(types.StringType, ports)
 	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	data.Ports = portsSet
 
 	tflog.Trace(ctx, fmt.Sprintf("created a resource, UUID=%s", data.ID))
 
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	diags = resp.State.Set(ctx, &data)
+	resp.Diagnostics.Append(diags...)
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
@@ -246,9 +256,15 @@ func (r *BroadcastDomainResource) Update(ctx context.Context, req resource.Updat
 	var data, state *BroadcastDomainResourceModel
 
 	// Read Terraform plan data into the model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	diags := req.Plan.Get(ctx, &data)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	// Read state file data
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	diags = req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -282,7 +298,8 @@ func (r *BroadcastDomainResource) Update(ctx context.Context, req resource.Updat
 	tflog.Trace(ctx, fmt.Sprintf("updated a resource, UUID=%s", data.ID))
 
 	// Save updated data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	diags = resp.State.Set(ctx, &data)
+	resp.Diagnostics.Append(diags...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -290,7 +307,8 @@ func (r *BroadcastDomainResource) Delete(ctx context.Context, req resource.Delet
 	var data *BroadcastDomainResourceModel
 
 	// Read Terraform prior state data into the model
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	diags := req.State.Get(ctx, &data)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

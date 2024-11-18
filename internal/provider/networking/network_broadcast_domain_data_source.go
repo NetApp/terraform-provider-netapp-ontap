@@ -107,7 +107,8 @@ func (d *BroadcastDomainDataSource) Read(ctx context.Context, req datasource.Rea
 	var data BroadcastDomainDataSourceModel
 
 	// Read Terraform configuration data into the model
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	diags := req.Config.Get(ctx, &data)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -153,6 +154,9 @@ func (d *BroadcastDomainDataSource) Read(ctx context.Context, req datasource.Rea
 	}
 	portsSet, diags := types.SetValue(types.StringType, ports)
 	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	data.Ports = portsSet
 
 	// Write logs using the tflog package
@@ -160,5 +164,6 @@ func (d *BroadcastDomainDataSource) Read(ctx context.Context, req datasource.Rea
 	tflog.Debug(ctx, fmt.Sprintf("read a data source: %#v", data))
 
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	diags = resp.State.Set(ctx, &data)
+	resp.Diagnostics.Append(diags...)
 }

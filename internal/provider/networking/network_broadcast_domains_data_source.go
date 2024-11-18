@@ -134,7 +134,8 @@ func (d *BroadcastDomainsDataSource) Read(ctx context.Context, req datasource.Re
 	var data BroadcastDomainsDataSourceModel
 
 	// Read Terraform configuration data into the model
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	diags := req.Config.Get(ctx, &data)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -173,6 +174,9 @@ func (d *BroadcastDomainsDataSource) Read(ctx context.Context, req datasource.Re
 		}
 		portsSet, diags := types.SetValue(types.StringType, ports)
 		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 
 		data.BroadcastDomains[index] = BroadcastDomainDataSourceModel{
 			IPSpace: types.StringValue(record.IPspace.Name),
@@ -188,5 +192,6 @@ func (d *BroadcastDomainsDataSource) Read(ctx context.Context, req datasource.Re
 	tflog.Debug(ctx, fmt.Sprintf("read a data source: %#v", data))
 
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	diags = resp.State.Set(ctx, &data)
+	resp.Diagnostics.Append(diags...)
 }
