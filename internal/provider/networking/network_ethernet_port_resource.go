@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -99,18 +100,21 @@ func (r *EthernetPortResource) Schema(ctx context.Context, req resource.SchemaRe
 						ElementType:         types.StringType,
 						Computed:            true,
 						MarkdownDescription: "Active ports of a LAG (ifgrp)",
+						PlanModifiers: []planmodifier.Set{
+							setplanmodifier.UseStateForUnknown(),
+						},
 					},
 					"distribution_policy": schema.StringAttribute{
-						Computed:            true,
+						Required:            true,
 						MarkdownDescription: "Policy for mapping flows to ports for outbound packets through a LAG (ifgrp)",
 					},
 					"member_ports_id": schema.SetAttribute{
 						ElementType:         types.StringType,
-						Computed:            true,
+						Required:            true,
 						MarkdownDescription: "Array of ports belonging to the LAG, regardless of their state",
 					},
 					"mode": schema.StringAttribute{
-						Computed:            true,
+						Required:            true,
 						MarkdownDescription: "Determines how the ports interact with the switch",
 					},
 				},
@@ -229,7 +233,7 @@ func (r *EthernetPortResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	// Copy ethernet_port info to data source model
+	// Copy ethernet_port info to resource model
 	data.BroadcastDomainID = types.StringValue(restInfo.BroadcastDomain.UUID)
 	data.Name = types.StringValue(restInfo.Name)
 	data.NodeID = types.StringValue(restInfo.Node.UUID)
@@ -305,20 +309,6 @@ func (r *EthernetPortResource) Create(ctx context.Context, req resource.CreateRe
 
 	switch body.Type {
 	case "lag":
-		// active_ports_id set
-		activePorts := make([]types.String, 0, len(data.LAG.ActivePortsID.Elements()))
-		diags := data.LAG.ActivePortsID.ElementsAs(ctx, &activePorts, false)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		activePortsList := make([]interfaces.EthernetPortLAGPort, 0, len(activePorts))
-		for _, port := range activePorts {
-			activePortsList = append(activePortsList, interfaces.EthernetPortLAGPort{
-				UUID: port.ValueString(),
-			})
-		}
-
 		// member_ports_id set
 		memberPorts := make([]types.String, 0, len(data.LAG.MemberPortsID.Elements()))
 		diags = data.LAG.MemberPortsID.ElementsAs(ctx, &memberPorts, false)
@@ -334,7 +324,6 @@ func (r *EthernetPortResource) Create(ctx context.Context, req resource.CreateRe
 		}
 
 		body.LAG = interfaces.EthernetPortLAG{
-			ActivePorts:        activePortsList,
 			DistributionPolicy: data.LAG.DistributionPolicy.ValueString(),
 			MemberPorts:        memberPortsList,
 			Mode:               data.LAG.Mode.ValueString(),
@@ -364,6 +353,20 @@ func (r *EthernetPortResource) Create(ctx context.Context, req resource.CreateRe
 	// Copy ethernet_port info to data source model
 	data.ID = types.StringValue(resource.UUID)
 	data.Name = types.StringValue(resource.Name)
+
+	if body.Type == "lag" {
+		// active_ports_id set
+		var activePorts []attr.Value
+		for _, v := range resource.LAG.ActivePorts {
+			activePorts = append(activePorts, types.StringValue(v.UUID))
+		}
+		activePortsSet, diags := types.SetValue(types.StringType, activePorts)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		data.LAG.ActivePortsID = activePortsSet
+	}
 
 	tflog.Trace(ctx, fmt.Sprintf("created a resource, UUID=%s", data.ID))
 

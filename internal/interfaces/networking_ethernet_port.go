@@ -59,14 +59,17 @@ type EthernetPortLAG struct {
 	Mode               string                `mapstructure:"mode,omitempty"`
 }
 
-// EthernetPortLAGPort describes a port sspecifically for LAGs
+// EthernetPortLAGPort describes a port specifically for LAGs.
 type EthernetPortLAGPort struct {
-	UUID string `mapstructure:"uuid,omitempty"`
+	Name string           `mapstructure:"name,omitempty"`
+	Node EthernetPortNode `mapstructure:"node,omitempty"`
+	UUID string           `mapstructure:"uuid,omitempty"`
 }
 
 // EthernetPortNode describes a node specifically for ethernet ports.
 type EthernetPortNode struct {
-	UUID string `mapstructure:"uuid"`
+	Name string `mapstructure:"name,omitempty"`
+	UUID string `mapstructure:"uuid,omitempty"`
 }
 
 // EthernetPortVLAN describes a virtual local area network (VLAN) specifically for ethernet ports.
@@ -270,14 +273,42 @@ func CreateEthernetPort(errorHandler *utils.ErrorHandler, r restclient.RestClien
 			fmt.Sprintf("Error on encoding %s body: %s, body: %#v.", api, err, body),
 		)
 	}
+
+	// Ensure that *either* VLAN *or* LAG attribute is present (but not both)
+	switch body.Type {
+	case "lag":
+		delete(bodyMap, "vlan")
+
+		// Fix "lag"."member_ports" data type
+		if lag, ok := bodyMap["lag"].(map[string]interface{}); ok {
+
+			// Delete "member_ports" key and recreate with correct type
+			delete(lag, "member_ports")
+			lag["member_ports"] = make([]map[string]interface{}, len(body.LAG.MemberPorts))
+
+			for i, port := range body.LAG.MemberPorts {
+
+				// Decode port info
+				var portBodyMap map[string]interface{}
+				mapstructure.Decode(port, &portBodyMap)
+
+				// Write decoded port info to array
+				if array, ok := lag["member_ports"].([]map[string]interface{}); ok {
+					array[i] = portBodyMap
+				}
+			}
+		}
+	case "vlan":
+		delete(bodyMap, "lag")
+	}
+
+	tflog.Trace(
+		errorHandler.Ctx,
+		fmt.Sprintf("ethernet port bodyMap: %#v", bodyMap),
+	)
+
 	query := r.NewQuery()
 	query.Add("return_records", "true")
-
-	// TODO: remove me!
-	tflog.Warn(
-		errorHandler.Ctx,
-		fmt.Sprintf("bodyMap: %#v", bodyMap),
-	)
 
 	statusCode, response, err := r.CallCreateMethod(api, query, bodyMap)
 	if err != nil {
