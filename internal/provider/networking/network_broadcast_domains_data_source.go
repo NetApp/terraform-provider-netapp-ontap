@@ -71,7 +71,8 @@ func (d *BroadcastDomainsDataSource) Schema(ctx context.Context, req datasource.
 						Optional:            true,
 					},
 				},
-				Optional: true,
+				MarkdownDescription: "Filter broadcast domains by their properties",
+				Optional:            true,
 			},
 			"broadcast_domains": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -103,7 +104,8 @@ func (d *BroadcastDomainsDataSource) Schema(ctx context.Context, req datasource.
 						},
 					},
 				},
-				Computed: true,
+				MarkdownDescription: "Broadcast domains matching the filter",
+				Computed:            true,
 			},
 		},
 	}
