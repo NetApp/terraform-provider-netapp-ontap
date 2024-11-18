@@ -37,7 +37,13 @@ type EthernetPortGetDataModelONTAP struct {
 // EthernetPortResourceBodyDataModelONTAP describes the body data model using go types for mapping.
 // https://docs.netapp.com/us-en/ontap-restapi/ontap/post-network-ethernet-broadcast-domains.html#request-body
 type EthernetPortResourceBodyDataModelONTAP struct {
-	UUID string `mapstructure:"uuid,omitempty"`
+	BroadcastDomain EthernetPortBroadcastDomain `mapstructure:"broadcast_domain"`
+	LAG             EthernetPortLAG             `mapstructure:"lag,omitempty"`
+	Name            string                      `mapstructure:"name,omitempty"`
+	Node            EthernetPortNode            `mapstructure:"node"`
+	Type            string                      `mapstructure:"type"`
+	UUID            string                      `mapstructure:"uuid,omitempty"`
+	VLAN            EthernetPortVLAN            `mapstructure:"vlan,omitempty"`
 }
 
 // EthernetPortBroadcastDomain describes a broadcast domain specifically for ethernet ports.
@@ -47,15 +53,15 @@ type EthernetPortBroadcastDomain struct {
 
 // EthernetPortLAG describes a link aggregation group (LAG) specifically for ethernet ports.
 type EthernetPortLAG struct {
-	ActivePorts        []EthernetPortLAGPort `mapstructure:"active_ports"`
-	DistributionPolicy string                `mapstructure:"distribution_policy"`
-	MemberPorts        []EthernetPortLAGPort `mapstructure:"member_ports"`
-	Mode               string                `mapstructure:"mode"`
+	ActivePorts        []EthernetPortLAGPort `mapstructure:"active_ports,omitempty"`
+	DistributionPolicy string                `mapstructure:"distribution_policy,omitempty"`
+	MemberPorts        []EthernetPortLAGPort `mapstructure:"member_ports,omitempty"`
+	Mode               string                `mapstructure:"mode,omitempty"`
 }
 
 // EthernetPortLAGPort describes a port sspecifically for LAGs
 type EthernetPortLAGPort struct {
-	UUID string `mapstructure:"uuid"`
+	UUID string `mapstructure:"uuid,omitempty"`
 }
 
 // EthernetPortNode describes a node specifically for ethernet ports.
@@ -65,13 +71,13 @@ type EthernetPortNode struct {
 
 // EthernetPortVLAN describes a virtual local area network (VLAN) specifically for ethernet ports.
 type EthernetPortVLAN struct {
-	BasePort EthernetPortVLANBasePort `mapstructure:"base_port"`
-	Tag      int64                    `mapstructure:"tag"`
+	BasePort EthernetPortVLANBasePort `mapstructure:"base_port,omitempty"`
+	Tag      int64                    `mapstructure:"tag,omitempty"`
 }
 
 // EthernetPortVLANBasePort describes a base port specifically for VLANs
 type EthernetPortVLANBasePort struct {
-	UUID string `mapstructure:"uuid"`
+	UUID string `mapstructure:"uuid,omitempty"`
 }
 
 // EthernetPortsDataSourceFilterModel describes filter model.
@@ -253,43 +259,49 @@ func GetListEthernetPorts(errorHandler *utils.ErrorHandler, r restclient.RestCli
 	return dataONTAP, nil
 }
 
-// Create a new broadcast domain
-// https://docs.netapp.com/us-en/ontap-restapi/ontap/post-network-ethernet-broadcast-domains.html
-// func CreateBroadcastDomain(errorHandler *utils.ErrorHandler, r restclient.RestClient, body BroadcastDomainResourceBodyDataModelONTAP) (*BroadcastDomainGetDataModelONTAP, error) {
-// 	api := "/network/ethernet/broadcast-domains"
-// 	var bodyMap map[string]interface{}
-// 	if err := mapstructure.Decode(body, &bodyMap); err != nil {
-// 		return nil, errorHandler.MakeAndReportError(
-// 			"Error Encoding Broadcast Domain Body",
-// 			fmt.Sprintf("Error on encoding %s body: %s, body: %#v.", api, err, body),
-// 		)
-// 	}
-// 	query := r.NewQuery()
-// 	query.Add("return_records", "true")
+// Create a new VLAN or LAG (ethernet port)
+// https://docs.netapp.com/us-en/ontap-restapi/ontap/post-network-ethernet-ports.html
+func CreateEthernetPort(errorHandler *utils.ErrorHandler, r restclient.RestClient, body EthernetPortResourceBodyDataModelONTAP) (*EthernetPortGetDataModelONTAP, error) {
+	api := "/network/ethernet/ports"
+	var bodyMap map[string]interface{}
+	if err := mapstructure.Decode(body, &bodyMap); err != nil {
+		return nil, errorHandler.MakeAndReportError(
+			"Error Encoding Ethernet Port Body",
+			fmt.Sprintf("Error on encoding %s body: %s, body: %#v.", api, err, body),
+		)
+	}
+	query := r.NewQuery()
+	query.Add("return_records", "true")
 
-// 	statusCode, response, err := r.CallCreateMethod(api, query, bodyMap)
-// 	if err != nil {
-// 		return nil, errorHandler.MakeAndReportError(
-// 			"Error Creating Broadcast Domain",
-// 			fmt.Sprintf("Error on POST %s: %s, statusCode %d.", api, err, statusCode),
-// 		)
-// 	}
+	// TODO: remove me!
+	tflog.Warn(
+		errorHandler.Ctx,
+		fmt.Sprintf("bodyMap: %#v", bodyMap),
+	)
 
-// 	var dataONTAP BroadcastDomainGetDataModelONTAP
-// 	if err := mapstructure.Decode(response.Records[0], &dataONTAP); err != nil {
-// 		return nil, errorHandler.MakeAndReportError(
-// 			"Error Decoding Broadcast Domain Info",
-// 			fmt.Sprintf("Error on decode broadcast domain info: %s, statusCode %d, response %#v.", err, statusCode, response),
-// 		)
-// 	}
+	statusCode, response, err := r.CallCreateMethod(api, query, bodyMap)
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError(
+			"Error Creating Ethernet Port",
+			fmt.Sprintf("Error on POST %s: %s, statusCode %d.", api, err, statusCode),
+		)
+	}
 
-// 	tflog.Debug(
-// 		errorHandler.Ctx,
-// 		fmt.Sprintf("Create broadcast domain resource: %#v", dataONTAP),
-// 	)
+	var dataONTAP EthernetPortGetDataModelONTAP
+	if err := mapstructure.Decode(response.Records[0], &dataONTAP); err != nil {
+		return nil, errorHandler.MakeAndReportError(
+			"Error Decoding Ethernet Port Info",
+			fmt.Sprintf("Error on decode ethernet port info: %s, statusCode %d, response %#v.", err, statusCode, response),
+		)
+	}
 
-// 	return &dataONTAP, nil
-// }
+	tflog.Debug(
+		errorHandler.Ctx,
+		fmt.Sprintf("Create ethernet port resource: %#v", dataONTAP),
+	)
+
+	return &dataONTAP, nil
+}
 
 // Update broadcast domain properties
 // https://docs.netapp.com/us-en/ontap-restapi/ontap/patch-network-ethernet-broadcast-domains-.html
