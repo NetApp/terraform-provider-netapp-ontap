@@ -76,7 +76,8 @@ func (d *EthernetPortsDataSource) Schema(ctx context.Context, req datasource.Sch
 						MarkdownDescription: "Type of physical or virtual port",
 					},
 				},
-				Optional: true,
+				MarkdownDescription: "Filter ethernet ports by their properties",
+				Optional:            true,
 			},
 			"ports": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -118,7 +119,8 @@ func (d *EthernetPortsDataSource) Schema(ctx context.Context, req datasource.Sch
 									MarkdownDescription: "Determines how the ports interact with the switch",
 								},
 							},
-							Computed: true,
+							MarkdownDescription: "LAG (ifgrp) properties",
+							Computed:            true,
 						},
 						"mac_address": schema.StringAttribute{
 							MarkdownDescription: "Port MAC address",
@@ -168,7 +170,8 @@ func (d *EthernetPortsDataSource) Schema(ctx context.Context, req datasource.Sch
 									MarkdownDescription: "VLAN ID",
 								},
 							},
-							Computed: true,
+							MarkdownDescription: "VLAN properties",
+							Computed:            true,
 						},
 						"id": schema.StringAttribute{
 							MarkdownDescription: "Port UUID",
@@ -176,7 +179,8 @@ func (d *EthernetPortsDataSource) Schema(ctx context.Context, req datasource.Sch
 						},
 					},
 				},
-				Computed: true,
+				MarkdownDescription: "Ethernet ports matching the filter",
+				Computed:            true,
 			},
 		},
 	}

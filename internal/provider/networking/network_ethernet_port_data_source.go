@@ -114,7 +114,8 @@ func (d *EthernetPortDataSource) Schema(ctx context.Context, req datasource.Sche
 						MarkdownDescription: "Determines how the ports interact with the switch",
 					},
 				},
-				Computed: true,
+				MarkdownDescription: "LAG (ifgrp) properties",
+				Computed:            true,
 			},
 			"mac_address": schema.StringAttribute{
 				MarkdownDescription: "Port MAC address",
@@ -164,7 +165,8 @@ func (d *EthernetPortDataSource) Schema(ctx context.Context, req datasource.Sche
 						MarkdownDescription: "VLAN ID",
 					},
 				},
-				Computed: true,
+				MarkdownDescription: "VLAN properties",
+				Computed:            true,
 			},
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Port UUID",
