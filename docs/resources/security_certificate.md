@@ -19,7 +19,8 @@ Create/ install/ sign a certificate
 ```
 
 ## Supported Platforms
-* On-prem ONTAP system 9.6 or higher
+* On-perm ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
 
 ## Example Usage
 
