@@ -303,7 +303,7 @@ func CreateEthernetPort(errorHandler *utils.ErrorHandler, r restclient.RestClien
 	return &dataONTAP, nil
 }
 
-// Update broadcast domain properties
+// Update VLAN or LAG (ethernet port) properties
 // https://docs.netapp.com/us-en/ontap-restapi/ontap/patch-network-ethernet-broadcast-domains-.html
 // func UpdateBroadcastDomain(errorHandler *utils.ErrorHandler, r restclient.RestClient, body BroadcastDomainResourceBodyDataModelONTAP, id string) error {
 // 	api := "/network/ethernet/broadcast-domains/" + id
@@ -331,23 +331,23 @@ func CreateEthernetPort(errorHandler *utils.ErrorHandler, r restclient.RestClien
 // 	return nil
 // }
 
-// Delete a broadcast domain
-// https://docs.netapp.com/us-en/ontap-restapi/ontap/delete-network-ethernet-broadcast-domains-.html
-// func DeleteBroadcastDomain(errorHandler *utils.ErrorHandler, r restclient.RestClient, id string) error {
-// 	api := "/network/ethernet/broadcast-domains/" + id
+// Delete a VLAN or LAG (ethernet port)
+// https://docs.netapp.com/us-en/ontap-restapi/ontap/delete-network-ethernet-ports-.html
+func DeleteEthernetPort(errorHandler *utils.ErrorHandler, r restclient.RestClient, id string) error {
+	api := "/network/ethernet/ports/" + id
 
-// 	statusCode, _, err := r.CallDeleteMethod(api, nil, nil)
-// 	if err != nil {
-// 		return errorHandler.MakeAndReportError(
-// 			"Error Deleting Broadcast Domain",
-// 			fmt.Sprintf("Error on DELETE %s: %s, statusCode %d.", api, err, statusCode),
-// 		)
-// 	}
+	statusCode, _, err := r.CallDeleteMethod(api, nil, nil)
+	if err != nil {
+		return errorHandler.MakeAndReportError(
+			"Error Deleting Ethernet Port",
+			fmt.Sprintf("Error on DELETE %s: %s, statusCode %d.", api, err, statusCode),
+		)
+	}
 
-// 	tflog.Debug(
-// 		errorHandler.Ctx,
-// 		fmt.Sprintf("Delete broadcast domain resource: %s", id),
-// 	)
+	tflog.Debug(
+		errorHandler.Ctx,
+		fmt.Sprintf("Delete ethernet port resource: %s", id),
+	)
 
-// 	return nil
-// }
+	return nil
+}

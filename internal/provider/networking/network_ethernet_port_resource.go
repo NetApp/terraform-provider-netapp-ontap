@@ -114,7 +114,8 @@ func (r *EthernetPortResource) Schema(ctx context.Context, req resource.SchemaRe
 						MarkdownDescription: "Determines how the ports interact with the switch",
 					},
 				},
-				Optional: true,
+				MarkdownDescription: "",
+				Optional:            true,
 			},
 			"name": schema.StringAttribute{
 				MarkdownDescription: "Portname, such as e0a, e1b-100 (VLAN on Ethernet), a0c (LAG/ifgrp), a0d-200 (VLAN on LAG/ifgrp), e0a.pv1 (p-VLAN, in select environments only)",
@@ -142,7 +143,8 @@ func (r *EthernetPortResource) Schema(ctx context.Context, req resource.SchemaRe
 						Required:            true,
 					},
 				},
-				Optional: true,
+				MarkdownDescription: "",
+				Optional:            true,
 			},
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Port UUID",
@@ -418,32 +420,33 @@ func (r *EthernetPortResource) Update(ctx context.Context, req resource.UpdateRe
 func (r *EthernetPortResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data *EthernetPortResourceModel
 
-	// 	// Read Terraform prior state data into the model
-	// 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-	// 	if resp.Diagnostics.HasError() {
-	// 		return
-	// 	}
-	// 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
+	// Read Terraform prior state data into the model
+	diags := req.State.Get(ctx, &data)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 
-	// 	// Use existing-, or create new REST API client
-	// 	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
-	// 	if err != nil {
-	// 		// error reporting done inside NewClient
-	// 		return
-	// 	}
+	// Use existing-, or create new REST API client
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
+	if err != nil {
+		// error reporting done inside NewClient
+		return
+	}
 
-	// 	// Ensure that ID in known
-	// 	if data.ID.IsNull() {
-	// 		errorHandler.MakeAndReportError("ID Is Null", "Broadcast domain ID is null.")
+	// Ensure that ID in known
+	if data.ID.IsNull() {
+		errorHandler.MakeAndReportError("ID Is Null", "Ethernet port ID is null.")
 
-	// 		return
-	// 	}
+		return
+	}
 
-	// 	// Call ONTAP REST API for deleting broadcast_domain
-	// 	err = interfaces.DeleteBroadcastDomain(errorHandler, *client, data.ID.ValueString())
-	// 	if err != nil {
-	// 		return
-	// 	}
+	// Call ONTAP REST API for deleting broadcast_domain
+	err = interfaces.DeleteEthernetPort(errorHandler, *client, data.ID.ValueString())
+	if err != nil {
+		return
+	}
 
 	tflog.Trace(ctx, fmt.Sprintf("deleted a resource, UUID=%s", data.ID))
 }
