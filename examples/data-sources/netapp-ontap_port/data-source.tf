@@ -4,6 +4,12 @@ data "netapp-ontap_port" "physical" {
   name            = "e0a"
 }
 
+data "netapp-ontap_port" "lag" {
+  # required to know which system to interface with
+  cx_profile_name = "svacluster"
+  name            = "a0a"
+}
+
 data "netapp-ontap_port" "vlan" {
   # required to know which system to interface with
   cx_profile_name = "svacluster"
