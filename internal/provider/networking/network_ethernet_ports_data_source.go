@@ -207,7 +207,8 @@ func (d *EthernetPortsDataSource) Read(ctx context.Context, req datasource.ReadR
 	var data EthernetPortsDataSourceModel
 
 	// Read Terraform configuration data into the model
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	diags := req.Config.Get(ctx, &data)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -242,17 +243,18 @@ func (d *EthernetPortsDataSource) Read(ctx context.Context, req datasource.ReadR
 	data.Ports = make([]EthernetPortDataSourceModel, len(restInfo))
 	for index, record := range restInfo {
 		data.Ports[index] = EthernetPortDataSourceModel{
-			Enabled:        types.BoolValue(record.Enabled),
-			InterfaceCount: types.Int64Value(record.InterfaceCount),
-			MACAddress:     types.StringValue(record.MACAddress),
-			MTU:            types.Int64Value(record.MTU),
-			Name:           types.StringValue(record.Name),
-			NodeID:         types.StringValue(record.Node.UUID),
-			Reachability:   types.StringValue(record.Reachability),
-			Speed:          types.Int64Value(record.Speed),
-			State:          types.StringValue(record.State),
-			Type:           types.StringValue(record.Type),
-			ID:             types.StringValue(record.UUID),
+			BroadcastDomainID: types.StringValue(record.BroadcastDomain.UUID),
+			Enabled:           types.BoolValue(record.Enabled),
+			InterfaceCount:    types.Int64Value(record.InterfaceCount),
+			MACAddress:        types.StringValue(record.MACAddress),
+			MTU:               types.Int64Value(record.MTU),
+			Name:              types.StringValue(record.Name),
+			NodeID:            types.StringValue(record.Node.UUID),
+			Reachability:      types.StringValue(record.Reachability),
+			Speed:             types.Int64Value(record.Speed),
+			State:             types.StringValue(record.State),
+			Type:              types.StringValue(record.Type),
+			ID:                types.StringValue(record.UUID),
 		}
 
 		// rdma_protocols set
@@ -262,6 +264,9 @@ func (d *EthernetPortsDataSource) Read(ctx context.Context, req datasource.ReadR
 		}
 		protocolsSet, diags := types.SetValue(types.StringType, protocols)
 		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 		data.Ports[index].RDMAProtocols = protocolsSet
 
 		switch data.Ports[index].Type.ValueString() {
@@ -273,6 +278,9 @@ func (d *EthernetPortsDataSource) Read(ctx context.Context, req datasource.ReadR
 			}
 			activePortsSet, diags := types.SetValue(types.StringType, activePorts)
 			resp.Diagnostics.Append(diags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
 
 			// member_ports_id set
 			for _, v := range record.LAG.MemberPorts {
@@ -280,6 +288,9 @@ func (d *EthernetPortsDataSource) Read(ctx context.Context, req datasource.ReadR
 			}
 			memberPortsSet, diags := types.SetValue(types.StringType, memberPorts)
 			resp.Diagnostics.Append(diags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
 
 			data.Ports[index].LAG = &LAGDataSourceModel{
 				ActivePortsID:      activePortsSet,
@@ -300,5 +311,6 @@ func (d *EthernetPortsDataSource) Read(ctx context.Context, req datasource.ReadR
 	tflog.Debug(ctx, fmt.Sprintf("read a data source: %#v", data))
 
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	diags = resp.State.Set(ctx, &data)
+	resp.Diagnostics.Append(diags...)
 }

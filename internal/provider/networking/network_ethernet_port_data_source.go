@@ -199,7 +199,8 @@ func (d *EthernetPortDataSource) Read(ctx context.Context, req datasource.ReadRe
 	var data EthernetPortDataSourceModel
 
 	// Read Terraform configuration data into the model
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	diags := req.Config.Get(ctx, &data)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -254,6 +255,9 @@ func (d *EthernetPortDataSource) Read(ctx context.Context, req datasource.ReadRe
 		}
 		protocolsSet, diags := types.SetValue(types.StringType, protocols)
 		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 		data.RDMAProtocols = protocolsSet
 	}
 
@@ -266,6 +270,9 @@ func (d *EthernetPortDataSource) Read(ctx context.Context, req datasource.ReadRe
 		}
 		activePortsSet, diags := types.SetValue(types.StringType, activePorts)
 		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 
 		// member_ports_id set
 		for _, v := range restInfo.LAG.MemberPorts {
@@ -273,6 +280,9 @@ func (d *EthernetPortDataSource) Read(ctx context.Context, req datasource.ReadRe
 		}
 		memberPortsSet, diags := types.SetValue(types.StringType, memberPorts)
 		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 
 		data.LAG = &LAGDataSourceModel{
 			ActivePortsID:      activePortsSet,
@@ -292,5 +302,6 @@ func (d *EthernetPortDataSource) Read(ctx context.Context, req datasource.ReadRe
 	tflog.Debug(ctx, fmt.Sprintf("read a data source: %#v", data))
 
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	diags = resp.State.Set(ctx, &data)
+	resp.Diagnostics.Append(diags...)
 }
