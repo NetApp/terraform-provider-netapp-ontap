@@ -32,13 +32,20 @@ type BroadcastDomainResourceBodyDataModelONTAP struct {
 // BroadcastDomainIPSpace describes an IP space specifically for broadcast domains.
 type BroadcastDomainIPSpace struct {
 	Name string `mapstructure:"name,omitempty"`
-	// UUID string `mapstructure:"uuid,omitempty"`
+	UUID string `mapstructure:"uuid,omitempty"`
 }
 
 // BroadcastDomainPort describes an ethernet port specifically for broadcast domains.
 type BroadcastDomainPort struct {
-	Name string `mapstructure:"name"`
-	// UUID string `mapstructure:"uuid"`
+	Name string              `mapstructure:"name,omitempty"`
+	Node BroadcastDomainNode `mapstructure:"node,omitempty"`
+	UUID string              `mapstructure:"uuid,omitempty"`
+}
+
+// BroadcastDomainNode describes a node specifically for ethernet ports.
+type BroadcastDomainNode struct {
+	Name string `mapstructure:"name,omitempty"`
+	UUID string `mapstructure:"uuid,omitempty"`
 }
 
 // BroadcastDomainDataSourceFilterModel describes filter model.
