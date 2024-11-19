@@ -35,20 +35,27 @@ type EthernetPortGetDataModelONTAP struct {
 }
 
 // EthernetPortResourceBodyDataModelONTAP describes the body data model using go types for mapping.
-// https://docs.netapp.com/us-en/ontap-restapi/ontap/post-network-ethernet-broadcast-domains.html#request-body
+// https://docs.netapp.com/us-en/ontap-restapi/ontap/post-network-ethernet-ports.html#request-body
 type EthernetPortResourceBodyDataModelONTAP struct {
-	BroadcastDomain EthernetPortBroadcastDomain `mapstructure:"broadcast_domain"`
+	BroadcastDomain EthernetPortBroadcastDomain `mapstructure:"broadcast_domain,omitempty"`
+	Enabled         bool                        `mapstructure:"enabled,omitempty"`
 	LAG             EthernetPortLAG             `mapstructure:"lag,omitempty"`
-	Name            string                      `mapstructure:"name,omitempty"`
-	Node            EthernetPortNode            `mapstructure:"node"`
-	Type            string                      `mapstructure:"type"`
+	Node            EthernetPortNode            `mapstructure:"node,omitempty"`
+	Type            string                      `mapstructure:"type,omitempty"`
 	UUID            string                      `mapstructure:"uuid,omitempty"`
 	VLAN            EthernetPortVLAN            `mapstructure:"vlan,omitempty"`
 }
 
 // EthernetPortBroadcastDomain describes a broadcast domain specifically for ethernet ports.
 type EthernetPortBroadcastDomain struct {
-	UUID string `mapstructure:"uuid"`
+	IPSpace EthernetPortIPSpace `mapstructure:"ipspace,omitempty"`
+	Name    string              `mapstructure:"name,omitempty"`
+	UUID    string              `mapstructure:"uuid,omitempty"`
+}
+
+// EthernetPortIPSpace describes an IP space specifically for ethernet ports.
+type EthernetPortIPSpace struct {
+	Name string `mapstructure:"name,omitempty"`
 }
 
 // EthernetPortLAG describes a link aggregation group (LAG) specifically for ethernet ports.
@@ -80,7 +87,9 @@ type EthernetPortVLAN struct {
 
 // EthernetPortVLANBasePort describes a base port specifically for VLANs
 type EthernetPortVLANBasePort struct {
-	UUID string `mapstructure:"uuid,omitempty"`
+	Name string           `mapstructure:"name,omitempty"`
+	Node EthernetPortNode `mapstructure:"node,omitempty"`
+	UUID string           `mapstructure:"uuid,omitempty"`
 }
 
 // EthernetPortsDataSourceFilterModel describes filter model.

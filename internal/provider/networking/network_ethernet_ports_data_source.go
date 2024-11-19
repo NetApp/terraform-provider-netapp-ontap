@@ -86,8 +86,22 @@ func (d *EthernetPortsDataSource) Schema(ctx context.Context, req datasource.Sch
 							MarkdownDescription: "Connection profile name",
 							Computed:            true,
 						},
-						"broadcast_domain_id": schema.StringAttribute{
-							MarkdownDescription: "Broadcast domain UUID",
+						"broadcast_domain": schema.SingleNestedAttribute{
+							Attributes: map[string]schema.Attribute{
+								"ipspace": schema.StringAttribute{
+									MarkdownDescription: "Name of the broadcast domain's IPspace",
+									Computed:            true,
+								},
+								"name": schema.StringAttribute{
+									MarkdownDescription: "Name of the broadcast domain, scoped to its IPspace",
+									Computed:            true,
+								},
+								"id": schema.StringAttribute{
+									MarkdownDescription: "Broadcast domain UUID",
+									Computed:            true,
+								},
+							},
+							MarkdownDescription: "Broadcast domain properties",
 							Computed:            true,
 						},
 						"enabled": schema.BoolAttribute{
@@ -100,23 +114,23 @@ func (d *EthernetPortsDataSource) Schema(ctx context.Context, req datasource.Sch
 						},
 						"lag": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
-								"active_ports_id": schema.SetAttribute{
+								"active_ports": schema.SetAttribute{
+									MarkdownDescription: "Active ports of a LAG (ifgrp)",
 									ElementType:         types.StringType,
 									Computed:            true,
-									MarkdownDescription: "Active ports of a LAG (ifgrp)",
 								},
 								"distribution_policy": schema.StringAttribute{
-									Computed:            true,
 									MarkdownDescription: "Policy for mapping flows to ports for outbound packets through a LAG (ifgrp)",
+									Computed:            true,
 								},
-								"member_ports_id": schema.SetAttribute{
+								"member_ports": schema.SetAttribute{
+									MarkdownDescription: "Array of ports belonging to the LAG, regardless of their state",
 									ElementType:         types.StringType,
 									Computed:            true,
-									MarkdownDescription: "Array of ports belonging to the LAG, regardless of their state",
 								},
 								"mode": schema.StringAttribute{
-									Computed:            true,
 									MarkdownDescription: "Determines how the ports interact with the switch",
+									Computed:            true,
 								},
 							},
 							MarkdownDescription: "LAG (ifgrp) properties",
@@ -134,13 +148,23 @@ func (d *EthernetPortsDataSource) Schema(ctx context.Context, req datasource.Sch
 							MarkdownDescription: "Portname, such as e0a, e1b-100 (VLAN on Ethernet), a0c (LAG/ifgrp), a0d-200 (VLAN on LAG/ifgrp), e0a.pv1 (p-VLAN, in select environments only)",
 							Required:            true,
 						},
-						"node_id": schema.StringAttribute{
-							MarkdownDescription: "UUID of node on which the port is located",
+						"node": schema.SingleNestedAttribute{
+							Attributes: map[string]schema.Attribute{
+								"name": schema.StringAttribute{
+									MarkdownDescription: "Name of the node on which the port is located",
+									Computed:            true,
+								},
+								"id": schema.StringAttribute{
+									MarkdownDescription: "Node UUID",
+									Computed:            true,
+								},
+							},
+							MarkdownDescription: "Node properties",
 							Computed:            true,
 						},
 						"rdma_protocols": schema.SetAttribute{
-							ElementType:         types.StringType,
 							MarkdownDescription: "Supported RDMA offload protocols",
+							ElementType:         types.StringType,
 							Computed:            true,
 						},
 						"reachability": schema.StringAttribute{
@@ -161,13 +185,13 @@ func (d *EthernetPortsDataSource) Schema(ctx context.Context, req datasource.Sch
 						},
 						"vlan": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
-								"base_port_id": schema.StringAttribute{
+								"base_port": schema.StringAttribute{
+									MarkdownDescription: "VLAN base port",
 									Computed:            true,
-									MarkdownDescription: "VLAN base port UUID",
 								},
 								"tag": schema.Int64Attribute{
-									Computed:            true,
 									MarkdownDescription: "VLAN ID",
+									Computed:            true,
 								},
 							},
 							MarkdownDescription: "VLAN properties",
@@ -247,18 +271,25 @@ func (d *EthernetPortsDataSource) Read(ctx context.Context, req datasource.ReadR
 	data.Ports = make([]EthernetPortDataSourceModel, len(restInfo))
 	for index, record := range restInfo {
 		data.Ports[index] = EthernetPortDataSourceModel{
-			BroadcastDomainID: types.StringValue(record.BroadcastDomain.UUID),
-			Enabled:           types.BoolValue(record.Enabled),
-			InterfaceCount:    types.Int64Value(record.InterfaceCount),
-			MACAddress:        types.StringValue(record.MACAddress),
-			MTU:               types.Int64Value(record.MTU),
-			Name:              types.StringValue(record.Name),
-			NodeID:            types.StringValue(record.Node.UUID),
-			Reachability:      types.StringValue(record.Reachability),
-			Speed:             types.Int64Value(record.Speed),
-			State:             types.StringValue(record.State),
-			Type:              types.StringValue(record.Type),
-			ID:                types.StringValue(record.UUID),
+			BroadcastDomain: &EthernetPortBroadcastDomainDataSourceModel{
+				ID:      types.StringValue(record.BroadcastDomain.UUID),
+				IPSpace: types.StringValue(record.BroadcastDomain.IPSpace.Name),
+				Name:    types.StringValue(record.BroadcastDomain.Name),
+			},
+			Enabled:        types.BoolValue(record.Enabled),
+			InterfaceCount: types.Int64Value(record.InterfaceCount),
+			MACAddress:     types.StringValue(record.MACAddress),
+			MTU:            types.Int64Value(record.MTU),
+			Name:           types.StringValue(record.Name),
+			Node: &EthernetPortNodeDataSourceModel{
+				ID:   types.StringValue(record.Node.UUID),
+				Name: types.StringValue(record.Node.Name),
+			},
+			Reachability: types.StringValue(record.Reachability),
+			Speed:        types.Int64Value(record.Speed),
+			State:        types.StringValue(record.State),
+			Type:         types.StringValue(record.Type),
+			ID:           types.StringValue(record.UUID),
 		}
 
 		// rdma_protocols set
@@ -275,10 +306,10 @@ func (d *EthernetPortsDataSource) Read(ctx context.Context, req datasource.ReadR
 
 		switch data.Ports[index].Type.ValueString() {
 		case "lag":
-			// active_ports_id set
+			// active_ports set
 			var activePorts, memberPorts []attr.Value
 			for _, v := range record.LAG.ActivePorts {
-				activePorts = append(activePorts, types.StringValue(v.UUID))
+				activePorts = append(activePorts, types.StringValue(v.Name))
 			}
 			activePortsSet, diags := types.SetValue(types.StringType, activePorts)
 			resp.Diagnostics.Append(diags...)
@@ -286,9 +317,9 @@ func (d *EthernetPortsDataSource) Read(ctx context.Context, req datasource.ReadR
 				return
 			}
 
-			// member_ports_id set
+			// member_ports set
 			for _, v := range record.LAG.MemberPorts {
-				memberPorts = append(memberPorts, types.StringValue(v.UUID))
+				memberPorts = append(memberPorts, types.StringValue(v.Name))
 			}
 			memberPortsSet, diags := types.SetValue(types.StringType, memberPorts)
 			resp.Diagnostics.Append(diags...)
@@ -297,15 +328,15 @@ func (d *EthernetPortsDataSource) Read(ctx context.Context, req datasource.ReadR
 			}
 
 			data.Ports[index].LAG = &LAGDataSourceModel{
-				ActivePortsID:      activePortsSet,
+				ActivePorts:        activePortsSet,
 				DistributionPolicy: types.StringValue(record.LAG.DistributionPolicy),
-				MemberPortsID:      memberPortsSet,
+				MemberPorts:        memberPortsSet,
 				Mode:               types.StringValue(record.LAG.Mode),
 			}
 		case "vlan":
 			data.Ports[index].VLAN = &VLANDataSourceModel{
-				BasePortID: types.StringValue(record.VLAN.BasePort.UUID),
-				Tag:        types.Int64Value(record.VLAN.Tag),
+				BasePort: types.StringValue(record.VLAN.BasePort.Name),
+				Tag:      types.Int64Value(record.VLAN.Tag),
 			}
 		}
 	}

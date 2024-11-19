@@ -7,8 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -40,37 +40,50 @@ type EthernetPortResource struct {
 
 // EthernetPortResourceModel describes the resource data model.
 type EthernetPortResourceModel struct {
-	BroadcastDomainID types.String       `tfsdk:"broadcast_domain_id"`
-	CxProfileName     types.String       `tfsdk:"cx_profile_name"`
-	LAG               *LAGResourceModel  `tfsdk:"lag"`
-	Name              types.String       `tfsdk:"name"`
-	NodeID            types.String       `tfsdk:"node_id"`
-	Type              types.String       `tfsdk:"type"`
-	VLAN              *VLANResourceModel `tfsdk:"vlan"`
-	ID                types.String       `tfsdk:"id"`
+	BroadcastDomain *EthernetPortBroadcastDomainResourceModel `tfsdk:"broadcast_domain"`
+	CxProfileName   types.String                              `tfsdk:"cx_profile_name"`
+	Enabled         types.Bool                                `tfsdk:"enabled"`
+	LAG             *LAGResourceModel                         `tfsdk:"lag"`
+	Name            types.String                              `tfsdk:"name"`
+	Node            *EthernetPortNodeResourceModel            `tfsdk:"node"`
+	Reachability    types.String                              `tfsdk:"reachability"`
+	State           types.String                              `tfsdk:"state"`
+	Type            types.String                              `tfsdk:"type"`
+	VLAN            *VLANResourceModel                        `tfsdk:"vlan"`
+	ID              types.String                              `tfsdk:"id"`
 
-	// Enabled        types.Bool   `tfsdk:"enabled"`
 	// InterfaceCount types.Int64  `tfsdk:"interface_count"`
 	// MACAddress     types.String `tfsdk:"mac_address"`
 	// MTU            types.Int64  `tfsdk:"mtu"`
 	// RDMAProtocols  types.Set    `tfsdk:"rdma_protocols"`
-	// Reachability   types.String `tfsdk:"reachability"`
 	// Speed          types.Int64  `tfsdk:"speed"`
-	// State          types.String `tfsdk:"state"`
 }
 
-// LAGResourceModel describes the data source model for LAG ports, policy and mode.
+// EthernetPortBroadcastDomainResourceModel describes the resource model for broadcast domains.
+type EthernetPortBroadcastDomainResourceModel struct {
+	ID      types.String `tfsdk:"id"`
+	IPSpace types.String `tfsdk:"ipspace"`
+	Name    types.String `tfsdk:"name"`
+}
+
+// LAGResourceModel describes the resource model for LAG ports, policy and mode.
 type LAGResourceModel struct {
-	ActivePortsID      types.Set    `tfsdk:"active_ports_id"`
+	ActivePorts        types.Set    `tfsdk:"active_ports"`
 	DistributionPolicy types.String `tfsdk:"distribution_policy"`
-	MemberPortsID      types.Set    `tfsdk:"member_ports_id"`
+	MemberPorts        types.Set    `tfsdk:"member_ports"`
 	Mode               types.String `tfsdk:"mode"`
 }
 
-// VLANResourceModel describes the data source model for VLAN base port and tag.
+// EthernetPortNodeResourceModel describes the resource model for nodes.
+type EthernetPortNodeResourceModel struct {
+	ID   types.String `tfsdk:"id"`
+	Name types.String `tfsdk:"name"`
+}
+
+// VLANResourceModel describes the resource model for VLAN base port and tag.
 type VLANResourceModel struct {
-	BasePortID types.String `tfsdk:"base_port_id"`
-	Tag        types.Int64  `tfsdk:"tag"`
+	BasePort types.String `tfsdk:"base_port"`
+	Tag      types.Int64  `tfsdk:"tag"`
 }
 
 // Metadata returns the resource type name.
@@ -89,48 +102,85 @@ func (r *EthernetPortResource) Schema(ctx context.Context, req resource.SchemaRe
 				MarkdownDescription: "Connection profile name",
 				Required:            true,
 			},
-			"broadcast_domain_id": schema.StringAttribute{
-				MarkdownDescription: "Broadcast domain UUID",
+			"broadcast_domain": schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"ipspace": schema.StringAttribute{
+						MarkdownDescription: "Name of the broadcast domain's IPspace",
+						Optional:            true,
+						Computed:            true,
+					},
+					"name": schema.StringAttribute{
+						MarkdownDescription: "Name of the broadcast domain, scoped to its IPspace",
+						Optional:            true,
+						Computed:            true,
+					},
+					"id": schema.StringAttribute{
+						MarkdownDescription: "Broadcast domain UUID",
+						Optional:            true,
+						Computed:            true,
+					},
+				},
+				MarkdownDescription: "Broadcast domain properties",
 				Optional:            true,
 				Computed:            true,
 			},
+			"enabled": schema.BoolAttribute{
+				MarkdownDescription: "Port enabled",
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
+			},
 			"lag": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
-					"active_ports_id": schema.SetAttribute{
+					"active_ports": schema.SetAttribute{
+						MarkdownDescription: "Active ports of a LAG (ifgrp)",
 						ElementType:         types.StringType,
 						Computed:            true,
-						MarkdownDescription: "Active ports of a LAG (ifgrp)",
-						PlanModifiers: []planmodifier.Set{
-							setplanmodifier.UseStateForUnknown(),
-						},
 					},
 					"distribution_policy": schema.StringAttribute{
-						Required:            true,
 						MarkdownDescription: "Policy for mapping flows to ports for outbound packets through a LAG (ifgrp)",
+						Required:            true,
 					},
-					"member_ports_id": schema.SetAttribute{
+					"member_ports": schema.SetAttribute{
+						MarkdownDescription: "Array of ports belonging to the LAG, regardless of their state",
 						ElementType:         types.StringType,
 						Required:            true,
-						MarkdownDescription: "Array of ports belonging to the LAG, regardless of their state",
 					},
 					"mode": schema.StringAttribute{
-						Required:            true,
 						MarkdownDescription: "Determines how the ports interact with the switch",
+						Required:            true,
 					},
 				},
-				MarkdownDescription: "",
+				MarkdownDescription: "LAG (ifgrp) properties",
 				Optional:            true,
 			},
 			"name": schema.StringAttribute{
 				MarkdownDescription: "Portname, such as e0a, e1b-100 (VLAN on Ethernet), a0c (LAG/ifgrp), a0d-200 (VLAN on LAG/ifgrp), e0a.pv1 (p-VLAN, in select environments only)",
 				Computed:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
 			},
-			"node_id": schema.StringAttribute{
-				MarkdownDescription: "UUID of node on which the port is located",
+			"node": schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"name": schema.StringAttribute{
+						MarkdownDescription: "Name of the node on which the port is located",
+						Optional:            true,
+						Computed:            true,
+					},
+					"id": schema.StringAttribute{
+						MarkdownDescription: "Node UUID",
+						Optional:            true,
+						Computed:            true,
+					},
+				},
+				MarkdownDescription: "Node properties",
 				Required:            true,
+			},
+			"reachability": schema.StringAttribute{
+				MarkdownDescription: "Reachability status of the port",
+				Computed:            true,
+			},
+			"state": schema.StringAttribute{
+				MarkdownDescription: "Operational state of the port",
+				Computed:            true,
 			},
 			"type": schema.StringAttribute{
 				MarkdownDescription: "Type of physical or virtual port",
@@ -138,8 +188,8 @@ func (r *EthernetPortResource) Schema(ctx context.Context, req resource.SchemaRe
 			},
 			"vlan": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
-					"base_port_id": schema.StringAttribute{
-						MarkdownDescription: "VLAN base port UUID",
+					"base_port": schema.StringAttribute{
+						MarkdownDescription: "VLAN base port",
 						Required:            true,
 					},
 					"tag": schema.Int64Attribute{
@@ -147,7 +197,7 @@ func (r *EthernetPortResource) Schema(ctx context.Context, req resource.SchemaRe
 						Required:            true,
 					},
 				},
-				MarkdownDescription: "",
+				MarkdownDescription: "VLAN properties",
 				Optional:            true,
 			},
 			"id": schema.StringAttribute{
@@ -234,18 +284,28 @@ func (r *EthernetPortResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	// Copy ethernet_port info to resource model
-	data.BroadcastDomainID = types.StringValue(restInfo.BroadcastDomain.UUID)
+	data.BroadcastDomain = &EthernetPortBroadcastDomainResourceModel{
+		ID:      types.StringValue(restInfo.BroadcastDomain.UUID),
+		IPSpace: types.StringValue(restInfo.BroadcastDomain.IPSpace.Name),
+		Name:    types.StringValue(restInfo.BroadcastDomain.Name),
+	}
+	data.Enabled = types.BoolValue(restInfo.Enabled)
 	data.Name = types.StringValue(restInfo.Name)
-	data.NodeID = types.StringValue(restInfo.Node.UUID)
+	data.Node = &EthernetPortNodeResourceModel{
+		ID:   types.StringValue(restInfo.Node.UUID),
+		Name: types.StringValue(restInfo.Node.Name),
+	}
+	data.Reachability = types.StringValue(restInfo.Reachability)
+	data.State = types.StringValue(restInfo.State)
 	data.Type = types.StringValue(restInfo.Type)
 	data.ID = types.StringValue(restInfo.UUID)
 
 	switch data.Type.ValueString() {
 	case "lag":
-		// active_ports_id set
+		// active_ports set
 		var activePorts, memberPorts []attr.Value
 		for _, v := range restInfo.LAG.ActivePorts {
-			activePorts = append(activePorts, types.StringValue(v.UUID))
+			activePorts = append(activePorts, types.StringValue(v.Name))
 		}
 		activePortsSet, diags := types.SetValue(types.StringType, activePorts)
 		resp.Diagnostics.Append(diags...)
@@ -253,9 +313,9 @@ func (r *EthernetPortResource) Read(ctx context.Context, req resource.ReadReques
 			return
 		}
 
-		// member_ports_id set
+		// member_ports set
 		for _, v := range restInfo.LAG.MemberPorts {
-			memberPorts = append(memberPorts, types.StringValue(v.UUID))
+			memberPorts = append(memberPorts, types.StringValue(v.Name))
 		}
 		memberPortsSet, diags := types.SetValue(types.StringType, memberPorts)
 		resp.Diagnostics.Append(diags...)
@@ -264,15 +324,15 @@ func (r *EthernetPortResource) Read(ctx context.Context, req resource.ReadReques
 		}
 
 		data.LAG = &LAGResourceModel{
-			ActivePortsID:      activePortsSet,
+			ActivePorts:        activePortsSet,
 			DistributionPolicy: types.StringValue(restInfo.LAG.DistributionPolicy),
-			MemberPortsID:      memberPortsSet,
+			MemberPorts:        memberPortsSet,
 			Mode:               types.StringValue(restInfo.LAG.Mode),
 		}
 	case "vlan":
 		data.VLAN = &VLANResourceModel{
-			BasePortID: types.StringValue(restInfo.VLAN.BasePort.UUID),
-			Tag:        types.Int64Value(restInfo.VLAN.Tag),
+			BasePort: types.StringValue(restInfo.VLAN.BasePort.Name),
+			Tag:      types.Int64Value(restInfo.VLAN.Tag),
 		}
 	}
 
@@ -300,18 +360,24 @@ func (r *EthernetPortResource) Create(ctx context.Context, req resource.CreateRe
 	// Copy ethernet_port info to request body
 	var body interfaces.EthernetPortResourceBodyDataModelONTAP
 	body.BroadcastDomain = interfaces.EthernetPortBroadcastDomain{
-		UUID: data.BroadcastDomainID.ValueString(),
+		IPSpace: interfaces.EthernetPortIPSpace{
+			Name: data.BroadcastDomain.IPSpace.ValueString(),
+		},
+		Name: data.BroadcastDomain.Name.ValueString(),
+		UUID: data.BroadcastDomain.ID.ValueString(),
 	}
+	body.Enabled = data.Enabled.ValueBool()
 	body.Node = interfaces.EthernetPortNode{
-		UUID: data.NodeID.ValueString(),
+		Name: data.Node.Name.ValueString(),
+		UUID: data.Node.ID.ValueString(),
 	}
 	body.Type = data.Type.ValueString()
 
 	switch body.Type {
 	case "lag":
-		// member_ports_id set
-		memberPorts := make([]types.String, 0, len(data.LAG.MemberPortsID.Elements()))
-		diags = data.LAG.MemberPortsID.ElementsAs(ctx, &memberPorts, false)
+		// member_ports set
+		memberPorts := make([]types.String, 0, len(data.LAG.MemberPorts.Elements()))
+		diags = data.LAG.MemberPorts.ElementsAs(ctx, &memberPorts, false)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -319,7 +385,7 @@ func (r *EthernetPortResource) Create(ctx context.Context, req resource.CreateRe
 		memberPortsList := make([]interfaces.EthernetPortLAGPort, 0, len(memberPorts))
 		for _, port := range memberPorts {
 			memberPortsList = append(memberPortsList, interfaces.EthernetPortLAGPort{
-				UUID: port.ValueString(),
+				Name: port.ValueString(),
 			})
 		}
 
@@ -331,7 +397,7 @@ func (r *EthernetPortResource) Create(ctx context.Context, req resource.CreateRe
 	case "vlan":
 		body.VLAN = interfaces.EthernetPortVLAN{
 			BasePort: interfaces.EthernetPortVLANBasePort{
-				UUID: data.VLAN.BasePortID.ValueString(),
+				Name: data.VLAN.BasePort.ValueString(),
 			},
 			Tag: data.VLAN.Tag.ValueInt64(),
 		}
@@ -350,22 +416,38 @@ func (r *EthernetPortResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	// Copy ethernet_port info to data source model
+	// Copy ethernet_port info to resource model
+	data.BroadcastDomain = &EthernetPortBroadcastDomainResourceModel{
+		ID:      types.StringValue(resource.BroadcastDomain.UUID),
+		IPSpace: types.StringValue(resource.BroadcastDomain.IPSpace.Name),
+		Name:    types.StringValue(resource.BroadcastDomain.Name),
+	}
+	data.Enabled = types.BoolValue(resource.Enabled)
+	data.Node = &EthernetPortNodeResourceModel{
+		ID:   types.StringValue(resource.Node.UUID),
+		Name: types.StringValue(resource.Node.Name),
+	}
 	data.ID = types.StringValue(resource.UUID)
+
+	// ONTAP API POST response does not contain the following attributes.
+	// We still include them in the data model, and read them here, so that
+	// subsequent GET request (terraform refresh) can populate them.
 	data.Name = types.StringValue(resource.Name)
+	data.Reachability = types.StringValue(resource.Reachability)
+	data.State = types.StringValue(resource.State)
 
 	if body.Type == "lag" {
-		// active_ports_id set
+		// active_ports set
 		var activePorts []attr.Value
 		for _, v := range resource.LAG.ActivePorts {
-			activePorts = append(activePorts, types.StringValue(v.UUID))
+			activePorts = append(activePorts, types.StringValue(v.Name))
 		}
 		activePortsSet, diags := types.SetValue(types.StringType, activePorts)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		data.LAG.ActivePortsID = activePortsSet
+		data.LAG.ActivePorts = activePortsSet
 	}
 
 	tflog.Trace(ctx, fmt.Sprintf("created a resource, UUID=%s", data.ID))
