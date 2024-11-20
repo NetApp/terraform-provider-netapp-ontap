@@ -81,7 +81,7 @@ Required:
 
 ## Import
 
-This Resource supports import, which allows you to import existing cluster peer relation into the state of this resoruce.
+This Resource supports import, which allows you to import existing cluster peer relation into the state of this resource.
 Import require a unique ID composed of the cluster name and cx_profile_name, separated by a comma.
 
  id = `name`,`cx_profile_name`

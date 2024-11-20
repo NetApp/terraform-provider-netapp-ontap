@@ -48,7 +48,7 @@ data "netapp-ontap_cluster_schedules" "cluster_schedules" {
 
 Optional:
 
-- `type` (String) Cluster schdeule type
+- `type` (String) Cluster schedule type
 
 
 <a id="nestedatt--cluster_schedules"></a>
@@ -65,7 +65,7 @@ Read-Only:
 - `interval` (String) Cluster schedule interval
 - `name` (String) ClusterSchedule name
 - `scope` (String) Cluster schedule scope
-- `type` (String) Cluster schdeule type
+- `type` (String) Cluster schedule type
 - `id` (String) Cluster schedule UUID
 
 <a id="nestedatt--cluster_schedules--cron"></a>

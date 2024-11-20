@@ -25,7 +25,7 @@ Create/Modify/Delete a SVM
 
 ## Example Usage
 
-This creates a new SVM called `tfsvm4`. In IPspace `terafromIpspace_newname`, which can have up to 200 volumes which will be cased on aggr2
+This creates a new SVM called `tfsvm4`. In IPspace `terraformIpspace_newname`, which can have up to 200 volumes which will be cased on aggr2
 
 ```terraform
 resource "netapp-ontap_svm" "example" {

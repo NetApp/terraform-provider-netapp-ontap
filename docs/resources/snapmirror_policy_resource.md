@@ -66,7 +66,7 @@ resource "netapp-ontap_snapmirror_policy" "snapmirror_policy_async" {
   ]
 }
 
-# Create a sync type snapmirror policy with retntion a rule
+# Create a sync type snapmirror policy with retention a rule
 resource "netapp-ontap_snapmirror_policy" "snapmirror_policy_sync" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"

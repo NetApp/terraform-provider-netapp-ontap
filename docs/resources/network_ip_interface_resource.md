@@ -76,7 +76,7 @@ Required:
 
 ## Import
 
-This Resource supports import, which allows you to import existing network ip interface into the state of this resoruce.
+This Resource supports import, which allows you to import existing network ip interface into the state of this resource.
 Import require a unique ID composed of the interface name, svm_name and cx_profile_name, separated by a comma.
  id = `name`,`svm_name`,`cx_profile_name`
 

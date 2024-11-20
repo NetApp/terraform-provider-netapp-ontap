@@ -8,7 +8,7 @@ description: |-
 
 # Data Source security_roles
 
-Retreives one or more security roles by filter
+Retrieves one or more security roles by filter
 
 ## Related ONTAP commands
 

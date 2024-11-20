@@ -25,7 +25,7 @@ Create/Modify/Delete a protocols_san_igroup resource
 
 ## Example Usage
 
-```teraform
+```terraform
 # Create a protocols_san_igroup
 resource "netapp-ontap_san_igroup" "protocols_san_igroups" {
   # required to know which system to interface with

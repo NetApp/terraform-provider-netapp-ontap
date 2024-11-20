@@ -8,7 +8,7 @@ description: |-
 
 # Data Source qtrees
 
-Retreives one or more qtrees by filter
+Retrieves one or more qtrees by filter
 
 ## Supported Platforms
 

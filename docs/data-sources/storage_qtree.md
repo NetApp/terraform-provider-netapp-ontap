@@ -8,7 +8,7 @@ description: |-
 
 # Data Source qtree
 
-Retreives a qtree
+Retrieves a qtree
 
 ## Supported Platforms
 

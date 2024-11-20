@@ -8,7 +8,7 @@ description: |-
 
 # Data Source cifs_local_user
 
-Retreives cifs local user configuration
+Retrieves cifs local user configuration
 
 ## Supported Platforms
 

@@ -64,7 +64,7 @@ resource "netapp-ontap_nfs_service" "protocols_nfs_service" {
 
 - `id` (String) The ID of this resource.
 
-~> **NOTE:** `root`, `secrutiy`, `windows` requires ONTAP 9.11 or higher
+~> **NOTE:** `root`, `security`, `windows` requires ONTAP 9.11 or higher
 
 <a id="nestedatt--protocol"></a>
 

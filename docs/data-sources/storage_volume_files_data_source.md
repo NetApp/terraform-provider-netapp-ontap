@@ -6,7 +6,7 @@ description: |-
   Storage Volume Files data source
 ---
 
-# Data Source nvolume_files
+# Data Source volume_files
 
 Retrieves an existing storage volume files
 

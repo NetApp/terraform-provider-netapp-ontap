@@ -62,7 +62,7 @@ resource "netapp-ontap_lun" "storage_lun" {
 
 ## Import
 
-This Resource supports import, which allows you to import existing lun into the state of this resoruce.
+This Resource supports import, which allows you to import existing lun into the state of this resource.
 Import require a unique ID composed of the lun name, volume name, svm name, and cx_profile_name, separated by a comma.
 
 id = `name`,`volume_name`, `svm_name`, `cx_profile_name`

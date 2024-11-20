@@ -54,7 +54,7 @@ resource "netapp-ontap_volume_file" "volume_files" {
 
 ## Import
 
-This Resource supports import, which allows you to import existing volume files into the state of this resoruce.
+This Resource supports import, which allows you to import existing volume files into the state of this resource.
 Import require a unique ID composed of the volume_name, svm_name, path and cx_profile_name, separated by a comma.
 
  id = `volume_name`,`svm_name`, `path`, `cx_profile_name`

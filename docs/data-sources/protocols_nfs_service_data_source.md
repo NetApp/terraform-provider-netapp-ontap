@@ -17,7 +17,7 @@ Retrieves the NFS configuration of SVMs.
 ## Example Usage
 
 ```terraform
-data "netapp-ontap_nfs_service" "protcols_nfs_services" {
+data "netapp-ontap_nfs_service" "protocols_nfs_services" {
   # required to know which system to interface with
   cx_profile_name = "cluster2"
   svm_name = "ansibleSVM"
@@ -45,7 +45,7 @@ In addition to all arguments above, the following attributes are exported:
 - `vstorage_enabled` (Boolean) Whether Vstorage is enabled
 - `windows` (Attributes) (see [below for nested schema](#nestedatt--windows))
 
-~> **NOTE:** `root`, `secrutiy`, `windows` requires ONTAP 9.11 or higher
+~> **NOTE:** `root`, `security`, `windows` requires ONTAP 9.11 or higher
 
 <a id="nestedatt--protocol"></a>
 
@@ -111,7 +111,7 @@ Read-Only:
 Read-Only:
 
 - `tcp_enabled` (Boolean) tcp enabled
-- `tcp_max_transfer_size` (Number) Max tcp transfter size
+- `tcp_max_transfer_size` (Number) Max tcp transfer size
 - `udp_enabled` (Boolean) udp enabled
 
 ~> **NOTE:** `tcp_max_transfer_size` requires ONTAP 9.11 or higher

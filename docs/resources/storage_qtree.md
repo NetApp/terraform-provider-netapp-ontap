@@ -101,7 +101,7 @@ Read-Only:
 
 ## Import
 
-This Resource supports import, which allows you to import existing storage qtrees into the state of this resoruce.
+This Resource supports import, which allows you to import existing storage qtrees into the state of this resource.
 Import require a unique ID composed of the qtree name, volume_name, svm_name and cx_profile_name, separated by a comma.
  id = `name`,`volume_name`,`svm_name`,`cx_profile_name`
 

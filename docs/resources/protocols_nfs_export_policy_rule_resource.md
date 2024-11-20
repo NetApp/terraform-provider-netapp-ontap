@@ -65,7 +65,7 @@ resource "netapp-ontap_nfs_export_policy_rule" "example" {
 
 ## Import
 
-This Resource supports import, which allows you to import existing nfs export policy rule into the state of this resoruce.
+This Resource supports import, which allows you to import existing nfs export policy rule into the state of this resource.
 Import require a unique ID composed of the rule index, export policy name, svm_name and cx_profile_name, separated by a comma.
  id = `index`,`export_policy_name`,`svm_name`,`cx_profile_name`
 

@@ -119,7 +119,7 @@ Optional:
 
 ## Import
 
-This Resource supports import, which allows you to import existing quota rules into the state of this resoruce.
+This Resource supports import, which allows you to import existing quota rules into the state of this resource.
 Import require a unique ID composed of the volume name, svm name, type, qtree and cx_profile_name, separated by a comma.
 
 id = `name`,`volume_name`, `svm_name`, `cx_profile_name`

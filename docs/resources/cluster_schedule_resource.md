@@ -80,7 +80,7 @@ Optional:
 
 ## Import
 
-This Resource supports import, which allows you to import existing cluster job schedule into the state of this resoruce.
+This Resource supports import, which allows you to import existing cluster job schedule into the state of this resource.
 Import require a unique ID composed of the schedule job name and cx_profile_name, separated by a comma.
 
  id = `name`,`cx_profile_name`

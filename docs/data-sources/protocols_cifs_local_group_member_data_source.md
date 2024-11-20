@@ -8,7 +8,7 @@ description: |-
 
 # Data Source cifs_local_group_member
 
-Retreives cifs local group member configuration
+Retrieves cifs local group member configuration
 
 ## Supported Platforms
 

@@ -131,7 +131,7 @@ Read-Only:
 Read-Only:
 
 - `tcp_enabled` (Boolean) tcp enabled
-- `tcp_max_transfer_size` (Number) Max tcp transfter size
+- `tcp_max_transfer_size` (Number) Max tcp transfer size
 - `udp_enabled` (Boolean) udp enabled
 
 

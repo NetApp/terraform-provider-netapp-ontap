@@ -6,7 +6,7 @@ description: |-
   CifsLocalGroupMembers resource
 ---
 
-# Resource Protocols Cifs Local Group Mmembers
+# Resource Protocols Cifs Local Group Members
 
 Create/Read/Delete one or more members in a local group resource
 

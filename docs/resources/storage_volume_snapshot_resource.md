@@ -41,13 +41,13 @@ resource "netapp-ontap_volume_snapshot" "example" {
 
 - `cx_profile_name` (String) Connection profile name
 - `name` (String) Snapshot name
-- `svm_nmae` (String) The name of the SVM the snapshot is on
+- `svm_name` (String) The name of the SVM the snapshot is on
 - `volume_name` (String) The name of the volume the snapshot is on
 
 ### Optional
 
 - `comment` (String) Comment
-- `expiry_time` (String) Snapshot copies with an expiry time set are not allowed to be deleted until the retetion time is reached
+- `expiry_time` (String) Snapshot copies with an expiry time set are not allowed to be deleted until the retention time is reached
 - `snaplock_expiry_time` (String) Expiry time for Snapshot copy locking enabled volumes
 - `snapmirror_label` (String) Label for SnapMirror Operations
 
@@ -57,7 +57,7 @@ resource "netapp-ontap_volume_snapshot" "example" {
 
 ## Import
 
-This Resource supports import, which allows you to import existing snapshot into the state of this resoruce.
+This Resource supports import, which allows you to import existing snapshot into the state of this resource.
 Import require a unique ID composed of the snapshot name, volume_name, svm_name and cx_profile_name, separated by a comma.
 
  id = `name`,`volume_name`,`svm_name`,`cx_profile_name`

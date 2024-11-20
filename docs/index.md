@@ -78,6 +78,7 @@ provider "netapp-ontap" {
 - `job_completion_timeout` (Number) Time in seconds to wait for completion. Default to 600 seconds
 
 <a id="nestedatt--connection_profiles"></a>
+
 ### Nested Schema for `connection_profiles`
 
 Required:
@@ -93,6 +94,7 @@ Optional:
 - `validate_certs` (Boolean) Whether to enforce SSL certificate validation, defaults to true. Not applicable for AWS Lambda
 
 <a id="nestedatt--connection_profiles--aws_lambda"></a>
+
 ### Nested Schema for `connection_profiles.aws_lambda`
 
 Required:

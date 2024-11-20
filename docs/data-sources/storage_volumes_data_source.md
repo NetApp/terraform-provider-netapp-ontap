@@ -63,7 +63,7 @@ Required:
 
 Read-Only:
 
-- `aggregates` (Attributes List) Aggreates the volume is on (see [below for nested schema](#nestedatt--aggregates))
+- `aggregates` (Attributes List) Aggregates the volume is on (see [below for nested schema](#nestedatt--aggregates))
 - `analytics` (Attributes) (see [below for nested schema](#nestedatt--storage_volumes--analytics))
 - `comment` (String) Sets a comment associated with the volume
 - `efficiency` (Attributes) (see [below for nested schema](#nestedatt--storage_volumes--efficiency))
