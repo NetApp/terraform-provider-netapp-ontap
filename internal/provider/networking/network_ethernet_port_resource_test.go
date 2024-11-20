@@ -75,6 +75,24 @@ func TestAccNetworkEthernetPortResource(t *testing.T) {
 					resource.TestCheckResourceAttr("netapp-ontap_port.lag", "state", "up"),
 				),
 			},
+			// Test importing LAG
+			{
+				ResourceName:  "netapp-ontap_port.lag",
+				ImportState:   true,
+				ImportStateId: fmt.Sprintf("%s,%s", "cluster4", "a0a"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestMatchResourceAttr("netapp-ontap_port.lag", "broadcast_domain.id", regexp.MustCompile(idRegex)),
+					resource.TestCheckResourceAttr("netapp-ontap_port.lag", "broadcast_domain.name", "tf_test"),
+					resource.TestCheckResourceAttr("netapp-ontap_port.lag", "broadcast_domain.name", "tf_test_data_svm02"),
+					resource.TestMatchResourceAttr("netapp-ontap_port.lag", "id", regexp.MustCompile(idRegex)),
+					resource.TestCheckResourceAttr("netapp-ontap_port.lag", "lag.active_ports.0", "e0b"),
+					resource.TestCheckResourceAttr("netapp-ontap_port.lag", "lag.distribution_policy", "mac"),
+					resource.TestCheckResourceAttr("netapp-ontap_port.lag", "lag.mode", "singlemode"),
+					resource.TestMatchResourceAttr("netapp-ontap_port.lag", "node.id", regexp.MustCompile(idRegex)),
+					resource.TestCheckResourceAttr("netapp-ontap_port.lag", "node.name", "netapp_single-01"),
+					resource.TestCheckResourceAttr("netapp-ontap_port.lag", "state", "up"),
+				),
+			},
 
 			// Create and Read VLAN
 			{
@@ -103,8 +121,23 @@ func TestAccNetworkEthernetPortResource(t *testing.T) {
 					resource.TestCheckResourceAttr("netapp-ontap_port.vlan", "state", "up"),
 				),
 			},
-
-			// TODO: Test importing a resource
+			// Test importing VLAN
+			{
+				ResourceName:  "netapp-ontap_port.vlan",
+				ImportState:   true,
+				ImportStateId: fmt.Sprintf("%s,%s", "cluster4", "e0a-300"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestMatchResourceAttr("netapp-ontap_port.vlan", "broadcast_domain.id", regexp.MustCompile(idRegex)),
+					resource.TestCheckResourceAttr("netapp-ontap_port.vlan", "broadcast_domain.name", "Default"),
+					resource.TestCheckResourceAttr("netapp-ontap_port.vlan", "broadcast_domain.name", "Default"),
+					resource.TestMatchResourceAttr("netapp-ontap_port.vlan", "id", regexp.MustCompile(idRegex)),
+					resource.TestMatchResourceAttr("netapp-ontap_port.vlan", "node.id", regexp.MustCompile(idRegex)),
+					resource.TestCheckResourceAttr("netapp-ontap_port.vlan", "node.name", "netapp_single-01"),
+					resource.TestCheckResourceAttr("netapp-ontap_port.vlan", "state", "up"),
+					resource.TestCheckResourceAttr("netapp-ontap_port.vlan", "vlan.base_port", "e0a"),
+					resource.TestCheckResourceAttr("netapp-ontap_port.vlan", "vlan.tag", "300"),
+				),
+			},
 		},
 	})
 }

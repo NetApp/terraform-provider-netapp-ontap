@@ -3,8 +3,10 @@ package networking
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
@@ -306,11 +308,17 @@ func (r *EthernetPortResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	// Copy ethernet_port info to resource model
+	if data.BroadcastDomain == nil {
+		data.BroadcastDomain = &EthernetPortBroadcastDomainResourceModel{}
+	}
 	data.BroadcastDomain.ID = types.StringValue(restInfo.BroadcastDomain.UUID)
 	data.BroadcastDomain.IPSpace = types.StringValue(restInfo.BroadcastDomain.IPSpace.Name)
 	data.BroadcastDomain.Name = types.StringValue(restInfo.BroadcastDomain.Name)
 	data.Enabled = types.BoolValue(restInfo.Enabled)
 	data.Name = types.StringValue(restInfo.Name)
+	if data.Node == nil {
+		data.Node = &EthernetPortNodeResourceModel{}
+	}
 	data.Node.ID = types.StringValue(restInfo.Node.UUID)
 	data.Node.Name = types.StringValue(restInfo.Node.Name)
 	data.Reachability = types.StringValue(restInfo.Reachability)
@@ -320,6 +328,9 @@ func (r *EthernetPortResource) Read(ctx context.Context, req resource.ReadReques
 
 	switch data.Type.ValueString() {
 	case "lag":
+		if data.LAG == nil {
+			data.LAG = &LAGResourceModel{}
+		}
 		data.LAG.DistributionPolicy = types.StringValue(restInfo.LAG.DistributionPolicy)
 		data.LAG.Mode = types.StringValue(restInfo.LAG.Mode)
 
@@ -346,6 +357,9 @@ func (r *EthernetPortResource) Read(ctx context.Context, req resource.ReadReques
 		}
 		data.LAG.MemberPorts = memberPortsSet
 	case "vlan":
+		if data.VLAN == nil {
+			data.VLAN = &VLANResourceModel{}
+		}
 		data.VLAN.BasePort = types.StringValue(restInfo.VLAN.BasePort.Name)
 		data.VLAN.Tag = types.Int64Value(restInfo.VLAN.Tag)
 	}
@@ -625,19 +639,18 @@ func (r *EthernetPortResource) Delete(ctx context.Context, req resource.DeleteRe
 func (r *EthernetPortResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	tflog.Debug(ctx, fmt.Sprintf("import req a network ethernet port resource: %#v", req))
 
-	// 	// Extract ethernet_port info from import identifier
-	// 	idParts := strings.Split(req.ID, ",")
-	// 	if len(idParts) != 3 || idParts[0] == "" || idParts[1] == "" || idParts[2] == "" {
-	// 		resp.Diagnostics.AddError(
-	// 			"Unexpected Import Identifier",
-	// 			fmt.Sprintf("Expected import identifier with format: cx_profile_name,ipspace,name, got: %q.", req.ID),
-	// 		)
+	// Extract ethernet_port info from import identifier
+	idParts := strings.Split(req.ID, ",")
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: cx_profile_name,name, got: %q.", req.ID),
+		)
 
-	// 		return
-	// 	}
+		return
+	}
 
-	// // Save ethernet_port info to attributes
-	// resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[0])...)
-	// resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("ipspace"), idParts[1])...)
-	// resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[2])...)
+	// Save ethernet_port info to attributes
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[1])...)
 }
