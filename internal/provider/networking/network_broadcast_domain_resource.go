@@ -66,6 +66,9 @@ func (r *BroadcastDomainResource) Schema(ctx context.Context, req resource.Schem
 			"cx_profile_name": schema.StringAttribute{
 				MarkdownDescription: "Connection profile name",
 				Required:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"ipspace": schema.StringAttribute{
 				MarkdownDescription: "Name of the IPspace the broadcast domain belongs to",
