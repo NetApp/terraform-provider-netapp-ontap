@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -140,6 +141,9 @@ func (r *EthernetPortResource) Schema(ctx context.Context, req resource.SchemaRe
 					"distribution_policy": schema.StringAttribute{
 						MarkdownDescription: "Policy for mapping flows to ports for outbound packets through a LAG (ifgrp)",
 						Required:            true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.RequiresReplace(),
+						},
 					},
 					"member_ports": schema.SetAttribute{
 						MarkdownDescription: "Array of ports belonging to the LAG, regardless of their state",
@@ -149,6 +153,9 @@ func (r *EthernetPortResource) Schema(ctx context.Context, req resource.SchemaRe
 					"mode": schema.StringAttribute{
 						MarkdownDescription: "Determines how the ports interact with the switch",
 						Required:            true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.RequiresReplace(),
+						},
 					},
 				},
 				MarkdownDescription: "LAG (ifgrp) properties",
@@ -157,6 +164,9 @@ func (r *EthernetPortResource) Schema(ctx context.Context, req resource.SchemaRe
 			"name": schema.StringAttribute{
 				MarkdownDescription: "Portname, such as e0a, e1b-100 (VLAN on Ethernet), a0c (LAG/ifgrp), a0d-200 (VLAN on LAG/ifgrp), e0a.pv1 (p-VLAN, in select environments only)",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"node": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
@@ -185,16 +195,25 @@ func (r *EthernetPortResource) Schema(ctx context.Context, req resource.SchemaRe
 			"type": schema.StringAttribute{
 				MarkdownDescription: "Type of physical or virtual port",
 				Required:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"vlan": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"base_port": schema.StringAttribute{
 						MarkdownDescription: "VLAN base port",
 						Required:            true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.RequiresReplace(),
+						},
 					},
 					"tag": schema.Int64Attribute{
 						MarkdownDescription: "VLAN ID",
 						Required:            true,
+						PlanModifiers: []planmodifier.Int64{
+							int64planmodifier.RequiresReplace(),
+						},
 					},
 				},
 				MarkdownDescription: "VLAN properties",
@@ -284,17 +303,13 @@ func (r *EthernetPortResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	// Copy ethernet_port info to resource model
-	data.BroadcastDomain = &EthernetPortBroadcastDomainResourceModel{
-		ID:      types.StringValue(restInfo.BroadcastDomain.UUID),
-		IPSpace: types.StringValue(restInfo.BroadcastDomain.IPSpace.Name),
-		Name:    types.StringValue(restInfo.BroadcastDomain.Name),
-	}
+	data.BroadcastDomain.ID = types.StringValue(restInfo.BroadcastDomain.UUID)
+	data.BroadcastDomain.IPSpace = types.StringValue(restInfo.BroadcastDomain.IPSpace.Name)
+	data.BroadcastDomain.Name = types.StringValue(restInfo.BroadcastDomain.Name)
 	data.Enabled = types.BoolValue(restInfo.Enabled)
 	data.Name = types.StringValue(restInfo.Name)
-	data.Node = &EthernetPortNodeResourceModel{
-		ID:   types.StringValue(restInfo.Node.UUID),
-		Name: types.StringValue(restInfo.Node.Name),
-	}
+	data.Node.ID = types.StringValue(restInfo.Node.UUID)
+	data.Node.Name = types.StringValue(restInfo.Node.Name)
 	data.Reachability = types.StringValue(restInfo.Reachability)
 	data.State = types.StringValue(restInfo.State)
 	data.Type = types.StringValue(restInfo.Type)
@@ -302,6 +317,9 @@ func (r *EthernetPortResource) Read(ctx context.Context, req resource.ReadReques
 
 	switch data.Type.ValueString() {
 	case "lag":
+		data.LAG.DistributionPolicy = types.StringValue(restInfo.LAG.DistributionPolicy)
+		data.LAG.Mode = types.StringValue(restInfo.LAG.Mode)
+
 		// active_ports set
 		var activePorts, memberPorts []attr.Value
 		for _, v := range restInfo.LAG.ActivePorts {
@@ -312,6 +330,7 @@ func (r *EthernetPortResource) Read(ctx context.Context, req resource.ReadReques
 		if resp.Diagnostics.HasError() {
 			return
 		}
+		data.LAG.ActivePorts = activePortsSet
 
 		// member_ports set
 		for _, v := range restInfo.LAG.MemberPorts {
@@ -322,18 +341,10 @@ func (r *EthernetPortResource) Read(ctx context.Context, req resource.ReadReques
 		if resp.Diagnostics.HasError() {
 			return
 		}
-
-		data.LAG = &LAGResourceModel{
-			ActivePorts:        activePortsSet,
-			DistributionPolicy: types.StringValue(restInfo.LAG.DistributionPolicy),
-			MemberPorts:        memberPortsSet,
-			Mode:               types.StringValue(restInfo.LAG.Mode),
-		}
+		data.LAG.MemberPorts = memberPortsSet
 	case "vlan":
-		data.VLAN = &VLANResourceModel{
-			BasePort: types.StringValue(restInfo.VLAN.BasePort.Name),
-			Tag:      types.Int64Value(restInfo.VLAN.Tag),
-		}
+		data.VLAN.BasePort = types.StringValue(restInfo.VLAN.BasePort.Name)
+		data.VLAN.Tag = types.Int64Value(restInfo.VLAN.Tag)
 	}
 
 	// Write logs using the tflog package
@@ -429,6 +440,8 @@ func (r *EthernetPortResource) Create(ctx context.Context, req resource.CreateRe
 	}
 	data.ID = types.StringValue(resource.UUID)
 
+	// TODO: interfaces.GetEthernetPort to populate remaining attributes
+
 	// ONTAP API POST response does not contain the following attributes.
 	// We still include them in the data model, and read them here, so that
 	// subsequent GET request (terraform refresh) can populate them.
@@ -459,46 +472,125 @@ func (r *EthernetPortResource) Create(ctx context.Context, req resource.CreateRe
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *EthernetPortResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data /*, state*/ *EthernetPortResourceModel
+	var data, state *EthernetPortResourceModel
 
-	// 	// Read Terraform plan data into the model
-	// 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-	// 	// Read state file data
-	// 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	// 	if resp.Diagnostics.HasError() {
-	// 		return
-	// 	}
-	// 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
+	// Read Terraform plan data into the model
+	diags := req.Plan.Get(ctx, &data)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	// 	// Copy broadcast_domain info to request body
-	// 	var body interfaces.BroadcastDomainResourceBodyDataModelONTAP
-	// 	if !data.IPSpace.Equal(state.IPSpace) {
-	// 		body.IPspace.Name = data.IPSpace.ValueString()
-	// 	}
-	// 	if !data.Name.Equal(state.Name) {
-	// 		body.Name = data.Name.ValueString()
-	// 	}
-	// 	if !data.MTU.Equal(state.MTU) {
-	// 		body.MTU = data.MTU.ValueInt64()
-	// 	}
+	// Read state file data
+	diags = req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 
-	// 	// Use existing-, or create new REST API client
-	// 	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
-	// 	if err != nil {
-	// 		// error reporting done inside NewClient
-	// 		return
-	// 	}
+	// Copy ethernet_port info to request body
+	var body interfaces.EthernetPortResourceBodyDataModelONTAP
 
-	// 	// Call ONTAP REST API for updating broadcast_domain
-	// 	err = interfaces.UpdateBroadcastDomain(errorHandler, *client, body, data.ID.ValueString())
-	// 	if err != nil {
-	// 		return
-	// 	}
+	// Ports can be enabled / disabled in-place
+	body.Enabled = data.Enabled.ValueBool()
+
+	// broadcast_domain can be updated in-place
+	if !data.BroadcastDomain.IPSpace.Equal(state.BroadcastDomain.IPSpace) {
+		body.BroadcastDomain.IPSpace.Name = data.BroadcastDomain.IPSpace.ValueString()
+	}
+	if !data.BroadcastDomain.Name.Equal(state.BroadcastDomain.Name) {
+		body.BroadcastDomain.Name = data.BroadcastDomain.Name.ValueString()
+	}
+	if !data.BroadcastDomain.ID.Equal(state.BroadcastDomain.ID) {
+		body.BroadcastDomain.UUID = data.BroadcastDomain.ID.ValueString()
+	}
+
+	// node can be updated in-place
+	if !data.Node.Name.Equal(state.Node.Name) {
+		body.Node.Name = data.Node.Name.ValueString()
+	}
+	if !data.Node.ID.Equal(state.Node.ID) {
+		body.Node.UUID = data.Node.ID.ValueString()
+	}
+
+	switch data.Type.ValueString() {
+	case "lag":
+		// For LAG, member_ports can be updated in-place
+		memberPorts := make([]types.String, 0, len(data.LAG.MemberPorts.Elements()))
+		diags = data.LAG.MemberPorts.ElementsAs(ctx, &memberPorts, false)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		memberPortsList := make([]interfaces.EthernetPortLAGPort, 0, len(memberPorts))
+		for _, port := range memberPorts {
+			memberPortsList = append(memberPortsList, interfaces.EthernetPortLAGPort{
+				Name: port.ValueString(),
+			})
+		}
+		body.LAG.MemberPorts = memberPortsList
+	case "vlan":
+		// For VLAN, no attributes can be updated in-place
+	}
+
+	// Use existing-, or create new REST API client
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
+	if err != nil {
+		// error reporting done inside NewClient
+		return
+	}
+
+	// Call ONTAP REST API for updating ethernet_port
+	err = interfaces.UpdateEthernetPort(
+		errorHandler,
+		*client,
+		body,
+		data.ID.ValueString(),
+		data.Type.ValueString(),
+	)
+	if err != nil {
+		return
+	}
+
+	// Call ONTAP REST API again for reading ethernet_port info
+	restInfo, err := interfaces.GetEthernetPort(
+		errorHandler,
+		*client,
+		data.ID.ValueString(),
+	)
+	if err != nil {
+		return
+	}
+
+	// Copy ethernet_port info to resource model
+	data.BroadcastDomain.ID = types.StringValue(restInfo.BroadcastDomain.UUID)
+	data.BroadcastDomain.IPSpace = types.StringValue(restInfo.BroadcastDomain.IPSpace.Name)
+	data.BroadcastDomain.Name = types.StringValue(restInfo.BroadcastDomain.Name)
+	data.Node.ID = types.StringValue(restInfo.Node.UUID)
+	data.Node.Name = types.StringValue(restInfo.Node.Name)
+	data.Reachability = types.StringValue(restInfo.Reachability)
+	data.State = types.StringValue(restInfo.State)
+
+	if data.Type.ValueString() == "lag" {
+		// active_ports set
+		var activePorts []attr.Value
+		for _, v := range restInfo.LAG.ActivePorts {
+			activePorts = append(activePorts, types.StringValue(v.Name))
+		}
+		activePortsSet, diags := types.SetValue(types.StringType, activePorts)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		data.LAG.ActivePorts = activePortsSet
+	}
 
 	tflog.Trace(ctx, fmt.Sprintf("updated a resource, UUID=%s", data.ID))
 
 	// Save updated data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	diags = resp.State.Set(ctx, &data)
+	resp.Diagnostics.Append(diags...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -527,7 +619,7 @@ func (r *EthernetPortResource) Delete(ctx context.Context, req resource.DeleteRe
 		return
 	}
 
-	// Call ONTAP REST API for deleting broadcast_domain
+	// Call ONTAP REST API for deleting ethernet_port
 	err = interfaces.DeleteEthernetPort(errorHandler, *client, data.ID.ValueString())
 	if err != nil {
 		return
@@ -540,7 +632,7 @@ func (r *EthernetPortResource) Delete(ctx context.Context, req resource.DeleteRe
 func (r *EthernetPortResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	tflog.Debug(ctx, fmt.Sprintf("import req a network ethernet port resource: %#v", req))
 
-	// 	// Extract broadcast_domain info from import identifier
+	// 	// Extract ethernet_port info from import identifier
 	// 	idParts := strings.Split(req.ID, ",")
 	// 	if len(idParts) != 3 || idParts[0] == "" || idParts[1] == "" || idParts[2] == "" {
 	// 		resp.Diagnostics.AddError(
@@ -551,7 +643,7 @@ func (r *EthernetPortResource) ImportState(ctx context.Context, req resource.Imp
 	// 		return
 	// 	}
 
-	// // Save broadcast_domain info to attributes
+	// // Save ethernet_port info to attributes
 	// resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[0])...)
 	// resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("ipspace"), idParts[1])...)
 	// resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[2])...)

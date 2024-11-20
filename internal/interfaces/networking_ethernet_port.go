@@ -38,7 +38,7 @@ type EthernetPortGetDataModelONTAP struct {
 // https://docs.netapp.com/us-en/ontap-restapi/ontap/post-network-ethernet-ports.html#request-body
 type EthernetPortResourceBodyDataModelONTAP struct {
 	BroadcastDomain EthernetPortBroadcastDomain `mapstructure:"broadcast_domain,omitempty"`
-	Enabled         bool                        `mapstructure:"enabled,omitempty"`
+	Enabled         bool                        `mapstructure:"enabled"`
 	LAG             EthernetPortLAG             `mapstructure:"lag,omitempty"`
 	Node            EthernetPortNode            `mapstructure:"node,omitempty"`
 	Type            string                      `mapstructure:"type,omitempty"`
@@ -288,13 +288,14 @@ func CreateEthernetPort(errorHandler *utils.ErrorHandler, r restclient.RestClien
 	case "lag":
 		delete(bodyMap, "vlan")
 
-		// Fix "lag"."member_ports" data type
+		// Fix "lag.member_ports" data type
 		if lag, ok := bodyMap["lag"].(map[string]interface{}); ok {
 
 			// Delete "member_ports" key and recreate with correct type
 			delete(lag, "member_ports")
 			lag["member_ports"] = make([]map[string]interface{}, len(body.LAG.MemberPorts))
 
+			// Populate "member_ports"
 			for i, port := range body.LAG.MemberPorts {
 
 				// Decode port info
@@ -344,32 +345,66 @@ func CreateEthernetPort(errorHandler *utils.ErrorHandler, r restclient.RestClien
 }
 
 // Update VLAN or LAG (ethernet port) properties
-// https://docs.netapp.com/us-en/ontap-restapi/ontap/patch-network-ethernet-broadcast-domains-.html
-// func UpdateBroadcastDomain(errorHandler *utils.ErrorHandler, r restclient.RestClient, body BroadcastDomainResourceBodyDataModelONTAP, id string) error {
-// 	api := "/network/ethernet/broadcast-domains/" + id
-// 	var bodyMap map[string]interface{}
-// 	if err := mapstructure.Decode(body, &bodyMap); err != nil {
-// 		return errorHandler.MakeAndReportError(
-// 			"Error Encoding Broadcast Domain Body",
-// 			fmt.Sprintf("Error on encoding %s body: %s, body: %#v.", api, err, body),
-// 		)
-// 	}
+// https://docs.netapp.com/us-en/ontap-restapi/ontap/patch-network-ethernet-ports-.html
+func UpdateEthernetPort(errorHandler *utils.ErrorHandler, r restclient.RestClient, body EthernetPortResourceBodyDataModelONTAP, id, t string) error {
+	api := "/network/ethernet/ports/" + id
+	var bodyMap map[string]interface{}
+	if err := mapstructure.Decode(body, &bodyMap); err != nil {
+		return errorHandler.MakeAndReportError(
+			"Error Encoding Ethernet Port Body",
+			fmt.Sprintf("Error on encoding %s body: %s, body: %#v.", api, err, body),
+		)
+	}
 
-// 	statusCode, _, err := r.CallUpdateMethod(api, nil, bodyMap)
-// 	if err != nil {
-// 		return errorHandler.MakeAndReportError(
-// 			"Error Updating Broadcast Domain",
-// 			fmt.Sprintf("Error on PATCH %s: %s, statusCode %d.", api, err, statusCode),
-// 		)
-// 	}
+	// Ensure that *either* VLAN *or* LAG attribute is present (but not both)
+	switch t {
+	case "lag":
+		delete(bodyMap, "vlan")
 
-// 	tflog.Debug(
-// 		errorHandler.Ctx,
-// 		fmt.Sprintf("Update broadcast domain resource: %#v", bodyMap),
-// 	)
+		// Fix "lag.member_ports" data type
+		if lag, ok := bodyMap["lag"].(map[string]interface{}); ok {
 
-// 	return nil
-// }
+			// Delete "member_ports" key and recreate with correct type
+			delete(lag, "member_ports")
+			lag["member_ports"] = make([]map[string]interface{}, len(body.LAG.MemberPorts))
+
+			// Populate "member_ports"
+			for i, port := range body.LAG.MemberPorts {
+
+				// Decode port info
+				var portBodyMap map[string]interface{}
+				mapstructure.Decode(port, &portBodyMap)
+
+				// Write decoded port info to array
+				if array, ok := lag["member_ports"].([]map[string]interface{}); ok {
+					array[i] = portBodyMap
+				}
+			}
+		}
+	case "vlan":
+		delete(bodyMap, "lag")
+	}
+
+	tflog.Trace(
+		errorHandler.Ctx,
+		fmt.Sprintf("ethernet port bodyMap: %#v", bodyMap),
+	)
+
+	statusCode, _, err := r.CallUpdateMethod(api, nil, bodyMap)
+	if err != nil {
+		return errorHandler.MakeAndReportError(
+			"Error Updating Ethernet Port",
+			fmt.Sprintf("Error on PATCH %s: %s, statusCode %d.", api, err, statusCode),
+		)
+	}
+
+	tflog.Debug(
+		errorHandler.Ctx,
+		fmt.Sprintf("Update ethernet port resource: %#v", bodyMap),
+	)
+
+	return nil
+}
 
 // Delete a VLAN or LAG (ethernet port)
 // https://docs.netapp.com/us-en/ontap-restapi/ontap/delete-network-ethernet-ports-.html
