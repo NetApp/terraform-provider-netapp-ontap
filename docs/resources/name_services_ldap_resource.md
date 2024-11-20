@@ -7,9 +7,11 @@ description: |-
 ---
 
 # Resource name services LDAP
+
 Create/Modify/Delete an LDAP configuration for an SVM
 
-### Related ONTAP commands
+## Related ONTAP commands
+
 ```commandline
 * vserver services name-service ldap create
 * vserver services name-service ldap show
@@ -18,10 +20,12 @@ Create/Modify/Delete an LDAP configuration for an SVM
 ```
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Important notes
+
 * Each SVM can have one LDAP configuration.
 * The LDAP servers and Active Directory domain are mutually exclusive fields. These fields cannot be empty. At any point in time, either the LDAP servers or Active Directory domain must be populated.
 * LDAP configuration with Active Directory domain cannot be created on an admin SVM.
@@ -78,5 +82,3 @@ resource "netapp-ontap_name_services_ldap" "name_services_ldap_examp2" {
 ### Read-Only
 
 - `id` (String) NameServicesLDAP ID
-
-

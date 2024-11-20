@@ -7,10 +7,12 @@ description: |-
 ---
 
 # Data Source volume_efficiency_policies
+
 Retrieves Volume Efficiency Policies data
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
@@ -41,6 +43,7 @@ data "netapp-ontap_volume_efficiency_policies" "volume_efficiency_policies" {
 - `volume_efficiency_policies` (Attributes List) (see [below for nested schema](#nestedatt--volume_efficiency_policies))
 
 <a id="nestedatt--filter"></a>
+
 ### Nested Schema for `filter`
 
 Optional:
@@ -50,6 +53,7 @@ Optional:
 
 
 <a id="nestedatt--volume_efficiency_policies"></a>
+
 ### Nested Schema for `volume_efficiency_policies`
 
 Required:
@@ -70,14 +74,15 @@ Read-Only:
 - `type` (String) StorageVolumeEfficiencyPolicies type
 
 <a id="nestedatt--volume_efficiency_policies--svm"></a>
+
 ### Nested Schema for `volume_efficiency_policies.svm`
 
 Required:
 
 - `name` (String) name of the SVM
 
-
 <a id="nestedatt--volume_efficiency_policies--schedule"></a>
+
 ### Nested Schema for `volume_efficiency_policies.schedule`
 
 Read-Only:

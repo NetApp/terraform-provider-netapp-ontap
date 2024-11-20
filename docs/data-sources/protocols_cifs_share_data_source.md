@@ -7,17 +7,23 @@ description: |-
 ---
 
 # Data Source cifs_share
+
 Retrieves the details of a cifs share
 
-### Related ONTAP commands
+## Related ONTAP commands
+
+```commandline
 * vserver cifs share show
 * vserver cifs share properties show
+```
 
 ## Supported Platforms
-* On-perm ONTAP system 9.10 or higher
+
+* On-prem ONTAP system 9.10 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_cifs_share" "protocols_cifs_share" {
   # required to know which system to interface with
@@ -93,6 +99,7 @@ data "netapp-ontap_cifs_share" "protocols_cifs_share" {
 				writes_only - Virus scans can be triggered only when a file that has been modified is closed.
 
 <a id="nestedatt--acls"></a>
+
 ### Nested Schema for `acls`
 
 Read-Only:
@@ -100,5 +107,3 @@ Read-Only:
 - `permission` (String) Specifies the access rights that a user or group has on the defined CIFS Share.
 - `type` (String) string Specifies the type of the user or group to add to the access control list of a CIFS share.
 - `user_or_group` (String) Specifies the user or group name to add to the access control list of a CIFS share.
-
-

@@ -7,9 +7,11 @@ description: |-
 ---
 
 # Resource Quota Rule
+
 Create/Modify/Delete a quota rule resource
 
-### Related ONTAP commands
+## Related ONTAP commands
+
 ```commandline
 * quota policy rule create
 * quota policy rule modify
@@ -17,7 +19,8 @@ Create/Modify/Delete a quota rule resource
 ```
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
@@ -66,30 +69,31 @@ resource "netapp-ontap_quota_rule" "storage_quota_rule" {
 - `id` (String) The ID of this resource.
 
 <a id="nestedatt--qtree"></a>
+
 ### Nested Schema for `qtree`
 
 Required:
 
 - `name` (String) name of the qtree
 
-
 <a id="nestedatt--svm"></a>
+
 ### Nested Schema for `svm`
 
 Required:
 
 - `name` (String) name of the SVM
 
-
 <a id="nestedatt--volume"></a>
+
 ### Nested Schema for `volume`
 
 Required:
 
 - `name` (String) name of the volume
 
-
 <a id="nestedatt--files"></a>
+
 ### Nested Schema for `files`
 
 Optional:
@@ -97,16 +101,16 @@ Optional:
 - `hard_limit` (Number) Specifies the hard limit for files
 - `soft_limit` (Number) Specifies the soft limit for files
 
-
 <a id="nestedatt--group"></a>
+
 ### Nested Schema for `group`
 
 Required:
 
 - `name` (String) name of the group
 
-
 <a id="nestedatt--users"></a>
+
 ### Nested Schema for `users`
 
 Optional:
@@ -114,6 +118,7 @@ Optional:
 - `name` (String) name of the user
 
 ## Import
+
 This Resource supports import, which allows you to import existing quota rules into the state of this resoruce.
 Import require a unique ID composed of the volume name, svm name, type, qtree and cx_profile_name, separated by a comma.
 
@@ -122,6 +127,7 @@ id = `name`,`volume_name`, `svm_name`, `cx_profile_name`
 ### Terraform Import
 
 For example
+
  ```shell
   terraform import netapp-ontap_quota_rule.example vol,svm,tree,test,cluster4
  ```
@@ -129,20 +135,26 @@ For example
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
 
 ### Terraform Import Block
+
 This requires Terraform 1.5 or higher, and will auto create the configuration for you
 
 First create the block
+
 ```terraform
 import {
   to = netapp-ontap_quota_rule.lun_import
   id = "vol,svm,tree,test,cluster4"
 }
 ```
+
 Next run, this will auto create the configuration for you
+
 ```shell
 terraform plan -generate-config-out=generated.tf
 ```
+
 This will generate a file called generated.tf, which will contain the configuration for the imported resource
+
 ```terraform
 # __generated__ by Terraform
 # Please review these resources and move them into your main configuration files.

@@ -6,20 +6,23 @@ description: |-
 ---
 
 # Data Sources storage_aggregates
+
 Retrieves the storage aggregations details of SVMs.
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_aggregates" "storage_aggregates" {
-	# required to know which system to interface with
-	cx_profile_name = "cluster4"
-	#  filter = {
-	#    name = "aggr1"
-	#  }
+    # required to know which system to interface with
+    cx_profile_name = "cluster4"
+    #  filter = {
+    #    name = "aggr1"
+    #  }
 }
 ```
 
@@ -39,6 +42,7 @@ data "netapp-ontap_aggregates" "storage_aggregates" {
 - `storage_aggregates` (Attributes List) (see [below for nested schema](#nestedatt--storage_aggregates))
 
 <a id="nestedatt--filter"></a>
+
 ### Nested Schema for `filter`
 
 Optional:
@@ -46,8 +50,8 @@ Optional:
 - `name` (String) StorageAggregate name
 - `svm_name` (String) StorageAggregate svm name
 
-
 <a id="nestedatt--storage_aggregates"></a>
+
 ### Nested Schema for `storage_aggregates`
 
 Required:
@@ -60,11 +64,11 @@ Read-Only:
 - `disk_class` (String) Class of disk to use to build aggregate. capacity_flash is listed in swagger, but rejected as invalid by ONTAP.
 - `disk_count` (Number) Number of disks to place into the aggregate, including parity disks.
 				The disks in this newly-created aggregate come from the spare disk pool.
-				The smallest disks in this pool join the aggregate first, unless the disk_size argument is provided.
-				Modifiable only if specified disk_count is larger than current disk_count.
-				If the disk_count % raid_size == 1, only disk_count/raid_size * raid_size will be added.
-				If disk_count is 6, raid_type is raid4, raid_size 4, all 6 disks will be added.
-				If disk_count is 5, raid_type is raid4, raid_size 4, 5/4 * 4 = 4 will be added. 1 will not be added.
+				The smallest disks in this pool join the aggregate first, unless the `disk_size` argument is provided.
+				Modifiable only if specified `disk_count` is larger than current `disk_count`.
+				If the `disk_count` % `raid_size` == 1, only `disk_count`/`raid_size` * `raid_size` will be added.
+				If `disk_count` is 6, `raid_type` is raid4, `raid_size` 4, all 6 disks will be added.
+				If `disk_count` is 5, `raid_type` is raid4, `raid_size` 4, 5/4 * 4 = 4 will be added. 1 will not be added.
 - `disk_size` (Number) Disk size to use in 4K block size.  Disks within 10 precent of specified size will be used.
 - `disk_size_unit` (String) Disk size to use in the specified unit. This is converted to bytes, assuming K=1024.
 - `encryption` (Boolean) Whether to enable software encryption. This is equivalent to -encrypt-with-aggr-key when using the CLI.Requires a VE license.
@@ -75,5 +79,3 @@ Read-Only:
 - `raid_type` (String)
 - `snaplock_type` (String) Type of snaplock for the aggregate being created.
 - `state` (String) Whether the specified aggregate should be enabled or disabled. Creates aggregate if doesnt exist.
-
-

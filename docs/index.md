@@ -16,7 +16,8 @@ Use the navigation to the left to read about the available resources. These are 
 To learn the basics of Terraform using this provider, follow the hands-on [get started tutorials](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/infrastructure-as-code)
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage

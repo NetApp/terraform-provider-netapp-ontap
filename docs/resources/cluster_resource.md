@@ -7,16 +7,22 @@ description: |-
 ---
 
 # Resource cluster
+
 Create/Update a Cluster resource
 
-### Related ONTAP commands
+## Related ONTAP commands
+
+```commandline
 * cluster create
+```
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 resource "netapp-ontap_cluster" "cluster" {
   # required to know which system to interface with
@@ -61,22 +67,23 @@ resource "netapp-ontap_cluster" "cluster" {
 - `version` (Attributes) This returns the cluster version information. When the cluster has more than one node, the cluster version is equivalent to the lowest of generation, major, and minor versions on all nodes. (see [below for nested schema](#nestedatt--version))
 
 <a id="nestedatt--certificate"></a>
+
 ### Nested Schema for `certificate`
 
 Optional:
 
 - `id` (String)
 
-
 <a id="nestedatt--license"></a>
+
 ### Nested Schema for `license`
 
 Optional:
 
 - `keys` (Set of String) list of license keys
 
-
 <a id="nestedatt--management_interface"></a>
+
 ### Nested Schema for `management_interface`
 
 Optional:
@@ -84,6 +91,7 @@ Optional:
 - `ip` (Attributes) Object to setup an interface along with its default router. (see [below for nested schema](#nestedatt--management_interface--ip))
 
 <a id="nestedatt--management_interface--ip"></a>
+
 ### Nested Schema for `management_interface.ip`
 
 Optional:
@@ -92,17 +100,16 @@ Optional:
 - `gateway` (String) The IPv4 or IPv6 address of the default router.
 - `netmask` (String) Input as netmask length (16) or IPv4 mask (255.255.0.0). For IPv6, the default value is 64 with a valid range of 1 to 127. Output is always netmask length.
 
-
-
 <a id="nestedatt--timezone"></a>
+
 ### Nested Schema for `timezone`
 
 Optional:
 
 - `name` (String) Name of the time zone
 
-
 <a id="nestedatt--management_interfaces"></a>
+
 ### Nested Schema for `management_interfaces`
 
 Read-Only:
@@ -112,19 +119,17 @@ Read-Only:
 - `name` (String) The name of the interface. If only the name is provided, the SVM scope must be provided by the object this object is embedded in.
 
 <a id="nestedatt--management_interfaces--ip"></a>
+
 ### Nested Schema for `management_interfaces.ip`
 
 Read-Only:
 
 - `address` (String) IP address
 
-
-
 <a id="nestedatt--version"></a>
+
 ### Nested Schema for `version`
 
 Read-Only:
 
 - `full` (String) ONTAP software version
-
-

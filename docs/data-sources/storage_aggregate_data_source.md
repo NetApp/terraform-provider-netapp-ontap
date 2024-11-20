@@ -6,18 +6,21 @@ description: |-
 ---
 
 # Data Sources storage_aggregate
+
 Retrieves the storage aggregation details of SVMs.
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_aggregate" "storage_aggregate" {
-	# required to know which system to interface with
-	cx_profile_name = "cluster4"
-	name = "aggr1"
+    # required to know which system to interface with
+    cx_profile_name = "cluster4"
+    name = "aggr1"
 }
 ```
 
@@ -50,5 +53,3 @@ data "netapp-ontap_aggregate" "storage_aggregate" {
 - `raid_type` (String)
 - `snaplock_type` (String) Type of snaplock for the aggregate being created.
 - `state` (String) Whether the specified aggregate should be enabled or disabled. Creates aggregate if doesnt exist.
-
-

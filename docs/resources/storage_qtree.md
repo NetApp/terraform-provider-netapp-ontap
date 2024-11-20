@@ -7,9 +7,11 @@ description: |-
 ---
 
 # Resource qtree
+
 Create/modify/delete a storage qtree
 
-### Related ONTAP commands
+## Related ONTAP commands
+
 ```commandline
 * qtree show
 * qtree create
@@ -18,7 +20,8 @@ Create/modify/delete a storage qtree
 ```
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
@@ -64,6 +67,7 @@ resource "netapp-ontap_qtree" "storage_qtree" {
 - `nas` (Attributes) NAS settings (see [below for nested schema](#nestedatt--nas))
 
 <a id="nestedatt--export_policy"></a>
+
 ### Nested Schema for `export_policy`
 
 Optional:
@@ -71,24 +75,24 @@ Optional:
 - `id` (Number) The UUID of the export policy.
 - `name` (String) The name of the export policy.
 
-
 <a id="nestedatt--group"></a>
+
 ### Nested Schema for `group`
 
 Optional:
 
 - `name` (String) Alphanumeric group name of group that owns the qtree.
 
-
 <a id="nestedatt--user"></a>
+
 ### Nested Schema for `user`
 
 Optional:
 
 - `name` (String) Alphanumeric username of user who owns the qtree.
 
-
 <a id="nestedatt--nas"></a>
+
 ### Nested Schema for `nas`
 
 Read-Only:
@@ -96,12 +100,15 @@ Read-Only:
 - `path` (String) Client visible path to the qtree. This field is not available if the volume does not have a junction-path configured.
 
 ## Import
+
 This Resource supports import, which allows you to import existing storage qtrees into the state of this resoruce.
 Import require a unique ID composed of the qtree name, volume_name, svm_name and cx_profile_name, separated by a comma.
  id = `name`,`volume_name`,`svm_name`,`cx_profile_name`
 
 ### Terraform Import
+
  For example
+
  ```shell
   terraform import netapp-ontap_qtree.example qtree1,volume1,svm1,cluster1
  ```
@@ -109,20 +116,26 @@ Import require a unique ID composed of the qtree name, volume_name, svm_name and
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
 
 ### Terraform Import Block
+
 This requires Terraform 1.5 or higher, and will auto create the configuration for you
 
 First create the block
+
 ```terraform
 import {
   to = netapp-ontap_qtree.qtree_import
   id = "qtree1,volume1,svm1,cluster1"
 }
 ```
+
 Next run, this will auto create the configuration for you
+
 ```shell
 terraform plan -generate-config-out=generated.tf
 ```
+
 This will generate a file called generated.tf, which will contain the configuration for the imported resource
+
 ```terraform
 # __generated__ by Terraform
 # Please review these resources and move them into your main configuration files.

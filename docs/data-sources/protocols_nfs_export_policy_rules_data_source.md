@@ -7,13 +7,16 @@ description: |-
 ---
 
 # Data Source nfs_export_policy_rules
+
 Retrieves an export policy rules of SVMs
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_nfs_export_policy_rules" "rules" {
   cx_profile_name = "cluster4"
@@ -43,14 +46,15 @@ data "netapp-ontap_nfs_export_policy_rules" "rules" {
 - `protocols_nfs_export_policy_rules` (Attributes List) Export policy rule resource (see [below for nested schema](#nestedatt--protocols_nfs_export_policy_rules))
 
 <a id="nestedatt--filter"></a>
+
 ### Nested Schema for `filter`
 
 Optional:
 
 - `svm_name` (String) ProtocolsNFSExportPolicyRule svm name
 
-
 <a id="nestedatt--protocols_nfs_export_policy_rules"></a>
+
 ### Nested Schema for `protocols_nfs_export_policy_rules`
 
 Read-Only:
@@ -70,5 +74,3 @@ Read-Only:
 - `rw_rule` (List of String) RW Access Rule
 - `superuser` (List of String) Superuser Security Types
 - `svm_name` (String) Name of the svm to use
-
-

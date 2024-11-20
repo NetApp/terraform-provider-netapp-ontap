@@ -6,13 +6,16 @@ description: |-
 ---
 
 # Data Source snapmirror
+
 Retrieves the snapmirror details
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_snapmirror" "snapmirror" {
   # required to know which system to interface with
@@ -43,6 +46,7 @@ data "netapp-ontap_snapmirror" "snapmirror" {
 - `id` (String) uuid of the relationship
 
 <a id="nestedatt--destination"></a>
+
 ### Nested Schema for `destination`
 
 Required:
@@ -54,6 +58,7 @@ Read-Only:
 - `svm` (Attributes) Cluster details (see [below for nested schema](#nestedatt--destination--svm))
 
 <a id="nestedatt--destination--svm"></a>
+
 ### Nested Schema for `destination.svm`
 
 Read-Only:
@@ -61,17 +66,16 @@ Read-Only:
 - `name` (String) cluster name
 - `uuid` (String) cluster UUID
 
-
-
 <a id="nestedatt--policy"></a>
+
 ### Nested Schema for `policy`
 
 Read-Only:
 
 - `uuid` (String) Policy UUID
 
-
 <a id="nestedatt--source"></a>
+
 ### Nested Schema for `source`
 
 Read-Only:
@@ -81,6 +85,7 @@ Read-Only:
 - `svm` (Attributes) Cluster details (see [below for nested schema](#nestedatt--source--svm))
 
 <a id="nestedatt--source--cluster"></a>
+
 ### Nested Schema for `source.cluster`
 
 Read-Only:
@@ -88,13 +93,11 @@ Read-Only:
 - `name` (String) cluster name
 - `uuid` (String) cluster UUID
 
-
 <a id="nestedatt--source--svm"></a>
+
 ### Nested Schema for `source.svm`
 
 Read-Only:
 
 - `name` (String) svm name
 - `uuid` (String) svm UUID
-
-

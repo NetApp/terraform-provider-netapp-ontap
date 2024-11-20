@@ -7,16 +7,23 @@ description: |-
 ---
 
 # Data Source flexcaches
+
 Retrieves the details of one or more flexcaches by filter.
 
-### Related ONTAP commands
+## Related ONTAP commands
+
+```commandline
 * volume flexcache show
+```
 
 ## Supported Platforms
-* On-perm ONTAP system 9.8 or higher
+
+* On-prem ONTAP system 9.8 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
+```terraform
 data "netapp-ontap_flexcaches" "storage_flexcache" {
   # required to know which system to interface with
   cx_profile_name = "cluster1"
@@ -43,6 +50,7 @@ data "netapp-ontap_flexcaches" "storage_flexcache" {
 - `storage_flexcaches` (Attributes List) (see [below for nested schema](#nestedatt--storage_flexcaches))
 
 <a id="nestedatt--filter"></a>
+
 ### Nested Schema for `filter`
 
 Optional:
@@ -50,8 +58,8 @@ Optional:
 - `name` (String) StorageFlexcache name
 - `svm_name` (String) StorageFlexcache svm name
 
-
 <a id="nestedatt--storage_flexcaches"></a>
+
 ### Nested Schema for `storage_flexcaches`
 
 Required:
@@ -75,6 +83,7 @@ Read-Only:
 - `use_tiered_aggregate` (Boolean) The state of the use tiered aggregates
 
 <a id="nestedatt--storage_flexcaches--aggregates"></a>
+
 ### Nested Schema for `storage_flexcaches.aggregates`
 
 Read-Only:
@@ -82,16 +91,16 @@ Read-Only:
 - `id` (String) ID of the aggregate
 - `name` (String) Name of the aggregate
 
-
 <a id="nestedatt--storage_flexcaches--guarantee"></a>
+
 ### Nested Schema for `storage_flexcaches.guarantee`
 
 Read-Only:
 
 - `type` (String) The type of the guarantee
 
-
 <a id="nestedatt--storage_flexcaches--origins"></a>
+
 ### Nested Schema for `storage_flexcaches.origins`
 
 Required:
@@ -100,6 +109,7 @@ Required:
 - `volume` (Attributes) Origin volume (see [below for nested schema](#nestedatt--storage_flexcaches--origins--volume))
 
 <a id="nestedatt--storage_flexcaches--origins--svm"></a>
+
 ### Nested Schema for `storage_flexcaches.origins.svm`
 
 Read-Only:
@@ -107,13 +117,11 @@ Read-Only:
 - `id` (String) ID of the origin volume SVM
 - `name` (String) Name of the origin volume SVM
 
-
 <a id="nestedatt--storage_flexcaches--origins--volume"></a>
+
 ### Nested Schema for `storage_flexcaches.origins.volume`
 
 Read-Only:
 
 - `id` (String) ID of the origin volume
 - `name` (String) Name of the origin volume
-
-

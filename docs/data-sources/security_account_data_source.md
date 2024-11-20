@@ -7,13 +7,16 @@ description: |-
 ---
 
 # Data Source Security_Account
+
 Retrieves a ONTAP User
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_security_account" "security_accounts" {
   # required to know which system to interface with
@@ -47,6 +50,7 @@ data "netapp-ontap_security_account" "security_accounts" {
 - `scope` (String) SecurityAccount scope
 
 <a id="nestedatt--owner"></a>
+
 ### Nested Schema for `owner`
 
 Required:
@@ -57,8 +61,8 @@ Read-Only:
 
 - `uuid` (String) SecurityAccount owner uuid
 
-
 <a id="nestedatt--applications"></a>
+
 ### Nested Schema for `applications`
 
 Read-Only:
@@ -67,12 +71,10 @@ Read-Only:
 - `authentication_methods` (List of String) SecurityAccount authentication methods
 - `second_authentication_method` (String) SecurityAccount second authentication method
 
-
 <a id="nestedatt--role"></a>
+
 ### Nested Schema for `role`
 
 Read-Only:
 
 - `name` (String) SecurityAccount role name
-
-

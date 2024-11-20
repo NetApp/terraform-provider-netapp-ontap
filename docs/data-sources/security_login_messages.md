@@ -7,10 +7,12 @@ description: |-
 ---
 
 # Data Source security_login_messages
+
 Retrieves Security Login Messages data source
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
@@ -41,6 +43,7 @@ data "netapp-ontap_security_login_messages" "security_login_messages" {
 - `security_login_messages` (Attributes List) (see [below for nested schema](#nestedatt--security_login_messages))
 
 <a id="nestedatt--filter"></a>
+
 ### Nested Schema for `filter`
 
 Optional:
@@ -50,8 +53,8 @@ Optional:
 - `scope` (String) SecurityLoginMessage scope
 - `svm_name` (String) SecurityLoginMessage svm name
 
-
 <a id="nestedatt--security_login_messages"></a>
+
 ### Nested Schema for `security_login_messages`
 
 Required:

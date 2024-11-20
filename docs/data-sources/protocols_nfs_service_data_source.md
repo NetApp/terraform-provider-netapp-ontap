@@ -6,13 +6,16 @@ description: |-
 ---
 
 # Data Source nfs_service
+
 Retrieves the NFS configuration of SVMs.
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_nfs_service" "protcols_nfs_services" {
   # required to know which system to interface with
@@ -30,6 +33,7 @@ data "netapp-ontap_nfs_service" "protcols_nfs_services" {
 - `svm_name` (String) IPInterface svm name
 
 ## Attributes Reference
+
 In addition to all arguments above, the following attributes are exported:
 
 - `enabled` (Boolean) NFS should be enabled or disabled
@@ -44,6 +48,7 @@ In addition to all arguments above, the following attributes are exported:
 ~> **NOTE:** `root`, `secrutiy`, `windows` requires ONTAP 9.11 or higher
 
 <a id="nestedatt--protocol"></a>
+
 ### Nested Schema for `protocol`
 
 Read-Only:
@@ -56,6 +61,7 @@ Read-Only:
 - `v4_id_domain` (String) User ID domain for NFSv4
 
 <a id="nestedatt--protocol--v40_features"></a>
+
 ### Nested Schema for `protocol.v40_features`
 
 Read-Only:
@@ -66,6 +72,7 @@ Read-Only:
 
 
 <a id="nestedatt--protocol--v41_features"></a>
+
 ### Nested Schema for `protocol.v41_features`
 
 Read-Only:
@@ -76,8 +83,8 @@ Read-Only:
 - `write_delegation_enabled` (Boolean) Enable Write File Delegation for NFSv4.1
 
 
-
 <a id="nestedatt--root"></a>
+
 ### Nested Schema for `root`
 
 Read-Only:
@@ -85,8 +92,8 @@ Read-Only:
 - `ignore_nt_acl` (Boolean) Ignore NTFS ACL for root user
 - `skip_write_permission_check` (Boolean) Skip write permissions check for root user
 
-
 <a id="nestedatt--security"></a>
+
 ### Nested Schema for `security`
 
 Read-Only:
@@ -97,8 +104,8 @@ Read-Only:
 - `permitted_encryption_types` (List of String) Specifies the permitted encryption types for Kerberos over NFS.
 - `rpcsec_context_idle` (Number) Specifies, in seconds, the amount of time a RPCSEC_GSS context is permitted to remain unused before it is deleted
 
-
 <a id="nestedatt--transport"></a>
+
 ### Nested Schema for `transport`
 
 Read-Only:
@@ -109,8 +116,8 @@ Read-Only:
 
 ~> **NOTE:** `tcp_max_transfer_size` requires ONTAP 9.11 or higher
 
-
 <a id="nestedatt--windows"></a>
+
 ### Nested Schema for `windows`
 
 Read-Only:
@@ -118,5 +125,3 @@ Read-Only:
 - `default_user` (String) default Windows user for the NFS server
 - `map_unknown_uid_to_default_user` (Boolean) whether or not the mapping of an unknown UID to the default Windows user is enabled
 - `v3_ms_dos_client_enabled` (Boolean) if permission checks are to be skipped for NFS WRITE calls from root/owner.
-
-

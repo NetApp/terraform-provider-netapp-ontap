@@ -7,9 +7,11 @@ description: |-
 ---
 
 # Resource SVM
-Create/Modify/Delete a SVM 
 
-### Related ONTAP commands
+Create/Modify/Delete a SVM
+
+## Related ONTAP commands
+
 ```commandline
 * vserver create
 * vserver modify
@@ -17,13 +19,14 @@ Create/Modify/Delete a SVM
 ```
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
-* Amazon FSx for NetApp ONTAP
 
+* On-prem ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
 
 ## Example Usage
 
 This creates a new SVM called `tfsvm4`. In IPspace `terafromIpspace_newname`, which can have up to 200 volumes which will be cased on aggr2
+
 ```terraform
 resource "netapp-ontap_svm" "example" {
   cx_profile_name = "cluster4"
@@ -60,6 +63,7 @@ resource "netapp-ontap_svm" "example" {
 - `id` (String) svm identifier
 
 ## Import
+
 This resource supports import, which allows you to import existing svms into the state of this resource.
 Import require a unique ID composed of the svm name, and connection profile, separated by a comma.
 
@@ -68,26 +72,34 @@ id = `name`,`cx_profile_name`
 ### Terraform Import
 
 For example
+
 ```shell
  terraform import netapp-ontap_svm.example svm1,cluster5
 ```
+
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
 
 ### Terraform Import Block
+
 This requires Terraform 1.5 or higher, and will auto create the configuration for you
 
 First create the block
+
 ```terraform
 import {
   to = netapp-ontap_svm.svm_import
   id = "svm1,cluster4"
 }
 ```
+
 Next run, this will auto create the configuration for you
+
 ```shell
 terraform plan -generate-config-out=generated.tf
 ```
+
 This will generate a file called generated.tf, which will contain the configuration for the imported resource
+
 ```terraform
 # __generated__ by Terraform
 # Please review these resources and move them into your main configuration files.

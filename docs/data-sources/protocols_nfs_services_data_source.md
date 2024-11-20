@@ -6,13 +6,16 @@ description: |-
 ---
 
 # Data Source nfs_services
+
 Retrieves list of NFSs configuration of SVMs.
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_nfs_services" "protocols_nfs_services" {
   # required to know which system to interface with
@@ -39,14 +42,15 @@ data "netapp-ontap_nfs_services" "protocols_nfs_services" {
 - `protocols_nfs_services` (Attributes List) (see [below for nested schema](#nestedatt--protocols_nfs_services))
 
 <a id="nestedatt--filter"></a>
+
 ### Nested Schema for `filter`
 
 Optional:
 
 - `svm_name` (String) ProtocolsNfsService svm name
 
-
 <a id="nestedatt--protocols_nfs_services"></a>
+
 ### Nested Schema for `protocols_nfs_services`
 
 Required:
@@ -66,6 +70,7 @@ Read-Only:
 - `windows` (Attributes) (see [below for nested schema](#nestedatt--protocols_nfs_services--windows))
 
 <a id="nestedatt--protocols_nfs_services--protocol"></a>
+
 ### Nested Schema for `protocols_nfs_services.protocol`
 
 Read-Only:
@@ -78,6 +83,7 @@ Read-Only:
 - `v4_id_domain` (String) User ID domain for NFSv4
 
 <a id="nestedatt--protocols_nfs_services--protocol--v40_features"></a>
+
 ### Nested Schema for `protocols_nfs_services.protocol.v40_features`
 
 Read-Only:
@@ -86,8 +92,8 @@ Read-Only:
 - `read_delegation_enabled` (Boolean) Enable Read File Delegation for NFSv4.0
 - `write_delegation_enabled` (Boolean) Enable Write File Delegation for NFSv4.0
 
-
 <a id="nestedatt--protocols_nfs_services--protocol--v41_features"></a>
+
 ### Nested Schema for `protocols_nfs_services.protocol.v41_features`
 
 Read-Only:
@@ -97,9 +103,8 @@ Read-Only:
 - `read_delegation_enabled` (Boolean) Enable Read File Delegation for NFSv4.1
 - `write_delegation_enabled` (Boolean) Enable Write File Delegation for NFSv4.1
 
-
-
 <a id="nestedatt--protocols_nfs_services--root"></a>
+
 ### Nested Schema for `protocols_nfs_services.root`
 
 Read-Only:
@@ -107,8 +112,8 @@ Read-Only:
 - `ignore_nt_acl` (Boolean) Ignore NTFS ACL for root user
 - `skip_write_permission_check` (Boolean) Skip write permissions check for root user
 
-
 <a id="nestedatt--protocols_nfs_services--security"></a>
+
 ### Nested Schema for `protocols_nfs_services.security`
 
 Read-Only:
@@ -119,8 +124,8 @@ Read-Only:
 - `permitted_encryption_types` (List of String) Specifies the permitted encryption types for Kerberos over NFS.
 - `rpcsec_context_idle` (Number) Specifies, in seconds, the amount of time a RPCSEC_GSS context is permitted to remain unused before it is deleted
 
-
 <a id="nestedatt--protocols_nfs_services--transport"></a>
+
 ### Nested Schema for `protocols_nfs_services.transport`
 
 Read-Only:
@@ -131,6 +136,7 @@ Read-Only:
 
 
 <a id="nestedatt--protocols_nfs_services--windows"></a>
+
 ### Nested Schema for `protocols_nfs_services.windows`
 
 Read-Only:
@@ -138,5 +144,3 @@ Read-Only:
 - `default_user` (String) default Windows user for the NFS server
 - `map_unknown_uid_to_default_user` (Boolean) whether or not the mapping of an unknown UID to the default Windows user is enabled
 - `v3_ms_dos_client_enabled` (Boolean) if permission checks are to be skipped for NFS WRITE calls from root/owner.
-
-

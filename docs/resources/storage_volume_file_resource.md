@@ -7,10 +7,12 @@ description: |-
 ---
 
 # Resource volume_file
+
 Create/Modify/Delete a VolumeFile resource
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
@@ -51,6 +53,7 @@ resource "netapp-ontap_volume_file" "volume_files" {
 - `size` (Number) The size of the file or directory
 
 ## Import
+
 This Resource supports import, which allows you to import existing volume files into the state of this resoruce.
 Import require a unique ID composed of the volume_name, svm_name, path and cx_profile_name, separated by a comma.
 
@@ -59,6 +62,7 @@ Import require a unique ID composed of the volume_name, svm_name, path and cx_pr
 ### Terraform Import
 
  For example
+
  ```shell
   terraform import netapp-ontap_volume_file.example vol2,svm1,path,cluster4
  ```
@@ -66,20 +70,26 @@ Import require a unique ID composed of the volume_name, svm_name, path and cx_pr
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
 
 ### Terraform Import Block
+
 This requires Terraform 1.5 or higher, and will auto create the configuration for you
 
 First create the block
+
 ```terraform
 import {
   to = netapp-ontap_volume_file.files_import
   id = "vol1,svm1,path,cluster4"
 }
 ```
+
 Next run, this will auto create the configuration for you
+
 ```shell
 terraform plan -generate-config-out=generated.tf
 ```
+
 This will generate a file called generated.tf, which will contain the configuration for the imported resource
+
 ```terraform
 # __generated__ by Terraform
 # Please review these resources and move them into your main configuration files.

@@ -7,18 +7,21 @@ description: |-
 ---
 
 # Resource Protocols Cifs Local Group Mmembers
+
 Create/Read/Delete one or more members in a local group resource
 
 ~> **NOTE:** This module does not support members modification
 
-### Related ONTAP commands
+## Related ONTAP commands
+
 ```commandline
 * vserver cifs users-and-groups local-group add-members
 * vserver cifs users-and-groups local-group remove-members
 ```
 
 ## Supported Platforms
-* On-perm ONTAP system 9.10 or higher
+
+* On-prem ONTAP system 9.10 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
@@ -45,5 +48,3 @@ resource "netapp-ontap_cifs_local_group_members" "protocols_cifs_local_group_mem
 ### Read-Only
 
 - `id` (String) CifsLocalGroupMembers ID
-
-

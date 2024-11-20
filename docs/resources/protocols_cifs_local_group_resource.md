@@ -7,9 +7,11 @@ description: |-
 ---
 
 # Resource Local Group
+
 Create/Modify/Delete a Local Group resource
 
-### Related ONTAP commands
+## Related ONTAP commands
+
 ```commandline
 * vserver cifs users-and-groups local-group create
 * vserver cifs users-and-groups local-group modify
@@ -18,7 +20,8 @@ Create/Modify/Delete a Local Group resource
 ```
 
 ## Supported Platforms
-* On-perm ONTAP system 9.10 or higher
+
+* On-prem ONTAP system 9.10 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
@@ -51,13 +54,15 @@ resource "netapp-ontap_cifs_local_group" "example" {
 - `members` (Attributes Set) Cifs Local Group members (see [below for nested schema](#nestedatt--members))
 
 <a id="nestedatt--members"></a>
+
 ### Nested Schema for `members`
 
 Read-Only:
 
 - `name` (String) Cifs Local Group member
 
-## Import 
+## Import
+
 This Resource supports import, which allows you to import existing local group into the state of this resoruce.
 Import require a unique ID composed of the local group name, svm_name and cx_profile_name, separated by a comma.
 
@@ -66,6 +71,7 @@ Import require a unique ID composed of the local group name, svm_name and cx_pro
 ### Terraform Import
 
  For example
+
  ```shell
   terraform import netapp-ontap_cifs_local_group.example grp1,svm1,cluster4
  ```
@@ -73,20 +79,26 @@ Import require a unique ID composed of the local group name, svm_name and cx_pro
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
 
 ### Terraform Import Block
+
 This requires Terraform 1.5 or higher, and will auto create the configuration for you
 
 First create the block
+
 ```terraform
 import {
   to = netapp-ontap_cifs_local_group.grp_import
   id = "grp1,svm1,cluster4"
 }
 ```
+
 Next run, this will auto create the configuration for you
+
 ```shell
 terraform plan -generate-config-out=generated.tf
 ```
+
 This will generate a file called generated.tf, which will contain the configuration for the imported resource
+
 ```terraform
 # __generated__ by Terraform
 # Please review these resources and move them into your main configuration files.
