@@ -1,5 +1,5 @@
 resource "netapp-ontap_port" "lag" {
-  cx_profile_name = "svacluster"
+  cx_profile_name = "cluster4"
 
   broadcast_domain = {
     ipspace = "Default"
@@ -11,7 +11,6 @@ resource "netapp-ontap_port" "lag" {
   }
 
   type = "lag"
-
   lag = {
     distribution_policy = "mac"
     member_ports = [
@@ -23,7 +22,7 @@ resource "netapp-ontap_port" "lag" {
 }
 
 resource "netapp-ontap_port" "vlan" {
-  cx_profile_name = "svacluster"
+  cx_profile_name = "cluster4"
 
   broadcast_domain = {
     ipspace = "tf_test"
@@ -35,7 +34,6 @@ resource "netapp-ontap_port" "vlan" {
   }
 
   type = "vlan"
-
   vlan = {
     base_port = "e0a"
     tag       = 300

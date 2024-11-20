@@ -1,6 +1,6 @@
 data "netapp-ontap_ports" "physical" {
   # required to know which system to interface with
-  cx_profile_name = "svacluster"
+  cx_profile_name = "cluster4"
   filter = {
     name  = "e0*"
     state = "up"
@@ -10,7 +10,7 @@ data "netapp-ontap_ports" "physical" {
 
 data "netapp-ontap_ports" "lag" {
   # required to know which system to interface with
-  cx_profile_name = "svacluster"
+  cx_profile_name = "cluster4"
   filter = {
     name  = "a0*"
     state = "up"
@@ -20,7 +20,7 @@ data "netapp-ontap_ports" "lag" {
 
 data "netapp-ontap_ports" "vlan" {
   # required to know which system to interface with
-  cx_profile_name = "svacluster"
+  cx_profile_name = "cluster4"
   filter = {
     name  = "e0a-*"
     state = "up"
