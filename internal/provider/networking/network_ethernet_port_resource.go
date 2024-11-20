@@ -102,6 +102,9 @@ func (r *EthernetPortResource) Schema(ctx context.Context, req resource.SchemaRe
 			"cx_profile_name": schema.StringAttribute{
 				MarkdownDescription: "Connection profile name",
 				Required:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"broadcast_domain": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
@@ -370,22 +373,19 @@ func (r *EthernetPortResource) Create(ctx context.Context, req resource.CreateRe
 
 	// Copy ethernet_port info to request body
 	var body interfaces.EthernetPortResourceBodyDataModelONTAP
-	body.BroadcastDomain = interfaces.EthernetPortBroadcastDomain{
-		IPSpace: interfaces.EthernetPortIPSpace{
-			Name: data.BroadcastDomain.IPSpace.ValueString(),
-		},
-		Name: data.BroadcastDomain.Name.ValueString(),
-		UUID: data.BroadcastDomain.ID.ValueString(),
-	}
+	body.BroadcastDomain.IPSpace.Name = data.BroadcastDomain.IPSpace.ValueString()
+	body.BroadcastDomain.Name = data.BroadcastDomain.Name.ValueString()
+	body.BroadcastDomain.UUID = data.BroadcastDomain.ID.ValueString()
 	body.Enabled = data.Enabled.ValueBool()
-	body.Node = interfaces.EthernetPortNode{
-		Name: data.Node.Name.ValueString(),
-		UUID: data.Node.ID.ValueString(),
-	}
+	body.Node.Name = data.Node.Name.ValueString()
+	body.Node.UUID = data.Node.ID.ValueString()
 	body.Type = data.Type.ValueString()
 
 	switch body.Type {
 	case "lag":
+		body.LAG.DistributionPolicy = data.LAG.DistributionPolicy.ValueString()
+		body.LAG.Mode = data.LAG.Mode.ValueString()
+
 		// member_ports set
 		memberPorts := make([]types.String, 0, len(data.LAG.MemberPorts.Elements()))
 		diags = data.LAG.MemberPorts.ElementsAs(ctx, &memberPorts, false)
@@ -399,19 +399,10 @@ func (r *EthernetPortResource) Create(ctx context.Context, req resource.CreateRe
 				Name: port.ValueString(),
 			})
 		}
-
-		body.LAG = interfaces.EthernetPortLAG{
-			DistributionPolicy: data.LAG.DistributionPolicy.ValueString(),
-			MemberPorts:        memberPortsList,
-			Mode:               data.LAG.Mode.ValueString(),
-		}
+		body.LAG.MemberPorts = memberPortsList
 	case "vlan":
-		body.VLAN = interfaces.EthernetPortVLAN{
-			BasePort: interfaces.EthernetPortVLANBasePort{
-				Name: data.VLAN.BasePort.ValueString(),
-			},
-			Tag: data.VLAN.Tag.ValueInt64(),
-		}
+		body.VLAN.BasePort.Name = data.VLAN.BasePort.ValueString()
+		body.VLAN.Tag = data.VLAN.Tag.ValueInt64()
 	}
 
 	// Use existing-, or create new REST API client
@@ -421,38 +412,40 @@ func (r *EthernetPortResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	// Call ONTAP REST API for creating broadcast_domain
+	// Call ONTAP REST API for creating ethernet_port
 	resource, err := interfaces.CreateEthernetPort(errorHandler, *client, body)
 	if err != nil {
 		return
 	}
 
 	// Copy ethernet_port info to resource model
-	data.BroadcastDomain = &EthernetPortBroadcastDomainResourceModel{
-		ID:      types.StringValue(resource.BroadcastDomain.UUID),
-		IPSpace: types.StringValue(resource.BroadcastDomain.IPSpace.Name),
-		Name:    types.StringValue(resource.BroadcastDomain.Name),
-	}
+	data.BroadcastDomain.ID = types.StringValue(resource.BroadcastDomain.UUID)
+	data.BroadcastDomain.IPSpace = types.StringValue(resource.BroadcastDomain.IPSpace.Name)
+	data.BroadcastDomain.Name = types.StringValue(resource.BroadcastDomain.Name)
 	data.Enabled = types.BoolValue(resource.Enabled)
-	data.Node = &EthernetPortNodeResourceModel{
-		ID:   types.StringValue(resource.Node.UUID),
-		Name: types.StringValue(resource.Node.Name),
-	}
+	data.Node.ID = types.StringValue(resource.Node.UUID)
+	data.Node.Name = types.StringValue(resource.Node.Name)
 	data.ID = types.StringValue(resource.UUID)
 
-	// TODO: interfaces.GetEthernetPort to populate remaining attributes
+	// Call ONTAP REST API again for reading ethernet_port info
+	restInfo, err := interfaces.GetEthernetPort(
+		errorHandler,
+		*client,
+		data.ID.ValueString(),
+	)
+	if err != nil {
+		return
+	}
 
-	// ONTAP API POST response does not contain the following attributes.
-	// We still include them in the data model, and read them here, so that
-	// subsequent GET request (terraform refresh) can populate them.
-	data.Name = types.StringValue(resource.Name)
-	data.Reachability = types.StringValue(resource.Reachability)
-	data.State = types.StringValue(resource.State)
+	// Copy remaining ethernet_port info to resource model
+	data.Name = types.StringValue(restInfo.Name)
+	data.Reachability = types.StringValue(restInfo.Reachability)
+	data.State = types.StringValue(restInfo.State)
 
 	if body.Type == "lag" {
 		// active_ports set
 		var activePorts []attr.Value
-		for _, v := range resource.LAG.ActivePorts {
+		for _, v := range restInfo.LAG.ActivePorts {
 			activePorts = append(activePorts, types.StringValue(v.Name))
 		}
 		activePortsSet, diags := types.SetValue(types.StringType, activePorts)
@@ -492,9 +485,6 @@ func (r *EthernetPortResource) Update(ctx context.Context, req resource.UpdateRe
 	// Copy ethernet_port info to request body
 	var body interfaces.EthernetPortResourceBodyDataModelONTAP
 
-	// Ports can be enabled / disabled in-place
-	body.Enabled = data.Enabled.ValueBool()
-
 	// broadcast_domain can be updated in-place
 	if !data.BroadcastDomain.IPSpace.Equal(state.BroadcastDomain.IPSpace) {
 		body.BroadcastDomain.IPSpace.Name = data.BroadcastDomain.IPSpace.ValueString()
@@ -505,6 +495,9 @@ func (r *EthernetPortResource) Update(ctx context.Context, req resource.UpdateRe
 	if !data.BroadcastDomain.ID.Equal(state.BroadcastDomain.ID) {
 		body.BroadcastDomain.UUID = data.BroadcastDomain.ID.ValueString()
 	}
+
+	// Ports can be enabled / disabled in-place
+	body.Enabled = data.Enabled.ValueBool()
 
 	// node can be updated in-place
 	if !data.Node.Name.Equal(state.Node.Name) {
