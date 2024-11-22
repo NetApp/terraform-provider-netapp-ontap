@@ -55,13 +55,13 @@ type IPInterfaceResourceLocation struct {
 
 // IPInterfaceResourceHomeNode is the body data model for home_node field
 type IPInterfaceResourceHomeNode struct {
-	Name string `mapstructure:"name"`
+	Name string `mapstructure:"name,omitempty"`
 }
 
 // IPInterfaceResourceHomePort is the body data model for home_port field
 type IPInterfaceResourceHomePort struct {
-	Name string                      `mapstructure:"name"`
-	Node IPInterfaceResourceHomeNode `mapstructure:"node"`
+	Name string                      `mapstructure:"name,omitempty"`
+	Node IPInterfaceResourceHomeNode `mapstructure:"node,omitempty"`
 }
 
 // IPInterfaceBroadcastDomain is the body data model for broadcast_domain field

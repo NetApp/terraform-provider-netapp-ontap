@@ -6,12 +6,14 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
@@ -107,16 +109,18 @@ func (r *IPInterfaceResource) Schema(ctx context.Context, req resource.SchemaReq
 				},
 				Required: true,
 			},
-			// TODO: Make location fields optionals once other options are supported
 			"location": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"home_node": schema.StringAttribute{
 						MarkdownDescription: "IPInterface home node",
-						Required:            true,
+						Optional:            true,
+						Computed:            true,
 					},
 					"home_port": schema.StringAttribute{
 						MarkdownDescription: "IPInterface home port",
-						Required:            true,
+						Optional:            true,
+						Computed:            true,
+					},
 					},
 				},
 				Required: true,
@@ -138,7 +142,6 @@ func (r *IPInterfaceResource) Schema(ctx context.Context, req resource.SchemaReq
 			},
 		},
 	}
-}
 
 // Configure adds the provider configured client to the resource.
 func (r *IPInterfaceResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -240,14 +243,24 @@ func (r *IPInterfaceResource) Create(ctx context.Context, req resource.CreateReq
 	body.SVM.Name = data.SVMName.ValueString()
 	body.IP.Address = data.IP.Address.ValueString()
 	body.IP.Netmask = data.IP.Netmask.ValueInt64()
-	body.Location.HomePort = interfaces.IPInterfaceResourceHomePort{
-		Name: data.Location.HomePort.ValueString(),
-		Node: interfaces.IPInterfaceResourceHomeNode{
-			Name: data.Location.HomeNode.ValueString(),
-		},
+
+	// location.home_port is optional
+	if data.Location.HomePort.ValueString() != "" {
+		body.Location.HomePort = interfaces.IPInterfaceResourceHomePort{
+			Name: data.Location.HomePort.ValueString(),
+			// Node: interfaces.IPInterfaceResourceHomeNode{
+			// 	Name: data.Location.HomeNode.ValueString(),
+			// },
+		}
 	}
-	body.Location.HomeNode = interfaces.IPInterfaceResourceHomeNode{
-		Name: data.Location.HomeNode.ValueString(),
+
+	// location.home_node is optional
+	if data.Location.HomeNode.ValueString() != "" {
+		body.Location.HomeNode = interfaces.IPInterfaceResourceHomeNode{
+			Name: data.Location.HomeNode.ValueString(),
+		}
+	}
+
 	}
 	body.ServicePolicy.Name = data.ServicePolicy.ValueString()
 
@@ -257,12 +270,26 @@ func (r *IPInterfaceResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
+	// Call ONTAP REST API to create IP interface
 	resource, err := interfaces.CreateIPInterface(errorHandler, *client, body)
 	if err != nil {
 		return
 	}
 
 	data.UUID = types.StringValue(resource.UUID)
+
+	// Call ONTAP REST API again to read IP interface details
+	restInfo, err := interfaces.GetIPInterface(errorHandler, *client, data.UUID.ValueString())
+	if err != nil {
+		return
+	}
+
+	// populate location attributes
+	if data.Location == nil {
+		data.Location = &IPInterfaceResourceLocation{}
+	}
+	data.Location.HomeNode = types.StringValue(restInfo.Location.HomeNode.Name)
+	data.Location.HomePort = types.StringValue(restInfo.Location.HomePort.Name)
 
 	tflog.Trace(ctx, fmt.Sprintf("created a resource, UUID=%s", data.UUID))
 
@@ -282,10 +309,21 @@ func (r *IPInterfaceResource) Create(ctx context.Context, req resource.CreateReq
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *IPInterfaceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *IPInterfaceResourceModel
+	var data, state *IPInterfaceResourceModel
 
 	// Read Terraform plan data into the model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	diags := req.Plan.Get(ctx, &data)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Read state file data
+	diags = req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	var body interfaces.IPInterfaceResourceBodyDataModelONTAP
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
@@ -297,14 +335,22 @@ func (r *IPInterfaceResource) Update(ctx context.Context, req resource.UpdateReq
 	body.Name = data.Name.ValueString()
 	body.IP.Address = data.IP.Address.ValueString()
 	body.IP.Netmask = data.IP.Netmask.ValueInt64()
-	body.Location.HomePort = interfaces.IPInterfaceResourceHomePort{
-		Name: data.Location.HomePort.ValueString(),
-		Node: interfaces.IPInterfaceResourceHomeNode{
-			Name: data.Location.HomeNode.ValueString(),
-		},
+
+	// location.home_port can be updated in-place
+	if !data.Location.HomePort.Equal(state.Location.HomePort) {
+		body.Location.HomePort = interfaces.IPInterfaceResourceHomePort{
+			Name: data.Location.HomePort.ValueString(),
+			// Node: interfaces.IPInterfaceResourceHomeNode{
+			// 	Name: data.Location.HomeNode.ValueString(),
+			// },
+		}
 	}
-	body.Location.HomeNode = interfaces.IPInterfaceResourceHomeNode{
-		Name: data.Location.HomeNode.ValueString(),
+
+	// location.home_node can be updated in-place
+	if !data.Location.HomeNode.Equal(state.Location.HomeNode) {
+		body.Location.HomeNode = interfaces.IPInterfaceResourceHomeNode{
+			Name: data.Location.HomeNode.ValueString(),
+		}
 	}
 	body.ServicePolicy.Name = data.ServicePolicy.ValueString()
 
@@ -314,11 +360,24 @@ func (r *IPInterfaceResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
+	// Call ONTAP REST API to update IP interface
 	err = interfaces.UpdateIPInterface(errorHandler, *client, body, data.UUID.ValueString())
-
 	if err != nil {
 		return
 	}
+
+	// Call ONTAP REST API again to read IP interface details
+	restInfo, err := interfaces.GetIPInterface(errorHandler, *client, data.UUID.ValueString())
+	if err != nil {
+		return
+	}
+
+	// populate location attributes
+	if data.Location == nil {
+		data.Location = &IPInterfaceResourceLocation{}
+	}
+	data.Location.HomeNode = types.StringValue(restInfo.Location.HomeNode.Name)
+	data.Location.HomePort = types.StringValue(restInfo.Location.HomePort.Name)
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

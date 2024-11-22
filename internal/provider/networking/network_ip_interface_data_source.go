@@ -64,6 +64,7 @@ type LocationDataSourceModel struct {
 	BroadcastDomain *LocationBroadcastDomainDataSourceModel `tfsdk:"broadcast_domain"`
 }
 
+// LocationBroadcastDomainDataSourceModel describes the data source model for broadcast domain ID and name.
 type LocationBroadcastDomainDataSourceModel struct {
 	ID   types.String `tfsdk:"id"`
 	Name types.String `tfsdk:"name"`
