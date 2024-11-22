@@ -1,9 +1,18 @@
-data "netapp-ontap_network_ip_interfaces" "ip_interfaces" {
+data "netapp-ontap_network_ip_interfaces" "cluster_scoped" {
   # required to know which system to interface with
-  cx_profile_name = "cluster4"
+  cx_profile_name = "svacluster"
   filter = {
-    name = "lif*"
-    svm_name = "*"
-    scope = "svm"
+    name  = "*"
+    scope = "cluster"
+  }
+}
+
+data "netapp-ontap_network_ip_interfaces" "svm_scoped" {
+  # required to know which system to interface with
+  cx_profile_name = "svacluster"
+  filter = {
+    name     = "*"
+    svm_name = "svm*"
+    scope    = "svm"
   }
 }
