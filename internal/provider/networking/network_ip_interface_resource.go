@@ -53,10 +53,24 @@ type IPInterfaceResourceIP struct {
 	Netmask types.Int64  `tfsdk:"netmask"`
 }
 
-// IPInterfaceResourceLocation describes the resource data model for home node/port.
+// IPInterfaceResourceLocation describes the resource data model for home node/port and broadcast domain.
 type IPInterfaceResourceLocation struct {
-	HomeNode types.String `tfsdk:"home_node"`
-	HomePort types.String `tfsdk:"home_port"`
+	HomeNode        types.String `tfsdk:"home_node"`
+	HomePort        types.String `tfsdk:"home_port"`
+	BroadcastDomain types.Object `tfsdk:"broadcast_domain"`
+}
+
+// IPInterfaceResourceLocationBroadcastDomain describes the resource data model for broadcast domain ID and name.
+type IPInterfaceResourceLocationBroadcastDomain struct {
+	ID   types.String `tfsdk:"id"`
+	Name types.String `tfsdk:"name"`
+}
+
+func (bd IPInterfaceResourceLocationBroadcastDomain) AttributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"id":   types.StringType,
+		"name": types.StringType,
+	}
 }
 
 // IPInterfaceResourceModel describes the resource data model.
@@ -121,6 +135,28 @@ func (r *IPInterfaceResource) Schema(ctx context.Context, req resource.SchemaReq
 						Optional:            true,
 						Computed:            true,
 					},
+					"broadcast_domain": schema.SingleNestedAttribute{
+						Attributes: map[string]schema.Attribute{
+							"name": schema.StringAttribute{
+								MarkdownDescription: "Name of the broadcast domain, scoped to its IPspace",
+								Optional:            true,
+								Computed:            true,
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.RequiresReplace(),
+								},
+							},
+							"id": schema.StringAttribute{
+								MarkdownDescription: "Broadcast domain UUID",
+								Optional:            true,
+								Computed:            true,
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.RequiresReplace(),
+								},
+							},
+						},
+						MarkdownDescription: "Broadcast domain UUID along with a readable name",
+						Optional:            true,
+						Computed:            true,
 					},
 				},
 				Required: true,
@@ -199,10 +235,24 @@ func (r *IPInterfaceResource) Read(ctx context.Context, req resource.ReadRequest
 	data.Name = types.StringValue(restInfo.Name)
 	data.UUID = types.StringValue(restInfo.UUID)
 
-	var location IPInterfaceResourceLocation
-	location.HomeNode = types.StringValue(restInfo.Location.HomeNode.Name)
-	location.HomePort = types.StringValue(restInfo.Location.HomePort.Name)
-	data.Location = &location
+	// construct broadcast_domain object
+	bd := IPInterfaceResourceLocationBroadcastDomain{
+		ID:   types.StringValue(restInfo.Location.BroadcastDomain.UUID),
+		Name: types.StringValue(restInfo.Location.BroadcastDomain.Name),
+	}
+	bdobject, diags := types.ObjectValueFrom(ctx, bd.AttributeTypes(), bd)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// populate location attributes
+	if data.Location == nil {
+		data.Location = &IPInterfaceResourceLocation{}
+	}
+	data.Location.HomeNode = types.StringValue(restInfo.Location.HomeNode.Name)
+	data.Location.HomePort = types.StringValue(restInfo.Location.HomePort.Name)
+	data.Location.BroadcastDomain = bdobject
 
 	var ip IPInterfaceResourceIP
 	ip.Address = types.StringValue(restInfo.IP.Address)
@@ -261,6 +311,19 @@ func (r *IPInterfaceResource) Create(ctx context.Context, req resource.CreateReq
 		}
 	}
 
+	// location.broadcast_domain is optional
+	if !data.Location.BroadcastDomain.IsUnknown() {
+		var bd IPInterfaceResourceLocationBroadcastDomain
+		diags := data.Location.BroadcastDomain.As(ctx, &bd, basetypes.ObjectAsOptions{})
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		body.Location.BroadcastDomain = interfaces.IPInterfaceBroadcastDomain{
+			UUID: bd.ID.ValueString(),
+			Name: bd.Name.ValueString(),
+		}
 	}
 	body.ServicePolicy.Name = data.ServicePolicy.ValueString()
 
@@ -284,12 +347,24 @@ func (r *IPInterfaceResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
+	// construct broadcast_domain object
+	bd := IPInterfaceResourceLocationBroadcastDomain{
+		ID:   types.StringValue(restInfo.Location.BroadcastDomain.UUID),
+		Name: types.StringValue(restInfo.Location.BroadcastDomain.Name),
+	}
+	bdobject, diags := types.ObjectValueFrom(ctx, bd.AttributeTypes(), bd)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	// populate location attributes
 	if data.Location == nil {
 		data.Location = &IPInterfaceResourceLocation{}
 	}
 	data.Location.HomeNode = types.StringValue(restInfo.Location.HomeNode.Name)
 	data.Location.HomePort = types.StringValue(restInfo.Location.HomePort.Name)
+	data.Location.BroadcastDomain = bdobject
 
 	tflog.Trace(ctx, fmt.Sprintf("created a resource, UUID=%s", data.UUID))
 
@@ -372,12 +447,24 @@ func (r *IPInterfaceResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
+	// construct broadcast_domain object
+	bd := IPInterfaceResourceLocationBroadcastDomain{
+		ID:   types.StringValue(restInfo.Location.BroadcastDomain.UUID),
+		Name: types.StringValue(restInfo.Location.BroadcastDomain.Name),
+	}
+	bdobject, diags := types.ObjectValueFrom(ctx, bd.AttributeTypes(), bd)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	// populate location attributes
 	if data.Location == nil {
 		data.Location = &IPInterfaceResourceLocation{}
 	}
 	data.Location.HomeNode = types.StringValue(restInfo.Location.HomeNode.Name)
 	data.Location.HomePort = types.StringValue(restInfo.Location.HomePort.Name)
+	data.Location.BroadcastDomain = bdobject
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
