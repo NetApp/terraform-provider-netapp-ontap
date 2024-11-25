@@ -384,17 +384,10 @@ func (r *IPInterfaceResource) Create(ctx context.Context, req resource.CreateReq
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *IPInterfaceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data, state *IPInterfaceResourceModel
+	var data *IPInterfaceResourceModel
 
 	// Read Terraform plan data into the model
 	diags := req.Plan.Get(ctx, &data)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Read state file data
-	diags = req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -411,8 +404,8 @@ func (r *IPInterfaceResource) Update(ctx context.Context, req resource.UpdateReq
 	body.IP.Address = data.IP.Address.ValueString()
 	body.IP.Netmask = data.IP.Netmask.ValueInt64()
 
-	// location.home_port can be updated in-place
-	if !data.Location.HomePort.Equal(state.Location.HomePort) {
+	// location.home_port is optional and can be updated in-place
+	if !data.Location.HomePort.IsUnknown() {
 		body.Location.HomePort = interfaces.IPInterfaceResourceHomePort{
 			Name: data.Location.HomePort.ValueString(),
 			// Node: interfaces.IPInterfaceResourceHomeNode{
@@ -421,8 +414,8 @@ func (r *IPInterfaceResource) Update(ctx context.Context, req resource.UpdateReq
 		}
 	}
 
-	// location.home_node can be updated in-place
-	if !data.Location.HomeNode.Equal(state.Location.HomeNode) {
+	// location.home_node is optional can be updated in-place
+	if !data.Location.HomeNode.IsUnknown() {
 		body.Location.HomeNode = interfaces.IPInterfaceResourceHomeNode{
 			Name: data.Location.HomeNode.ValueString(),
 		}
