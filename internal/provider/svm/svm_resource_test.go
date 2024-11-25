@@ -2,10 +2,11 @@ package svm_test
 
 import (
 	"fmt"
-	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
 	"os"
 	"regexp"
 	"testing"
+
+	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -21,7 +22,7 @@ func TestAccSvmResource(t *testing.T) {
 					// Check to see the svm name is correct,
 					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "name", "tfsvm4"),
 					// Check to see if Ipspace is set correctly
-					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "ipspace", "ansibleIpspace_newname"),
+					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "ipspace", "Default"),
 					// Check that a ID has been set (we don't know what the vaule is as it changes
 					resource.TestCheckResourceAttrSet("netapp-ontap_svm.example", "id"),
 					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "comment", "test")),
@@ -62,27 +63,27 @@ func TestAccSvmResource(t *testing.T) {
 			},
 			// Fail if the name already exist
 			{
-				Config:      testAccSvmResourceConfig("svm5", "carchi8py was here", "default"),
+				Config:      testAccSvmResourceConfig("terraform", "carchi8py was here", "default"),
 				ExpectError: regexp.MustCompile("13434908"),
 			},
 			// Import and read
 			{
 				ResourceName:  "netapp-ontap_svm.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s", "ansibleSVM", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s", "terraform", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "name", "ansibleSVM"),
+					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "name", "terraform"),
 				),
 			},
 		},
 	})
 }
 func testAccSvmResourceConfig(svm, comment string, snapshotPolicy string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST")
+	host := os.Getenv("TF_ACC_NETAPP_HOST5")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS")
+	password := os.Getenv("TF_ACC_NETAPP_PASS2")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -101,20 +102,14 @@ provider "netapp-ontap" {
 resource "netapp-ontap_svm" "example" {
   cx_profile_name = "cluster4"
   name = "%s"
-  ipspace = "ansibleIpspace_newname"
+  ipspace = "Default"
   comment = "%s"
   snapshot_policy = "%s"
   subtype = "default"
   language = "en_us.utf_8"
   aggregates = [
     {
-      name = "aggr1"
-    },
-    {
-      name = "aggr2"
-    },
-    {
-      name = "aggr3"
+      name = "terraform"
     },
   ]
   max_volumes = "unlimited"

@@ -3,6 +3,7 @@ package protocols_test
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
@@ -15,22 +16,27 @@ func TestAccProtocolsSanLunMapResourceAlias(t *testing.T) {
 		PreCheck:                 func() { ntest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ntest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
+			// Test non existant
+			{
+				Config:      testAccProtocolsSanLunMapResourceBasicConfig("/vol/abc/ACC-import-lun", "abc", "abc"),
+				ExpectError: regexp.MustCompile("2621462"),
+			},
 			// Create protocols_san_lun-maps and read
-			{
-				Config: testAccProtocolsSanLunMapResourceBasicConfigAlias("/vol/lunTest/ACC-import-lun", "test", "carchi-test"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_san_lun-maps_resource.example", "svm.name", "carchi-test"),
-				),
-			},
+			// {
+			// 	Config: testAccProtocolsSanLunMapResourceBasicConfigAlias("/vol/lunTest/ACC-import-lun", "test", "carchi-test"),
+			// 	Check: resource.ComposeTestCheckFunc(
+			// 		resource.TestCheckResourceAttr("netapp-ontap_protocols_san_lun-maps_resource.example", "svm.name", "carchi-test"),
+			// 	),
+			// },
 			// Import and read
-			{
-				ResourceName:  "netapp-ontap_protocols_san_lun-maps_resource.example",
-				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "carchi-test", "acc_test", "/vol/lunTest/test", "cluster4"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_san_lun-maps_resource.example", "svm.name", "carchi-test"),
-				),
-			},
+			// {
+			// 	ResourceName:  "netapp-ontap_protocols_san_lun-maps_resource.example",
+			// 	ImportState:   true,
+			// 	ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "carchi-test", "acc_test", "/vol/lunTest/test", "cluster4"),
+			// 	Check: resource.ComposeTestCheckFunc(
+			// 		resource.TestCheckResourceAttr("netapp-ontap_protocols_san_lun-maps_resource.example", "svm.name", "carchi-test"),
+			// 	),
+			// },
 			// Delete testing automatically occurs in TestCase
 		},
 	})

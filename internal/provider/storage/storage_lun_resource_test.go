@@ -22,27 +22,27 @@ func TestAccStorageLunResouce(t *testing.T) {
 			},
 			// Test create storage lun volume not found
 			{
-				Config:      testAccStorageLunResourceConfig("ACC-lun", "carchi-test", "unnownsvm", "linux", 1048576),
+				Config:      testAccStorageLunResourceConfig("ACC-lun", "terraform", "unnownvol", "linux", 1048576),
 				ExpectError: regexp.MustCompile("917927"),
 			},
 			// Create storage lun and read without size_unit
 			{
-				Config: testAccStorageLunResourceConfig("ACC-lun", "carchi-test", "lunTest", "linux", 1048576),
+				Config: testAccStorageLunResourceConfig("ACC-lun", "terraform", "terraform", "linux", 1048576),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "name", "/vol/lunTest/ACC-lun"),
-					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "svm_name", "carchi-test"),
-					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "volume_name", "lunTest"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "name", "/vol/terraform/ACC-lun"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "svm_name", "terraform"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "volume_name", "terraform"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "os_type", "linux"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "size", "1048576"),
 				),
 			},
 			// Update name
 			{
-				Config: testAccStorageLunResourceConfig("ACC-lun2", "carchi-test", "lunTest", "linux", 1048576),
+				Config: testAccStorageLunResourceConfig("ACC-lun2", "terraform", "terraform", "linux", 1048576),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "logical_unit", "ACC-lun2"),
-					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "svm_name", "carchi-test"),
-					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "volume_name", "lunTest"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "svm_name", "terraform"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "volume_name", "terraform"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "os_type", "linux"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "size", "1048576"),
 				),
@@ -51,7 +51,7 @@ func TestAccStorageLunResouce(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_lun.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "/vol/lunTest/ACC-import-lun", "lunTest", "carchi-test", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "/vol/terraform/ACC-import-lun", "terraform", "terraform", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "name", "ACC-import-lun"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "os_type", "linux"),
@@ -60,11 +60,11 @@ func TestAccStorageLunResouce(t *testing.T) {
 			},
 			// create storage lun with size_unit
 			{
-				Config: testAccStorageLunResourceWithSizeUnitConfig("ACC-lun-size", "carchi-test", "lunTest", "linux", 4, "kb"),
+				Config: testAccStorageLunResourceWithSizeUnitConfig("ACC-lun-size", "terraform", "terraform", "linux", 4, "kb"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "name", "/vol/lunTest/ACC-lun-size"),
-					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "svm_name", "carchi-test"),
-					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "volume_name", "lunTest"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "name", "/vol/terraform/ACC-lun-size"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "svm_name", "terraform"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "volume_name", "terraform"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "os_type", "linux"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "size", "4"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "size_unit", "kb"),
@@ -72,11 +72,11 @@ func TestAccStorageLunResouce(t *testing.T) {
 			},
 			// update storage lun with size_unit
 			{
-				Config: testAccStorageLunResourceWithSizeUnitConfig("ACC-lun-size", "carchi-test", "lunTest", "linux", 5, "kb"),
+				Config: testAccStorageLunResourceWithSizeUnitConfig("ACC-lun-size", "terraform", "terraform", "linux", 5, "kb"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "name", "/vol/lunTest/ACC-lun-size"),
-					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "svm_name", "carchi-test"),
-					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "volume_name", "lunTest"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "name", "/vol/terraform/ACC-lun-size"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "svm_name", "terraform"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "volume_name", "terraform"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "os_type", "linux"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "size", "5"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "size_unit", "kb"),
@@ -84,11 +84,11 @@ func TestAccStorageLunResouce(t *testing.T) {
 			},
 			// update storage lun size_unit
 			{
-				Config: testAccStorageLunResourceWithSizeUnitConfig("ACC-lun-size", "carchi-test", "lunTest", "linux", 5, "mb"),
+				Config: testAccStorageLunResourceWithSizeUnitConfig("ACC-lun-size", "terraform", "terraform", "linux", 5, "mb"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "name", "/vol/lunTest/ACC-lun-size"),
-					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "svm_name", "carchi-test"),
-					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "volume_name", "lunTest"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "name", "/vol/terraform/ACC-lun-size"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "svm_name", "terraform"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "volume_name", "terraform"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "os_type", "linux"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "size", "5"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "size_unit", "mb"),
@@ -99,11 +99,11 @@ func TestAccStorageLunResouce(t *testing.T) {
 }
 
 func testAccStorageLunResourceConfig(logicalUnit string, svmname string, volumeName string, osType string, size int64) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST")
+	host := os.Getenv("TF_ACC_NETAPP_HOST5")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS")
+	password := os.Getenv("TF_ACC_NETAPP_PASS2")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -131,11 +131,11 @@ resource "netapp-ontap_lun" "example" {
 }
 
 func testAccStorageLunResourceWithSizeUnitConfig(logicalUnit string, svmname string, volumeName string, osType string, size int64, size_unit string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST")
+	host := os.Getenv("TF_ACC_NETAPP_HOST5")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS")
+	password := os.Getenv("TF_ACC_NETAPP_PASS2")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
