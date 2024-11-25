@@ -18,7 +18,7 @@ func TestAccProtocolsSanLunMapResourceAlias(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Test non existant
 			{
-				Config:      testAccProtocolsSanLunMapResourceBasicConfig("/vol/abc/ACC-import-lun", "abc", "abc"),
+				Config:      testAccProtocolsSanLunMapResourceBasicConfigAlias("/vol/abc/ACC-import-lun", "abc", "abc"),
 				ExpectError: regexp.MustCompile("2621462"),
 			},
 			// Create protocols_san_lun-maps and read
