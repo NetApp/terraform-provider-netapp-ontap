@@ -2,10 +2,11 @@ package storage_test
 
 import (
 	"fmt"
-	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
 	"os"
 	"regexp"
 	"testing"
+
+	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -17,12 +18,12 @@ func TestAccStorageSnapshotPolicyResource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Test create storage snapshot policy error
 			{
-				Config:      testAccStorageSnapshotPolicyResourceConfig("non-existant", "unknowsvm", "wrong case", false),
+				Config:      testAccStorageSnapshotPolicyResourceConfig("non-existant", "unknownsvm", "wrong case", false),
 				ExpectError: regexp.MustCompile("error creating storage_snapshot_policy"),
 			},
 			// Create storage snapshot policy and read
 			{
-				Config: testAccStorageSnapshotPolicyResourceConfig("tf-sn-policy", "carchi-test", "create a test snapshot policy", true),
+				Config: testAccStorageSnapshotPolicyResourceConfig("tf-sn-policy", "terraform", "create a test snapshot policy", true),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_snapshot_policy.example", "name", "tf-sn-policy"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapshot_policy.example", "comment", "create a test snapshot policy"),
@@ -31,7 +32,7 @@ func TestAccStorageSnapshotPolicyResource(t *testing.T) {
 			},
 			// Update storage snapshot policy on comment and read
 			{
-				Config: testAccStorageSnapshotPolicyResourceConfig("tf-sn-policy", "carchi-test", "Update the existing snapshot policy", true),
+				Config: testAccStorageSnapshotPolicyResourceConfig("tf-sn-policy", "terraform", "Update the existing snapshot policy", true),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_snapshot_policy.example", "name", "tf-sn-policy"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapshot_policy.example", "comment", "Update the existing snapshot policy"),
@@ -42,9 +43,9 @@ func TestAccStorageSnapshotPolicyResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_snapshot_policy.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s", "tfimportpolicy", "carchi-test", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s", "terraform", "terraform", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapshot_policy.example", "name", "tfimportpolicy"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapshot_policy.example", "name", "terraform"),
 				),
 			},
 		},
@@ -52,11 +53,11 @@ func TestAccStorageSnapshotPolicyResource(t *testing.T) {
 }
 
 func testAccStorageSnapshotPolicyResourceConfig(name string, svmname string, comment string, enabled bool) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST")
+	host := os.Getenv("TF_ACC_NETAPP_HOST5")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS")
+	password := os.Getenv("TF_ACC_NETAPP_PASS2")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`

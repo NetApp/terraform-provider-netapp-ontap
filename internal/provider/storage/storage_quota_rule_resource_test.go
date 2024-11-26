@@ -17,14 +17,14 @@ func TestAccStorageQuotaRuleResource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Create storage_quota_rule and read
 			{
-				Config: testAccStorageQuotaRuleResourceBasicConfig("lunTest", "carchi-test", 100, 80),
+				Config: testAccStorageQuotaRuleResourceBasicConfig("terraform", "terraform", 100, 80),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_quota_rule.example", "qtree.name", ""),
 				),
 			},
 			// Update a option
 			{
-				Config: testAccStorageQuotaRuleResourceBasicConfig("lunTest", "carchi-test", 100, 70),
+				Config: testAccStorageQuotaRuleResourceBasicConfig("terraform", "terraform", 100, 70),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_quota_rule.example", "files.hard_limit", "100"),
 					resource.TestCheckResourceAttr("netapp-ontap_quota_rule.example", "files.soft_limit", "70"),
@@ -34,9 +34,9 @@ func TestAccStorageQuotaRuleResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_quota_rule.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s,%s,%s", "lunTest", "carchi-test", "tree", "testacc", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s,%s,%s", "terraform_root", "terraform", "tree", "acc_import", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_quota_rule.example", "name", "name2"),
+					resource.TestCheckResourceAttr("netapp-ontap_quota_rule.example", "name", "terraform"),
 				),
 			},
 			// Delete testing automatically occurs in TestCase
@@ -45,11 +45,11 @@ func TestAccStorageQuotaRuleResource(t *testing.T) {
 }
 
 func testAccStorageQuotaRuleResourceBasicConfig(volumeName string, svmName string, hardLimit int64, softLimit int64) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST")
+	host := os.Getenv("TF_ACC_NETAPP_HOST5")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS")
+	password := os.Getenv("TF_ACC_NETAPP_PASS2")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`

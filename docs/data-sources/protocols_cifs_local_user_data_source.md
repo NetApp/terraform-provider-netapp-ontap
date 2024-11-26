@@ -7,13 +7,16 @@ description: |-
 ---
 
 # Data Source cifs_local_user
-Retreives cifs local user configuration
+
+Retrieves cifs local user configuration
 
 ## Supported Platforms
-* On-perm ONTAP system 9.10 or higher
+
+* On-prem ONTAP system 9.10 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_cifs_local_user" "local_user" {
   # required to know which system to interface with
@@ -41,10 +44,9 @@ data "netapp-ontap_cifs_local_user" "local_user" {
 - `membership` (Attributes List) CifsLocalUser membership (see [below for nested schema](#nestedatt--membership))
 
 <a id="nestedatt--membership"></a>
+
 ### Nested Schema for `membership`
 
 Read-Only:
 
 - `name` (String) CifsLocalUser membership name
-
-

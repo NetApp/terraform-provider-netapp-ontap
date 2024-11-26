@@ -7,16 +7,22 @@ description: |-
 ---
 
 # Data Source flexcache
+
 Retrieves the details of a flexcache.
 
-### Related ONTAP commands
+## Related ONTAP commands
+
+```commandline
 * volume flexcache show
+```
 
 ## Supported Platforms
-* On-perm ONTAP system 9.8 or higher
+
+* On-prem ONTAP system 9.8 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_flexcache" "storage_flexcache" {
   # required to know which system to interface with
@@ -46,10 +52,11 @@ data "netapp-ontap_flexcache" "storage_flexcache" {
 - `junction_path` (String) Name of the junction path
 - `origins` (Attributes Set) Set of the origin volumes (see [below for nested schema](#nestedatt--origins))
 - `size` (Number) The size of the flexcache volume
-- `size_unit` (String) The unit used to interpret the size parameter
+- `size_unit` (String) The unit used to interpret the `size` parameter
 - `use_tiered_aggregate` (Boolean) The state of the use tiered aggregates
 
 <a id="nestedatt--aggregates"></a>
+
 ### Nested Schema for `aggregates`
 
 Read-Only:
@@ -57,16 +64,16 @@ Read-Only:
 - `id` (String) UUID of the aggregate
 - `name` (String) Name of the aggregate
 
-
 <a id="nestedatt--guarantee"></a>
+
 ### Nested Schema for `guarantee`
 
 Read-Only:
 
 - `type` (String) The type of guarantee
 
-
 <a id="nestedatt--origins"></a>
+
 ### Nested Schema for `origins`
 
 Required:
@@ -75,6 +82,7 @@ Required:
 - `volume` (Attributes) Origin volume (see [below for nested schema](#nestedatt--origins--volume))
 
 <a id="nestedatt--origins--svm"></a>
+
 ### Nested Schema for `origins.svm`
 
 Read-Only:
@@ -82,13 +90,11 @@ Read-Only:
 - `id` (String) ID of the origin volume
 - `name` (String) Name of the origin volume
 
-
 <a id="nestedatt--origins--volume"></a>
+
 ### Nested Schema for `origins.volume`
 
 Read-Only:
 
 - `id` (String) ID of the origin volume
 - `name` (String) Name of the origin volume
-
-

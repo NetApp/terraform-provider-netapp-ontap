@@ -3,6 +3,7 @@
 BREAKING CHANGES:
 
 Cluster
+
 * **Rename Resource:** `netapp-ontap_cluster_licensing_license_resource` is now renamed to `netapp-ontap_cluster_licensing_license`
 * **Rename Resource:** `netapp-ontap_cluster_peers_resource` is now renamed to `netapp-ontap_cluster_peer`
 * **Rename Resource:** `netapp-ontap_cluster_schedule_resource` is now renamed to `netapp-ontap_cluster_schedule`
@@ -14,6 +15,7 @@ Cluster
 * **Rename Data Source:** `netapp-ontap_cluster_schedules_data_source` is now renamed to `netapp-ontap_cluster_schedules`
 
 Name Services
+
 * **Rename Resource:** `netapp-ontap_name_services_dns_resource` is now renamed to `netapp-ontap_dns`
 * **Rename Resource:** `netapp-ontap_name_services_ldap_resource` is now renamed to `netapp-ontap_name_services_ldap`
 * **Rename Data Source:** `netapp-ontap_name_services_dns_data_source` is now renamed to `netapp-ontap_dns`
@@ -22,6 +24,7 @@ Name Services
 * **Rename Data Source:** `netapp-ontap_name_services_ldaps_data_source` is now renamed to `netapp-ontap_name_services_ldaps`
 
 Networking
+
 * **Rename Resource:** `netapp-ontap_networking_ip_interface_resource` is now renamed to `netapp-ontap_network_ip_interface`
 * **Rename Resource:** `netapp-ontap_networking_ip_route_resource` is now renamed to `netapp-ontap_network_ip_route`
 * **Rename Data Source:** `netapp-ontap_networking_ip_interface_data_source` is now renamed to `netapp-ontap_network_ip_interface`
@@ -30,6 +33,7 @@ Networking
 * **Rename Data Source:** `netapp-ontap_networking_ip_routes_data_source` is now renamed to `netapp-ontap_network_ip_routes`
 
 Protocols
+
 * **Rename Resource:** `netapp-ontap_cifs_local_group_member_resource` is now renamed to `netapp-ontap_cifs_local_group_members`
 * **Rename Resource:** `netapp-ontap_cifs_local_group_resource` is now renamed to `netapp-ontap_cifs_local_group`
 * **Rename Resource:** `netapp-ontap_cifs_local_user_resource` is now renamed to `netapp-ontap_cifs_local_user`
@@ -66,11 +70,13 @@ Protocols
 * **Rename Data Source:** `netapp-ontap_san_lun-maps_data_source` is now renamed to `netapp-ontap_san_lun-maps`
 
 Security
+
 * **Rename Resource:** `netapp-ontap_security_accounts_resource` is now renamed to `netapp-ontap_security_account`
 * **Rename Data Source:** `netapp-ontap_security_account_data_source` is now renamed to `netapp-ontap_security_account`
 * **Rename Data Source:** `netapp-ontap_security_accounts_data_source` is now renamed to `netapp-ontap_security_accounts`
 
 Snapmirror
+
 * **Rename Resource:** `netapp-ontap_snapmirror_resource` is now renamed to `netapp-ontap_snapmirror`
 * **Rename Resource:** `netapp-ontap_snapmirror_policy_resource` is now renamed to `netapp-ontap_snapmirror_policy`
 * **Rename Data Source:** `netapp-ontap_snapmirror_data_source` is now renamed to `netapp-ontap_snapmirror`
@@ -79,6 +85,7 @@ Snapmirror
 * **Rename Data Source:** `netapp-ontap_snapmirror_policies_data_source` is now renamed to `netapp-ontap_snapmirror_policies`
 
 Storage
+
 * **Rename Resource:** `netapp-ontap_aggregate_resource` is now renamed to `netapp-ontap_aggregate`
 * **Rename Resource:** `netapp-ontap_flexcache_resource` is now renamed to `netapp-ontap_flexcache`
 * **Rename Resource:** `netapp-ontap_lun_resource` is now renamed to `netapp-ontap_lun`
@@ -100,6 +107,7 @@ Storage
 * **Rename Data Source:** `netapp-ontap_volume_snapshots_data_source` is now renamed to `netapp-ontap_volume_snapshots`
 
 Svm
+
 * **Rename Resource:** `netapp-ontap_svm_peers_resource` is now renamed to `netapp-ontap_svm_peer`
 * **Rename Resource:** `netapp-ontap_svm_resource` is now renamed to `netapp-ontap_svm`
 * **Rename Data Source:** `netapp-ontap_svm_peer_data_source` is now renamed to `netapp-ontap_svm_peer`
@@ -108,6 +116,7 @@ Svm
 * **Rename Data Source:** `netapp-ontap_svms_data_source` is now renamed to `netapp-ontap_svms`
 
 FEATURES:
+
 * **provider**: add `aws_lambda` option. ([#262](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/262))
 * **New Data Source:** `netapp-ontap_volume_file` ([#8](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/8))
 * **New Data Source:** `netapp-ontap_qos_policy` ([#77](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/77))
@@ -133,6 +142,7 @@ FEATURES:
 * **New Resource:** `netapp-security_login_message` ([#18](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/18))
 
 ENHANCEMENTS:
+
 * **netapp-ontap_lun**: added `size_unit` option. ([#227](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/227))
 * **netapp-ontap_security_account**: Add support for import and update ([#243](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/243))
 * **netapp-ontap_name_services_dns**: Add `skip_config_validation`([#316](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/316))
@@ -140,17 +150,20 @@ ENHANCEMENTS:
 ## 1.1.4 (2024-09-05)
 
 DOC FIXES:
+
 * **netapp-ontap_storage_flexcache_resource**: Fixed Page display issue ([[#271](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/271)])
 * **netapp-ontap_networking_ip_interface_resource**: Include min version for metrics ([[#265](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/265)])
 * Fix the documentation: snapmirror and the description of other data source and resource ([[#330](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/330)])
 
 BUG FIXES:
+
 * **netapp-ontap_cluster_data_source**: fix on nodes to show multiple elements ([#264](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/264))
 * **netapp-ontap_protocols_nfs_export_policy_resource**: fix id error during the creation ([[#290](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/290)])
 
 ## 1.1.3 (2024-08-08)
 
 BUG FIXES:
+
 * **netapp-ontap_protocols_cifs_service_resource**: fixed on attribute checking ([#250](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/250))
 * **netapp-ontap_protocols_cifs_share_resource** :`acls` unable to update acls ([#236](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/236))
 * **netapp-ontap_protocols_san_igroups_resource**: fixed bug nil pointer dereference ([#247](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/247))
@@ -158,14 +171,17 @@ BUG FIXES:
 ## 1.1.2 (2024-06-03)
 
 ENHANCEMENTS:
+
 * **netapp-ontap_storage_lun_resource**, **netapp-ontap_storage_lun_data_source**, **netapp-ontap_storage_luns_data_source**: added `serial_number` option to get info in state file ([#207](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/207))
 
 BUG FIXES:
+
 * **netapp-ontap_storage_lun_resource**, **netapp-ontap_storage_lun_data_source**, **netapp-ontap_storage_luns_data_source**: fixed `name` and `logical_unit` options as separate inputs for resource and info in state file gets added separately as well ([#215](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/215))
 * added guide for changing NetApp Ontap Provider from one minor version to another.
 * corrected typos in the CHANGELOG.
 
 BUG FIXES:
+
 * **netapp-ontap_storage_flexcache_resource**: Fixed junction_path bug ([#223](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/223))
 
 ## 1.1.1 (2024-05-15)
@@ -176,6 +192,7 @@ BUG FIXES:
 ## 1.1.0 (2024-05-08)
 
 FEATURES:
+
 * **New Data Source:** `netapp-ontap_protocols_cifs_local_group_data_source` ([#54](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/54))
 * **New Data Source:** `netapp-ontap_protocols_cifs_local_groups_data_source` ([#54](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/54))
 * **New Data Source:** `netapp-ontap_cluster_peer_data_source` ([#50](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/50))
@@ -218,8 +235,8 @@ FEATURES:
 * **New Resource:** `netapp-ontap_storage_lun_resource` ([#11](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/11))
 * **New Resource:** `netapp-ontap_security_account_resource` ([#21](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/21))
 
-
 ENHANCEMENTS:
+
 * **netapp-ontap_protocols_nfs_export_policy_resource**: Add support for import ([#34](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/34))
 * **netapp-ontap_cluster_licensing_license_resource**: Add support for import ([#30](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/30))
 * **netapp-ontap_storage_aggregate_resource**: Add support for import ([#39](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/39))
@@ -238,28 +255,30 @@ ENHANCEMENTS:
 * **netapp-ontap_cluster** Add contact, locaton, dns_domains, name_servers, timezone, certificate, ntp_servers, management_interfaces options ([#16](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/16))
 
 BUG FIXES:
+
 * **netapp-ontap_protocols_nfs_service**: Fixed issue with version check failing for minor versions
 * netapp-ontap resource and data source documentation update ([#169](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/169))
 
-
 ## 1.0.3 (2023-12-05)
+
 * netapp-ontap_name_services_dns_resource: Fixed missing ID on create ([#99](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/63))
 
 ## 1.0.2 (2023-11-17)
-* 1.0.1 did not deploy correctly 1.0.2 fixes that. 
 
+* 1.0.1 did not deploy correctly 1.0.2 fixes that. 
 
 ## 1.0.1 (2023-11-17)
 
 BUG FIXES:
+
 * **netapp-ontap_name_services_dns_resource**: Fixed and Documented Import ([#63](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/63))
 * **netapp-ontap_cluster_data_source**, **netapp-ontap_snapmirrors_data_source**, **netapp-ontap_networking_ip_route_resource** and **netapp-ontap_sotrage_volume_resource**: Fix documentation ([#70](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/70))
 * **netapp-ontap_name_services_ldap_resource**: Fixed and Document with the version check and workflow ([#163](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/163))
 
-
 ## 1.0.0 (2023-11-06)
 
 FEATURES:
+
 * **New Data Source:** `netapp-ontap_cluster_data_source`
 * **New Data Source:** `netapp-ontap_cluster_licensing_license_data_source`
 * **New Data Source:** `netapp-ontap_cluster_licensing_licenses_data_source`

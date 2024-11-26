@@ -7,13 +7,16 @@ description: |-
 ---
 
 # Data Source san_lun-maps
+
 Retrieves San Lun Maps data source
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_san_lun-maps" "example" {
   cx_profile_name = "example_profile"
@@ -48,6 +51,7 @@ data "netapp-ontap_san_lun-maps" "example" {
 - `protocols_san_lun_maps` (Attributes List) (see [below for nested schema](#nestedatt--protocols_san_lun_maps))
 
 <a id="nestedatt--filter"></a>
+
 ### Nested Schema for `filter`
 
 Optional:
@@ -57,31 +61,31 @@ Optional:
 - `svm` (Attributes) SVM details for ProtocolsSanLunMaps (see [below for nested schema](#nestedatt--filter--svm))
 
 <a id="nestedatt--filter--igroup"></a>
+
 ### Nested Schema for `filter.igroup`
 
 Optional:
 
 - `name` (String) name of the igroup
 
-
 <a id="nestedatt--filter--lun"></a>
+
 ### Nested Schema for `filter.lun`
 
 Optional:
 
 - `name` (String) name of the lun
 
-
 <a id="nestedatt--filter--svm"></a>
+
 ### Nested Schema for `filter.svm`
 
 Optional:
 
 - `name` (String) name of the SVM
 
-
-
 <a id="nestedatt--protocols_san_lun_maps"></a>
+
 ### Nested Schema for `protocols_san_lun_maps`
 
 Required:
@@ -96,26 +100,25 @@ Read-Only:
 - `logical_unit_number` (Number) If no value is provided, ONTAP assigns the lowest available value
 
 <a id="nestedatt--protocols_san_lun_maps--igroup"></a>
+
 ### Nested Schema for `protocols_san_lun_maps.igroup`
 
 Required:
 
 - `name` (String) name of the igroup
 
-
 <a id="nestedatt--protocols_san_lun_maps--lun"></a>
+
 ### Nested Schema for `protocols_san_lun_maps.lun`
 
 Required:
 
 - `name` (String) name of the lun
 
-
 <a id="nestedatt--protocols_san_lun_maps--svm"></a>
+
 ### Nested Schema for `protocols_san_lun_maps.svm`
 
 Required:
 
 - `name` (String) name of the SVM
-
-

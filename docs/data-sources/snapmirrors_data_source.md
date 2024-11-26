@@ -6,13 +6,16 @@ description: |-
 ---
 
 # Data Source snapmirrors
+
 Retrieves list of the snapmirrors
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_snapmirrors" "snapmirrors" {
   # required to know which system to interface with
@@ -39,14 +42,15 @@ data "netapp-ontap_snapmirrors" "snapmirrors" {
 - `snapmirrors` (Attributes List) (see [below for nested schema](#nestedatt--snapmirrors))
 
 <a id="nestedatt--filter"></a>
+
 ### Nested Schema for `filter`
 
 Optional:
 
 - `destination_path` (String) Destination path
 
-
 <a id="nestedatt--snapmirrors"></a>
+
 ### Nested Schema for `snapmirrors`
 
 Read-Only:
@@ -63,6 +67,7 @@ Read-Only:
 - `id` (String) uuid of the relationship
 
 <a id="nestedatt--snapmirrors--destination"></a>
+
 ### Nested Schema for `snapmirrors.destination`
 
 Read-Only:
@@ -71,6 +76,7 @@ Read-Only:
 - `svm` (Attributes) Cluster details (see [below for nested schema](#nestedatt--snapmirrors--destination--svm))
 
 <a id="nestedatt--snapmirrors--destination--svm"></a>
+
 ### Nested Schema for `snapmirrors.destination.svm`
 
 Read-Only:
@@ -78,17 +84,16 @@ Read-Only:
 - `name` (String) cluster name
 - `uuid` (String) cluster UUID
 
-
-
 <a id="nestedatt--snapmirrors--policy"></a>
+
 ### Nested Schema for `snapmirrors.policy`
 
 Read-Only:
 
 - `uuid` (String) Policy UUID
 
-
 <a id="nestedatt--snapmirrors--source"></a>
+
 ### Nested Schema for `snapmirrors.source`
 
 Read-Only:
@@ -98,6 +103,7 @@ Read-Only:
 - `svm` (Attributes) Cluster details (see [below for nested schema](#nestedatt--snapmirrors--source--svm))
 
 <a id="nestedatt--snapmirrors--source--cluster"></a>
+
 ### Nested Schema for `snapmirrors.source.cluster`
 
 Read-Only:
@@ -105,13 +111,11 @@ Read-Only:
 - `name` (String) cluster name
 - `uuid` (String) cluster UUID
 
-
 <a id="nestedatt--snapmirrors--source--svm"></a>
+
 ### Nested Schema for `snapmirrors.source.svm`
 
 Read-Only:
 
 - `name` (String) svm name
 - `uuid` (String) svm UUID
-
-

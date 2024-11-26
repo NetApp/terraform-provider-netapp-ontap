@@ -6,17 +6,23 @@ description: |-
   Cluster data source
 ---
 
-# Data Source cluster 
+# Data Source cluster
+
 Retrieve the details of a cluster data source
 
-### Related ONTAP commands
-cluster show
+## Related ONTAP commands
+
+```commandline
+* cluster show
+```
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_cluster" "cluster" {
   # required to know which system to interface with
@@ -46,14 +52,15 @@ data "netapp-ontap_cluster" "cluster" {
 - `version` (Attributes) ONTAP software version (see [below for nested schema](#nestedatt--version))
 
 <a id="nestedatt--certificate"></a>
+
 ### Nested Schema for `certificate`
 
 Read-Only:
 
 - `id` (String)
 
-
 <a id="nestedatt--management_interfaces"></a>
+
 ### Nested Schema for `management_interfaces`
 
 Read-Only:
@@ -63,6 +70,7 @@ Read-Only:
 - `name` (String) Name
 
 <a id="nestedatt--management_interfaces--ip"></a>
+
 ### Nested Schema for `management_interfaces.ip`
 
 Read-Only:
@@ -72,6 +80,7 @@ Read-Only:
 
 
 <a id="nestedatt--nodes"></a>
+
 ### Nested Schema for `nodes`
 
 Read-Only:
@@ -81,6 +90,7 @@ Read-Only:
 
 
 <a id="nestedatt--time_zone"></a>
+
 ### Nested Schema for `time_zone`
 
 Read-Only:
@@ -89,9 +99,9 @@ Read-Only:
 
 
 <a id="nestedatt--version"></a>
+
 ### Nested Schema for `version`
 
 Read-Only:
 
 - `full` (String) ONTAP software version
-

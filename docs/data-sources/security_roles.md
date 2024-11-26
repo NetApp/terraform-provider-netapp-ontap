@@ -7,15 +7,18 @@ description: |-
 ---
 
 # Data Source security_roles
-Retreives one or more security roles by filter
 
-### Related ONTAP commands
+Retrieves one or more security roles by filter
+
+## Related ONTAP commands
+
 ```commandline
 * security login role show
 ```
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
@@ -47,6 +50,7 @@ data "netapp-ontap_security_roles" "security_roles" {
 - `security_roles` (Attributes List) (see [below for nested schema](#nestedatt--security_roles))
 
 <a id="nestedatt--filter"></a>
+
 ### Nested Schema for `filter`
 
 Optional:
@@ -55,8 +59,8 @@ Optional:
 - `scope` (String) Scope of the entity. Set to 'cluster' for cluster owned objects and to 'svm' for SVM owned objects.
 - `svm_name` (String) SecurityRule svm name
 
-
 <a id="nestedatt--security_roles"></a>
+
 ### Nested Schema for `security_roles`
 
 Required:
@@ -72,6 +76,7 @@ Read-Only:
 - `scope` (String) Scope of the entity. Set to 'cluster' for cluster owned objects and to 'svm' for SVM owned objects.
 
 <a id="nestedatt--security_roles--privileges"></a>
+
 ### Nested Schema for `security_roles.privileges`
 
 Read-Only:
