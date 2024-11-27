@@ -22,18 +22,18 @@ func TestAccNFSExportPolicyRuleResourceAlias(t *testing.T) {
 			},
 			// create with basic argument
 			{
-				Config: testAccNFSExportPolicyRuleResourceConfigAlias("carchi-test", "default"),
+				Config: testAccNFSExportPolicyRuleResourceConfigAlias("terraform", "default"),
 				Check: resource.ComposeTestCheckFunc(
 					// check default values
 					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_export_policy_rule_resource.example1", "allow_suid", "true"),
 					resource.TestCheckTypeSetElemAttr("netapp-ontap_protocols_nfs_export_policy_rule_resource.example1", "protocols.*", "any"),
 					// check id
-					resource.TestMatchResourceAttr("netapp-ontap_protocols_nfs_export_policy_rule_resource.example1", "id", regexp.MustCompile(`carchi-test_default_`)),
+					resource.TestMatchResourceAttr("netapp-ontap_protocols_nfs_export_policy_rule_resource.example1", "id", regexp.MustCompile(`cluster4_terraform_default_`)),
 				),
 			},
 			// update test
 			{
-				Config: testAccNFSExportPolicyRuleResourceConfigAliasUpdateProtocolsROrule("carchi-test", "default"),
+				Config: testAccNFSExportPolicyRuleResourceConfigAliasUpdateProtocolsROrule("terraform", "default"),
 				Check: resource.ComposeTestCheckFunc(
 					// check default values
 					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_export_policy_rule_resource.example1", "allow_suid", "true"),
@@ -41,23 +41,23 @@ func TestAccNFSExportPolicyRuleResourceAlias(t *testing.T) {
 					resource.TestCheckTypeSetElemAttr("netapp-ontap_protocols_nfs_export_policy_rule_resource.example1", "protocols.*", "nfs3"),
 					resource.TestCheckTypeSetElemAttr("netapp-ontap_protocols_nfs_export_policy_rule_resource.example1", "ro_rule.*", "krb5i"),
 					// check id
-					resource.TestMatchResourceAttr("netapp-ontap_protocols_nfs_export_policy_rule_resource.example1", "id", regexp.MustCompile(`carchi-test_default_`)),
+					resource.TestMatchResourceAttr("netapp-ontap_protocols_nfs_export_policy_rule_resource.example1", "id", regexp.MustCompile(`cluster4_terraform_default_`)),
 				),
 			},
 			// Test importing a resource
 			{
 				ResourceName:  "netapp-ontap_protocols_nfs_export_policy_rule_resource.example1",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "1", "default", "carchi-test", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "1", "default", "terraform", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_export_policy_rule_resource.example1", "svm_name", "carchi-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_export_policy_rule_resource.example1", "svm_name", "terraform"),
 					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_export_policy_rule_resource.example1", "export_policy_name", "default"),
 					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_export_policy_rule_resource.example1", "allow_suid", "true"),
 					resource.TestCheckTypeSetElemAttr("netapp-ontap_protocols_nfs_export_policy_rule_resource.example1", "protocols.*", "nfs3"),
 					resource.TestCheckTypeSetElemAttr("netapp-ontap_protocols_nfs_export_policy_rule_resource.example1", "ro_rule.*", "krb5i"),
 					resource.TestCheckTypeSetElemAttr("netapp-ontap_protocols_nfs_export_policy_rule_resource.example1", "rw_rule.*", "any"),
 					// check id
-					resource.TestMatchResourceAttr("netapp-ontap_protocols_nfs_export_policy_rule_resource.example1", "id", regexp.MustCompile(`carchi-test_default_`)),
+					resource.TestMatchResourceAttr("netapp-ontap_protocols_nfs_export_policy_rule_resource.example1", "id", regexp.MustCompile(`cluster4_terraform_default_`)),
 				),
 			},
 		},
@@ -65,11 +65,11 @@ func TestAccNFSExportPolicyRuleResourceAlias(t *testing.T) {
 }
 
 func testAccNFSExportPolicyRuleResourceConfigAliasMissingVars(svmName string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST")
+	host := os.Getenv("TF_ACC_NETAPP_HOST5")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS")
+	password := os.Getenv("TF_ACC_NETAPP_PASS2")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -93,11 +93,11 @@ resource "netapp-ontap_protocols_nfs_export_policy_rule_resource" "example" {
 }
 
 func testAccNFSExportPolicyRuleResourceConfigAlias(svmName string, exportPolicyName string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST")
+	host := os.Getenv("TF_ACC_NETAPP_HOST5")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS")
+	password := os.Getenv("TF_ACC_NETAPP_PASS2")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -126,11 +126,11 @@ resource "netapp-ontap_protocols_nfs_export_policy_rule_resource" "example1" {
 
 // update protocols and ro_rule
 func testAccNFSExportPolicyRuleResourceConfigAliasUpdateProtocolsROrule(svmName string, exportPolicyName string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST")
+	host := os.Getenv("TF_ACC_NETAPP_HOST5")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS")
+	password := os.Getenv("TF_ACC_NETAPP_PASS2")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
