@@ -1,7 +1,7 @@
 resource "netapp-ontap_network_ip_interface" "with_node_port" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
-  name            = "testme"
+  name            = "testme1"
   svm_name        = "ansibleSVM"
 
   ip = {
@@ -10,15 +10,15 @@ resource "netapp-ontap_network_ip_interface" "with_node_port" {
   }
 
   location = {
-    home_port = "e0a-300"
-    home_node = "netapp_single-01"
+    home_port = "e0c"
+    home_node = "ontap_cluster_1-01"
   }
 }
 
 resource "netapp-ontap_network_ip_interface" "with_broadcast_domain" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
-  name            = "testme"
+  name            = "testme2"
   svm_name        = "ansibleSVM"
 
   ip = {
