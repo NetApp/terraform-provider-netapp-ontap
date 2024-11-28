@@ -6,9 +6,11 @@ description: |-
 ---
 
 # Resource Storage Aggregate
+
 Create/Modify/Delete an aggregate resource
 
-### Related ONTAP commands
+## Related ONTAP commands
+
 ```commandline
 * storage aggregate create
 * storage aggregate modify
@@ -16,7 +18,8 @@ Create/Modify/Delete an aggregate resource
 ```
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
@@ -43,24 +46,17 @@ resource "netapp-ontap_aggregate" "example" {
 ### Required
 
 - `cx_profile_name` (String) Connection profile name
-- `disk_count` (Number) Number of disks to place into the aggregate, including parity disks.
-				The disks in this newly-created aggregate come from the spare disk pool.
-				The smallest disks in this pool join the aggregate first, unless the disk_size argument is provided.
-				Modifiable only if specified disk_count is larger than current disk_count.<br>
-				If the disk_count % raid_size == 1, only disk_count/raid_size * raid_size will be added.<br>
-				If disk_count is 6, raid_type is raid4, raid_size 4, all 6 disks will be added.<br>
-				If disk_count is 5, raid_type is raid4, raid_size 4, 5/4 * 4 = 4 will be added. 1 will not be added.
+- `disk_count` (Number) Number of disks to place into the aggregate, including parity disks. The disks in this newly-created aggregate come from the spare disk pool. The smallest disks in this pool join the aggregate first, unless the `disk_size` argument is provided. Modifiable only if specified `disk_count` is larger than current disk_count. If the `disk_count` % raid_size == 1, only `disk_count`/`raid_size` * `raid_size` will be added. If `disk_count` is 6, `raid_type` is raid4, `raid_size` 4, all 6 disks will be added. If `disk_count` is 5, `raid_type` is raid4, `raid_size` 4, 5/4 * 4 = 4 will be added. 1 will not be added.
 - `name` (String) The name of the aggregate to manage
-- `node` (String) Node for the aggregate to be created on. If no node specified, mgmt lif home will be used. If disk_count is present, node name is required.
+- `node` (String) Node for the aggregate to be created on. If no node specified, mgmt lif home will be used. If `disk_count` is present, node name is required.
 
 ### Optional
 
 - `disk_class` (String) Class of disk to use to build aggregate. capacity_flash is listed in swagger, but rejected as invalid by ONTAP.
-- `disk_size` (Number) Disk size to use in 4K block size.  Disks within 10 precent of specified size will be used.
+- `disk_size` (Number) Disk size to use in 4K block size.  Disks within 10 percent of specified size will be used.
 - `disk_size_unit` (String) Disk size to use in the specified unit. This is converted to bytes, assuming K=1024.
 - `encryption` (Boolean) Whether to enable software encryption. This is equivalent to -encrypt-with-aggr-key when using the CLI.Requires a VE license.
-- `is_mirrored` (Boolean) Specifies that the new aggregate be mirrored (have two plexes).
-				If set to true, then the indicated disks will be split across the two plexes. By default, the new aggregate will not be mirrored.
+- `is_mirrored` (Boolean) Specifies that the new aggregate be mirrored (have two plexes). If set to true, then the indicated disks will be split across the two plexes. By default, the new aggregate will not be mirrored.
 - `raid_size` (Number) Sets the maximum number of drives per raid group.
 - `raid_type` (String)
 - `snaplock_type` (String) Type of snaplock for the aggregate being created.
@@ -71,7 +67,8 @@ resource "netapp-ontap_aggregate" "example" {
 - `id` (String) Aggregate identifier
 
 ## Import
-This Resource supports import, which allows you to import existing aggregates into the state of this resoruce.
+
+This Resource supports import, which allows you to import existing aggregates into the state of this resource.
 Import require a unique ID composed of the aggregate name and cx_profile_name, separated by a comma.
 
  id = `name`,`cx_profile_name`
@@ -79,6 +76,7 @@ Import require a unique ID composed of the aggregate name and cx_profile_name, s
 ### Terraform Import
 
  For example
+
  ```shell
   terraform import netapp-ontap_aggregate.example aggr1,cluster4
  ```
@@ -86,20 +84,26 @@ Import require a unique ID composed of the aggregate name and cx_profile_name, s
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
 
 ### Terraform Import Block
+
 This requires Terraform 1.5 or higher, and will auto create the configuration for you
 
 First create the block
+
 ```terraform
 import {
   to = netapp-ontap_aggregate.aggr_import
   id = "aggr1,cluster4"
 }
 ```
+
 Next run, this will auto create the configuration for you
+
 ```shell
 terraform plan -generate-config-out=generated.tf
 ```
+
 This will generate a file called generated.tf, which will contain the configuration for the imported resource
+
 ```terraform
 # __generated__ by Terraform
 # Please review these resources and move them into your main configuration files.
@@ -110,4 +114,4 @@ resource "netapp-ontap_aggregate" "aggr_import" {
   node       = "node1"
   disk_count = 11
 }
-``` 
+```

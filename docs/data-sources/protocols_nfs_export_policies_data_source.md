@@ -6,13 +6,16 @@ description: |-
 ---
 
 # Data source NFS Export Policies
+
 Retrieves nfs export policies
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_nfs_export_policies" "export_policies" {
   cx_profile_name = "cluster4"
@@ -39,6 +42,7 @@ data "netapp-ontap_nfs_export_policies" "export_policies" {
 - `protocols_nfs_export_policies` (Attributes List) (see [below for nested schema](#nestedatt--protocols_nfs_export_policies))
 
 <a id="nestedatt--filter"></a>
+
 ### Nested Schema for `filter`
 
 Optional:
@@ -46,8 +50,8 @@ Optional:
 - `name` (String) ExportPolicy name
 - `svm_name` (String) ExportPolicy vserver name
 
-
 <a id="nestedatt--protocols_nfs_export_policies"></a>
+
 ### Nested Schema for `protocols_nfs_export_policies`
 
 Required:
@@ -60,5 +64,3 @@ Read-Only:
 - `id` (Number) Export policy identifier
 - `svm_name` (String) Name of the vserver
 - `svm_uuid` (String) UUID of the vserver
-
-

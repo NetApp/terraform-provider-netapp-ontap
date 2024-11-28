@@ -12,7 +12,7 @@ import (
 
 func TestLicensingLicenseResouce(t *testing.T) {
 	testLicense := os.Getenv("TF_ACC_NETAPP_LICENSE")
-	name := "FCP"
+	name := "NFS"
 	credName := "cluster4"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { ntest.TestAccPreCheck(t) },
@@ -40,11 +40,11 @@ func TestLicensingLicenseResouce(t *testing.T) {
 }
 
 func testAccLicensingLicenseResourceConfig(key string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST")
+	host := os.Getenv("TF_ACC_NETAPP_HOST5")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS")
+	password := os.Getenv("TF_ACC_NETAPP_PASS2")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`

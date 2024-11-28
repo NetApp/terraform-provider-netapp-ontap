@@ -6,9 +6,11 @@ description: |-
 ---
 
 # Resource Cluster Peer
+
 Create/Modify/Delete a cluster peer.
 
-### Related ONTAP commands
+## Related ONTAP commands
+
 ```commandline
 * cluster peer create
 * cluster peer modify
@@ -16,12 +18,13 @@ Create/Modify/Delete a cluster peer.
 ```
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
 
-```
+```terraform
 resource "netapp-ontap_cluster_peer" "cluster_peer" {
   # required to know which system to interface with
   cx_profile_name = "cluster3"
@@ -61,6 +64,7 @@ resource "netapp-ontap_cluster_peer" "cluster_peer" {
 - `state` (String) Cluster peering state
 
 <a id="nestedatt--remote"></a>
+
 ### Nested Schema for `remote`
 
 Required:
@@ -68,15 +72,16 @@ Required:
 - `ip_addresses` (Set of String) list of the remote ip addresses
 
 <a id="nestedatt--source_details"></a>
+
 ### Nested Schema for `source_details`
 
 Required:
 
 - `ip_addresses` (Set of String) list of the remote ip addresses
 
-
 ## Import
-This Resource supports import, which allows you to import existing cluster peer relation into the state of this resoruce.
+
+This Resource supports import, which allows you to import existing cluster peer relation into the state of this resource.
 Import require a unique ID composed of the cluster name and cx_profile_name, separated by a comma.
 
  id = `name`,`cx_profile_name`
@@ -84,6 +89,7 @@ Import require a unique ID composed of the cluster name and cx_profile_name, sep
 ### Terraform Import
 
  For example
+
  ```shell
   terraform import netapp-ontap_cluster_peer.example clutername-1,cluster4
  ```
@@ -91,20 +97,26 @@ Import require a unique ID composed of the cluster name and cx_profile_name, sep
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
 
 ### Terraform Import Block
+
 This requires Terraform 1.5 or higher, and will auto create the configuration for you
 
 First create the block
+
 ```terraform
 import {
   to = netapp-ontap_cluster_peer.example.cluster_import
   id = "clutername-1,cluster4"
 }
 ```
+
 Next run, this will auto create the configuration for you
+
 ```shell
 terraform plan -generate-config-out=generated.tf
 ```
+
 This will generate a file called generated.tf, which will contain the configuration for the imported resource
+
 ```terraform
 # __generated__ by Terraform
 # Please review these resources and move them into your main configuration files.

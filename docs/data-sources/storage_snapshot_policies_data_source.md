@@ -6,13 +6,16 @@ description: |-
 ---
 
 # Data Source snapshot policies
+
 Retrieves Snapshot Policies data
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_snapshot_policies" "storage_snapshot_policies" {
   # required to know which system to interface with
@@ -39,6 +42,7 @@ data "netapp-ontap_snapshot_policies" "storage_snapshot_policies" {
 - `storage_snapshot_policies` (Attributes List) (see [below for nested schema](#nestedatt--storage_snapshot_policies))
 
 <a id="nestedatt--filter"></a>
+
 ### Nested Schema for `filter`
 
 Optional:
@@ -48,6 +52,7 @@ Optional:
 
 
 <a id="nestedatt--storage_snapshot_policies"></a>
+
 ### Nested Schema for `storage_snapshot_policies`
 
 Required:
@@ -64,6 +69,7 @@ Read-Only:
 - `id` (String) SnapshotPolicy UUID
 
 <a id="nestedatt--storage_snapshot_policies--copies"></a>
+
 ### Nested Schema for `storage_snapshot_policies.copies`
 
 Required:
@@ -78,10 +84,9 @@ Read-Only:
 - `snapmirror_label` (String) Label for SnapMirror operations
 
 <a id="nestedatt--storage_snapshot_policies--copies--schedule"></a>
+
 ### Nested Schema for `storage_snapshot_policies.copies.schedule`
 
 Read-Only:
 
 - `name` (String) Some common schedules already defined in the system are hourly, daily, weekly, at 15 minute intervals, and at 5 minute intervals. Snapshot copy policies with custom schedules can be referenced
-
-

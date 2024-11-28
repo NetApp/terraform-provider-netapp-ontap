@@ -7,15 +7,18 @@ description: |-
 ---
 
 # Data Source security_role
+
 Retrieves a security role
 
-### Related ONTAP commands
+## Related ONTAP commands
+
 ```commandline
 * security login role show
 ```
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
@@ -45,6 +48,7 @@ data "netapp-ontap_security_role" "security_role" {
 - `scope` (String) Scope of the entity. Set to 'cluster' for cluster owned objects and to 'svm' for SVM owned objects.
 
 <a id="nestedatt--privileges"></a>
+
 ### Nested Schema for `privileges`
 
 Read-Only:

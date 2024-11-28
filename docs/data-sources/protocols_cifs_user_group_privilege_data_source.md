@@ -7,13 +7,16 @@ description: |-
 ---
 
 # Data Source cifs_user_group_privilege
+
 Retrieves Protocol Cifs User or Group Privilege data source
 
 ## Supported Platforms
-* On-perm ONTAP system 9.10.1 or higher
+
+* On-prem ONTAP system 9.10.1 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_cifs_user_group_privilege" "user_privilege" {
   # required to know which system to interface with
@@ -42,5 +45,3 @@ data "netapp-ontap_cifs_user_group_privilege" "group_privilege" {
 ### Read-Only
 
 - `privileges` (List of String) List of privileges
-
-

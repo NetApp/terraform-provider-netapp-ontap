@@ -7,10 +7,19 @@ description: |-
 ---
 
 # Data Source security_certificate
+
 Retrieves Security Certificate data source
 
-### Related ONTAP commands
+## Supported Platforms
+
+* On-prem ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
+
+## Related ONTAP commands
+
+```commandline
 * security certificate show
+```
 
 ## Example Usage
 

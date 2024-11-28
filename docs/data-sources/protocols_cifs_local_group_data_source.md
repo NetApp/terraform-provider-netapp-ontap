@@ -7,13 +7,16 @@ description: |-
 ---
 
 # Data Source cifs_local_group
+
 Retrieves cifs local group configuration
 
 ## Supported Platforms
-* On-perm ONTAP system 9.10 or higher
+
+* On-prem ONTAP system 9.10 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_cifs_local_group" "local_group" {
   # required to know which system to interface with
@@ -39,10 +42,9 @@ data "netapp-ontap_cifs_local_group" "local_group" {
 - `members` (Attributes List) Cifs Local Group members (see [below for nested schema](#nestedatt--members))
 
 <a id="nestedatt--members"></a>
+
 ### Nested Schema for `members`
 
 Read-Only:
 
 - `name` (String) Cifs Local Group member
-
-

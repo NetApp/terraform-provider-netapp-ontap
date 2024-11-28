@@ -7,13 +7,16 @@ description: |-
 ---
 
 # Data Source storage_lun
+
 Retrieves existing single lun data
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_lun" "storage_lun" {
   # required to know which system to interface with
@@ -50,6 +53,7 @@ data "netapp-ontap_lun" "storage_lun" {
 - `space` (Attributes) (see [below for nested schema](#nestedatt--space))
 
 <a id="nestedatt--location"></a>
+
 ### Nested Schema for `location`
 
 Optional:
@@ -61,6 +65,7 @@ Read-Only:
 - `logical_unit` (String) Logical unit name
 
 <a id="nestedatt--location--volume"></a>
+
 ### Nested Schema for `location.volume`
 
 Required:
@@ -71,9 +76,8 @@ Read-Only:
 
 - `uuid` (String) Volume uuid
 
-
-
 <a id="nestedatt--qos_policy"></a>
+
 ### Nested Schema for `qos_policy`
 
 Read-Only:
@@ -81,13 +85,11 @@ Read-Only:
 - `name` (String) QoS policy name
 - `uuid` (String) QoS policy uuid
 
-
 <a id="nestedatt--space"></a>
+
 ### Nested Schema for `space`
 
 Read-Only:
 
 - `size` (Number) Size of the lun
 - `used` (Number) Used space of the lun
-
-

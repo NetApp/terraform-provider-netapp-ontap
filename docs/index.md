@@ -16,7 +16,8 @@ Use the navigation to the left to read about the available resources. These are 
 To learn the basics of Terraform using this provider, follow the hands-on [get started tutorials](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/infrastructure-as-code)
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
@@ -77,6 +78,7 @@ provider "netapp-ontap" {
 - `job_completion_timeout` (Number) Time in seconds to wait for completion. Default to 600 seconds
 
 <a id="nestedatt--connection_profiles"></a>
+
 ### Nested Schema for `connection_profiles`
 
 Required:
@@ -92,6 +94,7 @@ Optional:
 - `validate_certs` (Boolean) Whether to enforce SSL certificate validation, defaults to true. Not applicable for AWS Lambda
 
 <a id="nestedatt--connection_profiles--aws_lambda"></a>
+
 ### Nested Schema for `connection_profiles.aws_lambda`
 
 Required:

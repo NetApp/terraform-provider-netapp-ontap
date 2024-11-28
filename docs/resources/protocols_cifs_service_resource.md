@@ -6,10 +6,12 @@ description: |-
   CifsService resource
 ---
 
-# Resource cifs_service 
+# Resource cifs_service
+
 Create/Modify/Delete a CIFS service resource
 
-### Related ONTAP commands
+## Related ONTAP commands
+
 ```commandline
 * vserver cifs server create
 * vserver cifs server options modify
@@ -21,7 +23,8 @@ Create/Modify/Delete a CIFS service resource
 ```
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 * In security, parameters only can be used in ONTAP 9.8 or higher:
   `lm_compatibility_level`, `encrypt_dc_connection`
@@ -91,6 +94,7 @@ resource "netapp-ontap_cifs_service" "protocols_cifs_service" {
 - `id` (String) CifsService ID
 
 <a id="nestedatt--ad_domain"></a>
+
 ### Nested Schema for `ad_domain`
 
 Required:
@@ -103,8 +107,8 @@ Optional:
 
 - `organizational_unit` (String) Organizational unit
 
-
 <a id="nestedatt--netbios"></a>
+
 ### Nested Schema for `netbios`
 
 Optional:
@@ -113,8 +117,8 @@ Optional:
 - `enabled` (Boolean) NetBios name service (NBNS) is enabled for the CIFS
 - `wins_servers` (Set of String) list of Windows Internet Name Server (WINS) addresses that manage and map the NetBIOS name of the CIFS server to their network IP addresses. The IP addresses must be IPv4 addresses.
 
-
 <a id="nestedatt--security"></a>
+
 ### Nested Schema for `security`
 
 Optional:
@@ -132,5 +136,3 @@ Optional:
 - `try_ldap_channel_binding` (Boolean) Specifies whether or not channel binding is attempted in the case of TLS/LDAPS (9.10)
 - `use_ldaps` (Boolean) Specifies whether or not to use use LDAPS for secure Active Directory LDAP connections by using the TLS/SSL protocols (9.10)
 - `use_start_tls` (Boolean) Specifies whether or not to use SSL/TLS for allowing secure LDAP communication with Active Directory LDAP servers (9.10)
-
-

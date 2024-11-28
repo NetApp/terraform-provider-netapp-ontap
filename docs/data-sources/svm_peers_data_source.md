@@ -7,11 +7,14 @@ description: |-
 ---
 
 # Data Source svm peer
+
 Retrieves the configuration of SVM Peers.
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
+
 ## Example Usage
 
 ```terraform
@@ -50,6 +53,7 @@ data "netapp-ontap_svm_peers" "svm_peers" {
 - `svm_peers` (Attributes) (see [below for nested schema](#nestedatt--svm_peers))
 
 <a id="nestedatt--filter"></a>
+
 ### Nested Schema for `filter`
 
 Optional:
@@ -58,6 +62,7 @@ Optional:
 - `peer` (Attributes) (see [below for nested schema](#nestedatt--peer))
 
 <a id="nestedatt--svm_peers"></a>
+
 ### Nested Schema for `svm_peers`
 
 Required:
@@ -76,6 +81,7 @@ Read-Only:
 - `state` (String) SVMPeering state
 
 <a id="nestedatt--peer"></a>
+
 ### Nested Schema for `peer`
 
 Optional:
@@ -84,6 +90,7 @@ Optional:
 - `cluster`  (Attributes) (see [below for nested schema](#nestedatt--cluster))
 
 <a id="nestedatt--svm"></a>
+
 ### Nested Schema for `svm`
 
 Optional:
@@ -91,6 +98,7 @@ Optional:
 - `name` (String) name of the SVM.
 
 <a id="nestedatt--cluster"></a>
+
 ### Nested Schema for `cluster`
 
 Optional:
@@ -98,12 +106,14 @@ Optional:
 - `name` (String) name of the SVM.
 
 <a id="(nestedatt--svm_peers--peer)"></a>
+
 ### Nested Schema for `svm_peers--peer`
 
 - `svm` (Attributes) (see [below for nested schema](#nestedatt--svm_peers--svm))
 - `cluster`  (Attributes) (see [below for nested schema](#nestedatt--svm_peers--cluster))
 
 <a id="(nestedatt--svm_peers--svm)"></a>
+
 ### Nested Schema for `svm_peers--svm`
 
 Optional:
@@ -111,9 +121,9 @@ Optional:
 - `name` (String) name of the SVM.
 
 <a id="nestedatt--cluster"></a>
+
 ### Nested Schema for `cluster`
 
 Optional:
 
 - `name` (String) name of the Cluster.
-

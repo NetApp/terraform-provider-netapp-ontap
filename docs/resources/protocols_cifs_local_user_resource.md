@@ -7,19 +7,22 @@ description: |-
 ---
 
 # Resource Local User
+
 Create/Modify/Delete a Local User resource
 
-### Related ONTAP commands
+## Related ONTAP commands
+
 ```commandline
-vserver cifs users-and-groups local-user create
-vserver cifs users-and-groups local-user modify
-vserver cifs users-and-groups local-user rename
-vserver cifs users-and-groups local-user set-password
-vserver cifs users-and-groups local-user delete
+* vserver cifs users-and-groups local-user create
+* vserver cifs users-and-groups local-user modify
+* vserver cifs users-and-groups local-user rename
+* vserver cifs users-and-groups local-user set-password
+* vserver cifs users-and-groups local-user delete
 ```
 
 ## Supported Platforms
-* On-perm ONTAP system 9.10 or higher
+
+* On-prem ONTAP system 9.10 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
@@ -56,10 +59,9 @@ resource "netapp-ontap_cifs_local_user" "example" {
 - `membership` (Attributes Set) CifsLocalUser membership (see [below for nested schema](#nestedatt--membership))
 
 <a id="nestedatt--membership"></a>
+
 ### Nested Schema for `membership`
 
 Read-Only:
 
 - `name` (String) CifsLocalUser membership name
-
-

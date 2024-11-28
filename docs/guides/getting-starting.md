@@ -51,6 +51,7 @@ provider "netapp-ontap" {
 ## Building Infrastructure
 
 ### Create A Connection Profile
+
 Next we need to create a connection profile. This is a configuration file that tells the provider how to connect to your ONTAP system.
 In your `provider.tf` file, add the following configuration:
 
@@ -74,11 +75,14 @@ For Password and secrets, we recommend using Vault. Please see the [Inject secre
     },
   ]
  ```
+
 This is all you'll need for your `provider.tf` to connect to your ONTAP system.
 
 ### Variables File
+
 In terraform we can create a variables file to store variables that we want to be prompted for when we run `terraform apply`.
 To do this create a file called `variables.tf` in the same directory as your `provider.tf` file.
+
 ```terraform
 # Terraform will prompt for values, unless a tfvars file is present.
 variable "username" {
@@ -95,10 +99,12 @@ variable "validate_certs" {
 ```
 
 ### Create A Volume
+
 Now let us create a volume. First, you'll want to have the documentation for [netapp-ontap_volume](https://registry.terraform.io/providers/NetApp/netapp-ontap/latest/docs/resources/storage_volume_resource) open in another tab.
 This will show you all the configuration options for the volume resource, including examples.
 
 We are just going to make a volume with the required variables
+
 * cx_profile_name - The name of the connection profile we created earlier
 * name - The name of the volume
 * svm_name - The name of the SVM to create the volume in
@@ -257,6 +263,7 @@ Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
 ```
 
 This will create a volume on your ONTAP system. You can verify this by logging into your ONTAP system and running `volume show -vserver terraformSVM -volume terraformTest5`
+
 ```bash
 ontap_cluster_1::> volume show -vserver terraformSVM -volume terraformTest5
 
@@ -353,6 +360,7 @@ cat terraform.tfstate
 ```
 
 ## Destroying Infrastructure
+
 Now that we have a volume managed by Terraform, we can destroy it. To do this, we can run `terraform destroy` and Terraform will destroy the volume.
 
 ```bash
@@ -446,9 +454,10 @@ There are no entries matching your query.
 ```
 
 ## Handling resource dependencies
+
 Now that you have created a volume, let's say you wanted to create a volume and create a snapshot for that volume. Something like this will fail.
 The reason for this is that the volume resource is not yet created, so the snapshot resource cannot find the volume to create a snapshot for.
-Terrafrom will create all resources at the same time, so it will try to create the snapshot before the volume is created.
+Terraform will create all resources at the same time, so it will try to create the snapshot before the volume is created.
 
 ```terraform
 resource "netapp-ontap_volume" "volume1" {
@@ -473,6 +482,7 @@ resource "netapp-ontap_volume_snapshot" "snapshot1" {
   svm_name = "terraformSVM"
 }
 ```
+
 You can see this by running `terraform graph | dot -Tsvg > graph.svg` and opening the graph.svg file.
 
 <img src="https://github.com/NetApp/terraform-provider-netapp-ontap/tree/integration/main/docs/guides/graph.svg">

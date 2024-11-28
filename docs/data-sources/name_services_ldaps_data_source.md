@@ -7,13 +7,16 @@ description: |-
 ---
 
 # Data Source name_services_ldaps
+
 Retrieves LDAP data source of SVMs
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_name_services_ldaps" "name_services_ldaps" {
   # required to know which system to interface with
@@ -42,6 +45,7 @@ data "netapp-ontap_name_services_ldaps" "name_services_ldaps" {
 - `name_services_ldaps` (Attributes List) (see [below for nested schema](#nestedatt--name_services_ldaps))
 
 <a id="nestedatt--filter"></a>
+
 ### Nested Schema for `filter`
 
 Optional:
@@ -52,6 +56,7 @@ Optional:
 
 
 <a id="nestedatt--name_services_ldaps"></a>
+
 ### Nested Schema for `name_services_ldaps`
 
 Read-Only:
@@ -73,5 +78,3 @@ Read-Only:
 - `session_security` (String) Specifies the level of security to be used for LDAP communications
 - `svm_name` (String) IPInterface svm name
 - `use_start_tls` (Boolean) Specifies whether or not to use Start TLS over LDAP connections
-
-

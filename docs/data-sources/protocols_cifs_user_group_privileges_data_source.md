@@ -7,13 +7,16 @@ description: |-
 ---
 
 # Data Source cifs_user_group_privileges
+
 Retrieves Cifs User or Group Privileges data source
 
 ## Supported Platforms
-* On-perm ONTAP system 9.10.1 or higher
+
+* On-prem ONTAP system 9.10.1 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_cifs_user_group_privileges" "by_name_privileges" {
   # required to know which system to interface with
@@ -65,6 +68,7 @@ data "netapp-ontap_cifs_user_group_privileges" "by_svm_privileges" {
 - `protocols_cifs_user_group_privileges` (Attributes List) (see [below for nested schema](#nestedatt--protocols_cifs_user_group_privileges))
 
 <a id="nestedatt--filter"></a>
+
 ### Nested Schema for `filter`
 
 Optional:
@@ -73,8 +77,8 @@ Optional:
 - `privileges` (String) CifsUserGroupPrivilege privileges
 - `svm_name` (String) CifsUserGroupPrivilege svm name
 
-
 <a id="nestedatt--protocols_cifs_user_group_privileges"></a>
+
 ### Nested Schema for `protocols_cifs_user_group_privileges`
 
 Required:
@@ -86,5 +90,3 @@ Required:
 Read-Only:
 
 - `privileges` (List of String) List of privileges
-
-

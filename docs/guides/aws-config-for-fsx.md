@@ -28,7 +28,8 @@ Example of region dlecaration in AWS config profile
 region = us-east-1
 
 # Construct connection profiles
-```
+
+```terraform
 provider "netapp-ontap" {
   # A connection profile defines how to interface with an ONTAP cluster or svm.
   # At least one is required.
