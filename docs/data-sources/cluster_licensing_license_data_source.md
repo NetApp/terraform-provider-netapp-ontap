@@ -6,14 +6,16 @@ description: |-
 ---
 
 # Data Source cluster licensing license
+
 Retrieves Cluster Licensing License
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
-
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_cluster_licensing_license" "cluster_licensing_license" {
   # required to know which system to interface with
@@ -37,6 +39,7 @@ data "netapp-ontap_cluster_licensing_license" "cluster_licensing_license" {
 - `state` (String) State of the license
 
 <a id="nestedatt--licenses"></a>
+
 ### Nested Schema for `licenses`
 
 Read-Only:
@@ -49,10 +52,9 @@ Read-Only:
 - `serial_number` (String) Serial Number of the license
 
 <a id="nestedatt--licenses--compliance"></a>
+
 ### Nested Schema for `licenses.compliance`
 
 Read-Only:
 
 - `state` (String) state of the license
-
-

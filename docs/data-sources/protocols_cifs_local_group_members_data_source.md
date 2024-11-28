@@ -7,13 +7,16 @@ description: |-
 ---
 
 # Data Source cifs_local_group_members
-Retreives cifs local group members configuration
+
+Retrieves cifs local group members configuration
 
 ## Supported Platforms
-* On-perm ONTAP system 9.10 or higher
+
+* On-prem ONTAP system 9.10 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_cifs_local_group_members" "protocols_cifs_local_group_members" {
   # required to know which system to interface with
@@ -35,5 +38,3 @@ data "netapp-ontap_cifs_local_group_members" "protocols_cifs_local_group_members
 ### Read-Only
 
 - `members` (Set of String) List of members
-
-

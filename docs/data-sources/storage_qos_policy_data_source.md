@@ -7,10 +7,12 @@ description: |-
 ---
 
 # Data Source qos_policy
+
 Retrieves QOSPolicy data source
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
@@ -44,6 +46,7 @@ data "netapp-ontap_qos_policy" "qos_policy" {
 - `id` (String) QOSPolicies UUID
 
 <a id="nestedatt--adaptive"></a>
+
 ### Nested Schema for `adaptive`
 
 Required:
@@ -63,6 +66,7 @@ Read-Only:
 
 
 <a id="nestedatt--fixed"></a>
+
 ### Nested Schema for `fixed`
 
 Read-Only:

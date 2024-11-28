@@ -7,13 +7,16 @@ description: |-
 ---
 
 # Data Source svm
+
 Retrieves the configuration of SVM
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_svm" "svm" {
   # required to know which system to interface with
@@ -40,5 +43,3 @@ data "netapp-ontap_svm" "svm" {
 - `max_volumes` (String) Maximum number of volumes that can be created on the svm. Expects an integer or unlimited
 - `snapshot_policy` (String) The name of the snapshot policy to manage
 - `subtype` (String) The subtype for svm to be created
-
-

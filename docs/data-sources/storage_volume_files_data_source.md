@@ -6,14 +6,17 @@ description: |-
   Storage Volume Files data source
 ---
 
-# Data Source nvolume_files
+# Data Source volume_files
+
 Retrieves an existing storage volume files
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_volume_files" "storage_volume_files" {
   cx_profile_name = "cluster4"
@@ -44,6 +47,7 @@ data "netapp-ontap_volume_files" "storage_volume_files" {
 - `storage_volume_files` (Attributes List) (see [below for nested schema](#nestedatt--storage_volume_files))
 
 <a id="nestedatt--storage_volume_files"></a>
+
 ### Nested Schema for `storage_volume_files`
 
 Read-Only:

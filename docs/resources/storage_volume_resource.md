@@ -7,9 +7,11 @@ description: |-
 ---
 
 # Resource volume
+
 Create/modify/delete a Volume resource
 
-### Related ONTAP commands
+## Related ONTAP commands
+
 ```commandline
 * volume create
 * volume modify
@@ -17,7 +19,8 @@ Create/modify/delete a Volume resource
 ```
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
@@ -39,16 +42,16 @@ resource "netapp-ontap_volume" "example" {
     type = "non_snaplock"
   }
   space = {
-	  size = 30
-	  size_unit = "mb"
-	  percent_snapshot_space = 20
+    size = 30
+    size_unit = "mb"
+    percent_snapshot_space = 20
     logical_space = {
       enforcement = true
       reporting = true
     }
   }
   tiering = {
-  	policy_name = "all"
+    policy_name = "all"
   }
   nas = {
     export_policy_name = "test"
@@ -56,7 +59,7 @@ resource "netapp-ontap_volume" "example" {
     user_id = 20
     unix_permissions = "755"
     security_style = "mixed"
-	  junction_path = "/testacc"
+    junction_path = "/testacc"
   }
 }
 ```
@@ -93,13 +96,15 @@ resource "netapp-ontap_volume" "example" {
 - `id` (String) Volume identifier
 
 <a id="nestedatt--aggregates"></a>
+
 ### Nested Schema for `aggregates`
 
 Required:
 
 - `name` (String) Name of the Aggregate
-- 
+
 <a id="nestedatt--space"></a>
+
 ### Nested Schema for `space`
 
 Required:
@@ -113,6 +118,7 @@ Optional:
 - `percent_snapshot_space` (Number) Amount of space reserved for snapshot copies of the volume
 
 <a id="nestedatt--space--logical_space"></a>
+
 ### Nested Schema for `space.logical_space`
 
 Optional:
@@ -120,17 +126,16 @@ Optional:
 - `enforcement` (Boolean) Whether to perform logical space accounting on the volume
 - `reporting` (Boolean) Whether to report space logically
 
-
-
 <a id="nestedatt--analytics"></a>
+
 ### Nested Schema for `analytics`
 
 Optional:
 
 - `state` (String) Set file system analytics state of the volume
 
-
 <a id="nestedatt--efficiency"></a>
+
 ### Nested Schema for `efficiency`
 
 Optional:
@@ -138,8 +143,8 @@ Optional:
 - `compression` (String) Whether to enable compression for the volume (HDD and Flash Pool aggregates)
 - `policy_name` (String) Allows a storage efficiency policy to be set on volume creation
 
-
 <a id="nestedatt--nas"></a>
+
 ### Nested Schema for `nas`
 
 Optional:
@@ -151,16 +156,16 @@ Optional:
 - `unix_permissions` (Number) Unix permission bits in octal or symbolic format. For example, 0 is equivalent to ------------, 777 is equivalent to ---rwxrwxrwx,both formats are accepted
 - `user_id` (Number) The UNIX user ID for the volume
 
-
 <a id="nestedatt--snaplock"></a>
+
 ### Nested Schema for `snaplock`
 
 Optional:
 
 - `type` (String) The SnapLock type of the volume
 
-
 <a id="nestedatt--tiering"></a>
+
 ### Nested Schema for `tiering`
 
 Optional:
@@ -169,6 +174,7 @@ Optional:
 - `policy_name` (String) The tiering policy that is to be associated with the volume
 
 ## Import
+
 This resource supports import, which allows you to import existing volumes into the state of this resource.
 Import require a unique ID composed of the volume name, the SVM name, and connection profile, separated by a comma.
 
@@ -177,26 +183,34 @@ id = `name`,`svm_name`,`cx_profile_name`
 ### Terraform Import
 
 For example
+
 ```shell
  terraform import netapp-ontap_volume.example vol1,svm2,cluster5
 ```
+
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
 
 ### Terraform Import Block
+
 This requires Terraform 1.5 or higher, and will auto create the configuration for you
 
 First create the block
+
 ```terraform
 import {
   to = netapp-ontap_volume.volume_import
   id = "svm1_root,svm1,cluster4"
 }
 ```
+
 Next run, this will auto create the configuration for you
+
 ```shell
 terraform plan -generate-config-out=generated.tf
 ```
+
 This will generate a file called generated.tf, which will contain the configuration for the imported resource
+
 ```terraform
 # __generated__ by Terraform
 # Please review these resources and move them into your main configuration files.

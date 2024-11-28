@@ -7,13 +7,16 @@ description: |-
 ---
 
 # Data Source snapshots
+
 Retrieves a collection of volume Snapshot copies
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_volume_snapshots" "storage_volume_snapshots" {
   # required to know which system to interface with
@@ -45,14 +48,15 @@ data "netapp-ontap_volume_snapshots" "storage_volume_snapshots" {
 - `storage_volume_snapshots` (Attributes List) (see [below for nested schema](#nestedatt--storage_volume_snapshots))
 
 <a id="nestedatt--filter"></a>
+
 ### Nested Schema for `filter`
 
 Optional:
 
 - `name` (String) StorageVolumeSnapshot name
 
-
 <a id="nestedatt--storage_volume_snapshots"></a>
+
 ### Nested Schema for `storage_volume_snapshots`
 
 Required:
@@ -71,5 +75,3 @@ Read-Only:
 - `snapmirror_label` (String) Snapmirror Label
 - `state` (String) State
 - `id` (String) Volume Snapshot Identifier
-
-

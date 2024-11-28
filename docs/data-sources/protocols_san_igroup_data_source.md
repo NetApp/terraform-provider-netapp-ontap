@@ -7,13 +7,16 @@ description: |-
 ---
 
 # Data Source Protocols San Igroup
+
 Retrieves Igroup data source
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_san_igroup" "protocols_san_igroup" {
   # required to know which system to interface with
@@ -44,6 +47,7 @@ data "netapp-ontap_san_igroup" "protocols_san_igroup" {
 - `protocol` (String) The protocols supported by the initiator group. This restricts the type of initiators that can be added to the initiator group.
 
 <a id="nestedatt--igroups"></a>
+
 ### Nested Schema for `igroups`
 
 Read-Only:
@@ -52,8 +56,8 @@ Read-Only:
 - `name` (String) Name
 - `uuid` (String) UUID
 
-
 <a id="nestedatt--initiators"></a>
+
 ### Nested Schema for `initiators`
 
 Read-Only:
@@ -61,8 +65,8 @@ Read-Only:
 - `comment` (String) Comment
 - `name` (String) Name
 
-
 <a id="nestedatt--lun_maps"></a>
+
 ### Nested Schema for `lun_maps`
 
 Read-Only:
@@ -71,6 +75,7 @@ Read-Only:
 - `lun` (Attributes) The LUN to which the initiator group is mapped (see [below for nested schema](#nestedatt--lun_maps--lun))
 
 <a id="nestedatt--lun_maps--lun"></a>
+
 ### Nested Schema for `lun_maps.lun`
 
 Read-Only:
@@ -78,14 +83,11 @@ Read-Only:
 - `name` (String) The name of the LUN.
 - `uuid` (String) The UUID of the LUN.
 
-
-
 <a id="nestedatt--portset"></a>
+
 ### Nested Schema for `portset`
 
 Read-Only:
 
 - `name` (String) The name of the LUN.
 - `uuid` (String) The UUID of the LUN.
-
-

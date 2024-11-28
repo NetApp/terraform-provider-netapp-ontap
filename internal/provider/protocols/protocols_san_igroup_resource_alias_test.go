@@ -17,14 +17,14 @@ func TestAccProtocolsSanIgroupResourceAlias(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Create protocols_san_igroup and read
 			{
-				Config: testAccProtocolsSanIgroupResourceBasicConfigAlias("acc_test2", "carchi-test"),
+				Config: testAccProtocolsSanIgroupResourceBasicConfigAlias("acc_test2", "terraform"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_protocols_san_igroup_resource.example", "name", "acc_test2"),
 				),
 			},
 			// Update options and read
 			{
-				Config: testAccProtocolsSanIgroupResourceUpdateConfigAlias("acc_test2", "carchi-test", "windows", "test_acc"),
+				Config: testAccProtocolsSanIgroupResourceUpdateConfigAlias("acc_test2", "terraform", "windows", "test_acc"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_protocols_san_igroup_resource.example", "os_type", "windows"),
 					resource.TestCheckResourceAttr("netapp-ontap_protocols_san_igroup_resource.example", "name", "acc_test2"),
@@ -34,9 +34,9 @@ func TestAccProtocolsSanIgroupResourceAlias(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_protocols_san_igroup_resource.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s", "acc_test", "carchi-test", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s", "terraform", "terraform", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_san_igroup_resource.example", "name", "acc_test"),
+					resource.TestCheckResourceAttr("netapp-ontap_protocols_san_igroup_resource.example", "name", "terraform"),
 				),
 			},
 			// Delete testing automatically occurs in TestCase
@@ -45,11 +45,11 @@ func TestAccProtocolsSanIgroupResourceAlias(t *testing.T) {
 }
 
 func testAccProtocolsSanIgroupResourceBasicConfigAlias(name string, svmName string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST")
+	host := os.Getenv("TF_ACC_NETAPP_HOST5")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS")
+	password := os.Getenv("TF_ACC_NETAPP_PASS2")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -77,11 +77,11 @@ resource "netapp-ontap_protocols_san_igroup_resource" "example" {
 }
 
 func testAccProtocolsSanIgroupResourceUpdateConfigAlias(name string, svmName string, osType string, comment string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST")
+	host := os.Getenv("TF_ACC_NETAPP_HOST5")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS")
+	password := os.Getenv("TF_ACC_NETAPP_PASS2")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`

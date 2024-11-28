@@ -7,13 +7,16 @@ description: |-
 ---
 
 # Data Source Storage Luns
+
 Retrieves existing Luns data
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_luns" "storage_luns" {
   # required to know which system to interface with
@@ -40,6 +43,7 @@ data "netapp-ontap_luns" "storage_luns" {
 - `storage_luns` (Attributes List) (see [below for nested schema](#nestedatt--storage_luns))
 
 <a id="nestedatt--filter"></a>
+
 ### Nested Schema for `filter`
 
 Optional:
@@ -48,8 +52,8 @@ Optional:
 - `svm_name` (String) StorageLun svm name
 - `volume_name` (String) StorageLun volume name
 
-
 <a id="nestedatt--storage_luns"></a>
+
 ### Nested Schema for `storage_luns`
 
 Read-Only:
@@ -65,6 +69,7 @@ Read-Only:
 - `svm_name` (String) StorageLun svm name
 
 <a id="nestedatt--storage_luns--location"></a>
+
 ### Nested Schema for `storage_luns.location`
 
 Read-Only:
@@ -73,6 +78,7 @@ Read-Only:
 - `volume` (Attributes) (see [below for nested schema](#nestedatt--storage_luns--location--volume))
 
 <a id="nestedatt--storage_luns--location--volume"></a>
+
 ### Nested Schema for `storage_luns.location.volume`
 
 Read-Only:
@@ -80,9 +86,8 @@ Read-Only:
 - `name` (String) Volume name
 - `uuid` (String) Volume uuid
 
-
-
 <a id="nestedatt--storage_luns--qos_policy"></a>
+
 ### Nested Schema for `storage_luns.qos_policy`
 
 Read-Only:
@@ -90,13 +95,11 @@ Read-Only:
 - `name` (String) QoS policy name
 - `uuid` (String) QoS policy uuid
 
-
 <a id="nestedatt--storage_luns--space"></a>
+
 ### Nested Schema for `storage_luns.space`
 
 Read-Only:
 
 - `size` (Number) Size of lun in bytes
 - `used` (Number) Used space of lun in bytes
-
-
