@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -37,9 +38,19 @@ type SvmQosPolicyActivationResource struct {
 
 // SvmQosPolicyActivationResourceModel describes the resource data model.
 type SvmQosPolicyActivationResourceModel struct {
-	CxProfileName types.String `tfsdk:"cx_profile_name"`
-	SvmID         types.String `tfsdk:"svm_id"`
-	QoSPolicyID   types.String `tfsdk:"qos_policy_id"`
+	CxProfileName types.String                                  `tfsdk:"cx_profile_name"`
+	Svm           *SvmQosPolicyActivationSvmResourceModel       `tfsdk:"svm"`
+	QoSPolicy     *SvmQosPolicyActivationQosPolicyResourceModel `tfsdk:"qos_policy"`
+}
+
+type SvmQosPolicyActivationSvmResourceModel struct {
+	ID   types.String `tfsdk:"id"`
+	Name types.String `tfsdk:"name"`
+}
+
+type SvmQosPolicyActivationQosPolicyResourceModel struct {
+	ID   types.String `tfsdk:"id"`
+	Name types.String `tfsdk:"name"`
 }
 
 // Metadata returns the resource type name.
@@ -61,12 +72,42 @@ func (r *SvmQosPolicyActivationResource) Schema(ctx context.Context, req resourc
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"svm_id": schema.StringAttribute{
-				MarkdownDescription: "SVM UUID",
+			"svm": schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"name": schema.StringAttribute{
+						MarkdownDescription: "The name of the SVM",
+						Optional:            true,
+						Computed:            true,
+					},
+					"id": schema.StringAttribute{
+						MarkdownDescription: "The unique identifier of the SVM",
+						Optional:            true,
+						Computed:            true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
+					},
+				},
+				MarkdownDescription: "SVM to manage (name or UUID)",
 				Required:            true,
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.RequiresReplace(),
+				},
 			},
-			"qos_policy_id": schema.StringAttribute{
-				MarkdownDescription: "QoS Policy UUID",
+			"qos_policy": schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"name": schema.StringAttribute{
+						MarkdownDescription: "The QoS policy group name",
+						Optional:            true,
+						Computed:            true,
+					},
+					"id": schema.StringAttribute{
+						MarkdownDescription: "The QoS policy group UUID",
+						Optional:            true,
+						Computed:            true,
+					},
+				},
+				MarkdownDescription: "QoS policy group to apply to the SVM (name or UUID)",
 				Required:            true,
 			},
 		},
@@ -122,23 +163,16 @@ func (r *SvmQosPolicyActivationResource) Read(ctx context.Context, req resource.
 	svm, err := interfaces.GetSvm(
 		errorHandler,
 		*client,
-		data.SvmID.ValueString(),
+		data.Svm.ID.ValueString(),
 	)
 	if err != nil {
 		return
 	}
-	if svm == nil {
-		errorHandler.MakeAndReportError(
-			"No SVM Found",
-			fmt.Sprintf("No SVM '%s' found.", data.SvmID.ValueString()),
-		)
-
-		return
-	}
 
 	// Copy svm info to resource model
-	data.SvmID = types.StringValue(svm.UUID)
-	data.QoSPolicyID = types.StringValue(svm.QoSPolicy.UUID)
+	data.Svm.Name = types.StringValue(svm.Name)
+	data.QoSPolicy.ID = types.StringValue(svm.QoSPolicy.UUID)
+	data.QoSPolicy.Name = types.StringValue(svm.QoSPolicy.Name)
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
@@ -161,10 +195,6 @@ func (r *SvmQosPolicyActivationResource) Create(ctx context.Context, req resourc
 	}
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 
-	// Copy QoS policy info to request body
-	var body interfaces.SvmResourceModel
-	body.QoSPolicy.UUID = data.QoSPolicyID.ValueString()
-
 	// Use existing-, or create new REST API client
 	client, err := connection.GetRestClient(
 		errorHandler,
@@ -176,19 +206,56 @@ func (r *SvmQosPolicyActivationResource) Create(ctx context.Context, req resourc
 		return
 	}
 
+	// If no svm ID specified...
+	if data.Svm.ID.ValueString() == "" {
+
+		// ...call ONTAP REST API for reading svm info
+		svm, err := interfaces.GetSvmByNameDataSource(
+			errorHandler,
+			*client,
+			data.Svm.Name.ValueString(),
+		)
+		if err != nil {
+			return
+		}
+
+		// Copy svm info to resource model
+		data.Svm.ID = types.StringValue(svm.UUID)
+	}
+
+	// Copy QoS policy info to request body
+	var body interfaces.SvmResourceModel
+	body.QoSPolicy.UUID = data.QoSPolicy.ID.ValueString()
+	body.QoSPolicy.Name = data.QoSPolicy.Name.ValueString()
+
 	// Call ONTAP REST API for updating svm
 	tflog.Debug(ctx, fmt.Sprintf("update a svm resource: %#v", data))
 	err = interfaces.UpdateSvm(
 		errorHandler,
 		*client,
 		body,
-		data.SvmID.ValueString(),
+		data.Svm.ID.ValueString(),
 		true,
 		true,
 	)
 	if err != nil {
 		return
 	}
+
+	// Call ONTAP REST API again for reading svm info
+	svm, err := interfaces.GetSvm(
+		errorHandler,
+		*client,
+		data.Svm.ID.ValueString(),
+	)
+	if err != nil {
+		return
+	}
+
+	// Copy remaining svm info to resource model
+	data.Svm.Name = types.StringValue(svm.Name)
+	data.QoSPolicy.ID = types.StringValue(svm.QoSPolicy.UUID)
+	data.QoSPolicy.Name = types.StringValue(svm.QoSPolicy.Name)
 
 	// Save data into Terraform state
 	diags = resp.State.Set(ctx, &data)
@@ -209,7 +276,8 @@ func (r *SvmQosPolicyActivationResource) Update(ctx context.Context, req resourc
 
 	// Copy QoS policy info to request body
 	var body interfaces.SvmResourceModel
-	body.QoSPolicy.UUID = data.QoSPolicyID.ValueString()
+	body.QoSPolicy.UUID = data.QoSPolicy.ID.ValueString()
+	body.QoSPolicy.Name = data.QoSPolicy.Name.ValueString()
 
 	// Use existing-, or create new REST API client
 	client, err := connection.GetRestClient(
@@ -228,13 +296,28 @@ func (r *SvmQosPolicyActivationResource) Update(ctx context.Context, req resourc
 		errorHandler,
 		*client,
 		body,
-		data.SvmID.ValueString(),
+		data.Svm.ID.ValueString(),
 		true,
 		true,
 	)
 	if err != nil {
 		return
 	}
+
+	// Call ONTAP REST API again for reading svm info
+	svm, err := interfaces.GetSvm(
+		errorHandler,
+		*client,
+		data.Svm.ID.ValueString(),
+	)
+	if err != nil {
+		return
+	}
+
+	// Copy remaining svm info to resource model
+	data.Svm.Name = types.StringValue(svm.Name)
+	data.QoSPolicy.ID = types.StringValue(svm.QoSPolicy.UUID)
+	data.QoSPolicy.Name = types.StringValue(svm.QoSPolicy.Name)
 
 	// Save updated data into Terraform state
 	diags = resp.State.Set(ctx, &data)
@@ -274,7 +357,7 @@ func (r *SvmQosPolicyActivationResource) Delete(ctx context.Context, req resourc
 		errorHandler,
 		*client,
 		body,
-		data.SvmID.ValueString(),
+		data.Svm.ID.ValueString(),
 		true,
 		true,
 	)
