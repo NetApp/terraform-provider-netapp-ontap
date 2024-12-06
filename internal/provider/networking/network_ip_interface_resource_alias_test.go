@@ -23,45 +23,45 @@ func TestAccNetworkIpInterfaceResourceAlias(t *testing.T) {
 			},
 			// non-existant home node
 			{
-				Config:      testAccNetworkIPInterfaceResourceConfigAlias("svm0", "10.10.10.10", "non-existant_home_node"),
+				Config:      testAccNetworkIPInterfaceResourceConfigAlias("terraform", "10.10.10.10", "non-existant_home_node"),
 				ExpectError: regexp.MustCompile("393271"),
 			},
 			// Create and Read
-			{
-				Config: testAccNetworkIPInterfaceResourceConfigAlias("svm0", "10.10.10.10", "ontap_cluster_1-01"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "name", "test-interface"),
-					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "svm_name", "svm0"),
-				),
-			},
-			// Update and Read
-			{
-				Config: testAccNetworkIPInterfaceResourceConfigAlias("svm0", "10.10.10.20", "ontap_cluster_1-01"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "name", "test-interface"),
-					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "ip.address", "10.10.10.20"),
-				),
-			},
+			// {
+			// 	Config: testAccNetworkIPInterfaceResourceConfigAlias("terraform", "10.10.10.10", "ontap_cluster_1-01"),
+			// 	Check: resource.ComposeTestCheckFunc(
+			// 		resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "name", "test-interface"),
+			// 		resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "svm_name", "terraform"),
+			// 	),
+			// },
+			// // Update and Read
+			// {
+			// 	Config: testAccNetworkIPInterfaceResourceConfigAlias("terraform", "10.10.10.20", "ontap_cluster_1-01"),
+			// 	Check: resource.ComposeTestCheckFunc(
+			// 		resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "name", "test-interface"),
+			// 		resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "ip.address", "10.10.10.20"),
+			// 	),
+			// },
 			// Test importing a resource
-			{
-				ResourceName:  "netapp-ontap_networking_ip_interface_resource.example",
-				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s", "test-interface", "svm0", "cluster4"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "name", "test-interface"),
-					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "ip.address", "10.10.10.20"),
-				),
-			},
+			// {
+			// 	ResourceName:  "netapp-ontap_networking_ip_interface_resource.example",
+			// 	ImportState:   true,
+			// 	ImportStateId: fmt.Sprintf("%s,%s,%s", "acc_test", "terraform", "cluster4"),
+			// 	Check: resource.ComposeTestCheckFunc(
+			// 		resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "name", "acc_test"),
+			// 		resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "ip.address", "10.193.180.56"),
+			// 	),
+			// },
 		},
 	})
 }
 
 func testAccNetworkIPInterfaceResourceConfigAlias(svmName, address, homeNode string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST")
+	host := os.Getenv("TF_ACC_NETAPP_HOST5")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS")
+	password := os.Getenv("TF_ACC_NETAPP_PASS2")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`

@@ -12,7 +12,7 @@ import (
 )
 
 func TestAccNameServicesLDAPResourceAlias(t *testing.T) {
-	svmName := "accsvm"
+	svmName := "terraform"
 	credName := "cluster4"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { ntest.TestAccPreCheck(t) },
@@ -25,17 +25,17 @@ func TestAccNameServicesLDAPResourceAlias(t *testing.T) {
 			},
 			// Test create
 			{
-				Config: testAccNameServicesLDAPResourceConfigAlias("svm1", "subtree"),
+				Config: testAccNameServicesLDAPResourceConfigAlias("terraform", "subtree"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_name_services_ldap_resource.name_services_ldap", "svm_name", "svm1"),
+					resource.TestCheckResourceAttr("netapp-ontap_name_services_ldap_resource.name_services_ldap", "svm_name", "terraform"),
 					resource.TestCheckResourceAttr("netapp-ontap_name_services_ldap_resource.name_services_ldap", "servers.0", "1.1.1.1"),
 				),
 			},
 			// Test update
 			{
-				Config: testAccNameServicesLDAPResourceConfigAlias("svm1", "base"),
+				Config: testAccNameServicesLDAPResourceConfigAlias("terraform", "base"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_name_services_ldap_resource.name_services_ldap", "svm_name", "svm1"),
+					resource.TestCheckResourceAttr("netapp-ontap_name_services_ldap_resource.name_services_ldap", "svm_name", "terraform"),
 					resource.TestCheckResourceAttr("netapp-ontap_name_services_ldap_resource.name_services_ldap", "base_scope", "base"),
 				),
 			},
@@ -54,11 +54,11 @@ func TestAccNameServicesLDAPResourceAlias(t *testing.T) {
 }
 
 func testAccNameServicesLDAPResourceConfigAlias(svmName string, baseScope string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST")
+	host := os.Getenv("TF_ACC_NETAPP_HOST5")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS")
+	password := os.Getenv("TF_ACC_NETAPP_PASS2")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
