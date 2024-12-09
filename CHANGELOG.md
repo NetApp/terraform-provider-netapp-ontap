@@ -140,6 +140,7 @@ FEATURES:
 * **New Resource:** `netapp-ontap_qtree` ([#82](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/82))
 * **New Resource:** `netapp-ontap_qos_policy` ([#76](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/76))
 * **New Resource:** `netapp-security_login_message` ([#18](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/18))
+* **New Resource:** `netapp-ontap_security_certificate` ([#138](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/138))
 
 ENHANCEMENTS:
 
