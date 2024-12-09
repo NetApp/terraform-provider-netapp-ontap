@@ -7,9 +7,11 @@ description: |-
 ---
 
 # Resource qos_policy
+
 Create/Modify/Delete a QOSPolicy resource
 
-### Related ONTAP commands
+## Related ONTAP commands
+
 ```commandline
 * qos policy-group create
 * qos policy-group modify
@@ -20,7 +22,8 @@ Create/Modify/Delete a QOSPolicy resource
 ```
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
@@ -57,6 +60,7 @@ resource "netapp-ontap_qos_policy" "qos_policy" {
 - `id` (String) QOSPolicy UUID
 
 <a id="nestedatt--adaptive"></a>
+
 ### Nested Schema for `adaptive`
 
 Required:
@@ -71,8 +75,8 @@ Optional:
 - `expected_iops_allocation` (String) Expected IOPS allocation
 - `peak_iops_allocation` (String) Peak IOPS allocation
 
-
 <a id="nestedatt--fixed"></a>
+
 ### Nested Schema for `fixed`
 
 Optional:
@@ -84,7 +88,8 @@ Optional:
 - `min_throughput_mbps` (Number) Minimum throughput in MBPS
 
 ## Import
-This Resource supports import, which allows you to import existing qos policy into the state of this resoruce.
+
+This Resource supports import, which allows you to import existing qos policy into the state of this resource.
 Import require a unique ID composed of the name, svm name and cx_profile_name, separated by a comma.
 
 id = `name`, `svm_name`, `cx_profile_name`
@@ -92,6 +97,7 @@ id = `name`, `svm_name`, `cx_profile_name`
 ### Terraform Import
 
 For example
+
  ```shell
   terraform import netapp-ontap_qos_policy.example name,svm,cluster4
  ```
@@ -99,20 +105,26 @@ For example
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
 
 ### Terraform Import Block
+
 This requires Terraform 1.5 or higher, and will auto create the configuration for you
 
 First create the block
+
 ```terraform
 import {
   to = netapp-ontap_qos_policy.qos_policy
   id = "name,svm,cluster4"
 }
 ```
+
 Next run, this will auto create the configuration for you
+
 ```shell
 terraform plan -generate-config-out=generated.tf
 ```
+
 This will generate a file called generated.tf, which will contain the configuration for the imported resource
+
 ```terraform
 # __generated__ by Terraform
 # Please review these resources and move them into your main configuration files.

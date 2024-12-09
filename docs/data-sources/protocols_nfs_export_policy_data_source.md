@@ -6,13 +6,16 @@ description: |-
 ---
 
 # Data Source NFS Export Policy
+
 Retrieves NFS Export Policy Data source
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_nfs_export_policy" "export_policy" {
   cx_profile_name = "cluster4"
@@ -33,5 +36,3 @@ data "netapp-ontap_nfs_export_policy" "export_policy" {
 ### Read-Only
 
 - `id` (String) Export policy identifier
-
-

@@ -7,9 +7,11 @@ description: |-
 ---
 
 # Resource DNS
+
 Create/Modify/Delete and Import a name services DNS resource
 
-### Related ONTAP commands
+## Related ONTAP commands
+
 ```commandline
 * vserver services name-service dns create
 * vserver services name-service dns create
@@ -18,10 +20,12 @@ Create/Modify/Delete and Import a name services DNS resource
 ```
 
 ## Supported Platforms
-* On-perm ONTAP system 9.9 or higher
+
+* On-prem ONTAP system 9.9 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 resource "netapp-ontap_dns" "dns" {
   # required to know which system to interface with
@@ -51,17 +55,22 @@ resource "netapp-ontap_dns" "dns" {
 - `id` (String) UUID of svm
 
 ## Import
+
 This resource supports import, which allows you to import existing name services DNS resources into the state.
 Import require a unique ID composed of the svm name and the connection profile name.
 
 id = svm_name,cx_profile_name
+
 ### Terraform import
+
 terraform import netapp-ontap_dns.`name` `svm_name`,`cx_profile_name`
+
 * name -- name you want to give the resource in terraform
 * svm_name -- name of the svm the resource belongs to
 * cx_profile_name -- name of the connection profile to use
 
 For example
+
 ```shell
  terraform import netapp-ontap_dns.dns_import ansibleSVM,cluster4
 ```
@@ -69,20 +78,26 @@ For example
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
 
 ### Terraform import block
+
 This requires Terraform 1.5 or higher, and will auto create the configuration for you
 
 First create the import block
+
 ```terraform
 import {
   to = netapp-ontap_dns.dns_import
   id = "svm1,cluster4"
 }
 ```
+
 Next run, this will auto create the configuration for you
+
 ```shell
 terraform plan -generate-config-out=generated.tf
 ```
+
 The auto generated configuration will look like this
+
 ```terraform
 # __generated__ by Terraform
 # Please review these resources and move them into your main configuration files.
@@ -95,4 +110,3 @@ resource "netapp-ontap_dns" "dns_import" {
   svm_name        = "svm1"
 }
 ```
-

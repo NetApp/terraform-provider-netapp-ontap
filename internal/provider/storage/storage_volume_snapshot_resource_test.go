@@ -23,21 +23,21 @@ func TestAccStorageVolumeSnapshotResource(t *testing.T) {
 			},
 			// Create and read testing
 			{
-				Config: testAccStorageVolumeSnapshotResourceConfig("carchi-test", "my comment"),
+				Config: testAccStorageVolumeSnapshotResourceConfig("terraform", "my comment"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_volume_snapshot.example", "volume_name", "carchi_test_root"),
+					resource.TestCheckResourceAttr("netapp-ontap_volume_snapshot.example", "volume_name", "terraform"),
 					resource.TestCheckResourceAttr("netapp-ontap_volume_snapshot.example", "name", "snaptest"),
-					resource.TestCheckResourceAttr("netapp-ontap_volume_snapshot.example", "svm_name", "carchi-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_volume_snapshot.example", "svm_name", "terraform"),
 					resource.TestCheckResourceAttr("netapp-ontap_volume_snapshot.example", "comment", "my comment"),
 				),
 			},
 			// Update and read testing
 			{
-				Config: testAccStorageVolumeSnapshotResourceConfig("carchi-test", "new comment"),
+				Config: testAccStorageVolumeSnapshotResourceConfig("terraform", "new comment"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_volume_snapshot.example", "volume_name", "carchi_test_root"),
+					resource.TestCheckResourceAttr("netapp-ontap_volume_snapshot.example", "volume_name", "terraform"),
 					resource.TestCheckResourceAttr("netapp-ontap_volume_snapshot.example", "name", "snaptest"),
-					resource.TestCheckResourceAttr("netapp-ontap_volume_snapshot.example", "svm_name", "carchi-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_volume_snapshot.example", "svm_name", "terraform"),
 					resource.TestCheckResourceAttr("netapp-ontap_volume_snapshot.example", "comment", "new comment"),
 				),
 			},
@@ -45,7 +45,7 @@ func TestAccStorageVolumeSnapshotResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_volume_snapshot.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "snaptest", "carchi_test_root", "carchi-test", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "snaptest", "terraform", "terraform", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_volume_snapshot.example", "name", "snaptest"),
 				),
@@ -55,11 +55,11 @@ func TestAccStorageVolumeSnapshotResource(t *testing.T) {
 }
 
 func testAccStorageVolumeSnapshotResourceConfig(svmName string, comment string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST")
+	host := os.Getenv("TF_ACC_NETAPP_HOST5")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS")
+	password := os.Getenv("TF_ACC_NETAPP_PASS2")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -78,7 +78,7 @@ provider "netapp-ontap" {
 resource "netapp-ontap_volume_snapshot" "example" {
   cx_profile_name = "cluster4"
   name = "snaptest"
-  volume_name = "carchi_test_root"
+  volume_name = "terraform"
   svm_name = "%s"
   comment = "%s"
 }`, host, admin, password, svmName, comment)

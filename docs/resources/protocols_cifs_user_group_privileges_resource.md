@@ -7,9 +7,11 @@ description: |-
 ---
 
 # Resource Protocol Cifs User Group Privileges
+
 Create, Modify, Delete and Import protocols cifs user local privileges resource
 
-### Related ONTAP commands
+## Related ONTAP commands
+
 ```commandline
 vserver cifs users-and-groups privilege show
 vserver cifs users-and-groups privilege add-privilege
@@ -17,10 +19,12 @@ vserver cifs users-and-groups privilege reset-privilege
 ```
 
 ## Supported Platforms
-* On-perm ONTAP system 9.10.1 or higher
+
+* On-prem ONTAP system 9.10.1 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 # Create Protocols Cifs User Group Privileges
 resource "netapp-ontap_cifs_user_group_privileges" "user_group_privileges_exp1" {
@@ -46,11 +50,9 @@ resource "netapp-ontap_cifs_user_group_privileges" "user_group_privileges_exp2" 
 
 - `cx_profile_name` (String) Connection profile name
 - `name` (String) CifsUserGroupPrivilege name
-- `privileges` (Set of String) List of privileges. The privileges have to be in lower case.
+- `privileges` (Set of String) List of privileges. The `privileges` have to be in lower case.
 - `svm_name` (String) CifsUserGroupPrivilege svm name
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-

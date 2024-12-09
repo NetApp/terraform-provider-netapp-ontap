@@ -7,13 +7,16 @@ description: |-
 ---
 
 # Data Source network_ip_routes
+
 Retrieves the IP routes of SVMs.
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_network_ip_routes" "network_ip_routes" {
   # required to know which system to interface with
@@ -47,6 +50,7 @@ data "netapp-ontap_network_ip_routes" "network_ip_routes" {
 - `ip_routes` (Attributes List) (see [below for nested schema](#nestedatt--ip_routes))
 
 <a id="nestedatt--filter"></a>
+
 ### Nested Schema for `filter`
 
 Optional:
@@ -56,6 +60,7 @@ Optional:
 - `svm_name` (String) IP Route svm name
 
 <a id="nestedatt--filter--destination"></a>
+
 ### Nested Schema for `filter.destination`
 
 Optional:
@@ -66,6 +71,7 @@ Optional:
 
 
 <a id="nestedatt--ip_routes"></a>
+
 ### Nested Schema for `ip_routes`
 
 Required:
@@ -83,6 +89,7 @@ Read-Only:
 - `metric` (Number) Indicates a preference order between several routes to the same destination.
 
 <a id="nestedatt--ip_routes--destination"></a>
+
 ### Nested Schema for `ip_routes.destination`
 
 Required:
@@ -92,5 +99,3 @@ Required:
 Read-Only:
 
 - `netmask` (String) netmask length (16) or IPv4 mask (255.255.0.0). For IPv6, valid range is 1 to 127.
-
-

@@ -7,13 +7,16 @@ description: |-
 ---
 
 # Data Source cluster peer
+
 Retrieves an existing cluster_peer
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_cluster_peer" "cluster_peer" {
   # required to know which system to interface with
@@ -41,6 +44,7 @@ data "netapp-ontap_cluster_peer" "cluster_peer" {
 - `status` (Attributes) Status of cluster peer (see [below for nested schema](#nestedatt--status))
 
 <a id="nestedatt--encryption"></a>
+
 ### Nested Schema for `encryption`
 
 Read-Only:
@@ -50,6 +54,7 @@ Read-Only:
 
 
 <a id="nestedatt--ipspace"></a>
+
 ### Nested Schema for `ipspace`
 
 Read-Only:
@@ -58,6 +63,7 @@ Read-Only:
 
 
 <a id="nestedatt--remote"></a>
+
 ### Nested Schema for `remote`
 
 Read-Only:
@@ -67,10 +73,9 @@ Read-Only:
 
 
 <a id="nestedatt--status"></a>
+
 ### Nested Schema for `status`
 
 Read-Only:
 
 - `state` (String) State of cluster peer
-
-

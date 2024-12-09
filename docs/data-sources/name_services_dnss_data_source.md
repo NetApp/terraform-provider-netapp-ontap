@@ -6,13 +6,16 @@ description: |-
 ---
 
 # Data Source DNSs
+
 Retrieves the DNSs Configuration of an SVMs.
 
 ## Supported Platforms
-* On-perm ONTAP system 9.9 or higher
+
+* On-prem ONTAP system 9.9 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_dnss" "dnss" {
   # required to know which system to interface with
@@ -41,6 +44,7 @@ data "netapp-ontap_dnss" "dnss" {
 - `name_services_dnss` (Attributes List) List of IPv4 addresses of name servers such as '123.123.123.123'. (see [below for nested schema](#nestedatt--name_services_dnss))
 
 <a id="nestedatt--filter"></a>
+
 ### Nested Schema for `filter`
 
 Optional:
@@ -51,6 +55,7 @@ Optional:
 
 
 <a id="nestedatt--dnss"></a>
+
 ### Nested Schema for `dnss`
 
 Required:
@@ -63,5 +68,3 @@ Read-Only:
 - `dns_domains` (List of String) List of DNS domains such as 'sales.bar.com'. The first domain is the one that the svm belongs to.
 - `name_servers` (List of String) List of IPv4 addresses of name servers such as '123.123.123.123'.
 - `svm_uuid` (String) UUID of svm
-
-

@@ -7,10 +7,12 @@ description: |-
 ---
 
 # Resource security_roles
+
 Create/Modify/Delete a Security role
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
@@ -27,10 +29,10 @@ resource "netapp-ontap_security_roles" "security_role" {
       path = "lun"
     },
     {
-	    access = "all"
-	    path = "vserver"
-	    query = "-vserver acc_test"
-	  }
+      access = "all"
+      path = "vserver"
+      query = "-vserver acc_test"
+    }
   ]
 }
 ```
@@ -55,6 +57,7 @@ resource "netapp-ontap_security_roles" "security_role" {
 - `scope` (String) Scope of the entity. Set to 'cluster' for cluster owned objects and to 'svm' for SVM owned objects.
 
 <a id="nestedatt--privileges"></a>
+
 ### Nested Schema for `privileges`
 
 Optional:
@@ -64,12 +67,15 @@ Optional:
 - `query` (String) Requires 9.11 system or above. Optional attribute that can be specified only if the 'path' attribute refers to a command/command directory path. The privilege tuple implicitly defines a set of objects the role can or cannot access at the specified access level. The query further reduces this set of objects to a subset of objects that the role is allowed to access. The query attribute must be applicable to the command/command directory specified by the 'path' attribute. It is defined using one or more parameters of the command/command directory path specified by the 'path' attribute.
 
 ## Import
-This Resource supports import, which allows you to import existing security role into the state of this resoruce.
+
+This Resource supports import, which allows you to import existing security role into the state of this resource.
 Import require a unique ID composed of the role name, svm_name and cx_profile_name, separated by a comma.
  id = `name`,`svm_name`,`cx_profile_name`
 
 ### Terraform Import
+
  For example
+
  ```shell
   terraform import netapp-ontap_security_roles.example role1,svm1,cluster1
  ```
@@ -77,20 +83,26 @@ Import require a unique ID composed of the role name, svm_name and cx_profile_na
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
 
 ### Terraform Import Block
+
 This requires Terraform 1.5 or higher, and will auto create the configuration for you
 
 First create the block
+
 ```terraform
 import {
   to = netapp-ontap_security_roles.role_import
   id = "role1,svm1,cluster1"
 }
 ```
+
 Next run, this will auto create the configuration for you
+
 ```shell
 terraform plan -generate-config-out=generated.tf
 ```
+
 This will generate a file called generated.tf, which will contain the configuration for the imported resource
+
 ```terraform
 # __generated__ by Terraform
 # Please review these resources and move them into your main configuration files.

@@ -7,10 +7,12 @@ description: |-
 ---
 
 # Data Source cifs_service
+
 Retrieves cifs service data
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 * In security, parameters only can be used in ONTAP 9.8 or higher:
   `lm_compatibility_level`, `encrypt_dc_connection`
@@ -21,6 +23,7 @@ Retrieves cifs service data
 * In security, `kdc_encryption` deprecated in 9.12.1
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_cifs_service" "protocols_cifs_service" {
   # required to know which system to interface with
@@ -38,6 +41,7 @@ data "netapp-ontap_cifs_service" "protocols_cifs_service" {
 - `name` (String) Name of the CIFS server
 
 ### Read-Only
+
 - `svm_name` (String) Svm name
 - `ad_domain` (Attributes) Ad domain (see [below for nested schema](#nestedatt--ad_domain))
 - `comment` (String) text comment of up to 48 characters about the CIFS server
@@ -47,6 +51,7 @@ data "netapp-ontap_cifs_service" "protocols_cifs_service" {
 - `security` (Attributes) Security (see [below for nested schema](#nestedatt--security))
 
 <a id="nestedatt--ad_domain"></a>
+
 ### Nested Schema for `ad_domain`
 
 Read-Only:
@@ -58,6 +63,7 @@ Read-Only:
 
 
 <a id="nestedatt--netbios"></a>
+
 ### Nested Schema for `netbios`
 
 Read-Only:
@@ -68,6 +74,7 @@ Read-Only:
 
 
 <a id="nestedatt--security"></a>
+
 ### Nested Schema for `security`
 
 Read-Only:
@@ -84,5 +91,3 @@ Read-Only:
 - `try_ldap_channel_binding` (Boolean) Specifies whether or not channel binding is attempted in the case of TLS/LDAPS
 - `use_ldaps` (Boolean) Specifies whether or not to use use LDAPS for secure Active Directory LDAP connections by using the TLS/SSL protocols
 - `use_start_tls` (Boolean) Specifies whether or not to use SSL/TLS for allowing secure LDAP communication with Active Directory LDAP servers
-
-

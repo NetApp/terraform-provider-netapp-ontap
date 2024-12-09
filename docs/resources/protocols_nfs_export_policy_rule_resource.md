@@ -6,9 +6,11 @@ description: |-
 ---
 
 # Protocols NFS Export Policy Rule Resource
+
 Create/modify/delete an export policy rule
 
-### Related ONTAP commands
+## Related ONTAP commands
+
 ```commandline
 * vserver export-policy rule create
 * vserver export-policy rule modify
@@ -16,10 +18,12 @@ Create/modify/delete an export policy rule
 ```
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 resource "netapp-ontap_nfs_export_policy_rule" "example" {
   cx_profile_name = "cluster4"
@@ -60,11 +64,15 @@ resource "netapp-ontap_nfs_export_policy_rule" "example" {
 - `index` (Number) rule index
 
 ## Import
-This Resource supports import, which allows you to import existing nfs export policy rule into the state of this resoruce.
+
+This Resource supports import, which allows you to import existing nfs export policy rule into the state of this resource.
 Import require a unique ID composed of the rule index, export policy name, svm_name and cx_profile_name, separated by a comma.
  id = `index`,`export_policy_name`,`svm_name`,`cx_profile_name`
+
 ### Terraform Import
+
  For example
+
  ```shell
   terraform import netapp-ontap_nfs_export_policy_rule.rule_import index1,exp1,svm1,cluster4
  ```
@@ -72,20 +80,26 @@ Import require a unique ID composed of the rule index, export policy name, svm_n
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
 
 ### Terraform Import Block
+
 This requires Terraform 1.5 or higher, and will auto create the configuration for you
 
 First create the block
+
 ```terraform
 import {
   to = netapp-ontap_nfs_export_policy_rule.rule_import
   id = "index1,exp1,svm1,cluster4"
 }
 ```
+
 Next run, this will auto create the configuration for you
+
 ```shell
 terraform plan -generate-config-out=generated.tf
 ```
+
 This will generate a file called generated.tf, which will contain the configuration for the imported resource
+
 ```terraform
 # __generated__ by Terraform
 # Please review these resources and move them into your main configuration files.

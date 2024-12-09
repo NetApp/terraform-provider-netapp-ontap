@@ -7,10 +7,12 @@ description: |-
 ---
 
 # Resource security login message
+
 Update/Import Security Login Message
 The `security_login_message` resource does not support creation or deletion operations. Users must first import the existing resource and then perform updates as needed.
 
-### Related ONTAP commands
+## Related ONTAP commands
+
 ```commandline
 * security login banner show
 * security login motd show
@@ -19,7 +21,8 @@ The `security_login_message` resource does not support creation or deletion oper
 ```
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
@@ -66,29 +69,38 @@ resource "netapp-ontap_security_login_message" "msg_import_svm" {
 
  For example
  Import with cluster info only
+
  ```shell
   terraform import netapp-ontap_security_login_message.cluster_import cluster4
  ```
+
 Import with svm and cluster info
+
  ```shell
   terraform import netapp-ontap_security_login_message.svm_import svm1,cluster4
  ```
 
 ### Terraform Import Block
+
 This requires Terraform 1.5 or higher, and will auto create the configuration for you
 
 First create the block. Use import svm message as an example
+
 ```terraform
 import {
   to = netapp-ontap_security_login_message.svm_import
   id = "svm1,cluster4"
 }
 ```
+
 Next run, this will auto create the configuration for you
+
 ```shell
 terraform plan -generate-config-out=generated.tf
 ```
+
 This will generate a file called generated.tf, which will contain the configuration for the imported resource
+
 ```terraform
 # __generated__ by Terraform
 # Please review these resources and move them into your main configuration files.
@@ -101,4 +113,4 @@ resource "netapp-ontap_security_login_message" "msg_import_svm" {
   show_cluster_message = true
   svm_name             = "svm1"
 }
-``` 
+```

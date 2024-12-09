@@ -2,10 +2,11 @@ package protocols_test
 
 import (
 	"fmt"
-	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
 	"os"
 	"regexp"
 	"testing"
+
+	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -22,18 +23,18 @@ func TestAccNfsServiceResource(t *testing.T) {
 			},
 			// Create and read
 			{
-				Config: testAccNfsServiceResourceConfig("carchi-test", "false"),
+				Config: testAccNfsServiceResourceConfig("terraform", "false"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_nfs_service.example", "svm_name", "carchi-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_nfs_service.example", "svm_name", "terraform"),
 					resource.TestCheckResourceAttr("netapp-ontap_nfs_service.example", "protocol.v3_enabled", "false"),
 					resource.TestCheckResourceAttr("netapp-ontap_nfs_service.example", "protocol.v40_enabled", "true"),
 				),
 			},
 			// update and read
 			{
-				Config: testAccNfsServiceResourceConfig("carchi-test", "true"),
+				Config: testAccNfsServiceResourceConfig("terraform", "true"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_nfs_service.example", "svm_name", "carchi-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_nfs_service.example", "svm_name", "terraform"),
 					resource.TestCheckResourceAttr("netapp-ontap_nfs_service.example", "protocol.v3_enabled", "true"),
 					resource.TestCheckResourceAttr("netapp-ontap_nfs_service.example", "protocol.v40_enabled", "true"),
 				),
@@ -42,7 +43,7 @@ func TestAccNfsServiceResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_nfs_service.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s", "carchi-test", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s", "terraform", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_nfs_service.example", "protocol.v3_enabled", "true"),
 					resource.TestCheckResourceAttr("netapp-ontap_nfs_service.example", "protocol.v40_enabled", "true"),
@@ -53,11 +54,11 @@ func TestAccNfsServiceResource(t *testing.T) {
 }
 
 func testAccNfsServiceResourceConfig(svnName, enableV3 string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST")
+	host := os.Getenv("TF_ACC_NETAPP_HOST5")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS")
+	password := os.Getenv("TF_ACC_NETAPP_PASS2")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
