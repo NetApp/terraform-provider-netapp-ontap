@@ -7,13 +7,16 @@ description: |-
 ---
 
 # Data Source nfs_export_policy_rule
+
 Retrieves an export policy rule of SVMs
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_nfs_export_policy_rule" "rule" {
   cx_profile_name = "cluster4"
@@ -46,5 +49,3 @@ data "netapp-ontap_nfs_export_policy_rule" "rule" {
 - `ro_rule` (List of String) RO Access Rule
 - `rw_rule` (List of String) RW Access Rule
 - `superuser` (List of String) Superuser Security Types
-
-

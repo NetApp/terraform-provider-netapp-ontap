@@ -7,13 +7,16 @@ description: |-
 ---
 
 # Data Source Security Accounts
+
 Retrieves the configuration of multiple user accounts
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_security_accounts" "security_accounts" {
   # required to know which system to interface with
@@ -41,6 +44,7 @@ data "netapp-ontap_security_accounts" "security_accounts" {
 - `security_accounts` (Attributes List) (see [below for nested schema](#nestedatt--security_accounts))
 
 <a id="nestedatt--filter"></a>
+
 ### Nested Schema for `filter`
 
 Optional:
@@ -48,8 +52,8 @@ Optional:
 - `name` (String) SecurityAccount name
 - `svm_name` (String) SecurityAccount svm name (Owner name)
 
-
 <a id="nestedatt--security_accounts"></a>
+
 ### Nested Schema for `security_accounts`
 
 Required:
@@ -68,6 +72,7 @@ Read-Only:
 - `scope` (String) SecurityAccount scope
 
 <a id="nestedatt--security_accounts--applications"></a>
+
 ### Nested Schema for `security_accounts.applications`
 
 Read-Only:
@@ -76,8 +81,8 @@ Read-Only:
 - `authentication_methods` (List of String) SecurityAccount authentication methods
 - `second_authentication_method` (String) SecurityAccount second authentication method
 
-
 <a id="nestedatt--security_accounts--owner"></a>
+
 ### Nested Schema for `security_accounts.owner`
 
 Read-Only:
@@ -85,12 +90,10 @@ Read-Only:
 - `name` (String) SecurityAccount owner name
 - `uuid` (String) SecurityAccount owner uuid
 
-
 <a id="nestedatt--security_accounts--role"></a>
+
 ### Nested Schema for `security_accounts.role`
 
 Read-Only:
 
 - `name` (String) SecurityAccount role name
-
-

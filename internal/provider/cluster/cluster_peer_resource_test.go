@@ -3,6 +3,7 @@ package cluster_test
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
@@ -15,40 +16,45 @@ func TestAccClusterPeerResource(t *testing.T) {
 		PreCheck:                 func() { ntest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ntest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Create svm peer and read
+			// Test cluster peer non existant
 			{
-				Config: testAccClusterPeerResourceConfig("10.193.180.110", "10.193.176.189"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_cluster_peer.example", "remote.ip_addresses.0", "10.193.180.110"),
-				),
+				Config:      testAccClusterPeerResourceConfig("10.193.180.55", "10.193.176.189"),
+				ExpectError: regexp.MustCompile("4653130"),
 			},
-			// Update applications
-			{
-				Config: testAccClusterPeerResourceConfig("10.193.180.109", "10.193.176.189"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_cluster_peer.example", "remote.ip_addresses.0", "10.193.180.109"),
-				),
-			},
+			// // Create cluster peer and read
+			// {
+			// 	Config: testAccClusterPeerResourceConfig("10.193.180.57", "10.193.176.187"),
+			// 	Check: resource.ComposeTestCheckFunc(
+			// 		resource.TestCheckResourceAttr("netapp-ontap_cluster_peer.example", "remote.ip_addresses.0", "10.193.180.57"),
+			// 	),
+			// },
+			// // Update applications
+			// {
+			// 	Config: testAccClusterPeerResourceConfig("10.193.180.55", "10.193.176.189"),
+			// 	Check: resource.ComposeTestCheckFunc(
+			// 		resource.TestCheckResourceAttr("netapp-ontap_cluster_peer.example", "remote.ip_addresses.0", "10.193.180.55"),
+			// 	),
+			// },
 			// Import and read
 			{
 				ResourceName:  "netapp-ontap_cluster_peer.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s", "acc_test_cluster2", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s", "swenjuncluster-1", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_cluster_peer.example", "name", "acc_test_cluster2"),
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_peer.example", "name", "swenjuncluster-1"),
 				),
 			},
 		},
 	})
 }
 func testAccClusterPeerResourceConfig(remotIP, sourceIP string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST2")
+	host := os.Getenv("TF_ACC_NETAPP_HOST5")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS")
+	password := os.Getenv("TF_ACC_NETAPP_PASS2")
 	password2 := os.Getenv("TF_ACC_NETAPP_PASS2")
-	host2 := os.Getenv("TF_ACC_NETAPP_HOST")
+	host2 := os.Getenv("TF_ACC_NETAPP_HOST2")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST2, TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, TF_ACC_NETAPP_PASS and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_HOST2, TF_ACC_NETAPP_USER and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`

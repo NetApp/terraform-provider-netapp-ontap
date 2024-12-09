@@ -11,7 +11,7 @@ import (
 )
 
 func TestAccNameServicesDNSResource(t *testing.T) {
-	svmName := "ansibleSVM"
+	svmName := "terraform"
 	credName := "cluster4"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { ntest.TestAccPreCheck(t) },
@@ -23,9 +23,9 @@ func TestAccNameServicesDNSResource(t *testing.T) {
 				ExpectError: regexp.MustCompile("2621462"),
 			},
 			{
-				Config: testAccNameServicesDNSResourceConfig("svm5"),
+				Config: testAccNameServicesDNSResourceConfig("terraform"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_dns.dns", "svm_name", "svm5"),
+					resource.TestCheckResourceAttr("netapp-ontap_dns.dns", "svm_name", "terraform"),
 				),
 			},
 			// Test importing a resource
@@ -34,7 +34,7 @@ func TestAccNameServicesDNSResource(t *testing.T) {
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s", svmName, credName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_dns.dns", "svm_name", "ansibleSVM"),
+					resource.TestCheckResourceAttr("netapp-ontap_dns.dns", "svm_name", "terraform"),
 					resource.TestCheckResourceAttr("netapp-ontap_dns.dns", "name_servers.0", "netappad.com"),
 				),
 			},
@@ -43,11 +43,11 @@ func TestAccNameServicesDNSResource(t *testing.T) {
 }
 
 func testAccNameServicesDNSResourceConfig(svmName string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST")
+	host := os.Getenv("TF_ACC_NETAPP_HOST5")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS")
+	password := os.Getenv("TF_ACC_NETAPP_PASS2")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`

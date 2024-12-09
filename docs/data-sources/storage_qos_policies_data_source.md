@@ -7,10 +7,12 @@ description: |-
 ---
 
 # Data Source qos_policies
+
 Retrieves QOSPolicies data source
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
@@ -42,6 +44,7 @@ data "netapp-ontap_qos_policies" "qos_policies" {
 - `qos_policies` (Attributes List) (see [below for nested schema](#nestedatt--qos_policies))
 
 <a id="nestedatt--filter"></a>
+
 ### Nested Schema for `filter`
 
 Optional:
@@ -51,6 +54,7 @@ Optional:
 
 
 <a id="nestedatt--qos_policies"></a>
+
 ### Nested Schema for `qos_policies`
 
 Required:
@@ -70,6 +74,7 @@ Read-Only:
 - `id` (String) QOSPolicies UUID
 
 <a id="nestedatt--qos_policies--adaptive"></a>
+
 ### Nested Schema for `qos_policies.adaptive`
 
 Required:
@@ -87,8 +92,8 @@ Read-Only:
 - `expected_iops_allocation` (String) Expected IOPS allocation
 - `peak_iops_allocation` (String) Peak IOPS allocation
 
-
 <a id="nestedatt--qos_policies--fixed"></a>
+
 ### Nested Schema for `qos_policies.fixed`
 
 Read-Only:

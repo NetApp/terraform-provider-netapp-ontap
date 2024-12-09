@@ -7,13 +7,16 @@ description: |-
 ---
 
 # Data Source name_services_ldap
+
 Retrieves LDAP data source of a SVM
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_name_services_ldap" "name_services_ldap" {
   # required to know which system to interface with
@@ -47,5 +50,3 @@ data "netapp-ontap_name_services_ldap" "name_services_ldap" {
 - `servers` (Set of String) List of LDAP servers used for this client configuration
 - `session_security` (String) Specifies the level of security to be used for LDAP communications
 - `use_start_tls` (Boolean) Specifies whether or not to use Start TLS over LDAP connections
-
-

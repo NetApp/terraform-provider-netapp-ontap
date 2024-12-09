@@ -7,13 +7,16 @@ description: |-
 ---
 
 # Data Source network_ip_interfaces
+
 Retrieves the details of IP interfaces of SVMs.
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_network_ip_interfaces" "ip_interfaces" {
   # required to know which system to interface with
@@ -42,6 +45,7 @@ data "netapp-ontap_network_ip_interfaces" "ip_interfaces" {
 - `ip_interfaces` (Attributes List) (see [below for nested schema](#nestedatt--ip_interfaces))
 
 <a id="nestedatt--filter"></a>
+
 ### Nested Schema for `filter`
 
 Optional:
@@ -52,6 +56,7 @@ Optional:
 
 
 <a id="nestedatt--ip_interfaces"></a>
+
 ### Nested Schema for `ip_interfaces`
 
 Read-Only:
@@ -64,6 +69,7 @@ Read-Only:
 - `svm_name` (String) IPInterface svm name. Applies only to SVM-scoped objects
 
 <a id="nestedatt--ip_interfaces--ip"></a>
+
 ### Nested Schema for `ip_interfaces.ip`
 
 Read-Only:
@@ -73,11 +79,10 @@ Read-Only:
 
 
 <a id="nestedatt--ip_interfaces--location"></a>
+
 ### Nested Schema for `ip_interfaces.location`
 
 Read-Only:
 
 - `home_node` (String) IPInterface home node
 - `home_port` (String) IPInterface home port
-
-

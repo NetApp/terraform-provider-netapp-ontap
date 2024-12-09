@@ -7,9 +7,11 @@ description: |-
 ---
 
 # Resource Storage Lun
+
 Create/Modify/Delete a lun resource
 
-### Related ONTAP commands
+## Related ONTAP commands
+
 ```commandline
 * lun create
 * lun modify
@@ -17,7 +19,8 @@ Create/Modify/Delete a lun resource
 ```
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
@@ -58,7 +61,8 @@ resource "netapp-ontap_lun" "storage_lun" {
 - `id` (String) StorageLun UUID
 
 ## Import
-This Resource supports import, which allows you to import existing lun into the state of this resoruce.
+
+This Resource supports import, which allows you to import existing lun into the state of this resource.
 Import require a unique ID composed of the lun name, volume name, svm name, and cx_profile_name, separated by a comma.
 
 id = `name`,`volume_name`, `svm_name`, `cx_profile_name`
@@ -66,6 +70,7 @@ id = `name`,`volume_name`, `svm_name`, `cx_profile_name`
 ### Terraform Import
 
 For example
+
  ```shell
   terraform import netapp-ontap_lun.example lun,vol,svm,cluster4
  ```
@@ -73,20 +78,26 @@ For example
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
 
 ### Terraform Import Block
+
 This requires Terraform 1.5 or higher, and will auto create the configuration for you
 
 First create the block
+
 ```terraform
 import {
   to = netapp-ontap_lun.lun_import
   id = "lun,vol,svm,cluster4"
 }
 ```
+
 Next run, this will auto create the configuration for you
+
 ```shell
 terraform plan -generate-config-out=generated.tf
 ```
+
 This will generate a file called generated.tf, which will contain the configuration for the imported resource
+
 ```terraform
 # __generated__ by Terraform
 # Please review these resources and move them into your main configuration files.

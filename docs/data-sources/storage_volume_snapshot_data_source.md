@@ -7,13 +7,16 @@ description: |-
 ---
 
 # Data Source snapshot
+
 Retrieves details of a specific volume Snapshot copy
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_volume_snapshot" "snapshot" {
   cx_profile_name = "cluster4"
@@ -42,5 +45,3 @@ data "netapp-ontap_volume_snapshot" "snapshot" {
 - `snapmirror_label` (String) Snapmirror Label
 - `state` (String) State
 - `id` (String) Volume Snapshot Identifier
-
-

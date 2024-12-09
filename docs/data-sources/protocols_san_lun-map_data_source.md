@@ -7,13 +7,16 @@ description: |-
 ---
 
 # Data Source san_lun-map
+
 Retrieves Protocols San Lun Map data source
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_san_lun-map" "example" {
   cx_profile_name = "example_profile"
@@ -47,26 +50,25 @@ data "netapp-ontap_san_lun-map" "example" {
 - `logical_unit_number` (Number) If no value is provided, ONTAP assigns the lowest available value
 
 <a id="nestedatt--igroup"></a>
+
 ### Nested Schema for `igroup`
 
 Required:
 
 - `name` (String) name of the igroup
 
-
 <a id="nestedatt--lun"></a>
+
 ### Nested Schema for `lun`
 
 Required:
 
 - `name` (String) name of the lun
 
-
 <a id="nestedatt--svm"></a>
+
 ### Nested Schema for `svm`
 
 Required:
 
 - `name` (String) name of the SVM
-
-

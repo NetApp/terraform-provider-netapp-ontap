@@ -6,13 +6,16 @@ description: |-
 ---
 
 # Data Source snapmirror_policies
+
 Retrieves SnapMirror policies of SVMs.
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_snapmirror_policies" "snapmirror_policies" {
   # required to know which system to interface with
@@ -39,14 +42,15 @@ data "netapp-ontap_snapmirror_policies" "snapmirror_policies" {
 - `snapmirror_policies` (Attributes List) (see [below for nested schema](#nestedatt--snapmirror_policies))
 
 <a id="nestedatt--filter"></a>
+
 ### Nested Schema for `filter`
 
 Optional:
 
 - `name` (String) SnapmirrorPolicy name
 
-
 <a id="nestedatt--snapmirror_policies"></a>
+
 ### Nested Schema for `snapmirror_policies`
 
 Required:
@@ -70,6 +74,7 @@ Read-Only:
 - `id` (String) SnapmirrorPolicy uuid
 
 <a id="nestedatt--snapmirror_policies--retention"></a>
+
 ### Nested Schema for `snapmirror_policies.retention`
 
 Read-Only:

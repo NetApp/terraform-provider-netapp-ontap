@@ -7,10 +7,12 @@ description: |-
 ---
 
 # Data Source qtrees
-Retreives one or more qtrees by filter
+
+Retrieves one or more qtrees by filter
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
@@ -41,6 +43,7 @@ data "netapp-ontap_qtrees" "storage_qtrees" {
 - `storage_qtrees` (Attributes List) (see [below for nested schema](#nestedatt--storage_qtrees))
 
 <a id="nestedatt--filter"></a>
+
 ### Nested Schema for `filter`
 
 Optional:
@@ -49,8 +52,8 @@ Optional:
 - `svm_name` (String) StorageQtree svm name
 - `volume_name` (String) The volume that contains the qtree.
 
-
 <a id="nestedatt--storage_qtrees"></a>
+
 ### Nested Schema for `storage_qtrees`
 
 Read-Only:
@@ -68,6 +71,7 @@ Read-Only:
 - `volume_name` (String) The volume that contains the qtree.
 
 <a id="nestedatt--storage_qtrees--export_policy"></a>
+
 ### Nested Schema for `storage_qtrees.export_policy`
 
 Read-Only:
@@ -75,24 +79,24 @@ Read-Only:
 - `id` (Number) The ID of the export policy.
 - `name` (String) The name of the export policy.
 
-
 <a id="nestedatt--storage_qtrees--group"></a>
+
 ### Nested Schema for `storage_qtrees.group`
 
 Read-Only:
 
 - `name` (String) Alphanumeric group name of group who owns the qtree.
 
-
 <a id="nestedatt--storage_qtrees--nas"></a>
+
 ### Nested Schema for `storage_qtrees.nas`
 
 Read-Only:
 
 - `path` (String) Client visible path to the qtree. This field is not available if the volume does not have a junction-path configured.
 
-
 <a id="nestedatt--storage_qtrees--user"></a>
+
 ### Nested Schema for `storage_qtrees.user`
 
 Read-Only:

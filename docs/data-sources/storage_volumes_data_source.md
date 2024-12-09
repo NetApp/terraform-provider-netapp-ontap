@@ -7,13 +7,16 @@ description: |-
 ---
 
 # Data Source volumes
+
 Retrieves existing storage_volumes
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_volumes" "storage_volumes" {
   # required to know which system to interface with
@@ -40,6 +43,7 @@ data "netapp-ontap_volumes" "storage_volumes" {
 - `storage_volumes` (Attributes List) (see [below for nested schema](#nestedatt--storage_volumes))
 
 <a id="nestedatt--filter"></a>
+
 ### Nested Schema for `filter`
 
 Optional:
@@ -47,8 +51,8 @@ Optional:
 - `name` (String) StorageVolume name
 - `svm_name` (String) StorageVolume svm name
 
-
 <a id="nestedatt--storage_volumes"></a>
+
 ### Nested Schema for `storage_volumes`
 
 Required:
@@ -59,7 +63,7 @@ Required:
 
 Read-Only:
 
-- `aggregates` (Attributes List) Aggreates the volume is on (see [below for nested schema](#nestedatt--aggregates))
+- `aggregates` (Attributes List) Aggregates the volume is on (see [below for nested schema](#nestedatt--aggregates))
 - `analytics` (Attributes) (see [below for nested schema](#nestedatt--storage_volumes--analytics))
 - `comment` (String) Sets a comment associated with the volume
 - `efficiency` (Attributes) (see [below for nested schema](#nestedatt--storage_volumes--efficiency))
@@ -77,6 +81,7 @@ Read-Only:
 - `type` (String) The volume type, either read-write (RW) or data-protection (DP)
 
 <a id="nestedatt--storage_volumes--aggregates"></a>
+
 ### Nested Schema for `storage_volumes.aggregates`
 
 Read-Only:
@@ -84,14 +89,15 @@ Read-Only:
 - `name` (String) Name of the Aggregate
 
 <a id="nestedatt--storage_volumes--analytics"></a>
+
 ### Nested Schema for `storage_volumes.analytics`
 
 Read-Only:
 
 - `state` (String) Set file system analytics state of the volume
 
-
 <a id="nestedatt--storage_volumes--efficiency"></a>
+
 ### Nested Schema for `storage_volumes.efficiency`
 
 Read-Only:
@@ -99,8 +105,8 @@ Read-Only:
 - `compression` (String) Whether to enable compression for the volume (HDD and Flash Pool aggregates)
 - `policy_name` (String) Allows a storage efficiency policy to be set on volume creation
 
-
 <a id="nestedatt--storage_volumes--nas"></a>
+
 ### Nested Schema for `storage_volumes.nas`
 
 Read-Only:
@@ -112,16 +118,16 @@ Read-Only:
 - `unix_permissions` (Number) Unix permission bits in octal or symbolic format. For example, 0 is equivalent to ------------, 777 is equivalent to ---rwxrwxrwx,both formats are accepted
 - `user_id` (Number) The UNIX user ID for the volume
 
-
 <a id="nestedatt--storage_volumes--snaplock"></a>
+
 ### Nested Schema for `storage_volumes.snaplock`
 
 Read-Only:
 
 - `type` (String) The SnapLock type of the volume
 
-
 <a id="nestedatt--storage_volumes--space"></a>
+
 ### Nested Schema for `storage_volumes.space`
 
 Read-Only:
@@ -132,6 +138,7 @@ Read-Only:
 - `size_unit` (String) The unit used to interpret the size parameter
 
 <a id="nestedatt--storage_volumes--space--logical_space"></a>
+
 ### Nested Schema for `storage_volumes.space.logical_space`
 
 Read-Only:
@@ -139,14 +146,11 @@ Read-Only:
 - `enforcement` (Boolean) Whether to perform logical space accounting on the volume
 - `reporting` (Boolean) Whether to report space logically
 
-
-
 <a id="nestedatt--storage_volumes--tiering"></a>
+
 ### Nested Schema for `storage_volumes.tiering`
 
 Read-Only:
 
 - `minimum_cooling_days` (Number) Determines how many days must pass before inactive data in a volume using the Auto or Snapshot-Only policy is considered cold and eligible for tiering
 - `policy_name` (String) The tiering policy that is to be associated with the volume
-
-

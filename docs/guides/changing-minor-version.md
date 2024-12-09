@@ -7,21 +7,24 @@ description: |-
 # Updating minor version With The NetApp ONTAP Provider
 
 Before getting started, you will need:
+
 * ONTAP 9.6 or later
 * Terraform 1.4 or later
 
 This Provide will work with on-prem ONTAP system and Amazon FSx for NetApp ONTAP.
 
 ## Overview
-This guide will walk you though 
+
+This guide will walk you though
+
 * Installing the latest version of NetApp ONTAP Provider
 * Resuming on running NetApp ONTAP Provider
 
 ## Install The Latest Version of NetApp ONTAP Provider
+
 Please go to the [Terraform Registry](https://registry.terraform.io/providers/NetApp/netapp-ontap/latest) to get the latest provider configuration, and copy that in to a file called `provider.tf` in the directory you just created. 
 During `Terraform init` Terraform will download the provider and any required plugins.
 You should have something that looks like this
-
 
 ```terraform
 terraform {
@@ -39,6 +42,7 @@ provider "netapp-ontap" {
 ```
 
 ### Resuming On Running NetApp ONTAP Provider
+
 Now run `terraform init` to initialize the provider and download the required plugins. 
 This will download the NetApp ONTAP Provider and any required plugins.
 

@@ -7,13 +7,16 @@ description: |-
 ---
 
 # Data Source cifs_local_users
+
 Retrieves a list of Cifs Local Users
 
 ## Supported Platforms
-* On-perm ONTAP system 9.10 or higher
+
+* On-prem ONTAP system 9.10 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
+
 ```terraform
 data "netapp-ontap_cifs_local_users" "protocols_cifs_local_users" {
   # required to know which system to interface with
@@ -40,6 +43,7 @@ data "netapp-ontap_cifs_local_users" "protocols_cifs_local_users" {
 - `protocols_cifs_local_users` (Attributes List) Protocols CIFS local users (see [below for nested schema](#nestedatt--protocols_cifs_local_users))
 
 <a id="nestedatt--filter"></a>
+
 ### Nested Schema for `filter`
 
 Optional:
@@ -49,6 +53,7 @@ Optional:
 
 
 <a id="nestedatt--protocols_cifs_local_users"></a>
+
 ### Nested Schema for `protocols_cifs_local_users`
 
 Required:
@@ -66,10 +71,9 @@ Read-Only:
 - `svm_name` (String) CifsLocalUser svm name
 
 <a id="nestedatt--protocols_cifs_local_users--membership"></a>
+
 ### Nested Schema for `protocols_cifs_local_users.membership`
 
 Read-Only:
 
 - `name` (String) CifsLocalUser membership name
-
-

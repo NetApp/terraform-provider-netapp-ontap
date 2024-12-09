@@ -7,10 +7,19 @@ description: |-
 ---
 
 # Data Source security_certificates
+
 Retrieves Security Certificates data source
 
-### Related ONTAP commands
+## Supported Platforms
+
+* On-prem ONTAP system 9.6 or higher
+* Amazon FSx for NetApp ONTAP
+
+## Related ONTAP commands
+
+```commandline
 * security certificate show
+```
 
 ## Example Usage
 
@@ -61,6 +70,7 @@ data "netapp-ontap_security_certificates" "security_certificates3" {
 - `security_certificates` (Attributes List) (see [below for nested schema](#nestedatt--security_certificates))
 
 <a id="nestedatt--filter"></a>
+
 ### Nested Schema for `filter`
 
 Optional:
@@ -70,8 +80,8 @@ Optional:
 - `common_name` (String) Common name of the certificate.
 - `type` (String) Type of certificate.
 
-
 <a id="nestedatt--security_certificates"></a>
+
 ### Nested Schema for `security_certificates`
 
 Read-Only:

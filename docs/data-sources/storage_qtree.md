@@ -7,10 +7,12 @@ description: |-
 ---
 
 # Data Source qtree
-Retreives a qtree
+
+Retrieves a qtree
 
 ## Supported Platforms
-* On-perm ONTAP system 9.6 or higher
+
+* On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
@@ -46,6 +48,7 @@ data "netapp-ontap_qtree" "storage_qtree" {
 - `user` (Attributes) The user set as owner of the qtree. (see [below for nested schema](#nestedatt--user))
 
 <a id="nestedatt--export_policy"></a>
+
 ### Nested Schema for `export_policy`
 
 Read-Only:
@@ -53,16 +56,16 @@ Read-Only:
 - `id` (Number) The ID of the export policy.
 - `name` (String) The name of the export policy.
 
-
 <a id="nestedatt--group"></a>
+
 ### Nested Schema for `group`
 
 Read-Only:
 
 - `name` (String) Alphanumeric group name of group who owns the qtree.
 
-
 <a id="nestedatt--nas"></a>
+
 ### Nested Schema for `nas`
 
 Read-Only:
@@ -71,6 +74,7 @@ Read-Only:
 
 
 <a id="nestedatt--user"></a>
+
 ### Nested Schema for `user`
 
 Read-Only:
