@@ -3,7 +3,9 @@ package svm
 import (
 	"context"
 	"fmt"
+	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
@@ -18,8 +20,9 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces
 var (
-	_ resource.Resource              = &SvmQosPolicyActivationResource{}
-	_ resource.ResourceWithConfigure = &SvmQosPolicyActivationResource{}
+	_ resource.Resource                = &SvmQosPolicyActivationResource{}
+	_ resource.ResourceWithConfigure   = &SvmQosPolicyActivationResource{}
+	_ resource.ResourceWithImportState = &SvmQosPolicyActivationResource{}
 )
 
 // NewSvmQosPolicyActivationResource is a helper function to simplify the provider implementation.
@@ -158,8 +161,26 @@ func (r *SvmQosPolicyActivationResource) Read(ctx context.Context, req resource.
 		return
 	}
 
-	// Call ONTAP REST API for reading svm info
 	tflog.Debug(ctx, fmt.Sprintf("read a svm resource: %#v", data))
+
+	// If no svm ID specified...
+	if data.Svm.ID.ValueString() == "" {
+
+		// ...call ONTAP REST API for reading svm info
+		svm, err := interfaces.GetSvmByNameDataSource(
+			errorHandler,
+			*client,
+			data.Svm.Name.ValueString(),
+		)
+		if err != nil {
+			return
+		}
+
+		// Copy svm info to resource model
+		data.Svm.ID = types.StringValue(svm.UUID)
+	}
+
+	// Call ONTAP REST API for reading svm info
 	svm, err := interfaces.GetSvm(
 		errorHandler,
 		*client,
@@ -171,6 +192,9 @@ func (r *SvmQosPolicyActivationResource) Read(ctx context.Context, req resource.
 
 	// Copy svm info to resource model
 	data.Svm.Name = types.StringValue(svm.Name)
+	if data.QoSPolicy == nil {
+		data.QoSPolicy = &SvmQosPolicyActivationQosPolicyResourceModel{}
+	}
 	data.QoSPolicy.ID = types.StringValue(svm.QoSPolicy.UUID)
 	data.QoSPolicy.Name = types.StringValue(svm.QoSPolicy.Name)
 
@@ -364,4 +388,20 @@ func (r *SvmQosPolicyActivationResource) Delete(ctx context.Context, req resourc
 	if err != nil {
 		return
 	}
+}
+
+// ImportState imports a resource using ID from terraform import command by calling the Read method.
+func (r *SvmQosPolicyActivationResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	idParts := strings.Split(req.ID, ",")
+
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: svm_name,cx_profile_name. Got: %q", req.ID),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("svm").AtName("name"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[1])...)
 }
