@@ -16,11 +16,13 @@ The shared AWS config and credentials files contain a set of profiles. A profile
 [AWS shared config and credentials file format](https://docs.aws.amazon.com/sdkref/latest/guide/file-format.html)
 [AWS shared config and credentials file location](https://docs.aws.amazon.com/sdkref/latest/guide/file-location.html)
 
-You must setup credentials files to use Fsx ONTAP.
+You must setup credentials files to use Fsx ONTAP.\
 Example of AWS credentials file
+```
 [fsx]
 aws_access_key_id = <aws_access_key_id>
 aws_secret_access_key = <aws_secret_access_key>
+```
 
 You can either specify `region` in the `connection_profiles` or in the AWS config files. If both palces have region set up, the region in the Terraform config file will be used. The profile name must be the same in both AWS config and credentials files.
 Example of region dlecaration in AWS config profile
