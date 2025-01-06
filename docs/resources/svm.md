@@ -21,11 +21,12 @@ Create/Modify/Delete a SVM
 ## Supported Platforms
 
 * On-prem ONTAP system 9.6 or higher
+  * `storage_limit` attribute supported with ONTAP system 9.13 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
 
-This creates a new SVM called `tfsvm4`. In IPspace `terraformIpspace_newname`, which can have up to 200 volumes which will be cased on aggr2
+This creates a new SVM called `tfsvm4` in IPspace `terraformIpspace_newname`, which can have up to 200 volumes and up to 1 GB storage, which will be cased on aggr2.
 
 ```terraform
 resource "netapp-ontap_svm" "example" {
@@ -35,8 +36,11 @@ resource "netapp-ontap_svm" "example" {
   comment = "test"
   snapshot_policy = "default-1weekly"
   language = "en_us.utf_8"
-  aggregates = ["aggr2"]
+  aggregates = [
+    { name = "aggr2" }
+  ]
   max_volumes = "200"
+  storage_limit = 1073741824
 }`
 ```
 

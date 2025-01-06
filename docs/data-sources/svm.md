@@ -13,6 +13,7 @@ Retrieves the configuration of SVM
 ## Supported Platforms
 
 * On-prem ONTAP system 9.6 or higher
+  * `storage_limit` attribute supported with ONTAP system 9.13 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
