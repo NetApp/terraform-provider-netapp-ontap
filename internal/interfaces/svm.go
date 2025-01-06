@@ -129,10 +129,10 @@ func GetSvmByNameIgnoreNotFound(errorHandler *utils.ErrorHandler, r restclient.R
 }
 
 // GetSvmByNameDataSource to get data source svm info
-func GetSvmByNameDataSource(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string) (*SvmGetDataSourceModel, error) {
+func GetSvmByNameDataSource(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, version versionModelONTAP) (*SvmGetDataSourceModel, error) {
 	api := "svm/svms"
 	query := r.NewQuery()
-	query.Fields([]string{
+	fields := []string{
 		"name",
 		"ipspace",
 		"snapshot_policy",
@@ -141,9 +141,13 @@ func GetSvmByNameDataSource(errorHandler *utils.ErrorHandler, r restclient.RestC
 		"language",
 		"max_volumes",
 		"aggregates",
-		"storage.limit",
-	})
+	}
+	if version.Generation >= 9 && version.Major >= 13 {
+		fields = append(fields, "storage.limit")
+	}
+	query.Fields(fields)
 	query.Add("name", name)
+
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
 		err = fmt.Errorf("no response for GET %s", api)
@@ -161,10 +165,10 @@ func GetSvmByNameDataSource(errorHandler *utils.ErrorHandler, r restclient.RestC
 }
 
 // GetSvmsByName to get data source list svm info
-func GetSvmsByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *SvmDataSourceFilterModel) ([]SvmGetDataSourceModel, error) {
+func GetSvmsByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *SvmDataSourceFilterModel, version versionModelONTAP) ([]SvmGetDataSourceModel, error) {
 	api := "svm/svms"
 	query := r.NewQuery()
-	query.Fields([]string{
+	fields := []string{
 		"name",
 		"ipspace",
 		"snapshot_policy",
@@ -173,8 +177,11 @@ func GetSvmsByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, fi
 		"language",
 		"max_volumes",
 		"aggregates",
-		"storage.limit",
-	})
+	}
+	if version.Generation >= 9 && version.Major >= 13 {
+		fields = append(fields, "storage.limit")
+	}
+	query.Fields(fields)
 
 	if filter != nil {
 		var filterMap map[string]interface{}

@@ -265,12 +265,23 @@ func (r *SvmResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		// error reporting done inside NewClient
 		return
 	}
+
+	cluster, err := interfaces.GetCluster(errorHandler, *client)
+	if err != nil {
+		// error reporting done inside GetCluster
+		return
+	}
+	if cluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", "cluster not found")
+		return
+	}
+
 	tflog.Debug(ctx, fmt.Sprintf("read a svm resource: %#v", data))
 	var svm *interfaces.SvmGetDataSourceModel
 	if data.ID.ValueString() != "" {
 		svm, err = interfaces.GetSvm(errorHandler, *client, data.ID.ValueString())
 	} else {
-		svm, err = interfaces.GetSvmByNameDataSource(errorHandler, *client, data.Name.ValueString())
+		svm, err = interfaces.GetSvmByNameDataSource(errorHandler, *client, data.Name.ValueString(), cluster.Version)
 	}
 	if err != nil {
 		return
