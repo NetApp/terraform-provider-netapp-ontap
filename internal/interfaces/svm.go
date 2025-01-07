@@ -31,7 +31,7 @@ type SvmResourceModel struct {
 	MaxVolumes     string              `mapstructure:"max_volumes,omitempty"`
 	Name           string              `mapstructure:"name,omitempty"`
 	SnapshotPolicy SnapshotPolicy      `mapstructure:"snapshot_policy,omitempty"`
-	Storage        Storage             `mapstructure:"storage"`
+	Storage        Storage             `mapstructure:"storage,omitempty"`
 	SubType        string              `mapstructure:"subtype,omitempty"`
 }
 
@@ -44,7 +44,7 @@ type SvmGetDataSourceModel struct {
 	MaxVolumes     string         `mapstructure:"max_volumes,omitempty"`
 	Name           string         `mapstructure:"name"`
 	SnapshotPolicy SnapshotPolicy `mapstructure:"snapshot_policy"`
-	Storage        Storage        `mapstructure:"storage"`
+	Storage        Storage        `mapstructure:"storage,omitempty"`
 	SubType        string         `mapstructure:"subtype,omitempty"`
 	UUID           string         `mapstructure:"uuid"`
 }
@@ -61,7 +61,7 @@ type SnapshotPolicy struct {
 
 // Storage describes the resource data model.
 type Storage struct {
-	Limit int `mapstructure:"limit"`
+	Limit int `mapstructure:"limit,omitempty"`
 }
 
 // SvmDataSourceFilterModel describes the data source data model for queries.
