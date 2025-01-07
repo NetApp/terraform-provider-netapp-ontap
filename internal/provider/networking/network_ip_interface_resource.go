@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -126,13 +125,9 @@ func (r *IPInterfaceResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "IPInterface service policy",
 				Optional:            true,
 				Computed:            true,
-				/*
-				 * Default values:
-				 *   "default-data-files" if scope is svm
-				 *   "default-management" if scope is cluster and IPspace is not Cluster (not yet implemented)
-				 *   "default-cluster" if scope is cluster and IPspace is Cluster (not yet implemented)
-				 */
-				Default: stringdefault.StaticString("default-data-files"),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"id": schema.StringAttribute{
 				MarkdownDescription: "IPInterface UUID",
@@ -270,6 +265,16 @@ func (r *IPInterfaceResource) Create(ctx context.Context, req resource.CreateReq
 	data.UUID = types.StringValue(resource.UUID)
 
 	tflog.Trace(ctx, fmt.Sprintf("created a resource, UUID=%s", data.UUID))
+
+	if data.ServicePolicy.IsUnknown() {
+		// read newly created interface to populate service policy (not fetched by CreateIPInterface)
+		restInfo, err := interfaces.GetIPInterface(errorHandler, *client, data.UUID.ValueString())
+		if err != nil {
+			// error reporting done inside GetIPInterface
+			return
+		}
+		data.ServicePolicy = types.StringValue(restInfo.ServicePolicy.Name)
+	}
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
