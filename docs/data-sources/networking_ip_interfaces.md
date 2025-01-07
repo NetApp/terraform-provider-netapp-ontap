@@ -67,6 +67,7 @@ Read-Only:
 - `name` (String) IPInterface name
 - `scope` (String) IPInterface scope
 - `svm_name` (String) IPInterface svm name. Applies only to SVM-scoped objects
+- `service_policy` (String) IPInterface service policy
 
 <a id="nestedatt--ip_interfaces--ip"></a>
 

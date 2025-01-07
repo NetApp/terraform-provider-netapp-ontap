@@ -42,6 +42,7 @@ data "netapp-ontap_network_ip_interface" "ip_interface" {
 - `ip` (Attributes) (see [below for nested schema](#nestedatt--ip))
 - `location` (Attributes) (see [below for nested schema](#nestedatt--location))
 - `scope` (String) IPInterface scope
+- `service_policy` (String) IPInterface service policy
 
 <a id="nestedatt--ip"></a>
 

@@ -38,6 +38,7 @@ resource "netapp-ontap_network_ip_interface" "example" {
         home_port = "e0d"
         home_node = "ontap_cluster_1-01"
     }
+    service_policy = "default-management"
 }
 ```
 
@@ -51,6 +52,10 @@ resource "netapp-ontap_network_ip_interface" "example" {
 - `location` (Attributes) (see [below for nested schema](#nestedatt--location))
 - `name` (String) IPInterface name
 - `svm_name` (String) IPInterface svm name
+
+### Optional
+
+- `service_policy` (String) IPInterface service policy
 
 ### Read-Only
 
