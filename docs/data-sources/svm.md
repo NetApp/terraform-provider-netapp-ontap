@@ -44,3 +44,4 @@ data "netapp-ontap_svm" "svm" {
 - `max_volumes` (String) Maximum number of volumes that can be created on the svm. Expects an integer or unlimited
 - `snapshot_policy` (String) The name of the snapshot policy to manage
 - `subtype` (String) The subtype for svm to be created
+- `storage_limit` (Number) Maximum storage permitted on svm, in bytes
