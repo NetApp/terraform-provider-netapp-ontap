@@ -65,7 +65,7 @@ type IPInterfaceResourceHomePort struct {
 
 // IPInterfaceServicePolicy is the body data model for the service_policy field
 type IPInterfaceServicePolicy struct {
-	Name string `mapstructure:"name"`
+	Name string `mapstructure:"name,omitempty"`
 }
 
 // IPInterfaceDataSourceFilterModel describes filter model.
