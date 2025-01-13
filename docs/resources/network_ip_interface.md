@@ -74,10 +74,20 @@ Required:
 
 ### Nested Schema for `location`
 
-Required:
+Optional:
 
 - `home_node` (String) IPInterface home node
 - `home_port` (String) IPInterface home port
+- `broadcast_domain` (Attributes) (see [below for nested schema](#nestedatt--location--broadcast_domain))
+
+<a id="nestedatt--location--broadcast_domain"></a>
+
+### Nested Schema for `location.broadcast_domain`
+
+Optional:
+
+- `name` (String) Name of the broadcast domain, scoped to its IPspace
+- `id` (String) Broadcast domain UUID
 
 ## Import
 
