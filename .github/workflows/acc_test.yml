@@ -1,6 +1,10 @@
 name: Go ACC Tests
 
-on: [push]
+on: 
+  push:
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: [ "integration/main" ]
 
 jobs:
   build:
