@@ -213,7 +213,7 @@ func GetSvmsByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, fi
 }
 
 // CreateSvm to create svm
-func CreateSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, data SvmResourceModel, setAggrEmpty bool, setCommentEmpty bool, setStorageLimitEmpty bool) (*SvmGetDataModelONTAP, error) {
+func CreateSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, data SvmResourceModel, setAggrEmpty bool, setCommentEmpty bool) (*SvmGetDataModelONTAP, error) {
 	var body map[string]interface{}
 	if err := mapstructure.Decode(data, &body); err != nil {
 		return nil, errorHandler.MakeAndReportError("error encoding svm body", fmt.Sprintf("error on encoding svm/svms body: %s, body: %#v", err, data))
@@ -223,12 +223,6 @@ func CreateSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, data S
 	}
 	if setCommentEmpty {
 		delete(body, "comment")
-	}
-	if setStorageLimitEmpty {
-		// delete storage.limit from request body, so that ONTAP uses default value
-		if v, ok := body["storage"].(map[string]interface{}); ok {
-			delete(v, "limit")
-		}
 	}
 
 	query := r.NewQuery()

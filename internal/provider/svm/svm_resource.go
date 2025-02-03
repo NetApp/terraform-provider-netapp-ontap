@@ -199,9 +199,7 @@ func (r *SvmResource) Create(ctx context.Context, req resource.CreateRequest, re
 		request.MaxVolumes = data.MaxVolumes.ValueString()
 	}
 
-	setStorageLimitEmpty := true
-	if !data.StorageLimit.Equal(types.Int64Value(0)) {
-		setStorageLimitEmpty = false
+	if !data.StorageLimit.IsUnknown() {
 		request.Storage.Limit = int(data.StorageLimit.ValueInt64())
 	}
 
@@ -234,7 +232,6 @@ func (r *SvmResource) Create(ctx context.Context, req resource.CreateRequest, re
 		request,
 		setAggrEmpty,
 		setCommentEmpty,
-		setStorageLimitEmpty,
 	)
 	if err != nil {
 		return
