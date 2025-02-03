@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -125,8 +124,6 @@ func (r *SvmResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 			"storage_limit": schema.Int64Attribute{
 				MarkdownDescription: "Maximum storage permitted on svm, in bytes",
 				Optional:            true,
-				Computed:            true,
-				Default:             int64default.StaticInt64(0),
 			},
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -324,8 +321,6 @@ func (r *SvmResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		data.MaxVolumes = types.StringValue(svm.MaxVolumes)
 	}
 
-	data.StorageLimit = types.Int64Value(int64(svm.Storage.Limit))
-
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -406,7 +401,7 @@ func (r *SvmResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		request.MaxVolumes = data.MaxVolumes.ValueString()
 	}
 
-	if !data.StorageLimit.Equal(state.StorageLimit) {
+	if !data.StorageLimit.IsUnknown() {
 		request.Storage.Limit = int(data.StorageLimit.ValueInt64())
 	}
 
