@@ -4,6 +4,7 @@ ENHANCEMENTS:
 
 - **netapp-ontap_svm**: added `storage.limit` option. ([#302](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/302))
 - **netapp-ontap_network_ip_interface**: added `service_policy` option. ([#306](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/306))
+- **netapp-ontap_network_ip_interface**: added `location.broadcast_domain` option. ([#305](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/305))
 
 # 2.0.1 (2024-12-13)
 
