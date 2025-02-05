@@ -8,7 +8,7 @@ import (
 
 	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 // example ID: aeef4e4f-a663-11ef-9ca8-00a0b8bc0407
