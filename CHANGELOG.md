@@ -1,7 +1,9 @@
-# 2.1.0 ()
+# 2.0.1 (2024-12-13)
 
+Documentation
+* Corrected Resource and Data Source Names
 
-# 2.0.0 ()
+# 2.0.0 (2024-12-12)
 
 BREAKING CHANGES:
 
