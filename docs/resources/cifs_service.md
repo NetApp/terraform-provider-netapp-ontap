@@ -46,7 +46,7 @@ resource "netapp-ontap_cifs_service" "protocols_cifs_service_basic" {
     fqdn = "mytfdomain.com"
     organizational_unit = "CN=Computers"
     user = "administrator"
-    password = "***REMOVED***"
+    password = "password"
   }
 }
 
@@ -59,7 +59,7 @@ resource "netapp-ontap_cifs_service" "protocols_cifs_service" {
     fqdn = "mytfdomain.com"
     organizational_unit = "CN=Computers"
     user = "administrator"
-    password = "***REMOVED***"
+    password = "password"
   }
   netbios = {
     aliases = ["abc", "def"]
