@@ -1,6 +1,12 @@
+# 2.1.0 (2025-06-01)
+
+DOCUMENTATION:
+
+* **netapp-ontap_cifs_service_resource**: Updated section `Example Usage` ([[#352](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/352)])
+
 # 2.0.1 (2024-12-13)
 
-Documentation
+DOCUMENTATION:
 * Corrected Resource and Data Source Names
 
 # 2.0.0 (2024-12-12)
