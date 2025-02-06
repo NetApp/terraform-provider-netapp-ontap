@@ -6,8 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
-
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -16,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
@@ -65,6 +64,7 @@ type IPInterfaceResourceModel struct {
 	SVMName       types.String                 `tfsdk:"svm_name"`
 	IP            *IPInterfaceResourceIP       `tfsdk:"ip"`
 	Location      *IPInterfaceResourceLocation `tfsdk:"location"`
+	ServicePolicy types.String                 `tfsdk:"service_policy"`
 	UUID          types.String                 `tfsdk:"id"`
 }
 
@@ -120,6 +120,14 @@ func (r *IPInterfaceResource) Schema(ctx context.Context, req resource.SchemaReq
 					},
 				},
 				Required: true,
+			},
+			"service_policy": schema.StringAttribute{
+				MarkdownDescription: "IPInterface service policy",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"id": schema.StringAttribute{
 				MarkdownDescription: "IPInterface UUID",
@@ -202,6 +210,9 @@ func (r *IPInterfaceResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 	ip.Netmask = types.Int64Value(int64(intValue))
 	data.IP = &ip
+
+	data.ServicePolicy = types.StringValue(restInfo.ServicePolicy.Name)
+
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
 	tflog.Debug(ctx, fmt.Sprintf("read a resource: %#v", data))
@@ -238,6 +249,7 @@ func (r *IPInterfaceResource) Create(ctx context.Context, req resource.CreateReq
 	body.Location.HomeNode = interfaces.IPInterfaceResourceHomeNode{
 		Name: data.Location.HomeNode.ValueString(),
 	}
+	body.ServicePolicy.Name = data.ServicePolicy.ValueString()
 
 	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
@@ -253,6 +265,16 @@ func (r *IPInterfaceResource) Create(ctx context.Context, req resource.CreateReq
 	data.UUID = types.StringValue(resource.UUID)
 
 	tflog.Trace(ctx, fmt.Sprintf("created a resource, UUID=%s", data.UUID))
+
+	if data.ServicePolicy.IsUnknown() {
+		// read newly created interface to populate service policy (not fetched by CreateIPInterface)
+		restInfo, err := interfaces.GetIPInterface(errorHandler, *client, data.UUID.ValueString())
+		if err != nil {
+			// error reporting done inside GetIPInterface
+			return
+		}
+		data.ServicePolicy = types.StringValue(restInfo.ServicePolicy.Name)
+	}
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -284,6 +306,7 @@ func (r *IPInterfaceResource) Update(ctx context.Context, req resource.UpdateReq
 	body.Location.HomeNode = interfaces.IPInterfaceResourceHomeNode{
 		Name: data.Location.HomeNode.ValueString(),
 	}
+	body.ServicePolicy.Name = data.ServicePolicy.ValueString()
 
 	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
