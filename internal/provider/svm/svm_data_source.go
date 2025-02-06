@@ -51,6 +51,7 @@ type SvmDataSourceModel struct {
 	Language       types.String   `tfsdk:"language"`
 	Aggregates     []types.String `tfsdk:"aggregates"`
 	MaxVolumes     types.String   `tfsdk:"max_volumes"`
+	StorageLimit   types.Int64    `tfsdk:"storage_limit"`
 	ID             types.String   `tfsdk:"id"`
 }
 
@@ -108,6 +109,10 @@ func (d *SvmDataSource) Schema(ctx context.Context, req datasource.SchemaRequest
 				MarkdownDescription: "Maximum number of volumes that can be created on the svm. Expects an integer or unlimited",
 				Computed:            true,
 			},
+			"storage_limit": schema.Int64Attribute{
+				MarkdownDescription: "Maximum storage permitted on svm, in bytes",
+				Computed:            true,
+			},
 			"id": schema.StringAttribute{
 				Computed: true,
 			},
@@ -150,7 +155,17 @@ func (d *SvmDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		return
 	}
 
-	restInfo, err := interfaces.GetSvmByNameDataSource(errorHandler, *client, data.Name.ValueString())
+	cluster, err := interfaces.GetCluster(errorHandler, *client)
+	if err != nil {
+		// error reporting done inside GetCluster
+		return
+	}
+	if cluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", "cluster not found")
+		return
+	}
+
+	restInfo, err := interfaces.GetSvmByNameDataSource(errorHandler, *client, data.Name.ValueString(), cluster.Version)
 	if err != nil {
 		// error reporting done inside GetSvm
 		return
@@ -170,6 +185,7 @@ func (d *SvmDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	data.Language = types.StringValue(restInfo.Language)
 	data.Aggregates = aggregates
 	data.MaxVolumes = types.StringValue(restInfo.MaxVolumes)
+	data.StorageLimit = types.Int64Value(int64(restInfo.Storage.Limit))
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log

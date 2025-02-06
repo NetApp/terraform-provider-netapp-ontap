@@ -104,7 +104,17 @@ func TestGetSvmByNameDataSource(t *testing.T) {
 			if err != nil {
 				panic(err)
 			}
-			got, err := GetSvmByNameDataSource(errorHandler, *r, "svmname")
+			got, err := GetSvmByNameDataSource(
+				errorHandler,
+				*r,
+				"svmname",
+				versionModelONTAP{
+					Full:       "NetApp Release 9.15.1P4: Sun Oct 27 20:15:53 UTC 2024",
+					Generation: 9,
+					Major:      15,
+					Minor:      1,
+				},
+			)
 			if err != nil {
 				fmt.Printf("err: %s\n", err)
 			}
@@ -181,7 +191,17 @@ func TestGetSvmsByName(t *testing.T) {
 			if err != nil {
 				panic(err)
 			}
-			got, err := GetSvmsByName(errorHandler, *r, &SvmDataSourceFilterModel{Name: ""})
+			got, err := GetSvmsByName(
+				errorHandler,
+				*r,
+				&SvmDataSourceFilterModel{Name: ""},
+				versionModelONTAP{
+					Full:       "NetApp Release 9.15.1P4: Sun Oct 27 20:15:53 UTC 2024",
+					Generation: 9,
+					Major:      15,
+					Minor:      1,
+				},
+			)
 			if err != nil {
 				fmt.Printf("err: %s\n", err)
 			}

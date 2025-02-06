@@ -56,6 +56,7 @@ type SvmResourceModel struct {
 	Language       types.String `tfsdk:"language"`
 	Aggregates     []Aggregate  `tfsdk:"aggregates"`
 	MaxVolumes     types.String `tfsdk:"max_volumes"`
+	StorageLimit   types.Int64  `tfsdk:"storage_limit"`
 	ID             types.String `tfsdk:"id"`
 }
 
@@ -118,6 +119,10 @@ func (r *SvmResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 			},
 			"max_volumes": schema.StringAttribute{
 				MarkdownDescription: "Maximum number of volumes that can be created on the svm. Expects an integer or unlimited",
+				Optional:            true,
+			},
+			"storage_limit": schema.Int64Attribute{
+				MarkdownDescription: "Maximum storage permitted on svm, in bytes",
 				Optional:            true,
 			},
 			"id": schema.StringAttribute{
@@ -191,6 +196,10 @@ func (r *SvmResource) Create(ctx context.Context, req resource.CreateRequest, re
 		request.MaxVolumes = data.MaxVolumes.ValueString()
 	}
 
+	if !data.StorageLimit.IsUnknown() {
+		request.Storage.Limit = int(data.StorageLimit.ValueInt64())
+	}
+
 	setAggrEmpty := false
 	if len(data.Aggregates) != 0 {
 		aggregates := []interfaces.Aggregate{}
@@ -214,7 +223,13 @@ func (r *SvmResource) Create(ctx context.Context, req resource.CreateRequest, re
 		// error reporting done inside NewClient
 		return
 	}
-	svm, err := interfaces.CreateSvm(errorHandler, *client, request, setAggrEmpty, setCommentEmpty)
+	svm, err := interfaces.CreateSvm(
+		errorHandler,
+		*client,
+		request,
+		setAggrEmpty,
+		setCommentEmpty,
+	)
 	if err != nil {
 		return
 	}
@@ -244,12 +259,23 @@ func (r *SvmResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		// error reporting done inside NewClient
 		return
 	}
+
+	cluster, err := interfaces.GetCluster(errorHandler, *client)
+	if err != nil {
+		// error reporting done inside GetCluster
+		return
+	}
+	if cluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", "cluster not found")
+		return
+	}
+
 	tflog.Debug(ctx, fmt.Sprintf("read a svm resource: %#v", data))
 	var svm *interfaces.SvmGetDataSourceModel
 	if data.ID.ValueString() != "" {
 		svm, err = interfaces.GetSvm(errorHandler, *client, data.ID.ValueString())
 	} else {
-		svm, err = interfaces.GetSvmByNameDataSource(errorHandler, *client, data.Name.ValueString())
+		svm, err = interfaces.GetSvmByNameDataSource(errorHandler, *client, data.Name.ValueString(), cluster.Version)
 	}
 	if err != nil {
 		return
@@ -373,6 +399,10 @@ func (r *SvmResource) Update(ctx context.Context, req resource.UpdateRequest, re
 			return
 		}
 		request.MaxVolumes = data.MaxVolumes.ValueString()
+	}
+
+	if !data.StorageLimit.IsUnknown() {
+		request.Storage.Limit = int(data.StorageLimit.ValueInt64())
 	}
 
 	// aggregates can be modified as empty list
