@@ -42,18 +42,29 @@ type StorageAggregateDataSource struct {
 
 // StorageAggregateDataSourceModel describes the data source data model.
 type StorageAggregateDataSourceModel struct {
-	CxProfileName types.String `tfsdk:"cx_profile_name"`
-	Name          types.String `tfsdk:"name"`
-	ID            types.String `tfsdk:"id"`
-	State         types.String `tfsdk:"state"`
-	Node          types.String `tfsdk:"node"`
-	DiskClass     types.String `tfsdk:"disk_class"`
-	DiskCount     types.Int64  `tfsdk:"disk_count"`
-	RaidSize      types.Int64  `tfsdk:"raid_size"`
-	RaidType      types.String `tfsdk:"raid_type"`
-	IsMirrored    types.Bool   `tfsdk:"is_mirrored"`
-	SnaplockType  types.String `tfsdk:"snaplock_type"`
-	Encryption    types.Bool   `tfsdk:"encryption"`
+	CxProfileName types.String                     `tfsdk:"cx_profile_name"`
+	Name          types.String                     `tfsdk:"name"`
+	ID            types.String                     `tfsdk:"id"`
+	State         types.String                     `tfsdk:"state"`
+	Node          types.String                     `tfsdk:"node"`
+	DiskClass     types.String                     `tfsdk:"disk_class"`
+	DiskCount     types.Int64                      `tfsdk:"disk_count"`
+	RaidSize      types.Int64                      `tfsdk:"raid_size"`
+	RaidType      types.String                     `tfsdk:"raid_type"`
+	IsMirrored    types.Bool                       `tfsdk:"is_mirrored"`
+	SnaplockType  types.String                     `tfsdk:"snaplock_type"`
+	Encryption    types.Bool                       `tfsdk:"encryption"`
+	Space         *StorageAggregateDataSourceSpace `tfsdk:"space"`
+}
+
+// StorageAggregateDataSourceSpace describes the space model.
+type StorageAggregateDataSourceSpace struct {
+	BlockStorage *StorageVolumeDataSourceSpaceBlockStorage `tfsdk:"block_storage"`
+}
+
+// StorageVolumeDataSourceSpaceBlockStorage describes the block storage model within sapce model.
+type StorageVolumeDataSourceSpaceBlockStorage struct {
+	Available types.Int64 `tfsdk:"available"`
 }
 
 // StorageAggregateDataSourceFilterModel describes the data source data model for queries.
@@ -129,6 +140,20 @@ func (d *StorageAggregateDataSource) Schema(ctx context.Context, req datasource.
 				MarkdownDescription: "Whether to enable software encryption. This is equivalent to -encrypt-with-aggr-key when using the CLI.Requires a VE license.",
 				Computed:            true,
 			},
+			"space": schema.SingleNestedAttribute{
+				Computed:   true,
+				Attributes: map[string]schema.Attribute{
+					"block_storage": schema.SingleNestedAttribute{
+						Computed:   true,
+						Attributes: map[string]schema.Attribute{
+							"available": schema.Int64Attribute{
+								Computed:            true,
+								MarkdownDescription: "Space available in bytes.",
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -185,6 +210,11 @@ func (d *StorageAggregateDataSource) Read(ctx context.Context, req datasource.Re
 	data.State = types.StringValue(restInfo.State)
 	data.Name = types.StringValue(restInfo.Name)
 	data.Node = types.StringValue(restInfo.Node.Name)
+	data.Space = &StorageAggregateDataSourceSpace{
+		BlockStorage: &StorageVolumeDataSourceSpaceBlockStorage{
+			Available: types.Int64Value(restInfo.Space.BlockStorage.Available),
+		},
+	}
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
