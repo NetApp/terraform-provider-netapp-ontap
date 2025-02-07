@@ -59,11 +59,11 @@ type StorageAggregateDataSourceModel struct {
 
 // StorageAggregateDataSourceSpace describes the space model.
 type StorageAggregateDataSourceSpace struct {
-	BlockStorage *StorageVolumeDataSourceSpaceBlockStorage `tfsdk:"block_storage"`
+	BlockStorage *StorageAggregateDataSourceSpaceBlockStorage `tfsdk:"block_storage"`
 }
 
-// StorageVolumeDataSourceSpaceBlockStorage describes the block storage model within sapce model.
-type StorageVolumeDataSourceSpaceBlockStorage struct {
+// StorageAggregateDataSourceSpaceBlockStorage describes the block storage model within sapce model.
+type StorageAggregateDataSourceSpaceBlockStorage struct {
 	Available types.Int64 `tfsdk:"available"`
 }
 
@@ -211,7 +211,7 @@ func (d *StorageAggregateDataSource) Read(ctx context.Context, req datasource.Re
 	data.Name = types.StringValue(restInfo.Name)
 	data.Node = types.StringValue(restInfo.Node.Name)
 	data.Space = &StorageAggregateDataSourceSpace{
-		BlockStorage: &StorageVolumeDataSourceSpaceBlockStorage{
+		BlockStorage: &StorageAggregateDataSourceSpaceBlockStorage{
 			Available: types.Int64Value(restInfo.Space.BlockStorage.Available),
 		},
 	}

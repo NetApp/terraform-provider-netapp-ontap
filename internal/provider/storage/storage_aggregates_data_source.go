@@ -221,7 +221,7 @@ func (d *StorageAggregatesDataSource) Read(ctx context.Context, req datasource.R
 			Name:          types.StringValue(record.Name),
 			Node:          types.StringValue(record.Node.Name),
 			Space:         &StorageAggregateDataSourceSpace{
-				BlockStorage: &StorageVolumeDataSourceSpaceBlockStorage{
+				BlockStorage: &StorageAggregateDataSourceSpaceBlockStorage{
 					Available: types.Int64Value(record.Space.BlockStorage.Available),
 				},
 			},
