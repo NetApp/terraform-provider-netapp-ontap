@@ -24,7 +24,7 @@ type SvmDataModelONTAP struct {
 
 // SvmResourceModel describes the resource data model.
 type SvmResourceModel struct {
-	Aggregates     []map[string]string `mapstructure:"aggregates"`
+	Aggregates     []map[string]string `mapstructure:"aggregates,omitempty"`
 	Comment        string              `mapstructure:"comment"`
 	Ipspace        Ipspace             `mapstructure:"ipspace"`
 	Language       string              `mapstructure:"language,omitempty"`
