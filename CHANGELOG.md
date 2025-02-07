@@ -1,6 +1,11 @@
+# 2.1.0 (2025-06-01)
+
+DOCUMENTATION:
+* Resources `netapp-ontap_san_igroup` and `netapp-ontap_san_lun-map` are now moved under category SAN.
+
 # 2.0.1 (2024-12-13)
 
-Documentation
+DOCUMENTATION:
 * Corrected Resource and Data Source Names
 
 # 2.0.0 (2024-12-12)
