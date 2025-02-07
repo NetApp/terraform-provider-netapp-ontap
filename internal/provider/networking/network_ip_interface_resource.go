@@ -178,6 +178,7 @@ func (r *IPInterfaceResource) Schema(ctx context.Context, req resource.SchemaReq
 			},
 		},
 	}
+}
 
 // Configure adds the provider configured client to the resource.
 func (r *IPInterfaceResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
