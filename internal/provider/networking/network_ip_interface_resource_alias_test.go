@@ -21,29 +21,29 @@ func TestAccNetworkIpInterfaceResourceAlias(t *testing.T) {
 		Steps: []resource.TestStep{
 			// non-existant SVM return code 2621462. Must happen before create/read
 			{
-				Config:      testAccNetworkIPInterfaceResourceConfigHomePortNodeAlias("non-existant", "10.10.10.10", "e0d", "ontap_cluster_1-01"),
+				Config:      testAccNetworkIPInterfaceResourceConfigHomePortNodeAlias("non-existant", "10.10.10.10", "e0d", "ontap_cluster_1-01", "default-data-files"),
 				ExpectError: regexp.MustCompile("2621462"),
 			},
 			// non-existant home node
 			{
-				Config:      testAccNetworkIPInterfaceResourceConfigHomePortNodeAlias("svm0", "10.10.10.10", "e0d", "non-existant_home_node"),
+				Config:      testAccNetworkIPInterfaceResourceConfigHomePortNodeAlias("svm0", "10.10.10.10", "e0d", "non-existant_home_node", "default-data-files"),
 				ExpectError: regexp.MustCompile("53281680"),
 			},
 			// non-existant broadcast domain
 			{
-				Config:      testAccNetworkIPInterfaceResourceConfigBroadcastDomainAlias("svm0", "10.10.10.10", "non-existant_broadcast_domain"),
+				Config:      testAccNetworkIPInterfaceResourceConfigBroadcastDomainAlias("svm0", "10.10.10.10", "non-existant_broadcast_domain", "default-data-files"),
 				ExpectError: regexp.MustCompile("Code:\"2\""),
 			},
 			// empty location, no Home Node / Home Port / Broadcast Domain
 			// Error 1967111: "Home node must be specified by at least one location.home_node, location.home_port, or location.broadcast_domain field."
 			{
-				Config:      testAccNetworkIPInterfaceResourceConfigHomePortNodeAlias("svm0", "10.10.10.10", "", ""),
+				Config:      testAccNetworkIPInterfaceResourceConfigHomePortNodeAlias("svm0", "10.10.10.10", "", "", "default-data-files"),
 				ExpectError: regexp.MustCompile("Code:\"1967111\""),
 			},
 
 			// Create and Read (with Home Port & Node)
 			{
-				Config: testAccNetworkIPInterfaceResourceConfigHomePortNodeAlias("svm0", "10.10.10.10", "e0d", "ontap_cluster_1-01"),
+				Config: testAccNetworkIPInterfaceResourceConfigHomePortNodeAlias("svm0", "10.10.10.10", "e0d", "ontap_cluster_1-01", "default-data-files"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "name", "test-interface-1"),
 					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "svm_name", "svm2"),
@@ -51,7 +51,7 @@ func TestAccNetworkIpInterfaceResourceAlias(t *testing.T) {
 			},
 			// Update and Read (with Home Port & Node)
 			{
-				Config: testAccNetworkIPInterfaceResourceConfigHomePortNodeAlias("svm0", "10.10.10.20", "e0d", "ontap_cluster_1-01"),
+				Config: testAccNetworkIPInterfaceResourceConfigHomePortNodeAlias("svm0", "10.10.10.20", "e0d", "ontap_cluster_1-01", "default-data-iscsi"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "name", "test-interface-1"),
 					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "ip.address", "10.10.10.20"),
@@ -72,7 +72,7 @@ func TestAccNetworkIpInterfaceResourceAlias(t *testing.T) {
 
 			// Create and Read (with Broadcast Domain)
 			{
-				Config: testAccNetworkIPInterfaceResourceConfigBroadcastDomainAlias("svm0", "10.10.20.10", "tf_test_data_svm0"),
+				Config: testAccNetworkIPInterfaceResourceConfigBroadcastDomainAlias("svm0", "10.10.20.10", "tf_test_data_svm0", "default-data-files"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "name", "test-interface-2"),
 					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "svm_name", "svm02"),
@@ -83,7 +83,7 @@ func TestAccNetworkIpInterfaceResourceAlias(t *testing.T) {
 			},
 			// Update and Read (with Broadcast Domain)
 			{
-				Config: testAccNetworkIPInterfaceResourceConfigBroadcastDomainAlias("svm0", "10.10.20.20", "tf_test_data_svm0"),
+				Config: testAccNetworkIPInterfaceResourceConfigBroadcastDomainAlias("svm0", "10.10.20.20", "tf_test_data_svm0", "default-data-iscsi"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "name", "test-interface-2"),
 					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "ip.address", "10.10.20.20"),
@@ -132,26 +132,26 @@ provider "netapp-ontap" {
 	`, host, admin, password)
 }
 
-func testAccNetworkIPInterfaceResourceConfigHomePortNodeAlias(svmName, address, homePort, homeNode string) string {
+func testAccNetworkIPInterfaceResourceConfigHomePortNodeAlias(svmName, address, homePort, homeNode, servicePolicy string) string {
 	return testAccNetworkIPInterfaceProviderConfigAlias() + fmt.Sprintf(`
 resource "netapp-ontap_networking_ip_interface_resource" "example" {
 	cx_profile_name = "cluster4"
 	name = "test-interface-1"
 	svm_name = "%s"
-  	ip = {
-    	address = "%s"
-    	netmask = 18
-    }
-  	location = {
-    	home_port = "%s"
-    	home_node = "%s"
-  	}
+	ip = {
+		address = "%s"
+		netmask = 18
+	}
+	location = {
+		home_port = "%s"
+		home_node = "%s"
+	}
 	service_policy = "%s"
 }
-`, svmName, address, homePort, homeNode)
+`, svmName, address, homePort, homeNode, servicePolicy)
 }
 
-func testAccNetworkIPInterfaceResourceConfigBroadcastDomainAlias(svmName, address, broadcastDomain string) string {
+func testAccNetworkIPInterfaceResourceConfigBroadcastDomainAlias(svmName, address, broadcastDomain, servicePolicy string) string {
 	return testAccNetworkIPInterfaceProviderConfigAlias() + fmt.Sprintf(`
 resource "netapp-ontap_networking_ip_interface_resource" "example" {
 	cx_profile_name = "cluster4"
@@ -166,6 +166,7 @@ resource "netapp-ontap_networking_ip_interface_resource" "example" {
 			name = "%s"
 		}
 	}
+	service_policy = "%s"
 }
-`, svmName, address, broadcastDomain)
+`, svmName, address, broadcastDomain, servicePolicy)
 }
