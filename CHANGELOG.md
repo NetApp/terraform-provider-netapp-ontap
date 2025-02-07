@@ -1,5 +1,11 @@
 # 2.1.0 (2025-02-xx)
 
+FEATURES:
+
+- **New Data Source:** `netapp-ontap_network_broadcast_domain` ([#303](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/303))
+- **New Data Source:** `netapp-ontap_network_broadcast_domains` ([#303](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/303))
+- **New Resource:** `netapp-ontap_network_broadcast_domain` ([#303](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/303))
+
 ENHANCEMENTS:
 
 - **netapp-ontap_svm**: added `storage.limit` option. ([#302](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/302))
