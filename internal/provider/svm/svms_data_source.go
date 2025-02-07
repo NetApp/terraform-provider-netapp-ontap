@@ -165,7 +165,18 @@ func (d *SvmsDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			Name: data.Filter.Name.ValueString(),
 		}
 	}
-	restInfo, err := interfaces.GetSvmsByName(errorHandler, *client, filter)
+
+	cluster, err := interfaces.GetCluster(errorHandler, *client)
+	if err != nil {
+		// error reporting done inside GetCluster
+		return
+	}
+	if cluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", "cluster not found")
+		return
+	}
+
+	restInfo, err := interfaces.GetSvmsByName(errorHandler, *client, filter, cluster.Version)
 	if err != nil {
 		// error reporting done inside GetSvms
 		return

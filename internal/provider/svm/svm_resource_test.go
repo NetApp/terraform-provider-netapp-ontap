@@ -17,7 +17,7 @@ func TestAccSvmResource(t *testing.T) {
 		ProtoV6ProviderFactories: ntest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSvmResourceConfig("tfsvm4", "test", "default"),
+				Config: testAccSvmResourceConfig("tfsvm4", "test", "default", 0),
 				Check: resource.ComposeTestCheckFunc(
 					// Check to see the svm name is correct,
 					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "name", "tfsvm4"),
@@ -25,25 +25,28 @@ func TestAccSvmResource(t *testing.T) {
 					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "ipspace", "Default"),
 					// Check that a ID has been set (we don't know what the vaule is as it changes
 					resource.TestCheckResourceAttrSet("netapp-ontap_svm.example", "id"),
-					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "comment", "test")),
+					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "comment", "test"),
+					// Check to see if storage_limit is set correctly
+					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "storage_limit", "0"),
+				),
 			},
 			// Update a comment
 			{
-				Config: testAccSvmResourceConfig("tfsvm4", "carchi8py was here", "default"),
+				Config: testAccSvmResourceConfig("tfsvm4", "carchi8py was here", "default", 0),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "comment", "carchi8py was here"),
 					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "name", "tfsvm4")),
 			},
 			// Update a comment with an empty string
 			{
-				Config: testAccSvmResourceConfig("tfsvm4", "", "default"),
+				Config: testAccSvmResourceConfig("tfsvm4", "", "default", 0),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "comment", ""),
 					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "name", "tfsvm4")),
 			},
 			// Update snapshot policy default-1weekly and comment "carchi8py was here"
 			{
-				Config: testAccSvmResourceConfig("tfsvm4", "carchi8py was here", "default-1weekly"),
+				Config: testAccSvmResourceConfig("tfsvm4", "carchi8py was here", "default-1weekly", 0),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "comment", "carchi8py was here"),
 					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "snapshot_policy", "default-1weekly"),
@@ -51,19 +54,19 @@ func TestAccSvmResource(t *testing.T) {
 			},
 			// Update snapshot policy with empty string
 			{
-				Config:      testAccSvmResourceConfig("tfsvm4", "carchi8py was here", ""),
+				Config:      testAccSvmResourceConfig("tfsvm4", "carchi8py was here", "", 0),
 				ExpectError: regexp.MustCompile("cannot be updated with empty string"),
 			},
 			// change SVM name
 			{
-				Config: testAccSvmResourceConfig("tfsvm3", "carchi8py was here", "default"),
+				Config: testAccSvmResourceConfig("tfsvm3", "carchi8py was here", "default", 0),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "comment", "carchi8py was here"),
 					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "name", "tfsvm3")),
 			},
 			// Fail if the name already exist
 			{
-				Config:      testAccSvmResourceConfig("terraform", "carchi8py was here", "default"),
+				Config:      testAccSvmResourceConfig("terraform", "carchi8py was here", "default", 0),
 				ExpectError: regexp.MustCompile("13434908"),
 			},
 			// Import and read
@@ -75,10 +78,22 @@ func TestAccSvmResource(t *testing.T) {
 					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "name", "terraform"),
 				),
 			},
+			// Update storage_limit
+			{
+				Config: testAccSvmResourceConfig("tfsvm3", "carchi8py was here", "default", (1024 * 1024 * 1024)), // 1GB
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "storage_limit", "1073741824"),
+				),
+			},
+			// Fail if storage_limit too low
+			{
+				Config:      testAccSvmResourceConfig("tfsvm3", "carchi8py was here", "default", (1024 * 1024)), // 1MB
+				ExpectError: regexp.MustCompile("13434880"),
+			},
 		},
 	})
 }
-func testAccSvmResourceConfig(svm, comment string, snapshotPolicy string) string {
+func testAccSvmResourceConfig(svm, comment, snapshotPolicy string, storageLimit int) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST5")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS2")
@@ -113,5 +128,6 @@ resource "netapp-ontap_svm" "example" {
     },
   ]
   max_volumes = "unlimited"
-}`, host, admin, password, svm, comment, snapshotPolicy)
+	storage_limit = %d
+}`, host, admin, password, svm, comment, snapshotPolicy, storageLimit)
 }
