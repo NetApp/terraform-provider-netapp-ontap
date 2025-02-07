@@ -161,6 +161,16 @@ func (r *SvmQosPolicyActivationResource) Read(ctx context.Context, req resource.
 		return
 	}
 
+	cluster, err := interfaces.GetCluster(errorHandler, *client)
+	if err != nil {
+		// error reporting done inside GetCluster
+		return
+	}
+	if cluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", "cluster not found")
+		return
+	}
+
 	tflog.Debug(ctx, fmt.Sprintf("read a svm resource: %#v", data))
 
 	// If no svm ID specified...
@@ -171,6 +181,7 @@ func (r *SvmQosPolicyActivationResource) Read(ctx context.Context, req resource.
 			errorHandler,
 			*client,
 			data.Svm.Name.ValueString(),
+			cluster.Version,
 		)
 		if err != nil {
 			return
@@ -230,6 +241,16 @@ func (r *SvmQosPolicyActivationResource) Create(ctx context.Context, req resourc
 		return
 	}
 
+	cluster, err := interfaces.GetCluster(errorHandler, *client)
+	if err != nil {
+		// error reporting done inside GetCluster
+		return
+	}
+	if cluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", "cluster not found")
+		return
+	}
+
 	// If no svm ID specified...
 	if data.Svm.ID.ValueString() == "" {
 
@@ -238,6 +259,7 @@ func (r *SvmQosPolicyActivationResource) Create(ctx context.Context, req resourc
 			errorHandler,
 			*client,
 			data.Svm.Name.ValueString(),
+			cluster.Version,
 		)
 		if err != nil {
 			return
