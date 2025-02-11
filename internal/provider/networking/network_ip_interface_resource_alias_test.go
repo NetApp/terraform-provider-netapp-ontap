@@ -12,7 +12,7 @@ import (
 )
 
 // example ID: aeef4e4f-a663-11ef-9ca8-00a0b8bc0407
-const idRegexAlias string = "[[:xdigit:]]{8}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{12}"
+const idRegexAliasNetworkIpInterface string = "[[:xdigit:]]{8}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{12}"
 
 func TestAccNetworkIpInterfaceResourceAlias(t *testing.T) {
 	resource.Test(t, resource.TestCase{
@@ -76,7 +76,7 @@ func TestAccNetworkIpInterfaceResourceAlias(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "name", "test-interface-2"),
 					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "svm_name", "svm02"),
-					resource.TestMatchResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "location.broadcast_domain.id", regexp.MustCompile(idRegexAlias)),
+					resource.TestMatchResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "location.broadcast_domain.id", regexp.MustCompile(idRegexAliasNetworkIpInterface)),
 					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "location.home_node", "ontap_cluster_1-01"),
 					resource.TestMatchResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "location.home_port", regexp.MustCompile("e0a-[0-9]+")),
 				),
@@ -87,7 +87,7 @@ func TestAccNetworkIpInterfaceResourceAlias(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "name", "test-interface-2"),
 					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "ip.address", "10.10.20.20"),
-					resource.TestMatchResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "location.broadcast_domain.id", regexp.MustCompile(idRegexAlias)),
+					resource.TestMatchResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "location.broadcast_domain.id", regexp.MustCompile(idRegexAliasNetworkIpInterface)),
 					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "location.home_node", "ontap_cluster_1-01"),
 					resource.TestMatchResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "location.home_port", regexp.MustCompile("e0a-[0-9]+")),
 				),
@@ -100,7 +100,7 @@ func TestAccNetworkIpInterfaceResourceAlias(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "name", "test-interface-2"),
 					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "ip.address", "10.10.20.20"),
-					resource.TestMatchResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "location.broadcast_domain.id", regexp.MustCompile(idRegexAlias)),
+					resource.TestMatchResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "location.broadcast_domain.id", regexp.MustCompile(idRegexAliasNetworkIpInterface)),
 					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "location.home_node", "ontap_cluster_1-01"),
 					resource.TestMatchResourceAttr("netapp-ontap_networking_ip_interface_resource.example", "location.home_port", regexp.MustCompile("e0a-[0-9]+")),
 				),
