@@ -255,6 +255,7 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		storage.NewVolumeFileResource,
 		svm.NewSVMPeerResource,
 		svm.NewSvmResource,
+		svm.NewSvmQosPolicyActivationResource,
 		// The following resources are Alias for the version 1 names
 		cluster.NewClusterLicensingLicenseResourceAlias,
 		cluster.NewClusterPeerResourceAlias,
