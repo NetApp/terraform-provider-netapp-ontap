@@ -1,5 +1,9 @@
 # 2.1.0 (2025-02-12)
 
+DOCUMENTATION:
+
+* Resources `netapp-ontap_san_igroup` and `netapp-ontap_san_lun-map` are now moved under category SAN.
+
 FEATURES:
 
 - **New Data Source:** `netapp-ontap_network_broadcast_domain` ([#303](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/303))
