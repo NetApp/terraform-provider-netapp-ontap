@@ -24,27 +24,32 @@ type SvmDataModelONTAP struct {
 
 // SvmResourceModel describes the resource data model.
 type SvmResourceModel struct {
-	Name           string              `mapstructure:"name,omitempty"`
-	Ipspace        Ipspace             `mapstructure:"ipspace"`
-	SnapshotPolicy SnapshotPolicy      `mapstructure:"snapshot_policy,omitempty"`
-	SubType        string              `mapstructure:"subtype,omitempty"`
+	Aggregates     []map[string]string `mapstructure:"aggregates,omitempty"`
 	Comment        string              `mapstructure:"comment"`
+	Ipspace        Ipspace             `mapstructure:"ipspace"`
 	Language       string              `mapstructure:"language,omitempty"`
 	MaxVolumes     string              `mapstructure:"max_volumes,omitempty"`
-	Aggregates     []map[string]string `mapstructure:"aggregates"`
+	Name           string              `mapstructure:"name,omitempty"`
+	QoSPolicy      QoSPolicy           `mapstructure:"qos_policy"`
+	SnapshotPolicy SnapshotPolicy      `mapstructure:"snapshot_policy,omitempty"`
+	Storage        Storage             `mapstructure:"storage,omitempty"`
+	SubType        string              `mapstructure:"subtype,omitempty"`
+	UUID           string              `mapstructure:"uuid,omitempty"`
 }
 
 // SvmGetDataSourceModel describes the data source model.
 type SvmGetDataSourceModel struct {
-	Name           string         `mapstructure:"name"`
-	UUID           string         `mapstructure:"uuid"`
-	Ipspace        Ipspace        `mapstructure:"ipspace"`
-	SnapshotPolicy SnapshotPolicy `mapstructure:"snapshot_policy"`
-	SubType        string         `mapstructure:"subtype,omitempty"`
-	Comment        string         `mapstructure:"comment,omitempty"`
-	Language       string         `mapstructure:"language,omitempty"`
 	Aggregates     []Aggregate    `mapstructure:"aggregates,omitempty"`
+	Comment        string         `mapstructure:"comment,omitempty"`
+	Ipspace        Ipspace        `mapstructure:"ipspace"`
+	Language       string         `mapstructure:"language,omitempty"`
 	MaxVolumes     string         `mapstructure:"max_volumes,omitempty"`
+	Name           string         `mapstructure:"name"`
+	QoSPolicy      QoSPolicy      `mapstructure:"qos_policy"`
+	SnapshotPolicy SnapshotPolicy `mapstructure:"snapshot_policy"`
+	Storage        Storage        `mapstructure:"storage,omitempty"`
+	SubType        string         `mapstructure:"subtype,omitempty"`
+	UUID           string         `mapstructure:"uuid"`
 }
 
 // Ipspace describes the resource data model.
@@ -52,9 +57,20 @@ type Ipspace struct {
 	Name string `mapstructure:"name,omitempty"`
 }
 
+// QoSPolicy describes the resource data model.
+type QoSPolicy struct {
+	Name string `mapstructure:"name,omitempty"`
+	UUID string `mapstructure:"uuid,omitempty"`
+}
+
 // SnapshotPolicy describes the resource data model.
 type SnapshotPolicy struct {
 	Name string `mapstructure:"name,omitempty"`
+}
+
+// Storage describes the resource data model.
+type Storage struct {
+	Limit int `mapstructure:"limit,omitempty"`
 }
 
 // SvmDataSourceFilterModel describes the data source data model for queries.
@@ -122,11 +138,27 @@ func GetSvmByNameIgnoreNotFound(errorHandler *utils.ErrorHandler, r restclient.R
 }
 
 // GetSvmByNameDataSource to get data source svm info
-func GetSvmByNameDataSource(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string) (*SvmGetDataSourceModel, error) {
+func GetSvmByNameDataSource(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, version versionModelONTAP) (*SvmGetDataSourceModel, error) {
 	api := "svm/svms"
 	query := r.NewQuery()
-	query.Fields([]string{"name", "ipspace", "snapshot_policy", "subtype", "comment", "language", "max_volumes", "aggregates"})
+	fields := []string{
+		"name",
+		"uuid",
+		"ipspace",
+		"snapshot_policy",
+		"subtype",
+		"comment",
+		"language",
+		"max_volumes",
+		"aggregates",
+		"qos_policy",
+	}
+	if version.Generation >= 9 && version.Major >= 13 {
+		fields = append(fields, "storage.limit")
+	}
+	query.Fields(fields)
 	query.Add("name", name)
+
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
 		err = fmt.Errorf("no response for GET %s", api)
@@ -144,10 +176,25 @@ func GetSvmByNameDataSource(errorHandler *utils.ErrorHandler, r restclient.RestC
 }
 
 // GetSvmsByName to get data source list svm info
-func GetSvmsByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *SvmDataSourceFilterModel) ([]SvmGetDataSourceModel, error) {
+func GetSvmsByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *SvmDataSourceFilterModel, version versionModelONTAP) ([]SvmGetDataSourceModel, error) {
 	api := "svm/svms"
 	query := r.NewQuery()
-	query.Fields([]string{"name", "ipspace", "snapshot_policy", "subtype", "comment", "language", "max_volumes", "aggregates"})
+	fields := []string{
+		"name",
+		"uuid",
+		"ipspace",
+		"snapshot_policy",
+		"subtype",
+		"comment",
+		"language",
+		"max_volumes",
+		"aggregates",
+		"qos_policy",
+	}
+	if version.Generation >= 9 && version.Major >= 13 {
+		fields = append(fields, "storage.limit")
+	}
+	query.Fields(fields)
 
 	if filter != nil {
 		var filterMap map[string]interface{}
@@ -190,6 +237,7 @@ func CreateSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, data S
 	if setCommentEmpty {
 		delete(body, "comment")
 	}
+
 	query := r.NewQuery()
 	query.Add("return_records", "true")
 	statusCode, response, err := r.CallCreateMethod("svm/svms", query, body)

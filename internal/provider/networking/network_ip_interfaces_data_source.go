@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
@@ -130,8 +129,26 @@ func (d *IPInterfacesDataSource) Schema(ctx context.Context, req datasource.Sche
 									Computed:            true,
 									MarkdownDescription: "IPInterface home port",
 								},
+								"broadcast_domain": schema.SingleNestedAttribute{
+									Attributes: map[string]schema.Attribute{
+										"name": schema.StringAttribute{
+											MarkdownDescription: "Name of the broadcast domain, scoped to its IPspace",
+											Computed:            true,
+										},
+										"id": schema.StringAttribute{
+											MarkdownDescription: "Broadcast domain UUID",
+											Computed:            true,
+										},
+									},
+									MarkdownDescription: "Broadcast domain UUID along with a readable name",
+									Computed:            true,
+								},
 							},
 							Computed: true,
+						},
+						"service_policy": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "IPInterface service policy",
 						},
 					},
 				},
@@ -199,6 +216,7 @@ func (d *IPInterfacesDataSource) Read(ctx context.Context, req datasource.ReadRe
 			Name:          types.StringValue(record.Name),
 			Scope:         types.StringValue(record.Scope),
 			SVMName:       types.StringValue(record.SVM.Name),
+			ServicePolicy: types.StringValue(record.ServicePolicy.Name),
 		}
 		intNetmask, err := strconv.Atoi(record.IP.Netmask)
 		if err != nil {
@@ -212,6 +230,10 @@ func (d *IPInterfacesDataSource) Read(ctx context.Context, req datasource.ReadRe
 		data.IPInterfaces[index].Location = &LocationDataSourceModel{
 			HomeNode: types.StringValue(record.Location.HomeNode.Name),
 			HomePort: types.StringValue(record.Location.HomePort.Name),
+			BroadcastDomain: &LocationBroadcastDomainDataSourceModel{
+				ID:   types.StringValue(record.Location.BroadcastDomain.UUID),
+				Name: types.StringValue(record.Location.BroadcastDomain.Name),
+			},
 		}
 	}
 

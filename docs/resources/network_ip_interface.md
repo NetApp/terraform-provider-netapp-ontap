@@ -38,6 +38,7 @@ resource "netapp-ontap_network_ip_interface" "example" {
         home_port = "e0d"
         home_node = "ontap_cluster_1-01"
     }
+    service_policy = "default-management"
 }
 ```
 
@@ -51,6 +52,10 @@ resource "netapp-ontap_network_ip_interface" "example" {
 - `location` (Attributes) (see [below for nested schema](#nestedatt--location))
 - `name` (String) IPInterface name
 - `svm_name` (String) IPInterface svm name
+
+### Optional
+
+- `service_policy` (String) IPInterface service policy
 
 ### Read-Only
 
@@ -69,10 +74,20 @@ Required:
 
 ### Nested Schema for `location`
 
-Required:
+Optional:
 
 - `home_node` (String) IPInterface home node
 - `home_port` (String) IPInterface home port
+- `broadcast_domain` (Attributes) (see [below for nested schema](#nestedatt--location--broadcast_domain))
+
+<a id="nestedatt--location--broadcast_domain"></a>
+
+### Nested Schema for `location.broadcast_domain`
+
+Optional:
+
+- `name` (String) Name of the broadcast domain, scoped to its IPspace
+- `id` (String) Broadcast domain UUID
 
 ## Import
 

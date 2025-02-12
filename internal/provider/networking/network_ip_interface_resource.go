@@ -6,16 +6,17 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
-
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
@@ -52,10 +53,24 @@ type IPInterfaceResourceIP struct {
 	Netmask types.Int64  `tfsdk:"netmask"`
 }
 
-// IPInterfaceResourceLocation describes the resource data model for home node/port.
+// IPInterfaceResourceLocation describes the resource data model for home node/port and broadcast domain.
 type IPInterfaceResourceLocation struct {
-	HomeNode types.String `tfsdk:"home_node"`
-	HomePort types.String `tfsdk:"home_port"`
+	HomeNode        types.String `tfsdk:"home_node"`
+	HomePort        types.String `tfsdk:"home_port"`
+	BroadcastDomain types.Object `tfsdk:"broadcast_domain"`
+}
+
+// IPInterfaceResourceLocationBroadcastDomain describes the resource data model for broadcast domain ID and name.
+type IPInterfaceResourceLocationBroadcastDomain struct {
+	ID   types.String `tfsdk:"id"`
+	Name types.String `tfsdk:"name"`
+}
+
+func (bd IPInterfaceResourceLocationBroadcastDomain) AttributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"id":   types.StringType,
+		"name": types.StringType,
+	}
 }
 
 // IPInterfaceResourceModel describes the resource data model.
@@ -65,6 +80,7 @@ type IPInterfaceResourceModel struct {
 	SVMName       types.String                 `tfsdk:"svm_name"`
 	IP            *IPInterfaceResourceIP       `tfsdk:"ip"`
 	Location      *IPInterfaceResourceLocation `tfsdk:"location"`
+	ServicePolicy types.String                 `tfsdk:"service_policy"`
 	UUID          types.String                 `tfsdk:"id"`
 }
 
@@ -107,19 +123,51 @@ func (r *IPInterfaceResource) Schema(ctx context.Context, req resource.SchemaReq
 				},
 				Required: true,
 			},
-			// TODO: Make location fields optionals once other options are supported
 			"location": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"home_node": schema.StringAttribute{
 						MarkdownDescription: "IPInterface home node",
-						Required:            true,
+						Optional:            true,
+						Computed:            true,
 					},
 					"home_port": schema.StringAttribute{
 						MarkdownDescription: "IPInterface home port",
-						Required:            true,
+						Optional:            true,
+						Computed:            true,
+					},
+					"broadcast_domain": schema.SingleNestedAttribute{
+						Attributes: map[string]schema.Attribute{
+							"name": schema.StringAttribute{
+								MarkdownDescription: "Name of the broadcast domain, scoped to its IPspace",
+								Optional:            true,
+								Computed:            true,
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.RequiresReplace(),
+								},
+							},
+							"id": schema.StringAttribute{
+								MarkdownDescription: "Broadcast domain UUID",
+								Optional:            true,
+								Computed:            true,
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.RequiresReplace(),
+								},
+							},
+						},
+						MarkdownDescription: "Broadcast domain UUID along with a readable name",
+						Optional:            true,
+						Computed:            true,
 					},
 				},
 				Required: true,
+			},
+			"service_policy": schema.StringAttribute{
+				MarkdownDescription: "IPInterface service policy",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"id": schema.StringAttribute{
 				MarkdownDescription: "IPInterface UUID",
@@ -188,10 +236,24 @@ func (r *IPInterfaceResource) Read(ctx context.Context, req resource.ReadRequest
 	data.Name = types.StringValue(restInfo.Name)
 	data.UUID = types.StringValue(restInfo.UUID)
 
-	var location IPInterfaceResourceLocation
-	location.HomeNode = types.StringValue(restInfo.Location.HomeNode.Name)
-	location.HomePort = types.StringValue(restInfo.Location.HomePort.Name)
-	data.Location = &location
+	// construct broadcast_domain object
+	bd := IPInterfaceResourceLocationBroadcastDomain{
+		ID:   types.StringValue(restInfo.Location.BroadcastDomain.UUID),
+		Name: types.StringValue(restInfo.Location.BroadcastDomain.Name),
+	}
+	bdobject, diags := types.ObjectValueFrom(ctx, bd.AttributeTypes(), bd)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// populate location attributes
+	if data.Location == nil {
+		data.Location = &IPInterfaceResourceLocation{}
+	}
+	data.Location.HomeNode = types.StringValue(restInfo.Location.HomeNode.Name)
+	data.Location.HomePort = types.StringValue(restInfo.Location.HomePort.Name)
+	data.Location.BroadcastDomain = bdobject
 
 	var ip IPInterfaceResourceIP
 	ip.Address = types.StringValue(restInfo.IP.Address)
@@ -202,6 +264,9 @@ func (r *IPInterfaceResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 	ip.Netmask = types.Int64Value(int64(intValue))
 	data.IP = &ip
+
+	data.ServicePolicy = types.StringValue(restInfo.ServicePolicy.Name)
+
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
 	tflog.Debug(ctx, fmt.Sprintf("read a resource: %#v", data))
@@ -229,15 +294,39 @@ func (r *IPInterfaceResource) Create(ctx context.Context, req resource.CreateReq
 	body.SVM.Name = data.SVMName.ValueString()
 	body.IP.Address = data.IP.Address.ValueString()
 	body.IP.Netmask = data.IP.Netmask.ValueInt64()
-	body.Location.HomePort = interfaces.IPInterfaceResourceHomePort{
-		Name: data.Location.HomePort.ValueString(),
-		Node: interfaces.IPInterfaceResourceHomeNode{
+
+	// location.home_port is optional
+	if data.Location.HomePort.ValueString() != "" {
+		body.Location.HomePort = interfaces.IPInterfaceResourceHomePort{
+			Name: data.Location.HomePort.ValueString(),
+			// Node: interfaces.IPInterfaceResourceHomeNode{
+			// 	Name: data.Location.HomeNode.ValueString(),
+			// },
+		}
+	}
+
+	// location.home_node is optional
+	if data.Location.HomeNode.ValueString() != "" {
+		body.Location.HomeNode = interfaces.IPInterfaceResourceHomeNode{
 			Name: data.Location.HomeNode.ValueString(),
-		},
+		}
 	}
-	body.Location.HomeNode = interfaces.IPInterfaceResourceHomeNode{
-		Name: data.Location.HomeNode.ValueString(),
+
+	// location.broadcast_domain is optional
+	if !data.Location.BroadcastDomain.IsUnknown() {
+		var bd IPInterfaceResourceLocationBroadcastDomain
+		diags := data.Location.BroadcastDomain.As(ctx, &bd, basetypes.ObjectAsOptions{})
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		body.Location.BroadcastDomain = interfaces.IPInterfaceBroadcastDomain{
+			UUID: bd.ID.ValueString(),
+			Name: bd.Name.ValueString(),
+		}
 	}
+	body.ServicePolicy.Name = data.ServicePolicy.ValueString()
 
 	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
@@ -245,6 +334,7 @@ func (r *IPInterfaceResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
+	// Call ONTAP REST API to create IP interface
 	resource, err := interfaces.CreateIPInterface(errorHandler, *client, body)
 	if err != nil {
 		return
@@ -252,7 +342,42 @@ func (r *IPInterfaceResource) Create(ctx context.Context, req resource.CreateReq
 
 	data.UUID = types.StringValue(resource.UUID)
 
+	// Call ONTAP REST API again to read IP interface details
+	restInfo, err := interfaces.GetIPInterface(errorHandler, *client, data.UUID.ValueString())
+	if err != nil {
+		return
+	}
+
+	// construct broadcast_domain object
+	bd := IPInterfaceResourceLocationBroadcastDomain{
+		ID:   types.StringValue(restInfo.Location.BroadcastDomain.UUID),
+		Name: types.StringValue(restInfo.Location.BroadcastDomain.Name),
+	}
+	bdobject, diags := types.ObjectValueFrom(ctx, bd.AttributeTypes(), bd)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// populate location attributes
+	if data.Location == nil {
+		data.Location = &IPInterfaceResourceLocation{}
+	}
+	data.Location.HomeNode = types.StringValue(restInfo.Location.HomeNode.Name)
+	data.Location.HomePort = types.StringValue(restInfo.Location.HomePort.Name)
+	data.Location.BroadcastDomain = bdobject
+
 	tflog.Trace(ctx, fmt.Sprintf("created a resource, UUID=%s", data.UUID))
+
+	if data.ServicePolicy.IsUnknown() {
+		// read newly created interface to populate service policy (not fetched by CreateIPInterface)
+		restInfo, err := interfaces.GetIPInterface(errorHandler, *client, data.UUID.ValueString())
+		if err != nil {
+			// error reporting done inside GetIPInterface
+			return
+		}
+		data.ServicePolicy = types.StringValue(restInfo.ServicePolicy.Name)
+	}
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -263,7 +388,11 @@ func (r *IPInterfaceResource) Update(ctx context.Context, req resource.UpdateReq
 	var data *IPInterfaceResourceModel
 
 	// Read Terraform plan data into the model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	diags := req.Plan.Get(ctx, &data)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	var body interfaces.IPInterfaceResourceBodyDataModelONTAP
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
@@ -275,15 +404,24 @@ func (r *IPInterfaceResource) Update(ctx context.Context, req resource.UpdateReq
 	body.Name = data.Name.ValueString()
 	body.IP.Address = data.IP.Address.ValueString()
 	body.IP.Netmask = data.IP.Netmask.ValueInt64()
-	body.Location.HomePort = interfaces.IPInterfaceResourceHomePort{
-		Name: data.Location.HomePort.ValueString(),
-		Node: interfaces.IPInterfaceResourceHomeNode{
+
+	// location.home_port is optional and can be updated in-place
+	if !data.Location.HomePort.IsUnknown() {
+		body.Location.HomePort = interfaces.IPInterfaceResourceHomePort{
+			Name: data.Location.HomePort.ValueString(),
+			// Node: interfaces.IPInterfaceResourceHomeNode{
+			// 	Name: data.Location.HomeNode.ValueString(),
+			// },
+		}
+	}
+
+	// location.home_node is optional can be updated in-place
+	if !data.Location.HomeNode.IsUnknown() {
+		body.Location.HomeNode = interfaces.IPInterfaceResourceHomeNode{
 			Name: data.Location.HomeNode.ValueString(),
-		},
+		}
 	}
-	body.Location.HomeNode = interfaces.IPInterfaceResourceHomeNode{
-		Name: data.Location.HomeNode.ValueString(),
-	}
+	body.ServicePolicy.Name = data.ServicePolicy.ValueString()
 
 	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
@@ -291,11 +429,36 @@ func (r *IPInterfaceResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
+	// Call ONTAP REST API to update IP interface
 	err = interfaces.UpdateIPInterface(errorHandler, *client, body, data.UUID.ValueString())
-
 	if err != nil {
 		return
 	}
+
+	// Call ONTAP REST API again to read IP interface details
+	restInfo, err := interfaces.GetIPInterface(errorHandler, *client, data.UUID.ValueString())
+	if err != nil {
+		return
+	}
+
+	// construct broadcast_domain object
+	bd := IPInterfaceResourceLocationBroadcastDomain{
+		ID:   types.StringValue(restInfo.Location.BroadcastDomain.UUID),
+		Name: types.StringValue(restInfo.Location.BroadcastDomain.Name),
+	}
+	bdobject, diags := types.ObjectValueFrom(ctx, bd.AttributeTypes(), bd)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// populate location attributes
+	if data.Location == nil {
+		data.Location = &IPInterfaceResourceLocation{}
+	}
+	data.Location.HomeNode = types.StringValue(restInfo.Location.HomeNode.Name)
+	data.Location.HomePort = types.StringValue(restInfo.Location.HomePort.Name)
+	data.Location.BroadcastDomain = bdobject
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
