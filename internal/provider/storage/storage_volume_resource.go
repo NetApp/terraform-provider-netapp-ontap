@@ -380,7 +380,6 @@ func (r *StorageVolumeResource) Configure(ctx context.Context, req resource.Conf
 // Read refreshes the Terraform state with the latest data.
 func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data *StorageVolumeResourceModel
-	tflog.Debug(ctx, fmt.Sprintf("data: %#v", data))
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
