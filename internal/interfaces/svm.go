@@ -24,15 +24,17 @@ type SvmDataModelONTAP struct {
 
 // SvmResourceModel describes the resource data model.
 type SvmResourceModel struct {
-	Aggregates     []map[string]string `mapstructure:"aggregates"`
+	Aggregates     []map[string]string `mapstructure:"aggregates,omitempty"`
 	Comment        string              `mapstructure:"comment"`
 	Ipspace        Ipspace             `mapstructure:"ipspace"`
 	Language       string              `mapstructure:"language,omitempty"`
 	MaxVolumes     string              `mapstructure:"max_volumes,omitempty"`
 	Name           string              `mapstructure:"name,omitempty"`
+	QoSPolicy      QoSPolicy           `mapstructure:"qos_policy"`
 	SnapshotPolicy SnapshotPolicy      `mapstructure:"snapshot_policy,omitempty"`
 	Storage        Storage             `mapstructure:"storage,omitempty"`
 	SubType        string              `mapstructure:"subtype,omitempty"`
+	UUID           string              `mapstructure:"uuid,omitempty"`
 }
 
 // SvmGetDataSourceModel describes the data source model.
@@ -43,6 +45,7 @@ type SvmGetDataSourceModel struct {
 	Language       string         `mapstructure:"language,omitempty"`
 	MaxVolumes     string         `mapstructure:"max_volumes,omitempty"`
 	Name           string         `mapstructure:"name"`
+	QoSPolicy      QoSPolicy      `mapstructure:"qos_policy"`
 	SnapshotPolicy SnapshotPolicy `mapstructure:"snapshot_policy"`
 	Storage        Storage        `mapstructure:"storage,omitempty"`
 	SubType        string         `mapstructure:"subtype,omitempty"`
@@ -52,6 +55,12 @@ type SvmGetDataSourceModel struct {
 // Ipspace describes the resource data model.
 type Ipspace struct {
 	Name string `mapstructure:"name,omitempty"`
+}
+
+// QoSPolicy describes the resource data model.
+type QoSPolicy struct {
+	Name string `mapstructure:"name,omitempty"`
+	UUID string `mapstructure:"uuid,omitempty"`
 }
 
 // SnapshotPolicy describes the resource data model.
@@ -134,6 +143,7 @@ func GetSvmByNameDataSource(errorHandler *utils.ErrorHandler, r restclient.RestC
 	query := r.NewQuery()
 	fields := []string{
 		"name",
+		"uuid",
 		"ipspace",
 		"snapshot_policy",
 		"subtype",
@@ -141,6 +151,7 @@ func GetSvmByNameDataSource(errorHandler *utils.ErrorHandler, r restclient.RestC
 		"language",
 		"max_volumes",
 		"aggregates",
+		"qos_policy",
 	}
 	if version.Generation >= 9 && version.Major >= 13 {
 		fields = append(fields, "storage.limit")
@@ -170,6 +181,7 @@ func GetSvmsByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, fi
 	query := r.NewQuery()
 	fields := []string{
 		"name",
+		"uuid",
 		"ipspace",
 		"snapshot_policy",
 		"subtype",
@@ -177,6 +189,7 @@ func GetSvmsByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, fi
 		"language",
 		"max_volumes",
 		"aggregates",
+		"qos_policy",
 	}
 	if version.Generation >= 9 && version.Major >= 13 {
 		fields = append(fields, "storage.limit")

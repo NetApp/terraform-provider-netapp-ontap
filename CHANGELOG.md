@@ -1,14 +1,25 @@
-# 2.1.0 (2025-06-01)
+# 2.1.0 (2025-02-12)
+
+FEATURES:
+
+- **New Data Source:** `netapp-ontap_network_broadcast_domain` ([#303](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/303))
+- **New Data Source:** `netapp-ontap_network_broadcast_domains` ([#303](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/303))
+- **New Data Source:** `netapp-ontap_port` ([#304](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/304))
+- **New Data Source:** `netapp-ontap_ports` ([#304](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/304))
+- **New Resource:** `netapp-ontap_network_broadcast_domain` ([#303](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/303))
+- **New Resource:** `netapp-ontap_port` ([#304](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/304))
+- **New Resource:** `netapp-ontap_svm_qos_policy_activation` ([#301](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/301))
 
 ENHANCEMENTS:
 
-- **netapp-ontap_svm**: added `storage.limit` option. ([#302](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/302))
+- **netapp-ontap_svm**: added `storage_limit` option. ([#302](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/302))
 - **netapp-ontap_network_ip_interface**: added `service_policy` option. ([#306](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/306))
+- **netapp-ontap_network_ip_interface**: added `location.broadcast_domain` option. ([#305](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/305))
 - **netapp-ontap_aggregate_data_source**, **netapp-ontap_aggregates_data_source**: added `space.block_storage.available` option ([#256](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/256))
 
 # 2.0.1 (2024-12-13)
 
-Documentation
+DOCUMENTATION:
 
 - Corrected Resource and Data Source Names
 
