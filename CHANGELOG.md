@@ -1,4 +1,4 @@
-# 2.1.0 (2025-02-xx)
+# 2.1.0 (2025-02-12)
 
 FEATURES:
 
@@ -16,9 +16,13 @@ ENHANCEMENTS:
 - **netapp-ontap_network_ip_interface**: added `service_policy` option. ([#306](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/306))
 - **netapp-ontap_network_ip_interface**: added `location.broadcast_domain` option. ([#305](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/305))
 
+DOCUMENTATION:
+
+- **netapp-ontap_cifs_service_resource**: Updated section `Example Usage` ([[#352](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/352)])
+
 # 2.0.1 (2024-12-13)
 
-Documentation
+DOCUMENTATION:
 
 - Corrected Resource and Data Source Names
 
