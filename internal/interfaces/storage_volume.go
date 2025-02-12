@@ -263,6 +263,7 @@ func GetStorageVolumes(errorHandler *utils.ErrorHandler, r restclient.RestClient
 	query.Fields([]string{"name", "svm.name", "aggregates", "space.size", "state", "type", "nas.export_policy.name", "nas.path", "guarantee.type", "space.snapshot.reserve_percent",
 		"nas.security_style", "encryption.enabled", "efficiency.policy.name", "nas.unix_permissions", "nas.gid", "nas.uid", "snapshot_policy.name", "language", "qos.policy.name",
 		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state"})
+
 	if filter != nil {
 		var filterMap map[string]interface{}
 		if err := mapstructure.Decode(filter, &filterMap); err != nil {
@@ -285,6 +286,9 @@ func GetStorageVolumes(errorHandler *utils.ErrorHandler, r restclient.RestClient
 		if err := mapstructure.Decode(info, &record); err != nil {
 			return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
 				fmt.Sprintf("error: %s, statusCode %d, info %#v", err, statusCode, info))
+		}
+		if record.Efficiency.Policy.Name == "" || record.Efficiency.Policy.Name == "-" {
+			record.Efficiency.Policy.Name = "default"
 		}
 		dataONTAP = append(dataONTAP, record)
 	}
