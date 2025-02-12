@@ -4,10 +4,21 @@ DOCUMENTATION:
 
 * Resources `netapp-ontap_san_igroup` and `netapp-ontap_san_lun-map` are now moved under category SAN.
 
+FEATURES:
+
+- **New Data Source:** `netapp-ontap_network_broadcast_domain` ([#303](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/303))
+- **New Data Source:** `netapp-ontap_network_broadcast_domains` ([#303](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/303))
+- **New Data Source:** `netapp-ontap_port` ([#304](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/304))
+- **New Data Source:** `netapp-ontap_ports` ([#304](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/304))
+- **New Resource:** `netapp-ontap_network_broadcast_domain` ([#303](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/303))
+- **New Resource:** `netapp-ontap_port` ([#304](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/304))
+- **New Resource:** `netapp-ontap_svm_qos_policy_activation` ([#301](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/301))
+
 ENHANCEMENTS:
 
-- **netapp-ontap_svm**: added `storage.limit` option. ([#302](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/302))
+- **netapp-ontap_svm**: added `storage_limit` option. ([#302](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/302))
 - **netapp-ontap_network_ip_interface**: added `service_policy` option. ([#306](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/306))
+- **netapp-ontap_network_ip_interface**: added `location.broadcast_domain` option. ([#305](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/305))
 
 # 2.0.1 (2024-12-13)
 

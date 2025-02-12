@@ -57,10 +57,17 @@ type IPDataSourceModel struct {
 	Netmask types.Int64  `tfsdk:"netmask"`
 }
 
-// LocationDataSourceModel describes the data source model for home node/port.
+// LocationDataSourceModel describes the data source model for home node/port and broadcast domain.
 type LocationDataSourceModel struct {
-	HomeNode types.String `tfsdk:"home_node"`
-	HomePort types.String `tfsdk:"home_port"`
+	HomeNode        types.String                            `tfsdk:"home_node"`
+	HomePort        types.String                            `tfsdk:"home_port"`
+	BroadcastDomain *LocationBroadcastDomainDataSourceModel `tfsdk:"broadcast_domain"`
+}
+
+// LocationBroadcastDomainDataSourceModel describes the data source model for broadcast domain ID and name.
+type LocationBroadcastDomainDataSourceModel struct {
+	ID   types.String `tfsdk:"id"`
+	Name types.String `tfsdk:"name"`
 }
 
 // Metadata returns the data source type name.
@@ -113,6 +120,20 @@ func (d *IPInterfaceDataSource) Schema(ctx context.Context, req datasource.Schem
 					"home_port": schema.StringAttribute{
 						Computed:            true,
 						MarkdownDescription: "IPInterface home port",
+					},
+					"broadcast_domain": schema.SingleNestedAttribute{
+						Attributes: map[string]schema.Attribute{
+							"name": schema.StringAttribute{
+								MarkdownDescription: "Name of the broadcast domain, scoped to its IPspace",
+								Computed:            true,
+							},
+							"id": schema.StringAttribute{
+								MarkdownDescription: "Broadcast domain UUID",
+								Computed:            true,
+							},
+						},
+						MarkdownDescription: "Broadcast domain UUID along with a readable name",
+						Computed:            true,
 					},
 				},
 				Computed: true,
@@ -185,6 +206,10 @@ func (d *IPInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 	data.Location = &LocationDataSourceModel{
 		HomeNode: types.StringValue(restInfo.Location.HomeNode.Name),
 		HomePort: types.StringValue(restInfo.Location.HomePort.Name),
+		BroadcastDomain: &LocationBroadcastDomainDataSourceModel{
+			ID:   types.StringValue(restInfo.Location.BroadcastDomain.UUID),
+			Name: types.StringValue(restInfo.Location.BroadcastDomain.Name),
+		},
 	}
 	data.ServicePolicy = types.StringValue(restInfo.ServicePolicy.Name)
 

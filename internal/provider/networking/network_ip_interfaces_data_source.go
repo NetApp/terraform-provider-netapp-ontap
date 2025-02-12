@@ -129,6 +129,20 @@ func (d *IPInterfacesDataSource) Schema(ctx context.Context, req datasource.Sche
 									Computed:            true,
 									MarkdownDescription: "IPInterface home port",
 								},
+								"broadcast_domain": schema.SingleNestedAttribute{
+									Attributes: map[string]schema.Attribute{
+										"name": schema.StringAttribute{
+											MarkdownDescription: "Name of the broadcast domain, scoped to its IPspace",
+											Computed:            true,
+										},
+										"id": schema.StringAttribute{
+											MarkdownDescription: "Broadcast domain UUID",
+											Computed:            true,
+										},
+									},
+									MarkdownDescription: "Broadcast domain UUID along with a readable name",
+									Computed:            true,
+								},
 							},
 							Computed: true,
 						},
@@ -216,6 +230,10 @@ func (d *IPInterfacesDataSource) Read(ctx context.Context, req datasource.ReadRe
 		data.IPInterfaces[index].Location = &LocationDataSourceModel{
 			HomeNode: types.StringValue(record.Location.HomeNode.Name),
 			HomePort: types.StringValue(record.Location.HomePort.Name),
+			BroadcastDomain: &LocationBroadcastDomainDataSourceModel{
+				ID:   types.StringValue(record.Location.BroadcastDomain.UUID),
+				Name: types.StringValue(record.Location.BroadcastDomain.Name),
+			},
 		}
 	}
 
