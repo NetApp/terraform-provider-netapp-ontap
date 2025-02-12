@@ -220,6 +220,9 @@ func GetStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClient,
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError("error decoding volume info", fmt.Sprintf("error on decode storage/volumes: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
+	if dataONTAP.Efficiency.Policy.Name == "" || dataONTAP.Efficiency.Policy.Name == "-" {
+		dataONTAP.Efficiency.Policy.Name = "default"
+	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read volume source - udata: %#v", dataONTAP))
 	return dataONTAP, nil
 }
@@ -246,6 +249,9 @@ func GetStorageVolumeByName(errorHandler *utils.ErrorHandler, r restclient.RestC
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError("error decoding volume info by name", fmt.Sprintf("error on decode storage/volumes: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
+	if dataONTAP.Efficiency.Policy.Name == "" || dataONTAP.Efficiency.Policy.Name == "-" {
+		dataONTAP.Efficiency.Policy.Name = "default"
+	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read volume source - udata: %#v", dataONTAP))
 	return dataONTAP, nil
 }
@@ -257,6 +263,7 @@ func GetStorageVolumes(errorHandler *utils.ErrorHandler, r restclient.RestClient
 	query.Fields([]string{"name", "svm.name", "aggregates", "space.size", "state", "type", "nas.export_policy.name", "nas.path", "guarantee.type", "space.snapshot.reserve_percent",
 		"nas.security_style", "encryption.enabled", "efficiency.policy.name", "nas.unix_permissions", "nas.gid", "nas.uid", "snapshot_policy.name", "language", "qos.policy.name",
 		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state"})
+
 	if filter != nil {
 		var filterMap map[string]interface{}
 		if err := mapstructure.Decode(filter, &filterMap); err != nil {
@@ -280,6 +287,9 @@ func GetStorageVolumes(errorHandler *utils.ErrorHandler, r restclient.RestClient
 			return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
 				fmt.Sprintf("error: %s, statusCode %d, info %#v", err, statusCode, info))
 		}
+		if record.Efficiency.Policy.Name == "" || record.Efficiency.Policy.Name == "-" {
+			record.Efficiency.Policy.Name = "default"
+		}
 		dataONTAP = append(dataONTAP, record)
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read storage volume data source: %#v", dataONTAP))
@@ -302,6 +312,9 @@ func CreateStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClie
 	var dataONTAP StorageVolumeGetDataModelONTAP
 	if err := mapstructure.Decode(response.Records[0], &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError("error decoding volume info", fmt.Sprintf("error on decode storage/volumes info: %s, statusCode %d, response %#v", err, statusCode, response))
+	}
+	if dataONTAP.Efficiency.Policy.Name == "" || dataONTAP.Efficiency.Policy.Name == "-" {
+		dataONTAP.Efficiency.Policy.Name = "default"
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Create volume source - udata: %#v", dataONTAP))
 	return &dataONTAP, nil

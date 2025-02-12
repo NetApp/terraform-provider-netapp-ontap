@@ -24,6 +24,10 @@ DOCUMENTATION:
 
 - **netapp-ontap_cifs_service_resource**: Updated section `Example Usage` ([[#352](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/352)])
 
+BUG FIXES:
+
+- **netapp-ontap_storage_volume_resource**: fix on assigning `efficiency.policy.name` from `-` to `default` ([#255](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/255))
+
 # 2.0.1 (2024-12-13)
 
 DOCUMENTATION:

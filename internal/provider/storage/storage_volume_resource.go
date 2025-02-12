@@ -380,7 +380,6 @@ func (r *StorageVolumeResource) Configure(ctx context.Context, req resource.Conf
 // Read refreshes the Terraform state with the latest data.
 func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data *StorageVolumeResourceModel
-
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
@@ -471,9 +470,13 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 		"compression": types.StringType,
 		"policy_name": types.StringType,
 	}
+	policyName := response.Efficiency.Policy.Name
+	if policyName == "" || policyName == "-" {
+		policyName = "default"
+	}
 	elements = map[string]attr.Value{
 		"compression": types.StringValue(response.Efficiency.Compression),
-		"policy_name": types.StringValue(response.Efficiency.Policy.Name),
+		"policy_name": types.StringValue(policyName),
 	}
 	objectValue, diags = types.ObjectValue(elementTypes, elements)
 	if diags.HasError() {
@@ -669,7 +672,9 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		if !efficiency.Policy.IsUnknown() {
+		if efficiency.Policy.ValueString() == "" || efficiency.Policy.ValueString() == "-" {
+			request.Efficiency.Policy.Name = "default"
+		} else {
 			request.Efficiency.Policy.Name = efficiency.Policy.ValueString()
 		}
 		if !efficiency.Compression.IsUnknown() {
@@ -785,9 +790,13 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 		"compression": types.StringType,
 		"policy_name": types.StringType,
 	}
+	policyName := response.Efficiency.Policy.Name
+	if policyName == "" || policyName == "-" {
+		policyName = "default"
+	}
 	elements = map[string]attr.Value{
 		"compression": types.StringValue(response.Efficiency.Compression),
-		"policy_name": types.StringValue(response.Efficiency.Policy.Name),
+		"policy_name": types.StringValue(policyName),
 	}
 	objectValue, diags = types.ObjectValue(elementTypes, elements)
 	if diags.HasError() {
@@ -985,7 +994,9 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 				resp.Diagnostics.Append(diags...)
 				return
 			}
-			if !efficiency.Policy.IsUnknown() {
+			if efficiency.Policy.ValueString() == "" || efficiency.Policy.ValueString() == "-" {
+				request.Efficiency.Policy.Name = "default"
+			} else {
 				request.Efficiency.Policy.Name = efficiency.Policy.ValueString()
 			}
 			if !efficiency.Compression.IsUnknown() {
@@ -1174,9 +1185,13 @@ func readVolume(ctx context.Context, client *restclient.RestClient, data *Storag
 		"compression": types.StringType,
 		"policy_name": types.StringType,
 	}
+	policyName := response.Efficiency.Policy.Name
+	if policyName == "" || policyName == "-" {
+		policyName = "default"
+	}
 	elements = map[string]attr.Value{
 		"compression": types.StringValue(response.Efficiency.Compression),
-		"policy_name": types.StringValue(response.Efficiency.Policy.Name),
+		"policy_name": types.StringValue(policyName),
 	}
 	objectValue, diags = types.ObjectValue(elementTypes, elements)
 	if diags.HasError() {
