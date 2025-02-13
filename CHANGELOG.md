@@ -1,8 +1,10 @@
+# 2.1.1 (2025-03-01)
+
+ENHANCEMENTS:
+
+- **netapp-ontap_aggregate_data_source**, **netapp-ontap_aggregates_data_source**: added `space.block_storage.available` option ([#256](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/256))
+
 # 2.1.0 (2025-02-12)
-
-DOCUMENTATION:
-
-* Resources `netapp-ontap_san_igroup` and `netapp-ontap_san_lun-map` are now moved under category SAN.
 
 FEATURES:
 
@@ -19,11 +21,11 @@ ENHANCEMENTS:
 - **netapp-ontap_svm**: added `storage_limit` option. ([#302](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/302))
 - **netapp-ontap_network_ip_interface**: added `service_policy` option. ([#306](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/306))
 - **netapp-ontap_network_ip_interface**: added `location.broadcast_domain` option. ([#305](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/305))
-- **netapp-ontap_aggregate_data_source**, **netapp-ontap_aggregates_data_source**: added `space.block_storage.available` option ([#256](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/256))
 
 DOCUMENTATION:
 
-- **netapp-ontap_cifs_service_resource**: Updated section `Example Usage` ([[#352](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/352)])
+- **netapp-ontap_cifs_service_resource**: updated section `Example Usage` ([[#352](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/352)])
+- Resources `netapp-ontap_san_igroup` and `netapp-ontap_san_lun-map` are now moved under category SAN.
 
 BUG FIXES:
 
