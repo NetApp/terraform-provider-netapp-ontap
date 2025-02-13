@@ -1,5 +1,9 @@
 # 2.1.0 (2025-02-12)
 
+DOCUMENTATION:
+
+* Resources `netapp-ontap_san_igroup` and `netapp-ontap_san_lun-map` are now moved under category SAN.
+
 FEATURES:
 
 - **New Data Source:** `netapp-ontap_network_broadcast_domain` ([#303](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/303))
@@ -16,6 +20,14 @@ ENHANCEMENTS:
 - **netapp-ontap_network_ip_interface**: added `service_policy` option. ([#306](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/306))
 - **netapp-ontap_network_ip_interface**: added `location.broadcast_domain` option. ([#305](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/305))
 - **netapp-ontap_aggregate_data_source**, **netapp-ontap_aggregates_data_source**: added `space.block_storage.available` option ([#256](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/256))
+
+DOCUMENTATION:
+
+- **netapp-ontap_cifs_service_resource**: Updated section `Example Usage` ([[#352](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/352)])
+
+BUG FIXES:
+
+- **netapp-ontap_storage_volume_resource**: fix on assigning `efficiency.policy.name` from `-` to `default` ([#255](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/255))
 
 # 2.0.1 (2024-12-13)
 
