@@ -622,11 +622,11 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 		"mode":             types.StringType,
 		"size_unit":        types.StringType,
 	}
-	// var sizeUnit is already defined as past of Space model
+	// var sizeUnit is already defined as part of Space model
 	var minimum int64
 	var maximum int64
 	minimum, sizeUnit = interfaces.ByteFormat(int64(response.Autosize.Minimum))
-	maximum, sizeUnit = interfaces.ByteFormat(int64(response.Autosize.Maximum))
+	maximum, _ = interfaces.ByteFormat(int64(response.Autosize.Maximum))
 
 	elements = map[string]attr.Value{
 		"minimum":          types.Int64Value(minimum),
@@ -1425,7 +1425,7 @@ func readVolume(ctx context.Context, client *restclient.RestClient, data *Storag
 		"mode":             types.StringType,
 		"size_unit":        types.StringType,
 	}
-	// var sizeUnit is already defined as past of Space model
+	// var sizeUnit is already defined as part of Space model
 	var autosize StorageVolumeResourceAutosize
 	diags = data.Autosize.As(ctx, &autosize, basetypes.ObjectAsOptions{})
 	if diags.HasError() {
