@@ -1,3 +1,9 @@
+# 2.2.0 (2025-xx-xx)
+
+ENHANCEMENTS:
+
+- **netapp-ontap_volume_resource**: added `autosize.*` option. ([#245](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/245))
+
 # 2.1.0 (2025-02-12)
 
 DOCUMENTATION:
