@@ -1,8 +1,14 @@
+# 2.1.1 (2025-02-XX)
+
+BUG FIXES:
+
+- **netapp-ontap_network_broadcast_domain**: prepend port with node name, to prevent "duplicate ports" error in multi-node clusters ([#409](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/409))
+
 # 2.1.0 (2025-02-12)
 
 DOCUMENTATION:
 
-* Resources `netapp-ontap_san_igroup` and `netapp-ontap_san_lun-map` are now moved under category SAN.
+- Resources `netapp-ontap_san_igroup` and `netapp-ontap_san_lun-map` are now moved under category SAN.
 
 FEATURES:
 
