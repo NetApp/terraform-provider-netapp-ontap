@@ -1,3 +1,9 @@
+# 2.1.1
+
+ENHANCEMENTS:
+
+- **netapp-ontap_networking_ip_interface*: added `ipspace` option ([#249](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/249))
+
 # 2.1.0 (2025-02-12)
 
 DOCUMENTATION:

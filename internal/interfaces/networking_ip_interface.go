@@ -18,6 +18,7 @@ type IPInterfaceGetDataModelONTAP struct {
 	ServicePolicy IPInterfaceServicePolicy    `mapstructure:"service_policy"`
 	SVM           IPInterfaceSvmName          `mapstructure:"svm"`
 	UUID          string                      `mapstructure:"uuid"`
+
 }
 
 // IPInterfaceGetIP describes the GET record data for IP.
@@ -33,6 +34,11 @@ type IPInterfaceResourceBodyDataModelONTAP struct {
 	Name          string                      `mapstructure:"name"`
 	ServicePolicy IPInterfaceServicePolicy    `mapstructure:"service_policy"`
 	SVM           IPInterfaceSvmName          `mapstructure:"svm,omitempty"` // API errors if body contains svm name when updating. can not use universal 'svm struct'
+	IPSpace		  *IPInterfaceIPSpace         `mapstructure:"ipspace,omitempty"`
+}
+
+type IPInterfaceIPSpace struct {
+	Name string `mapstructure:"name,omitempty"`
 }
 
 // IPInterfaceSvmName describes the svm name specifcally for network ip interface.

@@ -82,7 +82,9 @@ type IPInterfaceResourceModel struct {
 	Location      *IPInterfaceResourceLocation `tfsdk:"location"`
 	ServicePolicy types.String                 `tfsdk:"service_policy"`
 	UUID          types.String                 `tfsdk:"id"`
+	IPSpace		  types.String        		   `tfsdk:"ipspace"`
 }
+
 
 // Metadata returns the resource type name.
 func (r *IPInterfaceResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -107,7 +109,12 @@ func (r *IPInterfaceResource) Schema(ctx context.Context, req resource.SchemaReq
 			// TODO: Make svm_name optional for cluster scoped interface
 			"svm_name": schema.StringAttribute{
 				MarkdownDescription: "IPInterface svm name",
-				Required:            true,
+				Optional:            true,
+			},
+			// TODO: Required only for cluster scoped interface
+			"ipspace": schema.StringAttribute{
+				MarkdownDescription: "IPInterface ipspace name",
+				Optional:            true,
 			},
 			// TODO: Make IP optional once subnet is supported
 			"ip": schema.SingleNestedAttribute{
@@ -247,6 +254,12 @@ func (r *IPInterfaceResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
+	isClusterScope := data.SVMName.IsNull() || data.SVMName.ValueString() == ""
+
+	if isClusterScope {
+		data.IPSpace = types.StringValue(restInfo.Location.BroadcastDomain.Name)
+	}
+	
 	// populate location attributes
 	if data.Location == nil {
 		data.Location = &IPInterfaceResourceLocation{}
@@ -291,7 +304,6 @@ func (r *IPInterfaceResource) Create(ctx context.Context, req resource.CreateReq
 
 	// TODO: check for empty values for optional fields
 	body.Name = data.Name.ValueString()
-	body.SVM.Name = data.SVMName.ValueString()
 	body.IP.Address = data.IP.Address.ValueString()
 	body.IP.Netmask = data.IP.Netmask.ValueInt64()
 
@@ -327,6 +339,37 @@ func (r *IPInterfaceResource) Create(ctx context.Context, req resource.CreateReq
 		}
 	}
 	body.ServicePolicy.Name = data.ServicePolicy.ValueString()
+
+	isClusterScope := data.SVMName.IsNull() || data.SVMName.ValueString() == ""
+
+	if !isClusterScope {
+		body.SVM = interfaces.IPInterfaceSvmName {
+			Name: data.SVMName.ValueString(),
+		}
+	} else {
+		if data.IPSpace.IsNull() || data.IPSpace.ValueString() == "" {
+			resp.Diagnostics.AddError(
+				"The Attribute IPSpace is missing",
+				"IPSpace is required for cluster-scoped interfaces",
+			)
+			return
+		}
+
+		body.IPSpace = &interfaces.IPInterfaceIPSpace {
+			Name: *data.IPSpace.ValueStringPointer(),
+		}
+		attributes := data.Location.BroadcastDomain.Attributes()
+		bcDomainNameAttr := attributes["name"]
+		bcDomainName := bcDomainNameAttr.(basetypes.StringValue)
+
+		if data.Location.BroadcastDomain.IsUnknown() || bcDomainName.ValueString() == "" || bcDomainName.ValueString() == "nil" {
+			resp.Diagnostics.AddError(
+				"The Attribute BroadcastDomain is missing",
+				"BroadcastDomain and the corresponding IPSpace is required for cluster-scoped interfaces",
+			)
+			return
+		}
+	}
 
 	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
