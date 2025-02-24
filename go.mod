@@ -5,7 +5,7 @@ go 1.22.7
 toolchain go1.22.10
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.36.1
+	github.com/aws/aws-sdk-go-v2 v1.36.2
 	github.com/aws/aws-sdk-go-v2/config v1.29.6
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.69.13
 	github.com/hashicorp/terraform-plugin-docs v0.20.1
