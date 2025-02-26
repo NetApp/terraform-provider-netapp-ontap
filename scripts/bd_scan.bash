@@ -36,4 +36,4 @@ fi
 export BLACKDUCK_URL=$1
 export BLACKDUCK_API_TOKEN=$2
 
-bash <(curl -s -L https://detect.synopsys.com/detect7.sh) --blackduck.trust.cert=true
+bash <(curl -s -L http://detect.blackduck.com/detect9.sh) --blackduck.trust.cert=true
