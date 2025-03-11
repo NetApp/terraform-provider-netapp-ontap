@@ -1,3 +1,9 @@
+# 2.1.2 (2025-03-26)
+
+BUG FIXES:
+
+- **netapp-ontap_cifs_service**: Fixed no resource state after creation by modifying the "kdc_encrytion" version check and also idempotency issue with CIFS server name([#367](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/367))
+
 # 2.1.1 (2025-02-26)
 
 BUG FIXES:
