@@ -38,7 +38,7 @@ jobs:
           TF_ACC_NETAPP_LICENSE: ${{ secrets.TF_ACC_NETAPP_LICENSE }}
           TF_ACC_NETAPP_CIFS_ADDOMAIN_PASS: ${{ secrets.TF_ACC_NETAPP_CIFS_ADDOMAIN_PASS }}
         run: |
-          ls -l /tmp/go-build
           export GOFLAGS=-buildvcs=false
           export TF_ACC=1
+          export TMPDIR=~/tmp/
           go test -v `go list ./... | grep -e provider`
