@@ -96,6 +96,7 @@ func GetCifsServiceByName(errorHandler *utils.ErrorHandler, r restclient.RestCli
 		return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
 			fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
+	dataONTAP.Name = name
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read protocols_cifs_service data source: %#v", dataONTAP))
 	return &dataONTAP, nil
 }
