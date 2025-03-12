@@ -17,14 +17,14 @@ func TestAccStorageVolumeEfficiencyPolicyResource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Create volume_efficiency_policy and read
 			{
-				Config: testAccStorageVolumeEfficiencyPolicyResourceBasicConfig("testacc", "terraform"),
+				Config: testAccStorageVolumeEfficiencyPolicyResourceBasicConfig("testacc", "tf_acc_svm"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_volume_efficiency_policy.example", "name", "testacc"),
 				),
 			},
 			// Update a option
 			{
-				Config: testAccStorageVolumeEfficiencyPolicyResourceUpdateConfig("testacc", "terraform", "test_comment"),
+				Config: testAccStorageVolumeEfficiencyPolicyResourceUpdateConfig("testacc", "tf_acc_svm", "test_comment"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_volume_efficiency_policy.example", "comment", "test_comment"),
 					resource.TestCheckResourceAttr("netapp-ontap_volume_efficiency_policy.example", "name", "testacc"),
@@ -34,9 +34,9 @@ func TestAccStorageVolumeEfficiencyPolicyResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_volume_efficiency_policy.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s", "test", "terraform", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s", "default", "tf_acc_svm", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_volume_efficiency_policy.example", "name", "test"),
+					resource.TestCheckResourceAttr("netapp-ontap_volume_efficiency_policy.example", "name", "default"),
 				),
 			},
 			// Delete testing automatically occurs in TestCase
@@ -45,11 +45,11 @@ func TestAccStorageVolumeEfficiencyPolicyResource(t *testing.T) {
 }
 
 func testAccStorageVolumeEfficiencyPolicyResourceBasicConfig(name string, svmName string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST5")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -75,11 +75,11 @@ resource "netapp-ontap_volume_efficiency_policy" "example" {
 }
 
 func testAccStorageVolumeEfficiencyPolicyResourceUpdateConfig(name string, svmName string, comment string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST5")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`

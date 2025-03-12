@@ -23,7 +23,7 @@ func TestAccStorageSnapshotPolicyResource(t *testing.T) {
 			},
 			// Create storage snapshot policy and read
 			{
-				Config: testAccStorageSnapshotPolicyResourceConfig("tf-sn-policy", "terraform", "create a test snapshot policy", true),
+				Config: testAccStorageSnapshotPolicyResourceConfig("tf-sn-policy", "tf_acc_svm", "create a test snapshot policy", true),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_snapshot_policy.example", "name", "tf-sn-policy"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapshot_policy.example", "comment", "create a test snapshot policy"),
@@ -32,7 +32,7 @@ func TestAccStorageSnapshotPolicyResource(t *testing.T) {
 			},
 			// Update storage snapshot policy on comment and read
 			{
-				Config: testAccStorageSnapshotPolicyResourceConfig("tf-sn-policy", "terraform", "Update the existing snapshot policy", true),
+				Config: testAccStorageSnapshotPolicyResourceConfig("tf-sn-policy", "tf_acc_svm", "Update the existing snapshot policy", true),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_snapshot_policy.example", "name", "tf-sn-policy"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapshot_policy.example", "comment", "Update the existing snapshot policy"),
@@ -43,9 +43,9 @@ func TestAccStorageSnapshotPolicyResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_snapshot_policy.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s", "terraform", "terraform", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s", "tf_acc_snapshot_policy", "tf_acc_svm", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapshot_policy.example", "name", "terraform"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapshot_policy.example", "name", "tf_acc_snapshot_policy"),
 				),
 			},
 		},
@@ -53,11 +53,11 @@ func TestAccStorageSnapshotPolicyResource(t *testing.T) {
 }
 
 func testAccStorageSnapshotPolicyResourceConfig(name string, svmname string, comment string, enabled bool) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST5")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
