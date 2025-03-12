@@ -41,7 +41,3 @@ jobs:
           export GOFLAGS=-buildvcs=false
           export TF_ACC=1
           go test `go list ./... | grep -e provider`
-        
-      - name: Set execute permissions on test binaries
-        run: |
-          chmod +x /tmp/go-build*/b*/cluster.test
