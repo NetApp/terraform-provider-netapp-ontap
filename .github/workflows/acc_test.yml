@@ -40,4 +40,4 @@ jobs:
         run: |
           export GOFLAGS=-buildvcs=false
           export TF_ACC=1
-          go test `go list ./... | grep -e provider`
+          go test -v `go list ./... | grep -e provider`
