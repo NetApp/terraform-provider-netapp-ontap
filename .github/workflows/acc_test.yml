@@ -23,6 +23,9 @@ jobs:
         with:
           go-version: '1.21'
 
+      - name: Set executable permissions
+        run: chmod +x /tmp/go-build2981821413/*/*.test
+
       - name: Build
         env:
           TF_ACC_NETAPP_HOST: ${{ secrets.TF_ACC_NETAPP_HOST }}
