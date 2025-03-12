@@ -40,4 +40,5 @@ jobs:
         run: |
           export GOFLAGS=-buildvcs=false
           export TF_ACC=1
-          go test -v `go list ./... | grep -e provider`
+          export TMPDIR=~/tmp/
+          go test `go list ./... | grep -e provider`
