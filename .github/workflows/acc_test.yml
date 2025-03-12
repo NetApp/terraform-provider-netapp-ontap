@@ -23,6 +23,12 @@ jobs:
         with:
           go-version: '1.21'
 
+      - name: Set permissions for executables
+        run: sudo chmod +x /root/.local/bin/go /root/bin/go /opt/github/actions-runner/_work/_tool/go/1.21.13/x64/bin/go
+
+      - name: Set permissions for test files
+        run: sudo chmod +x $(find /tmp/go-build* -type f)
+
       - name: Build
         env:
           TF_ACC_NETAPP_HOST: ${{ secrets.TF_ACC_NETAPP_HOST }}
