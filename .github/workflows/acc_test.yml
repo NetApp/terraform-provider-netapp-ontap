@@ -2,9 +2,13 @@ name: Go ACC Tests
 
 on: 
   push:
+    paths:
+      - 'resources/**'
   pull_request:
     # The branches below must be a subset of the branches above
     branches: [ "integration/main" ]
+    paths:
+      - 'resources/**'
 
 jobs:
   build:
@@ -23,6 +27,13 @@ jobs:
         with:
           go-version: '1.21'
 
+      - name: Detect changed resource files
+        id: changes
+        run: |
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }} | grep '^resources/.*\.go$')
+          echo "Changed resource files: $CHANGED_FILES"
+          echo "::set-output name=changed_files::$CHANGED_FILES"
+
       - name: Build
         env:
           TF_ACC_NETAPP_HOST: ${{ secrets.TF_ACC_NETAPP_HOST }}
@@ -40,4 +51,13 @@ jobs:
         run: |
           export GOFLAGS=-buildvcs=false
           export TF_ACC=1
-          go test `go list ./... | grep -e provider`
+          export TMPDIR=~/tmp/
+          for FILE in ${{ steps.changes.outputs.changed_files }}; do
+            DIR=$(dirname "$FILE")
+            go test "$DIR/..."
+          done
+
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -rf ~/tmp/
