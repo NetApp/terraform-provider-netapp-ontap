@@ -12,7 +12,7 @@ import (
 )
 
 // example ID: aeef4e4f-a663-11ef-9ca8-00a0b8bc0407
-const idRegexNetworkEthernetPort string = "[[:xdigit:]]{8}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{12}"
+// const idRegexNetworkEthernetPort string = "[[:xdigit:]]{8}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{12}"
 
 func TestAccNetworkEthernetPortResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
@@ -191,27 +191,27 @@ resource "netapp-ontap_port" "lag" {
 }`, bd_ipspace, bd_name, enabled, node_name, distribution_policy, member_ports, mode)
 }
 
-func testAccNetworkEthernetPortVLANResourceConfig(bd_ipspace, bd_name string, enabled bool, node_name, base_port string, tag int64) string {
-	return testAccNetworkEthernetPortProviderConfig() + fmt.Sprintf(`
-resource "netapp-ontap_port" "vlan" {
-	cx_profile_name = "cluster4"
+// func testAccNetworkEthernetPortVLANResourceConfig(bd_ipspace, bd_name string, enabled bool, node_name, base_port string, tag int64) string {
+// 	return testAccNetworkEthernetPortProviderConfig() + fmt.Sprintf(`
+// resource "netapp-ontap_port" "vlan" {
+// 	cx_profile_name = "cluster4"
 
-  broadcast_domain = {
-    ipspace = "%s"
-    name    = "%s"
-  }
+//   broadcast_domain = {
+//     ipspace = "%s"
+//     name    = "%s"
+//   }
 
-	enabled = %t
+// 	enabled = %t
 
-  node = {
-    name = "%s"
-  }
+//   node = {
+//     name = "%s"
+//   }
 
-  type = "vlan"
-  vlan = {
-    base_port = "%s"
-    tag       = %d
-  }
-}
-`, bd_ipspace, bd_name, enabled, node_name, base_port, tag)
-}
+//   type = "vlan"
+//   vlan = {
+//     base_port = "%s"
+//     tag       = %d
+//   }
+// }
+// `, bd_ipspace, bd_name, enabled, node_name, base_port, tag)
+// }

@@ -82,37 +82,37 @@ resource "netapp-ontap_snapmirror_resource" "example" {
 }`, host, admin, password, sourceEndpoint, destinationEndpoint)
 }
 
-func testAccSnapmirrorResourceUpdateConfigAlias(sourceEndpoint string, destinationEndpoint string, policy string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST")
-	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS")
-	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
-		os.Exit(1)
-	}
-	return fmt.Sprintf(`
-provider "netapp-ontap" {
- connection_profiles = [
-    {
-      name = "cluster4"
-      hostname = "%s"
-      username = "%s"
-      password = "%s"
-      validate_certs = false
-    },
-  ]
-}
+// func testAccSnapmirrorResourceUpdateConfigAlias(sourceEndpoint string, destinationEndpoint string, policy string) string {
+// 	host := os.Getenv("TF_ACC_NETAPP_HOST")
+// 	admin := os.Getenv("TF_ACC_NETAPP_USER")
+// 	password := os.Getenv("TF_ACC_NETAPP_PASS")
+// 	if host == "" || admin == "" || password == "" {
+// 		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+// 		os.Exit(1)
+// 	}
+// 	return fmt.Sprintf(`
+// provider "netapp-ontap" {
+//  connection_profiles = [
+//     {
+//       name = "cluster4"
+//       hostname = "%s"
+//       username = "%s"
+//       password = "%s"
+//       validate_certs = false
+//     },
+//   ]
+// }
 
-resource "netapp-ontap_snapmirror_resource" "example" {
-  cx_profile_name = "cluster4"
-  source_endpoint = {
-    path = "%s"
-  }
-  destination_endpoint = {
-    path = "%s"
-  }
-  policy = {
-	name = "%s"
-  }
-}`, host, admin, password, sourceEndpoint, destinationEndpoint, policy)
-}
+// resource "netapp-ontap_snapmirror_resource" "example" {
+//   cx_profile_name = "cluster4"
+//   source_endpoint = {
+//     path = "%s"
+//   }
+//   destination_endpoint = {
+//     path = "%s"
+//   }
+//   policy = {
+// 	name = "%s"
+//   }
+// }`, host, admin, password, sourceEndpoint, destinationEndpoint, policy)
+// }

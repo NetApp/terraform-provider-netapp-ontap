@@ -107,53 +107,53 @@ resource "netapp-ontap_flexcache" "example" {
 }`, host, admin, password, volName, svm)
 }
 
-func testAccStorageFlexcacheResourcePathConfig(svm, volName string, junctionPath string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST")
-	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS")
+// func testAccStorageFlexcacheResourcePathConfig(svm, volName string, junctionPath string) string {
+// 	host := os.Getenv("TF_ACC_NETAPP_HOST")
+// 	admin := os.Getenv("TF_ACC_NETAPP_USER")
+// 	password := os.Getenv("TF_ACC_NETAPP_PASS")
 
-	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
-		os.Exit(1)
-	}
-	return fmt.Sprintf(`
-provider "netapp-ontap" {
- connection_profiles = [
-    {
-      name = "cluster5"
-      hostname = "%s"
-      username = "%s"
-      password = "%s"
-      validate_certs = false
-    },
-  ]
-}
-resource "netapp-ontap_flexcache" "jpexample" {
-  cx_profile_name = "cluster5"
-  name = "%s"
-  svm_name = "%s"
-  origins = [
-    {
-      volume = {
-        name = "acc_test_storage_flexcache_origin_volume"
-      },
-      svm = {
-        name = "acc_test"
-      }
-    }
-  ]
-  size = 200
-  size_unit = "mb"
-  guarantee = {
-    type = "none"
-  }
-  dr_cache = false
-  junction_path = "%s"
-  global_file_locking_enabled = false
-  aggregates = [
-    {
-      name = "acc_test"
-    }
-  ]
-}`, host, admin, password, volName, svm, junctionPath)
-}
+// 	if host == "" || admin == "" || password == "" {
+// 		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+// 		os.Exit(1)
+// 	}
+// 	return fmt.Sprintf(`
+// provider "netapp-ontap" {
+//  connection_profiles = [
+//     {
+//       name = "cluster5"
+//       hostname = "%s"
+//       username = "%s"
+//       password = "%s"
+//       validate_certs = false
+//     },
+//   ]
+// }
+// resource "netapp-ontap_flexcache" "jpexample" {
+//   cx_profile_name = "cluster5"
+//   name = "%s"
+//   svm_name = "%s"
+//   origins = [
+//     {
+//       volume = {
+//         name = "acc_test_storage_flexcache_origin_volume"
+//       },
+//       svm = {
+//         name = "acc_test"
+//       }
+//     }
+//   ]
+//   size = 200
+//   size_unit = "mb"
+//   guarantee = {
+//     type = "none"
+//   }
+//   dr_cache = false
+//   junction_path = "%s"
+//   global_file_locking_enabled = false
+//   aggregates = [
+//     {
+//       name = "acc_test"
+//     }
+//   ]
+// }`, host, admin, password, volName, svm, junctionPath)
+// }
