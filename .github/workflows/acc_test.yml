@@ -3,12 +3,12 @@ name: Go ACC Tests
 on: 
   push:
     paths:
-      - './...'
+      - 'provider/**'
   pull_request:
     # The branches below must be a subset of the branches above
     branches: [ "integration/main" ]
     paths:
-      - './...'
+      - 'provider/**'
 
 jobs:
   build:
