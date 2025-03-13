@@ -26,7 +26,7 @@ jobs:
       - name: Detect changed resource files
         id: changes
         run: |
-          CHANGED_FILES=$(git diff --name-only integration/${{ github.base_ref }} | grep '.*resource.go$')
+          CHANGED_FILES=$(git diff --name-only integration/main/${{ github.base_ref }} | grep '.*resource.go$')
           echo "Changed resource files: $CHANGED_FILES"
           echo "::set-output name=changed_files::$CHANGED_FILES"
 
