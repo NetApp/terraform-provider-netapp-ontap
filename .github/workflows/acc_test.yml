@@ -2,13 +2,9 @@ name: Go ACC Tests
 
 on: 
   push:
-    paths:
-      - '/**'
   pull_request:
     # The branches below must be a subset of the branches above
     branches: [ "integration/main" ]
-    paths:
-      - '/**'
 
 jobs:
   build:
@@ -30,7 +26,7 @@ jobs:
       - name: Detect changed resource files
         id: changes
         run: |
-          CHANGED_FILES=$(git diff --name-only ${{ github.base_ref }} | grep '^provider/.*resource.*\.go$')
+          CHANGED_FILES=$(git diff --name-only ${{ github.base_ref }} | grep '.*resource.go$')
           echo "Changed resource files: $CHANGED_FILES"
           echo "::set-output name=changed_files::$CHANGED_FILES"
 
