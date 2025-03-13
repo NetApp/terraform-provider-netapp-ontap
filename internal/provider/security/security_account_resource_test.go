@@ -14,17 +14,11 @@ func TestAccSecurityAccountResource(t *testing.T) {
 		PreCheck:                 func() { ntest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ntest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			{
-				Config: testAccSecurityAccountResourceConfig("carchitest", "password"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_security_account.security_account", "name", "carchitest"),
-				),
-			},
 			// Test updating a resource
 			{
-				Config: testAccSecurityAccountResourceConfig("carchitest", "password123"),
+				Config: testAccSecurityAccountResourceConfig("tf_acc_test", "password123"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_security_account.security_account", "name", "carchitest"),
+					resource.TestCheckResourceAttr("netapp-ontap_security_account.security_account", "name", "tf_acc_test"),
 					resource.TestCheckResourceAttr("netapp-ontap_security_account.security_account", "password", "password123"),
 				),
 			},

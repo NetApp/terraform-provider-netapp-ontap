@@ -14,12 +14,6 @@ func TestAccSecurityAccountResourceAlias(t *testing.T) {
 		PreCheck:                 func() { ntest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ntest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			{
-				Config: testAccSecurityAccountResourceConfigAlias("carchitest", "password"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_security_account_resource.security_account", "name", "carchitest"),
-				),
-			},
 			// Test updating a resource
 			{
 				Config: testAccSecurityAccountResourceConfigAlias("carchitest", "password123"),

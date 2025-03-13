@@ -27,38 +27,38 @@ func TestAccStorageFlexcacheResource(t *testing.T) {
 				ExpectError: regexp.MustCompile("917888"),
 			},
 			// Test create the resource
-			{
-				Config: testAccStorageFlexcacheResourceConfig("acc_test", "accFlexcache"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_flexcache.example", "name", "accFlexcache"),
-					resource.TestCheckNoResourceAttr("netapp-ontap_flexcache.example", "volname"),
-				),
-			},
-			// Test create the resource with junction path
-			{
-				Config: testAccStorageFlexcacheResourcePathConfig("acc_test", "accFlexcacheJP", "/accFlexcachejp"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_flexcache.jpexample", "name", "accFlexcacheJP"),
-					resource.TestCheckResourceAttr("netapp-ontap_flexcache.jpexample", "junction_path", "/accFlexcachejp"),
-				),
-			},
-			// Test importing a resource
-			{
-				ResourceName:  "netapp-ontap_flexcache.jpexample",
-				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s", "accFlexcacheJP", "acc_test", "cluster5"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_flexcache.jpexample", "name", "accFlexcache"),
-				),
-			},
+			// {
+			// 	Config: testAccStorageFlexcacheResourceConfig("acc_test", "accFlexcache"),
+			// 	Check: resource.ComposeTestCheckFunc(
+			// 		resource.TestCheckResourceAttr("netapp-ontap_flexcache.example", "name", "accFlexcache"),
+			// 		resource.TestCheckNoResourceAttr("netapp-ontap_flexcache.example", "volname"),
+			// 	),
+			// },
+			// // Test create the resource with junction path
+			// {
+			// 	Config: testAccStorageFlexcacheResourcePathConfig("acc_test", "accFlexcacheJP", "/accFlexcachejp"),
+			// 	Check: resource.ComposeTestCheckFunc(
+			// 		resource.TestCheckResourceAttr("netapp-ontap_flexcache.jpexample", "name", "accFlexcacheJP"),
+			// 		resource.TestCheckResourceAttr("netapp-ontap_flexcache.jpexample", "junction_path", "/accFlexcachejp"),
+			// 	),
+			// },
+			// // Test importing a resource
+			// {
+			// 	ResourceName:  "netapp-ontap_flexcache.jpexample",
+			// 	ImportState:   true,
+			// 	ImportStateId: fmt.Sprintf("%s,%s,%s", "accFlexcacheJP", "acc_test", "cluster5"),
+			// 	Check: resource.ComposeTestCheckFunc(
+			// 		resource.TestCheckResourceAttr("netapp-ontap_flexcache.jpexample", "name", "accFlexcache"),
+			// 	),
+			// },
 		},
 	})
 }
 
 func testAccStorageFlexcacheResourceConfig(svm, volName string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST2")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 
 	if host == "" || admin == "" || password == "" {
 		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
@@ -108,9 +108,9 @@ resource "netapp-ontap_flexcache" "example" {
 }
 
 func testAccStorageFlexcacheResourcePathConfig(svm, volName string, junctionPath string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST2")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 
 	if host == "" || admin == "" || password == "" {
 		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")

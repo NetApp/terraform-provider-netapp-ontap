@@ -25,14 +25,14 @@ func TestAccSnapmirrorPolicyResourceAlias(t *testing.T) {
 			{
 				Config: testAccSnapmirrorPolicyResourceBasicConfigAlias("tf_acc_svm"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "carchitestme4"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "tf_acc_test"),
 				),
 			},
 			//  Test adding transfer_schedule
 			{
 				Config: testAccSnapmirrorPolicyResourceAddTransferScheduleBasicConfigAlias("tf_acc_svm", "weekly"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "carchitestme4"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "tf_acc_test"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "transfer_schedule_name", "weekly"),
 				),
 			},
@@ -40,7 +40,7 @@ func TestAccSnapmirrorPolicyResourceAlias(t *testing.T) {
 			{
 				Config: testAccSnapmirrorPolicyResourceAddTransferScheduleBasicConfigAlias("tf_acc_svm", "daily"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "carchitestme4"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "tf_acc_test"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "transfer_schedule_name", "daily"),
 				),
 			},
@@ -48,14 +48,14 @@ func TestAccSnapmirrorPolicyResourceAlias(t *testing.T) {
 			{
 				Config: testAccSnapmirrorPolicyResourceBasicConfigAlias("tf_acc_svm"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "carchitestme4"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "tf_acc_test"),
 				),
 			},
 			// Test add snapmirror policy with comment and identity_preservation
 			{
 				Config: testAccSnapmirrorPolicyResourceConfigAlias("tf_acc_svm", "test comment", "full"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "carchitestme4"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "tf_acc_test"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "comment", "test comment"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "identity_preservation", "full"),
 				),
@@ -64,7 +64,7 @@ func TestAccSnapmirrorPolicyResourceAlias(t *testing.T) {
 			{
 				Config: testAccSnapmirrorPolicyResourceConfigAlias("tf_acc_svm", "update comment", "exclude_network_config"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "carchitestme4"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "tf_acc_test"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "comment", "update comment"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "identity_preservation", "exclude_network_config"),
 				),
@@ -73,7 +73,7 @@ func TestAccSnapmirrorPolicyResourceAlias(t *testing.T) {
 			{
 				Config: testAccSnapmirrorPolicyResourceAddTwoRetentionConfigAlias("tf_acc_svm", "update comment", "exclude_network_config", "weekly", 5),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "carchitestme4"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "tf_acc_test"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "comment", "update comment"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "identity_preservation", "exclude_network_config"),
 					// check number of reteion
@@ -88,7 +88,7 @@ func TestAccSnapmirrorPolicyResourceAlias(t *testing.T) {
 			{
 				Config: testAccSnapmirrorPolicyResourceRemoveOneRetentionConfigAlias("tf_acc_svm", "update comment", "exclude_network_config"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "carchitestme4"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "tf_acc_test"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "comment", "update comment"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "identity_preservation", "exclude_network_config"),
 					// check number of reteion
@@ -157,7 +157,7 @@ provider "netapp-ontap" {
 
 resource "netapp-ontap_snapmirror_policy_resource" "example" {
   cx_profile_name = "cluster4"
-  name = "carchitestme4"
+  name = "tf_acc_test"
   svm_name = "%s"
   type = "async"
 }`, host, admin, password, svm)
@@ -186,7 +186,7 @@ provider "netapp-ontap" {
 
 resource "netapp-ontap_snapmirror_policy_resource" "example" {
   cx_profile_name = "cluster4"
-  name = "carchitestme4"
+  name = "tf_acc_test"
   svm_name = "%s"
   type = "async"
   transfer_schedule_name = "%s"
@@ -216,7 +216,7 @@ provider "netapp-ontap" {
 
 resource "netapp-ontap_snapmirror_policy_resource" "example" {
   cx_profile_name = "cluster4"
-  name = "carchitestme4"
+  name = "tf_acc_test"
   svm_name = "%s"
   comment = "%s"
   identity_preservation = "%s"
@@ -247,7 +247,7 @@ provider "netapp-ontap" {
 
 resource "netapp-ontap_snapmirror_policy_resource" "example" {
   cx_profile_name = "cluster4"
-  name = "carchitestme4"
+  name = "tf_acc_test"
   svm_name = "%s"
   comment = "%s"
   identity_preservation = "%s"
@@ -289,7 +289,7 @@ provider "netapp-ontap" {
 
 resource "netapp-ontap_snapmirror_policy_resource" "example" {
   cx_profile_name = "cluster4"
-  name = "carchitestme4"
+  name = "tf_acc_test"
   svm_name = "%s"
   comment = "%s"
   identity_preservation = "%s"
