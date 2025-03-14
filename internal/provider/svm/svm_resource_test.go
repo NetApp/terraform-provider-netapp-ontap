@@ -124,7 +124,7 @@ resource "netapp-ontap_svm" "example" {
   language = "en_us.utf_8"
   aggregates = [
     {
-      name = "tf_acc_aggrsa"
+      name = "tf_acc_aggr"
     },
   ]
   max_volumes = "unlimited"
