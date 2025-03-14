@@ -5,8 +5,9 @@ on:
     branches: [ "integration/main" ]
 
 jobs:
-  check-missing-docs:
-    runs-on: ubuntu-latest
+  build:
+  
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
