@@ -31,7 +31,7 @@ jobs:
           else
             BASE_BRANCH=integration/main
           fi
-          CHANGED_FILES=$(git diff --name-only origin/$BASE_BRANCH | grep '.*resource.go$' || true)
+          CHANGED_FILES=$(git diff --name-only origin/$BASE_BRANCH | grep -E '.*resource.go$|.*test.go$' || true)
           if [ -z "$CHANGED_FILES" ]; then
             echo "No resource files changed."
             echo "changed_files=" >> $GITHUB_ENV
@@ -63,7 +63,11 @@ jobs:
           export TF_ACC=1
           export TMPDIR=~/tmp/
           for FILE in $changed_files; do
-            TEST_FILE="${FILE%.go}_test.go"
+            if [[ "$FILE" == *resource.go ]]; then
+              TEST_FILE="${FILE%.go}_test.go"
+            else
+              TEST_FILE="$FILE"
+            fi
             go test "$TEST_FILE"
           done
 
