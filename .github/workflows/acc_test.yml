@@ -47,24 +47,16 @@ jobs:
       #     echo "Changed resource files: $CHANGED_FILES"
       #     echo "changed_files=$CHANGED_FILES" >> $GITHUB_ENV
 
-      - name: Fetch base branch
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            git fetch origin +refs/heads/${{ github.event.pull_request.base.ref }}:refs/remotes/origin/${{ github.event.pull_request.base.ref }}
-          else
-            git fetch origin +refs/heads/${GITHUB_REF#refs/heads/}:refs/remotes/origin/${GITHUB_REF#refs/heads/}
-          fi
-
-      - name: Fetch base branch
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "Fetching base branch: ${{ github.event.pull_request.base.ref }}"
-            git fetch origin +refs/heads/${{ github.event.pull_request.base.ref }}:refs/remotes/origin/${{ github.event.pull_request.base.ref }}
-          else
-            BASE_BRANCH=integration/main
-            echo "Fetching base branch: $BASE_BRANCH"
-            git fetch origin +refs/heads/$BASE_BRANCH:refs/remotes/origin/$BASE_BRANCH
-          fi
+      # - name: Fetch base branch
+      #   run: |
+      #     if [ "${{ github.event_name }}" = "pull_request" ]; then
+      #       echo "Fetching base branch: ${{ github.event.pull_request.base.ref }}"
+      #       git fetch origin +refs/heads/${{ github.event.pull_request.base.ref }}:refs/remotes/origin/${{ github.event.pull_request.base.ref }}
+      #     else
+      #       BASE_BRANCH=integration/main
+      #       echo "Fetching base branch: $BASE_BRANCH"
+      #       git fetch origin +refs/heads/$BASE_BRANCH:refs/remotes/origin/$BASE_BRANCH
+      #     fi
 
       - name: Detect changed resource files
         id: changes
@@ -72,7 +64,7 @@ jobs:
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             BASE_BRANCH=${{ github.event.pull_request.base.ref }}
           else
-            BASE_BRANCH=${GITHUB_REF#refs/heads/}
+            BASE_BRANCH=integration/main
           fi
           CHANGED_FILES=$(git diff --name-only origin/$BASE_BRANCH | grep '.*resource.go$' || true)
           if [ -z "$CHANGED_FILES" ]; then
