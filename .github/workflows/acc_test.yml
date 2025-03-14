@@ -73,6 +73,7 @@ jobs:
           echo "changed_files=$CHANGED_FILES" >> $GITHUB_ENV
 
       - name: Build
+        if: env.changed_files != ''
         env:
           TF_ACC_NETAPP_HOST: ${{ secrets.TF_ACC_NETAPP_HOST }}
           TF_ACC_NETAPP_HOST2: ${{ secrets.TF_ACC_NETAPP_HOST2 }}
@@ -90,7 +91,7 @@ jobs:
           export GOFLAGS=-buildvcs=false
           export TF_ACC=1
           export TMPDIR=~/tmp/
-          for FILE in ${{ steps.changes.outputs.changed_files }}; do
+          for FILE in $changed_files; do
             TEST_FILE="${FILE%.go}_test.go"
             if [ -f "$TEST_FILE" ]; then
               go test "$TEST_FILE"
