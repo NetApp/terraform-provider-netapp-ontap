@@ -75,6 +75,9 @@ jobs:
           echo "Changed resource files: $CHANGED_FILES"
           echo "changed_files=$CHANGED_FILES" >> $GITHUB_ENV
 
+      - name: Create temporary directory
+        run: mkdir -p ~/tmp/
+
       - name: Build
         if: env.changed_files != ''
         env:
