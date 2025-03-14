@@ -23,6 +23,11 @@ jobs:
         with:
           go-version: '1.21'
 
+      - name: Print the base branch name
+        run: |
+          echo "Base branch: ${{ github.event.pull_request.base.ref }}"
+          echo "Head branch: ${{ github.event.pull_request.head.ref }}"
+          echo "Push name: ${{ github.base_ref }}
       - name: Detect changed resource files
         id: changes
         run: |
