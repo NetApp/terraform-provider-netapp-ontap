@@ -138,7 +138,7 @@ func (r *SvmResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 
 // Configure adds the provider configured client to the resource.
 func (r *SvmResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	// Prevent panic if the provider has not been configured .
+	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
 	}
