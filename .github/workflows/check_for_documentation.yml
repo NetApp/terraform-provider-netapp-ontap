@@ -26,6 +26,9 @@ jobs:
             fi
             DOC_FILE="${FILE##*/}"
             DOC_FILE="${DOC_FILE/_resource.go/.md}"
+            DOC_FILE="${DOC_FILE/protocols_/}"
+            DOC_FILE="${DOC_FILE/network_/}"
+            DOC_FILE="${DOC_FILE/storage_/}"
             DOC_FILE="docs/resources/$DOC_FILE"
             if [ ! -f "$DOC_FILE" ]; then
               MISSING_DOCS="$MISSING_DOCS\n$DOC_FILE"
@@ -38,6 +41,9 @@ jobs:
             fi
             DOC_FILE="${FILE##*/}"
             DOC_FILE="${DOC_FILE/_data_source.go/.md}"
+            DOC_FILE="${DOC_FILE/protocols_/}"
+            DOC_FILE="${DOC_FILE/network_/}"
+            DOC_FILE="${DOC_FILE/storage_/}"
             DOC_FILE="docs/data-sources/$DOC_FILE"
             if [ ! -f "$DOC_FILE" ]; then
               MISSING_DOCS="$MISSING_DOCS\n$DOC_FILE"
