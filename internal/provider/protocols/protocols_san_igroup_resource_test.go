@@ -17,14 +17,14 @@ func TestAccProtocolsSanIgroupResource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Create protocols_san_igroup and read
 			{
-				Config: testAccProtocolsSanIgroupResourceBasicConfig("acc_test2", "terraform"),
+				Config: testAccProtocolsSanIgroupResourceBasicConfig("acc_test2", "tf_acc_svm"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_san_igroup.example", "name", "acc_test2"),
 				),
 			},
 			// Update options and read
 			{
-				Config: testAccProtocolsSanIgroupResourceUpdateConfig("acc_test2", "terraform", "windows", "test_acc"),
+				Config: testAccProtocolsSanIgroupResourceUpdateConfig("acc_test2", "tf_acc_svm", "windows", "test_acc"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_san_igroup.example", "os_type", "windows"),
 					resource.TestCheckResourceAttr("netapp-ontap_san_igroup.example", "name", "acc_test2"),
@@ -34,7 +34,7 @@ func TestAccProtocolsSanIgroupResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_san_igroup.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s", "terraform", "terraform", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s", "terraform", "tf_acc_svm", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_san_igroup.example", "name", "terraform"),
 				),
@@ -45,11 +45,11 @@ func TestAccProtocolsSanIgroupResource(t *testing.T) {
 }
 
 func testAccProtocolsSanIgroupResourceBasicConfig(name string, svmName string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST5")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -77,11 +77,11 @@ resource "netapp-ontap_san_igroup" "example" {
 }
 
 func testAccProtocolsSanIgroupResourceUpdateConfig(name string, svmName string, osType string, comment string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST5")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`

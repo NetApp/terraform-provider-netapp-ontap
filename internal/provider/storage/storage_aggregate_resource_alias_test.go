@@ -21,7 +21,7 @@ func TestAccStorageAggregateResourceAlias(t *testing.T) {
 				ExpectError: regexp.MustCompile("is an invalid value"),
 			},
 			{
-				Config: testAccStorageAggregateResourceConfigAlias("swenjun-vsim2"),
+				Config: testAccStorageAggregateResourceConfigAlias("bsuhas-vsim1"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_storage_aggregate_resource.example", "name", "acc_test_aggr"),
 					resource.TestCheckNoResourceAttr("netapp-ontap_storage_aggregate_resource.example", "vol"),
@@ -31,9 +31,9 @@ func TestAccStorageAggregateResourceAlias(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_storage_aggregate_resource.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s", "acc_test_aggr", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s", "tf_acc_aggr", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_aggregate_resource.example", "name", "acc_test_aggr"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_aggregate_resource.example", "name", "tf_acc_aggr"),
 				),
 			},
 		},
@@ -41,11 +41,11 @@ func TestAccStorageAggregateResourceAlias(t *testing.T) {
 }
 
 func testAccStorageAggregateResourceConfigAlias(node string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST2")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST2, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`

@@ -17,14 +17,14 @@ func TestAccStorageQtreeResource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Test create the resource
 			{
-				Config: createQtree("acc_test_qtree", "temp_root", "temp"),
+				Config: createQtree("acc_test_qtree", "tf_acc_svm_root", "tf_acc_svm"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_qtree.example", "name", "acc_test_qtree"),
 					resource.TestCheckResourceAttr("netapp-ontap_qtree.example", "user.name", "nobody"),
 				),
 			},
 			{
-				Config: updateGroupAndUser("acc_test_qtree", "temp_root", "temp"),
+				Config: updateGroupAndUser("acc_test_qtree", "tf_acc_svm_root", "tf_acc_svm"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_qtree.example", "name", "acc_test_qtree"),
 					resource.TestCheckResourceAttr("netapp-ontap_qtree.example", "user.name", "root"),
@@ -35,9 +35,9 @@ func TestAccStorageQtreeResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_qtree.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "acc_import", "acc_test_root", "acc_test", "cluster5"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "tf_acc_qtree", "tf_acc_volume", "tf_acc_svm", "cluster5"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_qtree.example", "name", "acc_import"),
+					resource.TestCheckResourceAttr("netapp-ontap_qtree.example", "name", "tf_acc_qtree"),
 				),
 			},
 		},
@@ -45,9 +45,9 @@ func TestAccStorageQtreeResource(t *testing.T) {
 }
 
 func createQtree(name, volName, svmName string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST2")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 
 	if host == "" || admin == "" || password == "" {
 		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
@@ -82,9 +82,9 @@ resource "netapp-ontap_qtree" "example" {
 }
 
 func updateGroupAndUser(name, volName, svmName string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST2")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 
 	if host == "" || admin == "" || password == "" {
 		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")

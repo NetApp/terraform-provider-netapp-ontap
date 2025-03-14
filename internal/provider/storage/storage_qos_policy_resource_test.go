@@ -17,14 +17,14 @@ func TestAccQOSPolicyResource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Create qos_policy and read
 			{
-				Config: testAccQOSPolicyResourceBasicConfig("terraform", "terraform", "1"),
+				Config: testAccQOSPolicyResourceBasicConfig("terraform", "tf_acc_svm", "1"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_qos_policy.example", "name", "terraform"),
 				),
 			},
 			// Update a option
 			{
-				Config: testAccQOSPolicyResourceBasicConfig("terraform", "terraform", "2"),
+				Config: testAccQOSPolicyResourceBasicConfig("terraform", "tf_acc_svm", "2"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_qos_policy.example", "fixed.max_throughput_iops", "2"),
 					resource.TestCheckResourceAttr("netapp-ontap_qos_policy.example", "name", "terraform"),
@@ -34,9 +34,9 @@ func TestAccQOSPolicyResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_qos_policy.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s", "test", "terraform", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s", "tf_acc_qos_policy", "tf_acc_svm", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_qos_policy.example", "name", "test"),
+					resource.TestCheckResourceAttr("netapp-ontap_qos_policy.example", "name", "tf_acc_qos_policy"),
 				),
 			},
 			// Delete testing automatically occurs in TestCase
@@ -45,11 +45,11 @@ func TestAccQOSPolicyResource(t *testing.T) {
 }
 
 func testAccQOSPolicyResourceBasicConfig(name string, svmName string, maxThroughputIOPS string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST5")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`

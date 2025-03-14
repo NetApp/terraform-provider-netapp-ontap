@@ -28,41 +28,32 @@ func TestAccNetworkIpRouteResourceAlias(t *testing.T) {
 			},
 			// Test create with no gateway
 			{
-				Config: testAccNetworkIPIRouteResourceConfigAlias("terraform"),
+				Config: testAccNetworkIPIRouteResourceConfigAlias("tf_acc_svm"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_route_resource.example", "svm_name", "terraform"),
+					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_route_resource.example", "svm_name", "tf_acc_svm"),
 					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_route_resource.example", "destination.address", "0.0.0.0"),
 					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_route_resource.example", "destination.netmask", "0"),
 				),
 			},
 			// test create with a gateway
 			{
-				Config: testAccNetworkIPIRouteResourceWithGatewayConfigAlias("terraform", "10.10.10.254", 20),
+				Config: testAccNetworkIPIRouteResourceWithGatewayConfigAlias("tf_acc_svm", "10.10.10.254", 20),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_route_resource.example", "svm_name", "terraform"),
+					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_route_resource.example", "svm_name", "tf_acc_svm"),
 					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_route_resource.example", "destination.address", "10.10.10.254"),
 					resource.TestCheckResourceAttr("netapp-ontap_networking_ip_route_resource.example", "destination.netmask", "20"),
 				),
 			},
-			// Import and read
-			// {
-			// 	ResourceName:  "netapp-ontap_networking_ip_route_resource.example",
-			// 	ImportState:   true,
-			// 	ImportStateId: fmt.Sprintf("%s,%s,%s", "bsuhascluster-1", "10.193.176.1", "cluster4"),
-			// 	Check: resource.ComposeTestCheckFunc(
-			// 		resource.TestCheckResourceAttr("netapp-ontap_networking_ip_route_resource.example", "svm_name", "bsuhascluster-1"),
-			// 	),
-			// },
 		},
 	})
 }
 
 func testAccNetworkIPIRouteResourceConfigAlias(svmName string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST5")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -87,11 +78,11 @@ resource "netapp-ontap_networking_ip_route_resource" "example" {
 }
 
 func testAccNetworkIPIRouteResourceWithGatewayConfigAlias(svmName string, address string, netmask int) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST5")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -120,11 +111,11 @@ resource "netapp-ontap_networking_ip_route_resource" "example" {
 }
 
 func testAccNetworkIPIRouteResourceConfigAliasMissingVars(svmName string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST5")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`

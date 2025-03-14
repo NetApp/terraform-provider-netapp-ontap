@@ -22,7 +22,7 @@ func TestAccNFSExportPolicyResourceAlias(t *testing.T) {
 			},
 			// Create and read testing
 			{
-				Config: testAccNFSExportPolicyResourceConfigAlias("terraform"),
+				Config: testAccNFSExportPolicyResourceConfigAlias("tf_acc_svm"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_export_policy_resource.example", "name", "acc_test"),
 					resource.TestCheckNoResourceAttr("netapp-ontap_protocols_nfs_export_policy_resource.example", "volname"),
@@ -32,7 +32,7 @@ func TestAccNFSExportPolicyResourceAlias(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_protocols_nfs_export_policy_resource.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s", "acc_test", "terraform", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s", "acc_test", "tf_acc_svm", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_protocols_nfs_export_policy_resource.example", "name", "acc_test"),
 				),
@@ -42,11 +42,11 @@ func TestAccNFSExportPolicyResourceAlias(t *testing.T) {
 }
 
 func testAccNFSExportPolicyResourceConfigAlias(svm string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST5")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`

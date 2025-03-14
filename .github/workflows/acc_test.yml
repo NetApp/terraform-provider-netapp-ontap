@@ -23,41 +23,6 @@ jobs:
         with:
           go-version: '1.21'
 
-      # - name: Print the base branch name
-      #   run: |
-      #     echo "Base branch: ${{ github.event.pull_request.base.ref }}"
-      #     echo "Head branch: ${{ github.event.pull_request.head.ref }}"
-      #     echo "Push name: ${{ github.base_ref }}"
-      # - name: Detect changed resource files
-      #   id: changes
-      #   run: |
-      #     CHANGED_FILES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }} | grep '.*resource.go$')
-      #     echo "Changed resource files: $CHANGED_FILES"
-      #     echo "::set-output name=changed_files::$CHANGED_FILES"
-
-      # - name: Detect changed resource files
-      #   id: changes
-      #   run: |
-      #     CHANGED_FILES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }} | grep '.*resource.go$' || true)
-      #     if [ -z "$CHANGED_FILES" ]; then
-      #       echo "No resource files changed."
-      #       echo "changed_files=" >> $GITHUB_ENV
-      #       exit 0
-      #     fi
-      #     echo "Changed resource files: $CHANGED_FILES"
-      #     echo "changed_files=$CHANGED_FILES" >> $GITHUB_ENV
-
-      # - name: Fetch base branch
-      #   run: |
-      #     if [ "${{ github.event_name }}" = "pull_request" ]; then
-      #       echo "Fetching base branch: ${{ github.event.pull_request.base.ref }}"
-      #       git fetch origin +refs/heads/${{ github.event.pull_request.base.ref }}:refs/remotes/origin/${{ github.event.pull_request.base.ref }}
-      #     else
-      #       BASE_BRANCH=integration/main
-      #       echo "Fetching base branch: $BASE_BRANCH"
-      #       git fetch origin +refs/heads/$BASE_BRANCH:refs/remotes/origin/$BASE_BRANCH
-      #     fi
-
       - name: Detect changed resource files
         id: changes
         run: |

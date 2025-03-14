@@ -34,7 +34,7 @@ func TestAccSecurityLoginMessage(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_security_login_message.example",
 				ImportState:   true,
-				ImportStateId: "terraform,cluster1",
+				ImportStateId: "tf_acc_svm,cluster1",
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_security_login_message.example", "scope", "svm"),
 				),
@@ -46,11 +46,11 @@ func TestAccSecurityLoginMessage(t *testing.T) {
 }
 
 func testAccSecurityLoginMessageBasicClusterConfig() string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST5")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
