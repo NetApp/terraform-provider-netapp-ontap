@@ -21,7 +21,7 @@ jobs:
           DATA_SOURCE_FILES=$(find . -type f -name '*_data_source.go')
           
           for FILE in $RESOURCE_FILES; do
-            if [[ "$FILE" == *example_resource.go ]] || [[ "$FILE" == tag_prefix_resource.go ]]; then
+            if [[ "$FILE" == *example_resource.go ]] || [[ "$FILE" == *tag_prefix_resource.go ]]; then
               continue
             fi
             DOC_FILE="${FILE##*/}"
@@ -35,7 +35,7 @@ jobs:
           done
 
           for FILE in $DATA_SOURCE_FILES; do
-            if [[ "$FILE" == *example_data_source.go ]] || [[ "$FILE" == tag_prefix_data_source.go ]] || [[ "$FILE" == tag_all_prefix_data_source.go ]]; then
+            if [[ "$FILE" == *example_data_source.go ]] || [[ "$FILE" == *tag_prefix_data_source.go ]] || [[ "$FILE" == *tag_all_prefix_data_source.go ]]; then
               continue
             fi
             DOC_FILE="${FILE##*/}"
