@@ -1,0 +1,13 @@
+{
+    "github.copilot.chat.commitMessageGeneration.instructions": [
+
+    ],
+    "github.copilot.chat.testGeneration.instructions": [
+
+    ],
+    "github.copilot.chat.codeGeneration.instructions": [
+        {
+            "file": ".github/copilot/code-style.md"
+        }
+    ]
+}
