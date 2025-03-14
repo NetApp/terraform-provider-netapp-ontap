@@ -3,6 +3,7 @@
 BUG FIXES:
 
 - **netapp-ontap_svm_qos_policy_activation**: ID parameter missing in QOS policy ([#429](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/429))
+- Corrected Resource and Data Source documentation Names ([#441](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/441))
 
 # 2.1.1 (2025-02-26)
 
