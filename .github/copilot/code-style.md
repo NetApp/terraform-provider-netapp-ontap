@@ -134,6 +134,7 @@ Please Adhere to these Standard.
 
 ## Resources 
 - All Resources need a function `New<api>Resource()` here an example for StorageVolume
+- The `New<api>Resource()` function need to be added to the `/internal/provider/provider.go` file in the Resources functions
 
 ```go
 // NewStorageVolumeResource is a helper function to simplify the provider implementation.
