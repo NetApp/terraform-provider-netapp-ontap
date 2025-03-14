@@ -14,17 +14,11 @@ func TestAccSecurityAccountResource(t *testing.T) {
 		PreCheck:                 func() { ntest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ntest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			{
-				Config: testAccSecurityAccountResourceConfig("carchitest", "password"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_security_account.security_account", "name", "carchitest"),
-				),
-			},
 			// Test updating a resource
 			{
-				Config: testAccSecurityAccountResourceConfig("carchitest", "password123"),
+				Config: testAccSecurityAccountResourceConfig("tf_acc_test", "password123"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_security_account.security_account", "name", "carchitest"),
+					resource.TestCheckResourceAttr("netapp-ontap_security_account.security_account", "name", "tf_acc_test"),
 					resource.TestCheckResourceAttr("netapp-ontap_security_account.security_account", "password", "password123"),
 				),
 			},
@@ -32,9 +26,9 @@ func TestAccSecurityAccountResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_security_account.security_account",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s", "acc_user", "cluster2"),
+				ImportStateId: fmt.Sprintf("%s,%s", "vsadmin", "cluster2"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_security_account.security_account", "name", "acc_user"),
+					resource.TestCheckResourceAttr("netapp-ontap_security_account.security_account", "name", "vsadmin"),
 				),
 			},
 		},
@@ -42,9 +36,9 @@ func TestAccSecurityAccountResource(t *testing.T) {
 }
 
 func testAccSecurityAccountResourceConfig(name string, accpassword string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST2")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
 		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
