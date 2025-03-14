@@ -23,15 +23,15 @@ jobs:
         with:
           go-version: '1.21'
 
-      - name: Print the base branch name
-        run: |
-          echo "Base branch: ${{ github.event.pull_request.base.ref }}"
-          echo "Head branch: ${{ github.event.pull_request.head.ref }}"
-          echo "Push name: ${{ github.base_ref }}"
+      # - name: Print the base branch name
+      #   run: |
+      #     echo "Base branch: ${{ github.event.pull_request.base.ref }}"
+      #     echo "Head branch: ${{ github.event.pull_request.head.ref }}"
+      #     echo "Push name: ${{ github.base_ref }}"
       - name: Detect changed resource files
         id: changes
         run: |
-          CHANGED_FILES=$(git diff --name-only integration/main | grep '.*resource.go$')
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.ref }} | grep '.*resource.go$')
           echo "Changed resource files: $CHANGED_FILES"
           echo "::set-output name=changed_files::$CHANGED_FILES"
 
@@ -54,8 +54,8 @@ jobs:
           export TF_ACC=1
           export TMPDIR=~/tmp/
           for FILE in ${{ steps.changes.outputs.changed_files }}; do
-            DIR=$(dirname "$FILE")
-            go test "$DIR/..."
+            # DIR=$(dirname "$FILE")
+            go test "$FILE"
           done
 
       - name: Cleanup
