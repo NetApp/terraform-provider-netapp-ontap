@@ -39,7 +39,7 @@ jobs:
           done
 
           if [ -n "$MISSING_DOCS" ]; then
-            echo "The following documentation files are missing:$MISSING_DOCS"
+            printf "The following documentation files are missing:%b\n" "$MISSING_DOCS"
             exit 1
           else
             echo "All resource and data source files have corresponding documentation."
