@@ -55,6 +55,17 @@ jobs:
             git fetch origin +refs/heads/${GITHUB_REF#refs/heads/}:refs/remotes/origin/${GITHUB_REF#refs/heads/}
           fi
 
+      - name: Fetch base branch
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "Fetching base branch: ${{ github.event.pull_request.base.ref }}"
+            git fetch origin +refs/heads/${{ github.event.pull_request.base.ref }}:refs/remotes/origin/${{ github.event.pull_request.base.ref }}
+          else
+            BASE_BRANCH=integration/main
+            echo "Fetching base branch: $BASE_BRANCH"
+            git fetch origin +refs/heads/$BASE_BRANCH:refs/remotes/origin/$BASE_BRANCH
+          fi
+
       - name: Detect changed resource files
         id: changes
         run: |
@@ -93,11 +104,7 @@ jobs:
           export TMPDIR=~/tmp/
           for FILE in $changed_files; do
             TEST_FILE="${FILE%.go}_test.go"
-            if [ -f "$TEST_FILE" ]; then
-              go test "$TEST_FILE"
-            else
-              echo "Test file $TEST_FILE does not exist."
-            fi
+            go test "$TEST_FILE"
           done
 
       - name: Cleanup
