@@ -91,8 +91,12 @@ jobs:
           export TF_ACC=1
           export TMPDIR=~/tmp/
           for FILE in ${{ steps.changes.outputs.changed_files }}; do
-            # DIR=$(dirname "$FILE")
-            go test "$FILE"
+            TEST_FILE="${FILE%.go}_test.go"
+            if [ -f "$TEST_FILE" ]; then
+              go test "$TEST_FILE"
+            else
+              echo "Test file $TEST_FILE does not exist."
+            fi
           done
 
       - name: Cleanup
