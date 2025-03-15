@@ -12,11 +12,58 @@ Please Adhere to these Standard.
 ## Naming Rules
 - Test live in the same directory as the file it testing. so `cluster_peer_resource.go` test is in the same directory with `cluster_peer_resource_test.go`
 
-## Examples
+## Rules for Examples
 - For every example in `/examples/resources/` and `/examples/data-sources/ a directory called netapp-ontap followed by the resource or data source name
 - In this directory will be 3 files (provider.tf, resource.tf and variables.tf)
+- below is an example of what provider.tf should look like
+```tf
+terraform {
+  required_providers {
+    netapp-ontap = {
+      source = "NetApp/netapp-ontap"
+      version = "0.0.1"
+    }
+  }
+}
 
-## docs
+
+provider "netapp-ontap" {
+  # A connection profile defines how to interface with an ONTAP cluster or svm.
+  # At least one is required.
+  connection_profiles = [
+    {
+      name = "cluster1"
+      hostname = "********219"
+      username = var.username
+      password = var.password
+      validate_certs = var.validate_certs
+    },
+    {
+      name = "cluster2"
+      hostname = "********222"
+      username = var.username
+      password = var.password
+      validate_certs = var.validate_certs
+    },
+  ]
+}
+```
+- variables.tf should always look like the example below
+```tf
+# Terraform will prompt for values, unless a tfvars file is present.
+variable "username" {
+    type = string
+}
+variable "password" {
+    type = string
+    sensitive = true
+}
+variable "validate_certs" {
+    type = bool
+}
+```
+
+## rules for Docs
 - All options that exist in Resources and Data Sources must be listed in the documentation for that module.
 - An example of what a docs header should look like
 ```md
@@ -133,8 +180,9 @@ Please Adhere to these Standard.
 
 
 ## Resources 
-- All Resources need a function `New<api>Resource()` here an example for StorageVolume
 - The `New<api>Resource()` function need to be added to the `/internal/provider/provider.go` file in the Resources functions
+- Make sure to comment your code
+- All Resources need a function `New<api>Resource()` here an example for StorageVolume
 
 ```go
 // NewStorageVolumeResource is a helper function to simplify the provider implementation.
@@ -158,6 +206,7 @@ func NewStorageVolumeResource() resource.Resource {
 ## Resource tests 
 - All resources need an acc test 
 - ACC test need to create/update and import the resource  
+- When creating resource.TestCheckResourceAttr line the first parameter is the resource name, the second parameter is one of the variable from the new module, and the last is an exmaple input for that variable 
 - Here is an example of a acc test for storage_snapshot_policy.go
 ```go
     package storage_test
@@ -255,6 +304,7 @@ func NewStorageVolumeResource() resource.Resource {
 ```
 
 ## Interface 
+- Make sure to comment your interface code
 - The delete function for an interface look like this example for cluster/schedules
 ```go
     // DeleteClusterSchedule to delete job schedule
