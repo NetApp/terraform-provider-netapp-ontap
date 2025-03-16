@@ -2,7 +2,7 @@
 Please Adhere to these Standard.
 
 ## Directory Structure
-- New Resources and Data Sources should be kept in `/internal/provider/<api>` with the API being the based REST API that Resources and Data Sources is based off of
+- New Resources and Data Sources should be kept in `/internal/provider/<api>` with the API being the based REST API that Resources and Data Sources is based off of. We only make 1 level of directories for API for example if we had `storage/volumes/files` the directory would look like `/internal/provider/storage/storage_volumes_files_resource.go`
 - Function that make REST API calls should be placed in `/internal/interfaces` and be named after the REST API. For example `storage/volumes/files` become `storage_volumes_files.go`
 - All Resources need examples at `/examples/resources/` with the name starting with netapp-ontap followed by the resource
 - All Data Sources need Examples at `/examples/data-sources/` with the name starting with netapp-ontap followed by the resource
@@ -180,9 +180,16 @@ variable "validate_certs" {
 
 
 ## Resources 
-- The `New<api>Resource()` function need to be added to the `/internal/provider/provider.go` file in the Resources functions
+- The `New<api>Resource()` function need to be added to the existing `/internal/provider/provider.go` file in the Resources functions. Do NOT create a new `provider.go` file
 - Make sure to comment your code
-- All Resources need a function `New<api>Resource()` here an example for StorageVolume
+- New Resource need to import `"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"` to get the connection import
+- All new Resources need the following 2 variables before the `New<api>Resource() function. Here is an example for StorageVolume
+```go
+// Ensure provider defined types fully satisfy framework interfaces
+var _ resource.Resource = &StorageVolumeResource{}
+var _ resource.ResourceWithImportState = &StorageVolumeResource{}
+```
+- All Resources need a function `New<api>Resource()` here an example for StorageVolume. You must set config and Name when you implement this function.
 
 ```go
 // NewStorageVolumeResource is a helper function to simplify the provider implementation.
@@ -305,6 +312,35 @@ func NewStorageVolumeResource() resource.Resource {
 
 ## Interface 
 - Make sure to comment your interface code
+- if you create any structures like the examples ClusterScheduleResourceBodyDataModelONTAP, ClusterScheduleGetDataModelONTAP, you must define them with their variable in this file
+```go
+// ClusterScheduleGetDataModelONTAP describes the GET record data model using go types for mapping.
+type ClusterScheduleGetDataModelONTAP struct {
+	Name     string       `mapstructure:"name"`
+	UUID     string       `mapstructure:"uuid"`
+	Type     string       `mapstructure:"type"`
+	Scope    string       `mapstructure:"scope"`
+	Cron     CronSchedule `mapstructure:"cron,omitempty"`
+	Interval string       `mapstructure:"interval,omitempty"`
+}
+
+// CronSchedule is the body data model for cron schedule fields
+type CronSchedule struct {
+	Hours    []int64 `mapstructure:"hours,omitempty"`
+	Days     []int64 `mapstructure:"days,omitempty"`
+	Minutes  []int64 `mapstructure:"minutes,omitempty"`
+	Weekdays []int64 `mapstructure:"weekdays,omitempty"`
+	Months   []int64 `mapstructure:"months,omitempty"`
+}
+
+// ClusterScheduleResourceBodyDataModelONTAP describes the body data model using go types for mapping.
+type ClusterScheduleResourceBodyDataModelONTAP struct {
+	// 'name' is not allowed in the API body for the update. Set omitempty to keep the flexibility.
+	Name     string       `mapstructure:"name,omitempty"`
+	Cron     CronSchedule `mapstructure:"cron,omitempty"`
+	Interval string       `mapstructure:"interval,omitempty"`
+}
+```
 - The delete function for an interface look like this example for cluster/schedules
 ```go
     // DeleteClusterSchedule to delete job schedule
