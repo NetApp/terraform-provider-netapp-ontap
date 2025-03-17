@@ -4,13 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
@@ -43,11 +42,6 @@ type ProtocolsIscsiServiceDataSourceModel struct {
 type ProtocolsIscsiServiceTargetDataSourceModel struct {
 	Alias types.String `tfsdk:"alias"`
 	Name  types.String `tfsdk:"name"`
-}
-
-// ProtocolsIscsiServiceDataSourceFilterModel describes the data source data model for queries.
-type ProtocolsIscsiServiceDataSourceFilterModel struct {
-	SVMName types.String `tfsdk:"svm_name"`
 }
 
 // Metadata returns the data source type name.
