@@ -328,6 +328,7 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		protocols.NewExportPolicyRulesDataSource,
 		protocols.NewProtocolsCIFSShareDataSource,
 		protocols.NewProtocolsCIFSSharesDataSource,
+		protocols.NewProtocolsIscsiServiceDataSource,
 		protocols.NewProtocolsNfsServiceDataSource,
 		protocols.NewProtocolsNfsServicesDataSource,
 		protocols.NewProtocolsSanIgroupDataSource,
