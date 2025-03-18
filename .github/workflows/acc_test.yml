@@ -47,7 +47,12 @@ jobs:
             fi
           done
           for FILE in $(echo $INTERFACE_FILES | tr ' ' '\n'); do
-            TEST_FILE="${FILE%.go}_resource_test.go"
+            if [[ "$FILE" == *test.go ]]; then
+              continue
+            fi
+            BASE_NAME=$(basename "$FILE")
+            PREFIX=${BASE_NAME%%_*}
+            TEST_FILE="provider/${PREFIX}/${BASE_NAME%.go}_resource_test.go"
             if ! echo "$CHANGED_FILES" | grep -q "$TEST_FILE"; then
               CHANGED_FILES="$CHANGED_FILES $TEST_FILE"
             fi
