@@ -52,6 +52,8 @@ jobs:
               CHANGED_FILES="$CHANGED_FILES $TEST_FILE"
             fi
           done
+          printf "Acceptance test files required to run: %b\n" "$CHANGED_FILES"
+          printf "INTERFACE_FILES: %b\n" "$INTERFACE_FILES"
           echo "Changed resource files: $CHANGED_FILES"
           echo "changed_files=$CHANGED_FILES" >> $GITHUB_ENV
 
@@ -78,7 +80,7 @@ jobs:
           export TF_ACC=1
           export TMPDIR=~/tmp/
           for FILE in $changed_files; do
-            printf "Acceptance test for %b is running\n" "$$TEST_FILE"
+            printf "Acceptance test for %b is running\n" "$TEST_FILE"
             go test "$TEST_FILE"
           done
 
