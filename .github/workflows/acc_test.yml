@@ -46,8 +46,8 @@ jobs:
             else
               TEST_FILE="$FILE"
             fi
+            UPDATED_CHANGED_FILES="$UPDATED_CHANGED_FILES $TEST_FILE"
           done
-          UPDATED_CHANGED_FILES="$UPDATED_CHANGED_FILES $TEST_FILE"
           for FILE in $(echo $INTERFACE_FILES | tr ' ' '\n'); do
             if [[ "$FILE" == *test.go ]] || [[ "$FILE" == *cluster_job.go ]]; then
               continue
