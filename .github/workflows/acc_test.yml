@@ -55,6 +55,8 @@ jobs:
             BASE_NAME=$(basename "$FILE")
             if [[ "$BASE_NAME" == *name_services* ]]; then
               PREFIX=$(echo "$BASE_NAME" | awk -F'_' '{print $1"_"$2}')
+            elif [[ "$BASE_NAME" == *network* ]]; then
+              PREFIX="${BASE_NAME%%_*}ing"
             else
               PREFIX=${BASE_NAME%%_*}
             fi
