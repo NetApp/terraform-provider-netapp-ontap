@@ -9,7 +9,7 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
-// GetJobByID returns the job state given the job uuid .
+// GetJobByID returns the job state given the job uuid.
 func GetJobByID(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) (interface{}, error) {
 	api := "cluster/jobs/" + uuid
 	statusCode, record, err := r.GetNilOrOneRecord(api, nil, nil)

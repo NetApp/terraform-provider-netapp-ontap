@@ -11,7 +11,7 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
-// StorageVolumeGetDataModelONTAP describes the GET record data model using go types for mapping .
+// StorageVolumeGetDataModelONTAP describes the GET record data model using go types for mapping.
 type StorageVolumeGetDataModelONTAP struct {
 	Name           string
 	SVM            svm
