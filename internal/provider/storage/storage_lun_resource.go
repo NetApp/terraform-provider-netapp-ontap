@@ -351,7 +351,7 @@ func (r *StorageLunResource) Delete(ctx context.Context, req resource.DeleteRequ
 	}
 
 	if data.ID.IsNull() {
-		errorHandler.MakeAndReportError("UUID is null", "storage_lun UUID is null")
+		errorHandler.MakeAndReportError("UUID is null", "storage_lun UUID is null ")
 		return
 	}
 
