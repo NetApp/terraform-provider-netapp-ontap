@@ -32,11 +32,26 @@ jobs:
             BASE_BRANCH=integration/main
           fi
           CHANGED_FILES=$(git diff --name-only origin/$BASE_BRANCH | grep -E '.*resource.go$|.*test.go$' || true)
-          if [ -z "$CHANGED_FILES" ]; then
-            echo "No resource files changed."
+          INTERFACE_FILES=$(git diff --name-only origin/$BASE_BRANCH | grep '^interfaces/.*\.go$' || true)
+          if [ -z "$CHANGED_FILES" ] && [ -z "$INTERFACE_FILES" ]; then
+            echo "No resource, test, or interface files changed."
             echo "changed_files=" >> $GITHUB_ENV
+            echo "interface_files=" >> $GITHUB_ENV
             exit 0
           fi
+          for FILE in $changed_files; do
+            if [[ "$FILE" == *resource.go ]]; then
+              TEST_FILE="${FILE%.go}_test.go"
+            else
+              TEST_FILE="$FILE"
+            fi
+          done
+          for FILE in $(echo $INTERFACE_FILES | tr ' ' '\n'); do
+            TEST_FILE="${FILE%.go}_resource_test.go"
+            if ! echo "$CHANGED_FILES" | grep -q "$TEST_FILE"; then
+              CHANGED_FILES="$CHANGED_FILES $TEST_FILE"
+            fi
+          done
           echo "Changed resource files: $CHANGED_FILES"
           echo "changed_files=$CHANGED_FILES" >> $GITHUB_ENV
 
@@ -63,11 +78,6 @@ jobs:
           export TF_ACC=1
           export TMPDIR=~/tmp/
           for FILE in $changed_files; do
-            if [[ "$FILE" == *resource.go ]]; then
-              TEST_FILE="${FILE%.go}_test.go"
-            else
-              TEST_FILE="$FILE"
-            fi
             go test "$TEST_FILE"
           done
 
