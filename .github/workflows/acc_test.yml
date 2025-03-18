@@ -2,9 +2,9 @@ name: Go ACC Tests
 
 on: 
   push:
-  pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [ "integration/main" ]
+  # pull_request:
+  #   # The branches below must be a subset of the branches above
+  #   branches: [ "integration/main" ]
 
 jobs:
   build:
@@ -46,6 +46,7 @@ jobs:
               TEST_FILE="$FILE"
             fi
           done
+          printf "INTERFACE_FILES: %b\n" "$INTERFACE_FILES"
           for FILE in $(echo $INTERFACE_FILES | tr ' ' '\n'); do
             TEST_FILE="${FILE%.go}_resource_test.go"
             if ! echo "$CHANGED_FILES" | grep -q "$TEST_FILE"; then
@@ -53,7 +54,6 @@ jobs:
             fi
           done
           printf "Acceptance test files required to run: %b\n" "$CHANGED_FILES"
-          printf "INTERFACE_FILES: %b\n" "$INTERFACE_FILES"
           echo "Changed resource files: $CHANGED_FILES"
           echo "changed_files=$CHANGED_FILES" >> $GITHUB_ENV
 
