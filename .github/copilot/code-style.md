@@ -8,6 +8,7 @@ Please Adhere to these Standard.
 - All Data Sources need Examples at `/examples/data-sources/` with the name starting with netapp-ontap followed by the resource
 - All Resources need a doc page at `/docs/resources/` with a .md file in all lower cases that matches the api name
 - All Data Sources need a doc page at `/docs/data-sources/` with a .md file in all lower cases that matches the api name
+- The provider.go files is located at `/internal/provider/provider.go`
 
 ## Naming Rules
 - Test live in the same directory as the file it testing. so `cluster_peer_resource.go` test is in the same directory with `cluster_peer_resource_test.go`
@@ -180,7 +181,7 @@ variable "validate_certs" {
 
 
 ## Resources 
-- The `New<api>Resource()` function need to be added to the existing `/internal/provider/provider.go` file in the Resources functions. Do NOT create a new `provider.go` file
+- The `New<api>Resource()` function need to be added to the existing `provider.go` file in the Resources functions. 
 - Make sure to comment your code
 - New Resource need to import `"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"` to get the connection import
 - All new Resources need the following 2 variables before the `New<api>Resource() function. Here is an example for StorageVolume

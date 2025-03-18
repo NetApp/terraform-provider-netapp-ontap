@@ -1,13 +1,19 @@
 {
     "github.copilot.chat.commitMessageGeneration.instructions": [
+        
 
+        {
+            "text": "All Commit messages should start with a Jira ID followed by a colon and a space. For example, \"JIRA-123: Fixing a bug.\""
+        }
     ],
     "github.copilot.chat.testGeneration.instructions": [
 
     ],
     "github.copilot.chat.codeGeneration.instructions": [
+
         {
             "file": ".github/copilot/code-style.md"
         }
-    ]
+    ],
+    "github.copilot.chat.codeGeneration.useInstructionFiles": true
 }
