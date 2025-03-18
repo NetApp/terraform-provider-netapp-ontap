@@ -31,7 +31,7 @@ jobs:
           else
             BASE_BRANCH=integration/main
           fi
-          CHANGED_FILES=$(git diff --name-only origin/$BASE_BRANCH | grep -E '.*resource.go$|.*test.go$' || true)
+          CHANGED_FILES=$(git diff --name-only origin/$BASE_BRANCH | grep -E '.*resource.go$|.^provider/.*test.go$' || true)
           INTERFACE_FILES=$(git diff --name-only origin/$BASE_BRANCH | grep '^interfaces/.*\.go$' || true)
           if [ -z "$CHANGED_FILES" ] && [ -z "$INTERFACE_FILES" ]; then
             echo "No resource, test, or interface files changed."
@@ -78,6 +78,7 @@ jobs:
           export TF_ACC=1
           export TMPDIR=~/tmp/
           for FILE in $changed_files; do
+            printf "Acceptance test for %b is running\n" "$$TEST_FILE"
             go test "$TEST_FILE"
           done
 
