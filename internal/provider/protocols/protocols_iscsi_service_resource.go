@@ -77,8 +77,9 @@ func (r *ProtocolsIscsiServiceResource) Schema(ctx context.Context, req resource
 			"svm_name": schema.StringAttribute{
 				MarkdownDescription: "iSCSI SVM name",
 				Required:            true,
-				// PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
-
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"enabled": schema.BoolAttribute{
 				MarkdownDescription: "iSCSI should be enabled or disabled",
@@ -95,6 +96,9 @@ func (r *ProtocolsIscsiServiceResource) Schema(ctx context.Context, req resource
 					"name": schema.StringAttribute{
 						MarkdownDescription: "iSCSI target name of the iSCSI service",
 						Computed:            true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
 					},
 				},
 				MarkdownDescription: "iSCSI target properties",
@@ -209,7 +213,12 @@ func (r *ProtocolsIscsiServiceResource) Create(ctx context.Context, req resource
 	var body interfaces.ProtocolsIscsiServiceResourceDataModelONTAP
 	body.SVM.Name = data.SVMName.ValueString()
 	// optional fields
-	body.Enabled = data.Enabled.ValueBool()
+	enabledEmpty := false
+	if data.Enabled.IsNull() || data.Enabled.IsUnknown() {
+		enabledEmpty = true
+	} else {
+		body.Enabled = data.Enabled.ValueBool()
+	}
 	var target ProtocolsIscsiServiceTargetResourceModel
 	diags = data.Target.As(ctx, &target, basetypes.ObjectAsOptions{})
 	if !diags.HasError() {
@@ -217,6 +226,7 @@ func (r *ProtocolsIscsiServiceResource) Create(ctx context.Context, req resource
 	}
 
 	// Use existing-, or create new REST API client
+	// we need to defer setting the client until we can read the connection profile name
 	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
@@ -224,7 +234,12 @@ func (r *ProtocolsIscsiServiceResource) Create(ctx context.Context, req resource
 	}
 
 	// Call ONTAP REST API for creating iscsi service
-	resource, err := interfaces.CreateProtocolsIscsiService(errorHandler, *client, body)
+	resource, err := interfaces.CreateProtocolsIscsiService(
+		errorHandler,
+		*client,
+		body,
+		enabledEmpty,
+	)
 	if err != nil {
 		return
 	}
@@ -255,59 +270,88 @@ func (r *ProtocolsIscsiServiceResource) Create(ctx context.Context, req resource
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *ProtocolsIscsiServiceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	/*var data *ProtocolsIscsiServiceResourceModel
+	var data *ProtocolsIscsiServiceResourceModel
 
 	// Read Terraform plan data into the model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-
+	diags := req.Plan.Get(ctx, &data)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 
+	// Copy iscsi service info to request body
+	var body interfaces.ProtocolsIscsiServiceResourceDataModelONTAP
+	// optional fields
+	enabledEmpty := false
+	if data.Enabled.IsNull() || data.Enabled.IsUnknown() {
+		enabledEmpty = true
+	} else {
+		body.Enabled = data.Enabled.ValueBool()
+	}
+	var target ProtocolsIscsiServiceTargetResourceModel
+	diags = data.Target.As(ctx, &target, basetypes.ObjectAsOptions{})
+	if !diags.HasError() {
+		body.Target.Alias = target.Alias.ValueString()
+	}
+
+	// Use existing-, or create new REST API client
+	// we need to defer setting the client until we can read the connection profile name
 	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
 	}
-	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.SVMName.ValueString())
+
+	// Call ONTAP REST API for updating protcols iscsi service info
+	err = interfaces.UpdateProtocolsIscsiService(
+		errorHandler,
+		*client,
+		body,
+		data.ID.ValueString(),
+		enabledEmpty,
+	)
 	if err != nil {
-		// error reporting done inside NewClient
-		return
-	}
-	if svm == nil {
-		errorHandler.MakeAndReportError("No svm found", fmt.Sprintf("svm %s not found.", data.SVMName.ValueString()))
-		return
-	}
-	cluster, err := interfaces.GetCluster(errorHandler, *client)
-	if err != nil {
-		// error reporting done inside GetCluster
-		return
-	}
-	if cluster == nil {
-		errorHandler.MakeAndReportError("No cluster found", "Cluster not found.")
-		return
-	}
-	var request interfaces.ProtocolsIscsiServiceResourceDataModelONTAP
-	var errors []string
-	if !data.Enabled.IsNull() {
-		request.Enabled = data.Enabled.ValueBool()
-	}
-	request.SVM.Name = data.SVMName.ValueString()
-	data.ID = data.SVMName
-	if len(errors) > 0 {
-		errorsString := strings.Join(errors, ", ")
-		tflog.Error(ctx, fmt.Sprintf("The following Variables are only support with ONTAP 9.11 or higher: %#v", errorsString))
 		return
 	}
 
-	err = interfaces.UpdateProtocolsIscsiService(errorHandler, *client, request, svm.UUID)
+	// Call ONTAP REST API for reading protcols iscsi service info
+	restInfo, err := interfaces.GetProtocolsIscsiService(
+		errorHandler,
+		*client,
+		data.SVMName.ValueString(),
+	)
 	if err != nil {
+		// error reporting done inside GetProtocolsIscsiService
 		return
 	}
+	if restInfo == nil {
+		errorHandler.MakeAndReportError("No iSCSI service found", "iSCSI service not found.")
+		return
+	}
+
+	// Copy iSCSI service info to data source model
+	data.Enabled = types.BoolValue(restInfo.Enabled)
+	data.ID = types.StringValue(restInfo.SVM.UUID)
+
+	targetElement := ProtocolsIscsiServiceTargetResourceModel{
+		Alias: types.StringValue(restInfo.Target.Alias),
+		Name:  types.StringValue(restInfo.Target.Name),
+	}
+	targetValue, diags := types.ObjectValueFrom(
+		ctx,
+		targetElement.attributeTypes(),
+		targetElement,
+	)
+	if !diags.HasError() {
+		data.Target = targetValue
+	}
+
+	tflog.Trace(ctx, fmt.Sprintf("updated a resource, UUID=%s", data.ID))
 
 	// Save updated data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)*/
+	diags = resp.State.Set(ctx, &data)
+	resp.Diagnostics.Append(diags...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -322,14 +366,31 @@ func (r *ProtocolsIscsiServiceResource) Delete(ctx context.Context, req resource
 	}
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 
+	// Copy iscsi service info to request body (stop iscsi service)
+	var body interfaces.ProtocolsIscsiServiceResourceDataModelONTAP
+	body.Enabled = false
+
 	// Use existing-, or create new REST API client
+	// we need to defer setting the client until we can read the connection profile name
 	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
 	}
 
-	// Call ONTAP REST API for delete iscsi service
+	// Call ONTAP REST API for updating protcols iscsi service info
+	err = interfaces.UpdateProtocolsIscsiService(
+		errorHandler,
+		*client,
+		body,
+		data.ID.ValueString(),
+		false,
+	)
+	if err != nil {
+		return
+	}
+
+	// Call ONTAP REST API for deleting iscsi service
 	err = interfaces.DeleteProtocolsIscsiService(
 		errorHandler,
 		*client,
