@@ -35,12 +35,12 @@ jobs:
           INTERFACE_FILES=$(git diff --name-only origin/$BASE_BRANCH | grep -E '.*interfaces.*.go$' || true)
           if [ -z "$CHANGED_FILES" ] && [ -z "$INTERFACE_FILES" ]; then
             echo "No resource, test, or interface files changed."
-            echo "changed_files=" >> $GITHUB_ENV
+            echo "CHANGED_FILES=" >> $GITHUB_ENV
             echo "interface_files=" >> $GITHUB_ENV
             exit 0
           fi
           UPDATED_CHANGED_FILES=""
-          for FILE in $changed_files; do
+          for FILE in $CHANGED_FILES; do
             if [[ "$FILE" == *resource.go ]]; then
               TEST_FILE="${FILE%.go}_test.go"
             else
