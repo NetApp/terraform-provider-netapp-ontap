@@ -39,6 +39,7 @@ jobs:
             echo "interface_files=" >> $GITHUB_ENV
             exit 0
           fi
+          UPDATED_CHANGED_FILES=""
           for FILE in $changed_files; do
             if [[ "$FILE" == *resource.go ]]; then
               TEST_FILE="${FILE%.go}_test.go"
@@ -46,27 +47,32 @@ jobs:
               TEST_FILE="$FILE"
             fi
           done
+          UPDATED_CHANGED_FILES="$UPDATED_CHANGED_FILES $TEST_FILE"
           for FILE in $(echo $INTERFACE_FILES | tr ' ' '\n'); do
-            if [[ "$FILE" == *test.go ]]; then
+            if [[ "$FILE" == *test.go ]] || [[ "$FILE" == *cluster_job.go ]]; then
               continue
             fi
             BASE_NAME=$(basename "$FILE")
-            PREFIX=${BASE_NAME%%_*}
+            if [[ "$BASE_NAME" == *name_services* ]]; then
+              PREFIX=$(echo "$BASE_NAME" | awk -F'_' '{print $1"_"$2}')
+            else
+              PREFIX=${BASE_NAME%%_*}
+            fi
             TEST_FILE="internal/provider/${PREFIX}/${BASE_NAME%.go}_resource_test.go"
-            if ! echo "$CHANGED_FILES" | grep -q "$TEST_FILE"; then
-              CHANGED_FILES="$CHANGED_FILES $TEST_FILE"
+            if ! echo "$UPDATED_CHANGED_FILES" | grep -q "$TEST_FILE"; then
+              UPDATED_CHANGED_FILES="$UPDATED_CHANGED_FILES $TEST_FILE"
             fi
           done
-          printf "Acceptance test files required to run: %b\n" "$CHANGED_FILES"
+          printf "Acceptance test files required to run: %b\n" "$UPDATED_CHANGED_FILES"
           printf "INTERFACE_FILES: %b\n" "$INTERFACE_FILES"
-          echo "Changed resource files: $CHANGED_FILES"
-          echo "changed_files=$CHANGED_FILES" >> $GITHUB_ENV
+          echo "Changed resource files: $UPDATED_CHANGED_FILES"
+          echo "UPDATED_CHANGED_FILES=$UPDATED_CHANGED_FILES" >> $GITHUB_ENV
 
       - name: Create temporary directory
         run: mkdir -p ~/tmp/
 
       - name: Build
-        if: env.changed_files != ''
+        if: env.UPDATED_CHANGED_FILES != ''
         env:
           TF_ACC_NETAPP_HOST: ${{ secrets.TF_ACC_NETAPP_HOST }}
           TF_ACC_NETAPP_HOST2: ${{ secrets.TF_ACC_NETAPP_HOST2 }}
@@ -84,7 +90,7 @@ jobs:
           export GOFLAGS=-buildvcs=false
           export TF_ACC=1
           export TMPDIR=~/tmp/
-          for FILE in $changed_files; do
+          for FILE in $UPDATED_CHANGED_FILES; do
             printf "Acceptance test for %s is running\n" "$FILE"
             go test "$FILE"
           done
