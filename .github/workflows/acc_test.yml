@@ -80,8 +80,8 @@ jobs:
           export TF_ACC=1
           export TMPDIR=~/tmp/
           for FILE in $changed_files; do
-            printf "Acceptance test for %s is running\n" "$TEST_FILE"
-            go test "$TEST_FILE"
+            printf "Acceptance test for %s is running\n" "$FILE"
+            go test "$FILE"
           done
 
       - name: Cleanup
