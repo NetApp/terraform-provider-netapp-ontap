@@ -80,7 +80,7 @@ jobs:
           export TF_ACC=1
           export TMPDIR=~/tmp/
           for FILE in $changed_files; do
-            printf "Acceptance test for %b is running\n" "$TEST_FILE"
+            printf "Acceptance test for %s is running\n" "$TEST_FILE"
             go test "$TEST_FILE"
           done
 
