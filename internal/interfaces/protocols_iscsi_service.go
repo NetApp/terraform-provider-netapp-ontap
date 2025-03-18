@@ -20,8 +20,9 @@ type ProtocolsIscsiServiceGetDataModelONTAP struct {
 // ProtocolsIscsiServiceResourceDataModelONTAP describes the body data model using go types for mapping.
 // https://docs.netapp.com/us-en/ontap-restapi/ontap/post-protocols-san-iscsi-services.html#request-body
 type ProtocolsIscsiServiceResourceDataModelONTAP struct {
-	Enabled bool              `mapstructure:"enabled"`
-	SVM     SvmDataModelONTAP `mapstructure:"svm"`
+	Enabled bool                        `mapstructure:"enabled,omitempty"`
+	SVM     SvmDataModelONTAP           `mapstructure:"svm"`
+	Target  ProtocolsIscsiServiceTarget `mapstructure:"target"`
 }
 
 // ProtocolsIscsiServiceTarget describes a target specifically for protocol iSCSI services.
@@ -103,7 +104,7 @@ func GetProtocolsIscsiServices(errorHandler *utils.ErrorHandler, r restclient.Re
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError(
 			"Error Reading iSCSI Services Info",
-			fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode),
+			fmt.Sprintf("Error on GET %s: %s, statusCode %d", api, err, statusCode),
 		)
 	}
 
@@ -129,31 +130,36 @@ func GetProtocolsIscsiServices(errorHandler *utils.ErrorHandler, r restclient.Re
 // Create an iSCSI service
 // https://docs.netapp.com/us-en/ontap-restapi/ontap/post-protocols-san-iscsi-services.html
 func CreateProtocolsIscsiService(errorHandler *utils.ErrorHandler, r restclient.RestClient, data ProtocolsIscsiServiceResourceDataModelONTAP) (*ProtocolsIscsiServiceGetDataModelONTAP, error) {
-	var body map[string]interface{}
-	if err := mapstructure.Decode(data, &body); err != nil {
+	api := "protocols/san/iscsi/services"
+	var bodyMap map[string]interface{}
+	if err := mapstructure.Decode(data, &bodyMap); err != nil {
 		return nil, errorHandler.MakeAndReportError(
-			"error encoding NFS Service body",
-			fmt.Sprintf("error on encoding protocols/nfs/services body: %s, body: %#v", err, data),
+			"Error Encoding iSCSI Service Body",
+			fmt.Sprintf("Error on encoding %s body: %s, body: %#v", api, err, data),
 		)
 	}
+
 	query := r.NewQuery()
 	query.Add("return_records", "true")
-	statusCode, response, err := r.CallCreateMethod("protocols/nfs/services", query, body)
+	statusCode, response, err := r.CallCreateMethod(api, query, bodyMap)
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError(
-			"error creating NFS services",
-			fmt.Sprintf("error on POST protocols/nfs/services: %s, statusCode %d", err, statusCode),
+			"Error Creating iSCSI Services",
+			fmt.Sprintf("Error on POST %s: %s, statusCode %d", api, err, statusCode),
 		)
 	}
 
 	var dataONTAP ProtocolsIscsiServiceGetDataModelONTAP
 	if err := mapstructure.Decode(response.Records[0], &dataONTAP); err != nil {
-		return nil, errorHandler.MakeAndReportError("error decoding NFS Services info", fmt.Sprintf("error on decode protocols/nfs/services info: %s, statusCode %d, response %#v", err, statusCode, response))
+		return nil, errorHandler.MakeAndReportError(
+			"Error Decoding iSCSI Services Info",
+			fmt.Sprintf("Error on decode %s info: %s, statusCode %d, response %#v", api, err, statusCode, response),
+		)
 	}
 
 	tflog.Debug(
 		errorHandler.Ctx,
-		fmt.Sprintf("Create volume source - udata: %#v", dataONTAP),
+		fmt.Sprintf("Create protcols iscsi services: %#v", dataONTAP),
 	)
 
 	return &dataONTAP, nil
@@ -162,9 +168,13 @@ func CreateProtocolsIscsiService(errorHandler *utils.ErrorHandler, r restclient.
 // Delete an iSCSI service
 // https://docs.netapp.com/us-en/ontap-restapi/ontap/delete-protocols-san-iscsi-services-.html
 func DeleteProtocolsIscsiService(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) error {
-	statusCode, _, err := r.CallDeleteMethod("protocols/nfs/services/"+uuid, nil, nil)
+	api := "protocols/san/iscsi/services"
+	statusCode, _, err := r.CallDeleteMethod(api+"/"+uuid, nil, nil)
 	if err != nil {
-		return errorHandler.MakeAndReportError("error deleting NFS Service", fmt.Sprintf("error on DELETE protocols/nfs/services: %s, statusCode %d", err, statusCode))
+		return errorHandler.MakeAndReportError(
+			"Error Deleting iSCSI Service",
+			fmt.Sprintf("Error on DELETE %s: %s, statusCode %d", api, err, statusCode),
+		)
 	}
 	return nil
 }
@@ -178,7 +188,7 @@ func UpdateProtocolsIscsiService(errorHandler *utils.ErrorHandler, r restclient.
 	}
 	query := r.NewQuery()
 	query.Add("return_records", "true")
-	statusCode, _, err := r.CallUpdateMethod("protocols/nfs/services/"+uuid, query, body)
+	statusCode, _, err := r.CallUpdateMethod("protocols/san/iscsi/services/"+uuid, query, body)
 	if err != nil {
 		return errorHandler.MakeAndReportError("error modifying NFS Service", fmt.Sprintf("error on PATCH rotocols/nfs/services/s: %s, statusCode %d", err, statusCode))
 	}
