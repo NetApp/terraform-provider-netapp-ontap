@@ -32,7 +32,7 @@ jobs:
             BASE_BRANCH=integration/main
           fi
           CHANGED_FILES=$(git diff --name-only origin/$BASE_BRANCH | grep -E '.*resource.go$|.^provider/.*test.go$' || true)
-          INTERFACE_FILES=$(git diff --name-only origin/$BASE_BRANCH | grep '^interfaces/.*\.go$' || true)
+          INTERFACE_FILES=$(git diff --name-only origin/$BASE_BRANCH | grep '^interfaces/.*.go$' || true)
           if [ -z "$CHANGED_FILES" ] && [ -z "$INTERFACE_FILES" ]; then
             echo "No resource, test, or interface files changed."
             echo "changed_files=" >> $GITHUB_ENV
