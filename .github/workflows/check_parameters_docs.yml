@@ -1,0 +1,41 @@
+name: Check Missing Parameters in Documentation
+
+on:
+  pull_request:
+    paths:
+      - 'internal/provider/svm/svm_resource.go'
+      - 'docs/data-sources/*.md'
+      - 'docs/resources/*.md'
+
+jobs:
+  check-missing-parameters:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Find missing parameters
+        id: check
+        run: |
+          # Extract parameters from the resource file
+          RESOURCE_FILE='internal/provider/svm/svm_resource.go'
+          RESOURCE_PARAMS=$(grep -oP '"\K\w+(?=": schema\.\w+Attribute)' $RESOURCE_FILE | sort | uniq)
+
+          # Extract parameters from the documentation files
+          DOC_FILES=$(find docs/data-sources docs/resources -name '*.md')
+          DOC_PARAMS=$(grep -hoP '^\s*-\s+`\K\w+(?=`)' $DOC_FILES | sort | uniq)
+
+          # Find missing parameters
+          MISSING_PARAMS=$(comm -23 <(echo "$RESOURCE_PARAMS") <(echo "$DOC_PARAMS"))
+
+          # Output missing parameters
+          if [ -n "$MISSING_PARAMS" ]; then
+            echo "Missing parameters in documentation:"
+            echo "$MISSING_PARAMS"
+            echo "::set-output name=missing::$MISSING_PARAMS"
+            exit 1
+          else
+            echo "No missing parameters in documentation."
+          fi
