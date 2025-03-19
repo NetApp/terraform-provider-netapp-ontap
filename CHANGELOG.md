@@ -1,5 +1,11 @@
 # 2.1.2 (not released)
 
+FEATURES:
+
+- **New Data Source:** `netapp-ontap_iscsi_service` ([#442](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/442))
+- **New Data Source:** `netapp-ontap_iscsi_services` ([#442](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/442))
+- **New Resource:** `netapp-ontap_iscsi_service` ([#442](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/442))
+
 BUG FIXES:
 
 - **netapp-ontap_svm_qos_policy_activation**: ID parameter missing in QOS policy ([#429](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/429))
