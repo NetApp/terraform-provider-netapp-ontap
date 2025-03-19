@@ -8,13 +8,11 @@ on:
       - 'docs/resources/*.md'
 
 jobs:
-  check-missing-parameters:
+  build:
     runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Find missing parameters
         id: check
