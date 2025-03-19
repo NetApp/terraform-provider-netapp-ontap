@@ -3,7 +3,7 @@ name: Check Missing Parameters in Documentation
 on:
   pull_request:
     paths:
-      - 'internal/provider/svm/svm_resource.go'
+      - 'internal/provider/**/*.go'
       - 'docs/data-sources/*.md'
       - 'docs/resources/*.md'
 
@@ -19,9 +19,16 @@ jobs:
       - name: Find missing parameters
         id: check
         run: |
-          # Extract parameters from the resource file
-          RESOURCE_FILE='internal/provider/svm/svm_resource.go'
-          RESOURCE_PARAMS=$(grep -oP '"\K\w+(?=": schema\.\w+Attribute)' $RESOURCE_FILE | sort | uniq)
+          # Find all resource files
+          RESOURCE_FILES=$(find internal/provider -name '*resource.go')
+
+          # Extract parameters from all resource files
+          RESOURCE_PARAMS=""
+          for FILE in $RESOURCE_FILES; do
+            PARAMS=$(grep -oP '"\K\w+(?=": schema\.\w+Attribute)' $FILE)
+            RESOURCE_PARAMS="$RESOURCE_PARAMS\n$PARAMS"
+          done
+          RESOURCE_PARAMS=$(echo -e "$RESOURCE_PARAMS" | sort | uniq)
 
           # Extract parameters from the documentation files
           DOC_FILES=$(find docs/data-sources docs/resources -name '*.md')
