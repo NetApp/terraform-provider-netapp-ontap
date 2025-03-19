@@ -3,7 +3,7 @@ resource "netapp-ontap_iscsi_service" "protocols_iscsi_service" {
   cx_profile_name = "svacluster"
   svm_name        = "svm02"
   enabled         = true
-  # target = {
-  #   alias = "test"
-  # }
+  target = {
+    alias = "alias01"
+  }
 }
