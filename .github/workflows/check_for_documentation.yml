@@ -1,8 +1,14 @@
 name: Check for Missing Documentation
 
 on:
+  push:
+    branches:
+      - "integration/main"
+      - "release*"
   pull_request:
-    branches: [ "integration/main" ]
+    branches:
+      - "integration/main"
+      - "release*"
 
 jobs:
   build:
