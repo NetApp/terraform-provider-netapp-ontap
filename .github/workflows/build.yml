@@ -20,4 +20,5 @@ jobs:
       - name: Build
         run: |
           export GOFLAGS=-buildvcs=false
+          go mod tidy
           go build -v -o .
