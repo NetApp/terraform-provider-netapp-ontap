@@ -1,8 +1,7 @@
 module github.com/netapp/terraform-provider-netapp-ontap
 
 go 1.22.7
-
-toolchain go1.22.10
+toolchain go1.24.1
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.36.3
@@ -57,9 +56,9 @@ require (
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
 	github.com/zclconf/go-cty v1.16.2 // indirect
-	golang.org/x/crypto v0.33.0 // indirect
+	golang.org/x/crypto v0.35.0 // indirect
 	golang.org/x/mod v0.22.0 // indirect
-	golang.org/x/net v0.34.0 // indirect
+	golang.org/x/net v0.36.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
