@@ -11,8 +11,33 @@ on:
       - "release*"
 
 jobs:
-  build:
+  validate-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
+      - name: Get Latest Release Version
+        id: get_latest_release
+        run: |
+          LATEST_RELEASE=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r '.tag_name')
+          echo "Latest release: $LATEST_RELEASE"
+          echo "LATEST_RELEASE=${LATEST_RELEASE}" >> $GITHUB_ENV
+
+      - name: Validate DETECT_PROJECT_VERSION_NAME
+        id: validate_version
+        run: |
+          LATEST_VERSION=${LATEST_RELEASE}
+          ACTUAL_VERSION=$(grep -oP 'DETECT_PROJECT_VERSION_NAME=\K.*' scripts/bd_scan.bash)
+          echo "Expected version: $LATEST_VERSION"
+          echo "Actual version: $ACTUAL_VERSION"
+          if [ "$LATEST_VERSION" == "$ACTUAL_VERSION" ]; then
+            echo "Error: DETECT_PROJECT_VERSION_NAME is not updated."
+            exit 1
+          fi
+
+  build:
+    needs: validate-version
     runs-on: self-hosted
     steps:
       - uses: actions/setup-java@v4
