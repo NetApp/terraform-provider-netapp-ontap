@@ -20,7 +20,7 @@ jobs:
       - name: Get Latest Release Version
         id: get_latest_release
         run: |
-          LATEST_RELEASE=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r '.tag_name')
+          LATEST_RELEASE=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r '.tag_name' | sed 's/^v//')
           echo "Latest release: $LATEST_RELEASE"
           echo "LATEST_RELEASE=${LATEST_RELEASE}" >> $GITHUB_ENV
 
