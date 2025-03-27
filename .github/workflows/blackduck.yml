@@ -32,7 +32,7 @@ jobs:
           echo "Expected version: $LATEST_VERSION"
           echo "Actual version: $ACTUAL_VERSION"
           if [ "$LATEST_VERSION" == "$ACTUAL_VERSION" ]; then
-            echo "Error: DETECT_PROJECT_VERSION_NAME is not updated."
+            echo "Error: DETECT_PROJECT_VERSION_NAME is not updated in bd_scan.sh script."
             exit 1
           fi
 
