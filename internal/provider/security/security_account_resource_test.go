@@ -53,7 +53,7 @@ func TestAccSecurityAccountResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_security_account.security_account",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s", "vsadmin", "cluster2"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s", "vsadmin", "tfsvm", "cluster2"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_security_account.security_account", "name", "vsadmin"),
 				),
