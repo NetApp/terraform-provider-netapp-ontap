@@ -3,6 +3,7 @@
 BUG FIXES:
 
 - **netapp-ontap_svm_qos_policy_activation**: ID parameter missing in QOS policy ([#429](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/429))
+- **netapp-ontap_security_account**: password, comment and locked parameters not passed into body request for creating account ([#462](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/462))
 
 # 2.1.1 (2025-02-26)
 

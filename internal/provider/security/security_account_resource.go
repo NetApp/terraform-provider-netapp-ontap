@@ -52,23 +52,22 @@ type SecurityAccountResource struct {
 
 // SecurityAccountResourceModel describes the resource data model.
 type SecurityAccountResourceModel struct {
-	CxProfileName              types.String                `tfsdk:"cx_profile_name"`
-	Name                       types.String                `tfsdk:"name"`
-	ID                         types.String                `tfsdk:"id"`
-	OwnerID                    types.String                `tfsdk:"owner_id"`
-	Applications               []ApplicationsResourceModel `tfsdk:"applications"`
-	Owner                      types.Object                `tfsdk:"owner"`
-	Role                       types.Object                `tfsdk:"role"`
-	Password                   types.String                `tfsdk:"password"`
-	SecondAuthenticationMethod types.String                `tfsdk:"second_authentication_method"`
-	Comment                    types.String                `tfsdk:"comment"`
-	Locked                     types.Bool                  `tfsdk:"locked"`
+	CxProfileName types.String                `tfsdk:"cx_profile_name"`
+	Name          types.String                `tfsdk:"name"`
+	ID            types.String                `tfsdk:"id"`
+	OwnerID       types.String                `tfsdk:"owner_id"`
+	Applications  []ApplicationsResourceModel `tfsdk:"applications"`
+	Owner         types.Object                `tfsdk:"owner"`
+	Role          types.Object                `tfsdk:"role"`
+	Password      types.String                `tfsdk:"password"`
+	Comment       types.String                `tfsdk:"comment"`
+	Locked        types.Bool                  `tfsdk:"locked"`
 }
 
 // ApplicationsResourceModel describes the resource data model.
 type ApplicationsResourceModel struct {
 	Application                types.String    `tfsdk:"application"`
-	SecondAuthentiactionMethod types.String    `tfsdk:"second_authentication_method"`
+	SecondAuthenticationMethod types.String    `tfsdk:"second_authentication_method"`
 	AuthenticationMethods      *[]types.String `tfsdk:"authentication_methods"`
 }
 
@@ -158,10 +157,6 @@ func (r *SecurityAccountResource) Schema(ctx context.Context, req resource.Schem
 				MarkdownDescription: "Account password",
 				Optional:            true,
 				Sensitive:           true,
-			},
-			"second_authentication_method": schema.StringAttribute{
-				MarkdownDescription: "Second authentication method",
-				Optional:            true,
 			},
 			"comment": schema.StringAttribute{
 				MarkdownDescription: "Account comment",
@@ -278,7 +273,7 @@ func (r *SecurityAccountResource) Read(ctx context.Context, req resource.ReadReq
 	for index, application := range restInfo.Applications {
 		data.Applications[index] = ApplicationsResourceModel{
 			Application:                types.StringValue(application.Application),
-			SecondAuthentiactionMethod: types.StringValue(application.SecondAuthenticationMethod),
+			SecondAuthenticationMethod: types.StringValue(application.SecondAuthenticationMethod),
 		}
 		var authenticationMethods []types.String
 		for _, authenticationMethod := range application.AuthenticationMethods {
@@ -314,8 +309,8 @@ func (r *SecurityAccountResource) Create(ctx context.Context, req resource.Creat
 	for _, item := range data.Applications {
 		var application interfaces.SecurityAccountApplication
 		application.Application = item.Application.ValueString()
-		if item.SecondAuthentiactionMethod.IsNull() {
-			application.SecondAuthenticationMethod = item.SecondAuthentiactionMethod.ValueString()
+		if !item.SecondAuthenticationMethod.IsNull() {
+			application.SecondAuthenticationMethod = item.SecondAuthenticationMethod.ValueString()
 		}
 		if item.AuthenticationMethods != nil {
 			application.AuthenticationMethods = make([]string, len(*item.AuthenticationMethods))
@@ -348,16 +343,13 @@ func (r *SecurityAccountResource) Create(ctx context.Context, req resource.Creat
 		}
 		body.Role.Name = role.Name.ValueString()
 	}
-	if data.Password.IsNull() {
+	if !data.Password.IsNull() {
 		body.Password = data.Password.ValueString()
 	}
-	if data.SecondAuthenticationMethod.IsNull() {
-		body.SecondAuthenticationMethod = data.SecondAuthenticationMethod.ValueString()
-	}
-	if data.Comment.IsNull() {
+	if !data.Comment.IsNull() {
 		body.Comment = data.Comment.ValueString()
 	}
-	if data.Locked.IsNull() {
+	if !data.Locked.IsNull() {
 		body.Locked = data.Locked.ValueBool()
 	}
 
@@ -454,8 +446,8 @@ func (r *SecurityAccountResource) Update(ctx context.Context, req resource.Updat
 	for _, item := range plan.Applications {
 		var application interfaces.SecurityAccountApplication
 		application.Application = item.Application.ValueString()
-		if item.SecondAuthentiactionMethod.IsNull() {
-			application.SecondAuthenticationMethod = item.SecondAuthentiactionMethod.ValueString()
+		if !item.SecondAuthenticationMethod.IsNull() {
+			application.SecondAuthenticationMethod = item.SecondAuthenticationMethod.ValueString()
 		}
 		if item.AuthenticationMethods != nil {
 			application.AuthenticationMethods = make([]string, len(*item.AuthenticationMethods))

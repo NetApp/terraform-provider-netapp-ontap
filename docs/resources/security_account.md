@@ -58,7 +58,6 @@ resource "netapp-ontap_security_account" "security_account" {
 - `owner` (Attributes) Account owner (see [below for nested schema](#nestedatt--owner))
 - `password` (String, Sensitive) Account password
 - `role` (Attributes) Account role (see [below for nested schema](#nestedatt--role))
-- `second_authentication_method` (String) Second authentication method
 
 ### Read-Only
 
