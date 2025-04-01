@@ -10,6 +10,23 @@ Please Adhere to these Standard.
 - All Data Sources need a doc page at `/docs/data-sources/` with a .md file in all lower cases that matches the api name
 - The provider.go files is located at `/internal/provider/provider.go`
 
+## Building
+- Aftering creating a new Resouce you must built it to see if it works. To build the provider run the folowing command
+```
+          export GOFLAGS=-buildvcs=false
+          go mod tidy
+          go build -v -o .
+```
+
+## runing test
+- After creating a new Resouce you must the ACC test you created for that resouces. To reun the acc test run the following
+```
+          export GOFLAGS=-buildvcs=false
+          export TF_ACC=1
+          go test <path to file you added for testing>
+```
+
+
 ## Naming Rules
 - Test live in the same directory as the file it testing. so `cluster_peer_resource.go` test is in the same directory with `cluster_peer_resource_test.go`
 
