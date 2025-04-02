@@ -3,8 +3,10 @@
 BUG FIXES:
 
 - **netapp-ontap_svm_qos_policy_activation**: ID parameter missing in QOS policy ([#429](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/429))
+- **netapp-ontap_security_account**: password, comment and locked parameters not passed into body request for creating account ([#462](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/462))
+- **netapp-ontap_security_account**: fixed inconsistency plan changes when re-run with terraform apply ([#465](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/465))
 - Corrected Resource and Data Source documentation Names ([#441](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/441))
-- **netapp-ontap_svm_qos_policy_activation**: Renamed documentation from   `svm_qos_policy_activation_resource` to `svm_qos_policy_activation` ([#430](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/430))
+- **netapp-ontap_svm_qos_policy_activation**: Renamed documentation from `svm_qos_policy_activation_resource` to `svm_qos_policy_activation` ([#430](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/430))
 
 # 2.1.1 (2025-02-26)
 
