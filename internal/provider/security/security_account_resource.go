@@ -101,7 +101,7 @@ func (r *SecurityAccountResource) Schema(ctx context.Context, req resource.Schem
 				MarkdownDescription: "SecurityAccount name",
 				Required:            true,
 			},
-			"applications": schema.ListNestedAttribute{
+			"applications": schema.SetNestedAttribute{
 				MarkdownDescription: "List of applications",
 				Optional:            true,
 				NestedObject: schema.NestedAttributeObject{
@@ -272,14 +272,14 @@ func (r *SecurityAccountResource) Read(ctx context.Context, req resource.ReadReq
 	data.Applications = make([]ApplicationsResourceModel, len(restInfo.Applications))
 	for index, application := range restInfo.Applications {
 		data.Applications[index] = ApplicationsResourceModel{
-			Application:                types.StringValue(application.Application),
-			SecondAuthenticationMethod: types.StringValue(application.SecondAuthenticationMethod),
+			Application: types.StringValue(application.Application),
 		}
 		var authenticationMethods []types.String
 		for _, authenticationMethod := range application.AuthenticationMethods {
 			authenticationMethods = append(authenticationMethods, types.StringValue(authenticationMethod))
 		}
 		data.Applications[index].AuthenticationMethods = &authenticationMethods
+		data.Applications[index].SecondAuthenticationMethod = types.StringValue(application.SecondAuthenticationMethod)
 	}
 
 	// Write logs using the tflog package
