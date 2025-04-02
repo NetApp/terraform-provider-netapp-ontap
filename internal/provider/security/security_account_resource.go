@@ -103,7 +103,7 @@ func (r *SecurityAccountResource) Schema(ctx context.Context, req resource.Schem
 			},
 			"applications": schema.SetNestedAttribute{
 				MarkdownDescription: "List of applications",
-				Optional:            true,
+				Required:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"application": schema.StringAttribute{
@@ -119,7 +119,7 @@ func (r *SecurityAccountResource) Schema(ctx context.Context, req resource.Schem
 						},
 						"authentication_methods": schema.ListAttribute{
 							MarkdownDescription: "List of authentication methods",
-							Optional:            true,
+							Required:            true,
 							ElementType:         types.StringType,
 						},
 					},
@@ -309,14 +309,10 @@ func (r *SecurityAccountResource) Create(ctx context.Context, req resource.Creat
 	for _, item := range data.Applications {
 		var application interfaces.SecurityAccountApplication
 		application.Application = item.Application.ValueString()
-		if !item.SecondAuthenticationMethod.IsNull() {
-			application.SecondAuthenticationMethod = item.SecondAuthenticationMethod.ValueString()
-		}
-		if item.AuthenticationMethods != nil {
-			application.AuthenticationMethods = make([]string, len(*item.AuthenticationMethods))
-			for index, authenticationMethod := range *item.AuthenticationMethods {
-				application.AuthenticationMethods[index] = authenticationMethod.ValueString()
-			}
+		application.SecondAuthenticationMethod = item.SecondAuthenticationMethod.ValueString()
+		application.AuthenticationMethods = make([]string, len(*item.AuthenticationMethods))
+		for index, authenticationMethod := range *item.AuthenticationMethods {
+			application.AuthenticationMethods[index] = authenticationMethod.ValueString()
 		}
 		applications = append(applications, application)
 	}
@@ -446,14 +442,10 @@ func (r *SecurityAccountResource) Update(ctx context.Context, req resource.Updat
 	for _, item := range plan.Applications {
 		var application interfaces.SecurityAccountApplication
 		application.Application = item.Application.ValueString()
-		if !item.SecondAuthenticationMethod.IsNull() {
-			application.SecondAuthenticationMethod = item.SecondAuthenticationMethod.ValueString()
-		}
-		if item.AuthenticationMethods != nil {
-			application.AuthenticationMethods = make([]string, len(*item.AuthenticationMethods))
-			for index, authenticationMethod := range *item.AuthenticationMethods {
-				application.AuthenticationMethods[index] = authenticationMethod.ValueString()
-			}
+		application.SecondAuthenticationMethod = item.SecondAuthenticationMethod.ValueString()
+		application.AuthenticationMethods = make([]string, len(*item.AuthenticationMethods))
+		for index, authenticationMethod := range *item.AuthenticationMethods {
+			application.AuthenticationMethods[index] = authenticationMethod.ValueString()
 		}
 		applications = append(applications, application)
 	}
