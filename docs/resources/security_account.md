@@ -49,16 +49,15 @@ resource "netapp-ontap_security_account" "security_account" {
 
 - `cx_profile_name` (String) Connection profile name
 - `name` (String) SecurityAccount name
+- `applications` (Attributes List) List of applications (see [below for nested schema](#nestedatt--applications))
 
 ### Optional
 
-- `applications` (Attributes List) List of applications (see [below for nested schema](#nestedatt--applications))
 - `comment` (String) Account comment
 - `locked` (Boolean) Account locked
 - `owner` (Attributes) Account owner (see [below for nested schema](#nestedatt--owner))
 - `password` (String, Sensitive) Account password
 - `role` (Attributes) Account role (see [below for nested schema](#nestedatt--role))
-- `second_authentication_method` (String) Second authentication method
 
 ### Read-Only
 
@@ -72,10 +71,10 @@ resource "netapp-ontap_security_account" "security_account" {
 Required:
 
 - `application` (String) Application name
+- `authentication_methods` (List of String) List of authentication methods
 
 Optional:
 
-- `authentication_methods` (List of String) List of authentication methods
 - `second_authentication_method` (String) Second authentication method
 
 <a id="nestedatt--owner"></a>

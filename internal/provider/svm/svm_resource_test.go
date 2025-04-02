@@ -66,16 +66,16 @@ func TestAccSvmResource(t *testing.T) {
 			},
 			// Fail if the name already exist
 			{
-				Config:      testAccSvmResourceConfig("terraform", "carchi8py was here", "default", 0),
+				Config:      testAccSvmResourceConfig("tf_acc_svm", "carchi8py was here", "default", 0),
 				ExpectError: regexp.MustCompile("13434908"),
 			},
 			// Import and read
 			{
 				ResourceName:  "netapp-ontap_svm.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s", "terraform", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s", "tf_acc_svm", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "name", "terraform"),
+					resource.TestCheckResourceAttr("netapp-ontap_svm.example", "name", "tf_acc_svm"),
 				),
 			},
 			// Update storage_limit
@@ -94,11 +94,11 @@ func TestAccSvmResource(t *testing.T) {
 	})
 }
 func testAccSvmResourceConfig(svm, comment, snapshotPolicy string, storageLimit int) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST5")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -124,7 +124,7 @@ resource "netapp-ontap_svm" "example" {
   language = "en_us.utf_8"
   aggregates = [
     {
-      name = "terraform"
+      name = "tf_acc_aggr"
     },
   ]
   max_volumes = "unlimited"

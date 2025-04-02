@@ -3,10 +3,12 @@ name: Blackduck Scan
 on:
   push:
     branches:
-      - integration/main
+      - "integration/main"
+      - "release*"
   pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [ "integration/main" ]
+    branches:
+      - "integration/main"
+      - "release*"
 
 jobs:
   build:
@@ -22,7 +24,8 @@ jobs:
         with:
           go-version: '1.21'
       - uses: actions/checkout@v4
-
+      - name: Run Go Mod Tidy
+        run: go mod tidy
       - name: Build
         env:
           BLACKDUCK_URL: ${{ secrets.BLACKDUCK_URL }}

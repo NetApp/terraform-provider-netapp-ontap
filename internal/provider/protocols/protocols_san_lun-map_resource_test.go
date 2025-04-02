@@ -22,32 +22,32 @@ func TestAccProtocolsSanLunMapResource(t *testing.T) {
 				ExpectError: regexp.MustCompile("2621462"),
 			},
 			// Create protocols_san_lun-maps and read
-			// {
-			// 	Config: testAccProtocolsSanLunMapResourceBasicConfig("/vol/terraform/ACC-import-lun", "terraform", "terraform"),
-			// 	Check: resource.ComposeTestCheckFunc(
-			// 		resource.TestCheckResourceAttr("netapp-ontap_san_lun-map.example", "svm.name", "terraform"),
-			// 	),
-			// },
+			{
+				Config: testAccProtocolsSanLunMapResourceBasicConfig("/vol/tf_acc_volume/tf_acc_lun", "terraform", "tf_acc_svm"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_san_lun-map.example", "svm.name", "tf_acc_svm"),
+				),
+			},
 			// Import and read
-			// {
-			// 	ResourceName:  "netapp-ontap_san_lun-map.example",
-			// 	ImportState:   true,
-			// 	ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "terraform", "terraform", "/vol/terraform/terraform", "cluster4"),
-			// 	Check: resource.ComposeTestCheckFunc(
-			// 		resource.TestCheckResourceAttr("netapp-ontap_san_lun-map.example", "svm.name", "terraform"),
-			// 	),
-			// },
+			{
+				ResourceName:  "netapp-ontap_san_lun-map.example",
+				ImportState:   true,
+				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "tf_acc_svm", "terraform", "/vol/tf_acc_volume/tf_acc_lun", "cluster4"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_san_lun-map.example", "svm.name", "tf_acc_svm"),
+				),
+			},
 			// Delete testing automatically occurs in TestCase
 		},
 	})
 }
 
 func testAccProtocolsSanLunMapResourceBasicConfig(lunName string, igroupName string, svmName string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST5")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
