@@ -150,7 +150,9 @@ func (d *BroadcastDomainDataSource) Read(ctx context.Context, req datasource.Rea
 
 	var ports []attr.Value
 	for _, v := range restInfo.Ports {
-		ports = append(ports, types.StringValue(v.Name))
+		ports = append(ports, types.StringValue(
+			fmt.Sprintf("%s:%s", v.Node.Name, v.Name),
+		))
 	}
 	portsSet, diags := types.SetValue(types.StringType, ports)
 	resp.Diagnostics.Append(diags...)

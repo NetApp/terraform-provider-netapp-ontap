@@ -17,14 +17,14 @@ func TestAccVolumeFileResource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Create volumes_files and read
 			{
-				Config: testAccVolumeFileResourceBasicConfig("terraform", "terraform", "test"),
+				Config: testAccVolumeFileResourceBasicConfig("tf_acc_volume", "tf_acc_svm", "tf_acc"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_volume_file.example", "path", "test"),
+					resource.TestCheckResourceAttr("netapp-ontap_volume_file.example", "path", "tf_acc"),
 				),
 			},
 			// Update a option
 			{
-				Config: testAccVolumeFileResourceUpdateConfig("terraform", "terraform", "vol1"),
+				Config: testAccVolumeFileResourceUpdateConfig("tf_acc_volume", "tf_acc_svm", "vol1"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_volume_file.example", "path", "vol1"),
 				),
@@ -33,7 +33,7 @@ func TestAccVolumeFileResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_volume_file.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "snap_dest2", "terraform", ".snapshot", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "tf_acc_volume", "tf_acc_svm", ".snapshot", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_volume_file.example", "path", ".snapshot"),
 				),
@@ -44,11 +44,11 @@ func TestAccVolumeFileResource(t *testing.T) {
 }
 
 func testAccVolumeFileResourceBasicConfig(volName string, svmName string, path string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST5")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -75,11 +75,11 @@ resource "netapp-ontap_volume_file" "example" {
 }
 
 func testAccVolumeFileResourceUpdateConfig(volName string, svmName string, path string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST5")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`

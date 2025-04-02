@@ -4,11 +4,28 @@ ENHANCEMENTS:
 
 - **netapp-ontap_aggregate_data_source**, **netapp-ontap_aggregates_data_source**: added `space.block_storage.available` option ([#256](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/256))
 
+# 2.1.2 (not released)
+
+BUG FIXES:
+
+- **netapp-ontap_svm_qos_policy_activation**: ID parameter missing in QOS policy ([#429](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/429))
+
+# 2.1.1 (2025-02-26)
+
+BUG FIXES:
+
+- **netapp-ontap_network_broadcast_domain**: prepend port with node name, to prevent "duplicate ports" error in multi-node clusters ([#409](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/409))
+
+DOCUMENTATION:
+
+- **netapp-ontap_lun**: is now moved under category SAN ([#354](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/354))
+
 # 2.1.0 (2025-02-12)
 
 DOCUMENTATION:
 
-* Resources `netapp-ontap_san_igroup` and `netapp-ontap_san_lun-map` are now moved under category SAN.
+- **netapp-ontap_san_igroup**: is now moved under category SAN ([#353](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/353))
+- **netapp-ontap_san_lun-map**: is now moved under category SAN ([#353](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/353))
 
 FEATURES:
 

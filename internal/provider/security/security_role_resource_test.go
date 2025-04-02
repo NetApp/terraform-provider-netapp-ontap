@@ -38,9 +38,9 @@ func TestAccSecurityRoleResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_security_role.security_role",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s", "acc_test_import_security_role", "acc_test", "cluster2"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s", "vsadmin", "tf_acc_svm", "cluster2"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_security_role.security_role", "name", "acc_test_import_security_role"),
+					resource.TestCheckResourceAttr("netapp-ontap_security_role.security_role", "name", "vsadmin"),
 				),
 			},
 		},
@@ -48,9 +48,9 @@ func TestAccSecurityRoleResource(t *testing.T) {
 }
 
 func testAccSecurityRoleResourceConfig(name string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST2")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
 		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
@@ -72,7 +72,7 @@ resource "netapp-ontap_security_role" "security_role" {
 	# required to know which system to interface with
 	cx_profile_name = "cluster2"
 	name = "%s"
-	svm_name = "acc_test"
+	svm_name = "tf_acc_svm"
 	privileges = [
 	  {
 	  access = "all"
@@ -84,9 +84,9 @@ resource "netapp-ontap_security_role" "security_role" {
 }
 
 func AddPriviledge(name string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST2")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
 		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
@@ -108,7 +108,7 @@ resource "netapp-ontap_security_role" "security_role" {
 	# required to know which system to interface with
 	cx_profile_name = "cluster2"
 	name = "%s"
-	svm_name = "acc_test"
+	svm_name = "tf_acc_svm"
 	privileges = [
 	  {
 	  access = "all"
@@ -125,9 +125,9 @@ resource "netapp-ontap_security_role" "security_role" {
 }
 
 func EditPriviledgeAndDeletePriviledge(name string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST2")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
 		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
@@ -149,12 +149,12 @@ resource "netapp-ontap_security_role" "security_role" {
 	# required to know which system to interface with
 	cx_profile_name = "cluster2"
 	name = "%s"
-	svm_name = "acc_test"
+	svm_name = "tf_acc_svm"
 	privileges = [
 	{
 	  access = "all"
 	  path = "vserver"
-	  query = "-vserver acc_test|temp"
+	  query = "-vserver tf_acc_svm|temp"
 	}
 	]
   }
