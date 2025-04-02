@@ -7,6 +7,7 @@ BUG FIXES:
 - **netapp-ontap_security_account**: fixed inconsistency plan changes when re-run with terraform apply ([#465](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/465))
 - Corrected Resource and Data Source documentation Names ([#441](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/441))
 - **netapp-ontap_svm_qos_policy_activation**: Renamed documentation from `svm_qos_policy_activation_resource` to `svm_qos_policy_activation` ([#430](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/430))
+- **netapp-ontap_cifs_service**: Fixed no resource state after creation by modifying the "kdc_encrytion" version check and also idempotency issue with CIFS server name([#367](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/367))
 
 # 2.1.1 (2025-02-26)
 

@@ -417,7 +417,7 @@ func (r *CifsServiceResource) Read(ctx context.Context, req resource.ReadRequest
 		errorHandler.MakeAndReportError("No CIFS service found", fmt.Sprintf("CIFS service %s not found.", data.Name.ValueString()))
 		return
 	}
-	data.Name = types.StringValue(strings.ToLower(restInfo.Name))
+	data.Name = types.StringValue(restInfo.Name)
 	data.SVMName = types.StringValue(restInfo.SVM.Name)
 	if len(restInfo.Comment) != 0 {
 		data.Comment = types.StringValue(restInfo.Comment)
@@ -581,7 +581,7 @@ func (r *CifsServiceResource) Create(ctx context.Context, req resource.CreateReq
 		body.Security.SmbSigning = security.SmbSigning.ValueBool()
 		body.Security.SmbEncryption = security.SmbEncryption.ValueBool()
 		// kdc_encryption is only supported in 9.12 and earlier
-		if !security.KdcEncryption.IsNull() {
+		if !security.KdcEncryption.IsNull() && security.KdcEncryption.ValueBool() {
 			if cluster.Version.Generation == 9 && cluster.Version.Major < 12 {
 				body.Security.KdcEncryption = security.KdcEncryption.ValueBool()
 			} else {
