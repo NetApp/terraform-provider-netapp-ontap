@@ -1,0 +1,62 @@
+name: Check for Missing Documentation
+
+on:
+  push:
+    branches:
+      - "integration/main"
+      - "release*"
+  pull_request:
+    branches:
+      - "integration/main"
+      - "release*"
+
+jobs:
+  build:
+  
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Check for missing .md files
+        run: |
+          MISSING_DOCS=""
+          RESOURCE_FILES=$(find . -type f -name '*_resource.go')
+          DATA_SOURCE_FILES=$(find . -type f -name '*_data_source.go')
+          
+          for FILE in $RESOURCE_FILES; do
+            if [[ "$FILE" == *example_resource.go ]] || [[ "$FILE" == *tag_prefix_resource.go ]]; then
+              continue
+            fi
+            DOC_FILE="${FILE##*/}"
+            DOC_FILE="${DOC_FILE/_resource.go/.md}"
+            DOC_FILE="${DOC_FILE/protocols_/}"
+            DOC_FILE="${DOC_FILE/storage_/}"
+            DOC_FILE="docs/resources/$DOC_FILE"
+            if [ ! -f "$DOC_FILE" ]; then
+              MISSING_DOCS="$MISSING_DOCS\n$DOC_FILE"
+            fi
+          done
+
+          for FILE in $DATA_SOURCE_FILES; do
+            if [[ "$FILE" == *example_data_source.go ]] || [[ "$FILE" == *tag_prefix_data_source.go ]] || [[ "$FILE" == *tag_all_prefix_data_source.go ]]; then
+              continue
+            fi
+            DOC_FILE="${FILE##*/}"
+            DOC_FILE="${DOC_FILE/_data_source.go/.md}"
+            DOC_FILE="${DOC_FILE/protocols_/}"
+            DOC_FILE="${DOC_FILE/storage_/}"
+            DOC_FILE="docs/data-sources/$DOC_FILE"
+            if [ ! -f "$DOC_FILE" ]; then
+              MISSING_DOCS="$MISSING_DOCS\n$DOC_FILE"
+            fi
+          done
+
+          if [ -n "$MISSING_DOCS" ]; then
+            printf "The following documentation files are missing:%b\n" "$MISSING_DOCS"
+            exit 1
+          else
+            echo "All resource and data source files have corresponding documentation."
+          fi
