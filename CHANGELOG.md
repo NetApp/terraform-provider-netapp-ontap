@@ -1,3 +1,9 @@
+# 2.2.0 (2025-xx-xx)
+
+ENHANCEMENTS:
+
+- **netapp-ontap_aggregate_data_source**, **netapp-ontap_aggregates_data_source**: added `space.block_storage.available` option ([#256](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/256))
+
 # 2.1.2 (not released)
 
 BUG FIXES:
