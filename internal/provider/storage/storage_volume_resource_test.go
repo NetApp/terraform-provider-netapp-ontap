@@ -35,7 +35,7 @@ func TestAccStorageVolumeResource(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccStorageVolumeResourceConfigUpdate("automation", "accVolume1"),
+				Config: testAccStorageVolumeResourceConfigUpdate("tf_acc_svm", "accVolume1"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_volume.example", "name", "accVolume1"),
 					resource.TestCheckResourceAttr("netapp-ontap_volume.example", "nas.group_id", "10"),
@@ -48,7 +48,7 @@ func TestAccStorageVolumeResource(t *testing.T) {
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s", "tf_acc_volume", "tf_acc_svm", "cluster5"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_volume.example", "name", "automation"),
+					resource.TestCheckResourceAttr("netapp-ontap_volume.example", "name", "tf_acc_svm"),
 				),
 			},
 		},
