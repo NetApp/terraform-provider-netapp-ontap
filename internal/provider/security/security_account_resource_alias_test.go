@@ -26,7 +26,7 @@ func TestAccSecurityAccountResourceAlias(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_security_account_resource.security_account",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s", "vsadmin", "tfsvm", "cluster2"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s", "vsadmin", "tf_acc_svm", "cluster2"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_security_account_resource.security_account", "name", "vsadmin"),
 				),
