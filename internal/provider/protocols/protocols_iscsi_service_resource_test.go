@@ -25,9 +25,9 @@ func TestAccIscsiServiceResource(t *testing.T) {
 			},
 			// Create and read
 			{
-				Config: testAccIscsiServiceResourceConfig("svm02", true, "alias01"),
+				Config: testAccIscsiServiceResourceConfig("tf_acc_svm", true, "alias01"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_iscsi_service.example", "svm_name", "svm02"),
+					resource.TestCheckResourceAttr("netapp-ontap_iscsi_service.example", "svm_name", "tf_acc_svm"),
 					resource.TestCheckResourceAttr("netapp-ontap_iscsi_service.example", "enabled", "true"),
 					resource.TestCheckResourceAttr("netapp-ontap_iscsi_service.example", "target.alias", "alias01"),
 					resource.TestMatchResourceAttr("netapp-ontap_iscsi_service.example", "target.name", regexp.MustCompile(nnRegexProtocolsIscsiService)),
@@ -35,9 +35,9 @@ func TestAccIscsiServiceResource(t *testing.T) {
 			},
 			// Update and read
 			{
-				Config: testAccIscsiServiceResourceConfig("svm02", true, "alias02"),
+				Config: testAccIscsiServiceResourceConfig("tf_acc_svm", true, "alias02"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_iscsi_service.example", "svm_name", "svm02"),
+					resource.TestCheckResourceAttr("netapp-ontap_iscsi_service.example", "svm_name", "tf_acc_svm"),
 					resource.TestCheckResourceAttr("netapp-ontap_iscsi_service.example", "enabled", "true"),
 					resource.TestCheckResourceAttr("netapp-ontap_iscsi_service.example", "target.alias", "alias02"),
 					resource.TestMatchResourceAttr("netapp-ontap_iscsi_service.example", "target.name", regexp.MustCompile(nnRegexProtocolsIscsiService)),
@@ -45,9 +45,9 @@ func TestAccIscsiServiceResource(t *testing.T) {
 			},
 			// Update and read
 			{
-				Config: testAccIscsiServiceResourceConfig("svm02", false, "alias02"),
+				Config: testAccIscsiServiceResourceConfig("tf_acc_svm", false, "alias02"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_iscsi_service.example", "svm_name", "svm02"),
+					resource.TestCheckResourceAttr("netapp-ontap_iscsi_service.example", "svm_name", "tf_acc_svm"),
 					resource.TestCheckResourceAttr("netapp-ontap_iscsi_service.example", "enabled", "false"),
 					resource.TestCheckResourceAttr("netapp-ontap_iscsi_service.example", "target.alias", "alias02"),
 					resource.TestMatchResourceAttr("netapp-ontap_iscsi_service.example", "target.name", regexp.MustCompile(nnRegexProtocolsIscsiService)),
@@ -55,14 +55,14 @@ func TestAccIscsiServiceResource(t *testing.T) {
 			},
 			// Error 5374081: Cannot modify ISCSI service status-admin and other parameters simultaneously
 			{
-				Config:      testAccIscsiServiceResourceConfig("svm02", true, "alias03"),
+				Config:      testAccIscsiServiceResourceConfig("tf_acc_svm", true, "alias03"),
 				ExpectError: regexp.MustCompile("Code:\"5374081\""),
 			},
 			// Import and read
 			{
 				ResourceName:  "netapp-ontap_iscsi_service.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s", "svm02", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s", "tf_acc_svm", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_iscsi_service.example", "enabled", "false"),
 					resource.TestCheckResourceAttr("netapp-ontap_iscsi_service.example", "target.alias", "alias02"),
