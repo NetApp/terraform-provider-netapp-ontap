@@ -257,6 +257,9 @@ func GetStorageVolumeByName(errorHandler *utils.ErrorHandler, r restclient.RestC
 	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
 		return nil, errorHandler.MakeAndReportError("error decoding volume info by name", fmt.Sprintf("error on decode storage/volumes: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
+	if dataONTAP.Efficiency.Policy.Name == "" || dataONTAP.Efficiency.Policy.Name == "-" {
+		dataONTAP.Efficiency.Policy.Name = "default"
+	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read volume source - udata: %#v", dataONTAP))
 	return dataONTAP, nil
 }
