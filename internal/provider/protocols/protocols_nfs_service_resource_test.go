@@ -23,18 +23,18 @@ func TestAccNfsServiceResource(t *testing.T) {
 			},
 			// Create and read
 			{
-				Config: testAccNfsServiceResourceConfig("terraform", "false"),
+				Config: testAccNfsServiceResourceConfig("tf_acc_svm", "false"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_nfs_service.example", "svm_name", "terraform"),
+					resource.TestCheckResourceAttr("netapp-ontap_nfs_service.example", "svm_name", "tf_acc_svm"),
 					resource.TestCheckResourceAttr("netapp-ontap_nfs_service.example", "protocol.v3_enabled", "false"),
 					resource.TestCheckResourceAttr("netapp-ontap_nfs_service.example", "protocol.v40_enabled", "true"),
 				),
 			},
 			// update and read
 			{
-				Config: testAccNfsServiceResourceConfig("terraform", "true"),
+				Config: testAccNfsServiceResourceConfig("tf_acc_svm", "true"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_nfs_service.example", "svm_name", "terraform"),
+					resource.TestCheckResourceAttr("netapp-ontap_nfs_service.example", "svm_name", "tf_acc_svm"),
 					resource.TestCheckResourceAttr("netapp-ontap_nfs_service.example", "protocol.v3_enabled", "true"),
 					resource.TestCheckResourceAttr("netapp-ontap_nfs_service.example", "protocol.v40_enabled", "true"),
 				),
@@ -43,7 +43,7 @@ func TestAccNfsServiceResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_nfs_service.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s", "terraform", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s", "tf_acc_svm", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_nfs_service.example", "protocol.v3_enabled", "true"),
 					resource.TestCheckResourceAttr("netapp-ontap_nfs_service.example", "protocol.v40_enabled", "true"),
@@ -54,11 +54,11 @@ func TestAccNfsServiceResource(t *testing.T) {
 }
 
 func testAccNfsServiceResourceConfig(svnName, enableV3 string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST5")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`

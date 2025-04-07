@@ -11,14 +11,13 @@ import (
 
 // SecurityAccountResourceBodyDataModelONTAP describes the resource data model using go types for mapping.
 type SecurityAccountResourceBodyDataModelONTAP struct {
-	Name                       string                   `mapstructure:"name"`
-	Applications               []map[string]interface{} `mapstructure:"applications,omitempty"`
-	Owner                      SecurityAccountOwner     `mapstructure:"owner,omitempty"`
-	Role                       SecurityAccountRole      `mapstructure:"role,omitempty"`
-	Password                   string                   `mapstructure:"password,omitempty"`
-	SecondAuthenticationMethod string                   `mapstructure:"second_authentication_method,omitempty"`
-	Comment                    string                   `mapstructure:"comment,omitempty"`
-	Locked                     bool                     `mapstructure:"locked,omitempty"`
+	Name         string                   `mapstructure:"name"`
+	Applications []map[string]interface{} `mapstructure:"applications,omitempty"`
+	Owner        SecurityAccountOwner     `mapstructure:"owner,omitempty"`
+	Role         SecurityAccountRole      `mapstructure:"role,omitempty"`
+	Password     string                   `mapstructure:"password,omitempty"`
+	Comment      string                   `mapstructure:"comment,omitempty"`
+	Locked       bool                     `mapstructure:"locked,omitempty"`
 }
 
 // SecurityAccountGetDataModelONTAP describes the GET record data model using go types for mapping.
@@ -38,9 +37,8 @@ type SecurityAccountResourceUpdateBodyDataModelONTAP struct {
 	// Owner                      SecurityAccountOwner     `mapstructure:"owner,omitempty"`
 	Role     SecurityAccountRole `mapstructure:"role,omitempty"`
 	Password string              `mapstructure:"password,omitempty"`
-	// SecondAuthenticationMethod string                   `mapstructure:"second_authentication_method,omitempty"`
-	Comment string `mapstructure:"comment,omitempty"`
-	Locked  bool   `mapstructure:"locked,omitempty"`
+	Comment  string              `mapstructure:"comment,omitempty"`
+	Locked   bool                `mapstructure:"locked,omitempty"`
 }
 
 // SecurityAccountApplication describes the application data model using go types for mapping.
