@@ -1,5 +1,11 @@
 # 2.2.0 (2025-xx-xx)
 
+FEATURES:
+
+- **New Data Source:** `netapp-ontap_iscsi_service` ([#442](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/442))
+- **New Data Source:** `netapp-ontap_iscsi_services` ([#442](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/442))
+- **New Resource:** `netapp-ontap_iscsi_service` ([#442](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/442))
+
 ENHANCEMENTS:
 
 - **netapp-ontap_aggregate_data_source**, **netapp-ontap_aggregates_data_source**: added `space.block_storage.available` option ([#256](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/256))
