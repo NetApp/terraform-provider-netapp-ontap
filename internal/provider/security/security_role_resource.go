@@ -217,8 +217,8 @@ func (r *SecurityRoleResource) Read(ctx context.Context, req resource.ReadReques
 
 	setElements := []attr.Value{}
 	for _, privilege := range restInfo.Privileges {
-		for _, planedPrivilege := range PrivilegesList {
-			if privilege.Path == planedPrivilege.Path {
+		for _, plannedPrivilege := range PrivilegesList {
+			if privilege.Path == plannedPrivilege.Path {
 				nestedElementTypes := map[string]attr.Type{
 					"access": types.StringType,
 					"path":   types.StringType,
@@ -351,8 +351,8 @@ func (r *SecurityRoleResource) Create(ctx context.Context, req resource.CreateRe
 	// Priviledges
 	setElements := []attr.Value{}
 	for _, privilege := range restInfo.Privileges {
-		for _, planedPrivilege := range PrivilegesList {
-			if privilege.Path == planedPrivilege.Path {
+		for _, plannedPrivilege := range PrivilegesList {
+			if privilege.Path == plannedPrivilege.Path {
 				nestedElementTypes := map[string]attr.Type{
 					"access": types.StringType,
 					"path":   types.StringType,
