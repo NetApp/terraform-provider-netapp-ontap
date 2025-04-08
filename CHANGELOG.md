@@ -4,6 +4,10 @@ ENHANCEMENTS:
 
 - **netapp-ontap_aggregate_data_source**, **netapp-ontap_aggregates_data_source**: added `space.block_storage.available` option ([#256](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/256))
 
+BUG FIXES:
+
+- **netapp-ontap_security_account**: Error importing security_account resource if same account exists on multiple SVMs([#457](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/457))
+
 # 2.1.2 (not released)
 
 BUG FIXES:
