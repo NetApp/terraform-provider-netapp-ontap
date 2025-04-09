@@ -171,6 +171,9 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 				MarkdownDescription: "The volume type, either read-write (RW) or data-protection (DP)",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"space_guarantee": schema.StringAttribute{
 				MarkdownDescription: "Space guarantee style for the volume",
