@@ -1,5 +1,5 @@
 # creating a volume
-resource "netapp-ontap_volume" "example" {
+resource "netapp-ontap_volume" "example1" {
   cx_profile_name = "cluster4"
   name = "terraformTest2"
   svm_name = "ansibleSVM"
@@ -15,7 +15,7 @@ resource "netapp-ontap_volume" "example" {
 }
 
 # creating a volume with autosize options
-resource "netapp-ontap_volume" "example" {
+resource "netapp-ontap_volume" "example2" {
   cx_profile_name = "cluster4"
   name = "terraformTest3"
   svm_name = "ansibleSVM"
