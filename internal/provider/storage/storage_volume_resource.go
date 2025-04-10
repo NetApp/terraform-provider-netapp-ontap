@@ -830,11 +830,9 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 		sizeUnit = autosize.SizeUnit.ValueString()
 
 		if !autosize.Minimum.IsUnknown() {
-			// request.Autosize.Minimum = int(autosize.Minimum.ValueInt64())
 			request.Autosize.Minimum = int(autosize.Minimum.ValueInt64()) * interfaces.POW2BYTEMAP[autosize.SizeUnit.ValueString()]
 		}
 		if !autosize.Maximum.IsUnknown() {
-			// request.Autosize.Maximum = int(autosize.Maximum.ValueInt64())
 			request.Autosize.Maximum = int(autosize.Maximum.ValueInt64()) * interfaces.POW2BYTEMAP[autosize.SizeUnit.ValueString()]
 		}
 		if !autosize.ShrinkThreshold.IsUnknown() {
