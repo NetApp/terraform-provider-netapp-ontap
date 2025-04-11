@@ -116,7 +116,6 @@ func (r *IPInterfaceResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "IPInterface ipspace name",
 				Optional:            true,
 			},
-			// TODO: Make IP optional once subnet is supported
 			"ip": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"address": schema.StringAttribute{
