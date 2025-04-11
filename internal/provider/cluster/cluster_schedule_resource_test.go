@@ -41,9 +41,9 @@ func TestAccClusterScheduleResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_cluster_schedule.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s", "tf-interval-schedule-test", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s", "tf_acc_job_schedule", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule.example", "name", "tf-interval-schedule-test"),
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule.example", "name", "tf_acc_job_schedule"),
 					resource.TestCheckResourceAttr("netapp-ontap_cluster_schedule.example", "interval", "PT8M20S"),
 				),
 			},
@@ -77,11 +77,11 @@ func TestAccClusterScheduleResource(t *testing.T) {
 }
 
 func testAccClusterScheduleResourceIntervalConfig(name string, interval string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST5")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -106,11 +106,11 @@ resource "netapp-ontap_cluster_schedule" "example" {
 }
 
 func testAccClusterScheduleCreateResourceCronConfig(name string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST5")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -141,11 +141,11 @@ resource "netapp-ontap_cluster_schedule" "cron-example" {
 }
 
 func testAccClusterScheduleUpdateResourceCronConfig(name string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST5")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`

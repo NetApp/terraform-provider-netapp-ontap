@@ -7,7 +7,7 @@ help_and_exit () {
 
 # change these 2 values to reflect your project name and version:
 export DETECT_PROJECT_NAME="Terraform NetApp ONTAP Provider"
-export DETECT_PROJECT_VERSION_NAME=2.1.0
+export DETECT_PROJECT_VERSION_NAME=2.2.0
 export DETECT_CODE_LOCATION_NAME="${DETECT_PROJECT_NAME}_${DETECT_PROJECT_VERSION_NAME}_code"
 export DETECT_BOM_AGGREGATE_NAME="${DETECT_PROJECT_NAME}_${DETECT_PROJECT_VERSION_NAME}_bom"
 
@@ -36,4 +36,4 @@ fi
 export BLACKDUCK_URL=$1
 export BLACKDUCK_API_TOKEN=$2
 
-bash <(curl -s -L https://detect.synopsys.com/detect7.sh) --blackduck.trust.cert=true
+bash <(curl -s -L https://detect.blackduck.com/detect9.sh) --blackduck.trust.cert=true

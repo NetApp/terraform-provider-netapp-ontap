@@ -82,8 +82,10 @@ func (r *SecurityRoleResource) Schema(ctx context.Context, req resource.SchemaRe
 				Optional:            true,
 			},
 			"privileges": schema.SetNestedAttribute{
-				MarkdownDescription: "The list of privileges that this role has been granted.",
-				Optional:            true,
+				MarkdownDescription: `The list of privileges that this role has been granted. Some paths are bundled together in operations.
+				For example, 'volume create' is bundled with 'volume modify' and 'volume show'. When either one is created, the other two are also created automatically behind the scene.
+				But the API only allows to take one of those in the body and create the other two silently. If you put more than one in the resource file, it will fail.`,
+				Optional: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"path": schema.StringAttribute{
@@ -190,28 +192,57 @@ func (r *SecurityRoleResource) Read(ctx context.Context, req resource.ReadReques
 	data.Scope = types.StringValue(restInfo.Scope)
 
 	// Priviledges
-	setElements := []attr.Value{}
-	for _, privilege := range restInfo.Privileges {
-		nestedElementTypes := map[string]attr.Type{
-			"access": types.StringType,
-			"path":   types.StringType,
-			"query":  types.StringType,
-		}
-		nestedElements := map[string]attr.Value{
-			"access": types.StringValue(privilege.Access),
-			"path":   types.StringValue(privilege.Path),
-		}
-		if privilege.Query != "" {
-			nestedElements["query"] = types.StringValue(privilege.Query)
-		} else {
-			nestedElements["query"] = basetypes.NewStringNull()
-		}
-		objectValue, diags := types.ObjectValue(nestedElementTypes, nestedElements)
+	PrivilegesList := []interfaces.SecurityRolePrivilegesListBodyDataModelONTAP{}
+	if !data.Privileges.IsNull() {
+		elements := make([]types.Object, 0, len(data.Privileges.Elements()))
+		diags := data.Privileges.ElementsAs(ctx, &elements, false)
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		setElements = append(setElements, objectValue)
+		for _, element := range elements {
+			var privilege SecurityRoleResourcePrivilege
+			diags := element.As(ctx, &privilege, basetypes.ObjectAsOptions{})
+			if diags.HasError() {
+				resp.Diagnostics.Append(diags...)
+				return
+			}
+			interfacesPrivilege := interfaces.SecurityRolePrivilegesListBodyDataModelONTAP{}
+			interfacesPrivilege.Path = privilege.Path.ValueString()
+			interfacesPrivilege.Access = privilege.Access.ValueString()
+			interfacesPrivilege.Query = privilege.Query.ValueString()
+			PrivilegesList = append(PrivilegesList, interfacesPrivilege)
+		}
+	}
+
+	setElements := []attr.Value{}
+	for _, privilege := range restInfo.Privileges {
+		for _, plannedPrivilege := range PrivilegesList {
+			if privilege.Path == plannedPrivilege.Path {
+				nestedElementTypes := map[string]attr.Type{
+					"access": types.StringType,
+					"path":   types.StringType,
+					"query":  types.StringType,
+				}
+				nestedElements := map[string]attr.Value{
+					"access": types.StringValue(privilege.Access),
+					"path":   types.StringValue(privilege.Path),
+				}
+				if privilege.Query != "" {
+					nestedElements["query"] = types.StringValue(privilege.Query)
+				} else {
+					nestedElements["query"] = basetypes.NewStringNull()
+				}
+				objectValue, diags := types.ObjectValue(nestedElementTypes, nestedElements)
+				if diags.HasError() {
+					resp.Diagnostics.Append(diags...)
+					return
+				}
+				setElements = append(setElements, objectValue)
+			}
+
+		}
+
 	}
 	setValue, diags := types.SetValue(types.ObjectType{
 		AttrTypes: map[string]attr.Type{
@@ -320,44 +351,32 @@ func (r *SecurityRoleResource) Create(ctx context.Context, req resource.CreateRe
 	// Priviledges
 	setElements := []attr.Value{}
 	for _, privilege := range restInfo.Privileges {
-		deleteDefaultPrivileges := false
-		if privilege.Path == "DEFAULT" && privilege.Access == "none" && privilege.Query == "" {
-			for _, planedPrivilege := range PrivilegesList {
-				if planedPrivilege.Path == "DEFAULT" && planedPrivilege.Access == "none" && planedPrivilege.Query == "" {
-					deleteDefaultPrivileges = false
-					break
+		for _, plannedPrivilege := range PrivilegesList {
+			if privilege.Path == plannedPrivilege.Path {
+				nestedElementTypes := map[string]attr.Type{
+					"access": types.StringType,
+					"path":   types.StringType,
+					"query":  types.StringType,
 				}
-				deleteDefaultPrivileges = true
+				nestedElements := map[string]attr.Value{
+					"access": types.StringValue(privilege.Access),
+					"path":   types.StringValue(privilege.Path),
+				}
+				if privilege.Query != "" {
+					nestedElements["query"] = types.StringValue(privilege.Query)
+				} else {
+					nestedElements["query"] = basetypes.NewStringNull()
+				}
+				objectValue, diags := types.ObjectValue(nestedElementTypes, nestedElements)
+				if diags.HasError() {
+					resp.Diagnostics.Append(diags...)
+					return
+				}
+				setElements = append(setElements, objectValue)
 			}
+
 		}
-		if deleteDefaultPrivileges {
-			err = interfaces.DeleteSecurityRolePrivileges(errorHandler, *client, privilege.Path, data.Name.ValueString(), restInfo.Owner.Id)
-			if err != nil {
-				errorHandler.MakeAndReportError("error deleting default security_role privileges", "error on DELETE API created default privileges: {path: 'DEFAULT', access: 'none', query: ''}")
-				return
-			}
-			continue
-		}
-		nestedElementTypes := map[string]attr.Type{
-			"access": types.StringType,
-			"path":   types.StringType,
-			"query":  types.StringType,
-		}
-		nestedElements := map[string]attr.Value{
-			"access": types.StringValue(privilege.Access),
-			"path":   types.StringValue(privilege.Path),
-		}
-		if privilege.Query != "" {
-			nestedElements["query"] = types.StringValue(privilege.Query)
-		} else {
-			nestedElements["query"] = basetypes.NewStringNull()
-		}
-		objectValue, diags := types.ObjectValue(nestedElementTypes, nestedElements)
-		if diags.HasError() {
-			resp.Diagnostics.Append(diags...)
-			return
-		}
-		setElements = append(setElements, objectValue)
+
 	}
 	setValue, diags := types.SetValue(types.ObjectType{
 		AttrTypes: map[string]attr.Type{
@@ -457,15 +476,10 @@ func (r *SecurityRoleResource) Update(ctx context.Context, req resource.UpdateRe
 		}
 	}
 	//Find the difference of paths that are in the plan but not in the config. These are the paths that need to be added. POST on these paths: /security/roles/{owner.uuid}/{name}/privileges
-	hasDefaultPathInPlan := false
 	for _, planPrivilege := range PlanPrivilegesList {
 		foundPathInConfig := false
-		if planPrivilege.Path == "DEFAULT" && planPrivilege.Access == "none" && planPrivilege.Query == "" {
-			hasDefaultPathInPlan = true
-		}
 		for _, configPrivilege := range ConfigPrivilegesList {
 			if planPrivilege.Path == configPrivilege.Path {
-				log.Print("hit true")
 				foundPathInConfig = true
 				// if Path is the same, but others are not. Do a PATCH on this path
 				if planPrivilege.Access != configPrivilege.Access || planPrivilege.Query != configPrivilege.Query {
@@ -478,18 +492,11 @@ func (r *SecurityRoleResource) Update(ctx context.Context, req resource.UpdateRe
 		}
 		if !foundPathInConfig {
 			//POST on this path
-			log.Printf("going to create privilege : %v", planPrivilege)
+			log.Printf("going to create privilege: %v", planPrivilege)
 			err = interfaces.CreateSecurityRolePrivileges(errorHandler, *client, planPrivilege, plan.Name.ValueString(), svm.UUID)
 			if err != nil {
-				errorHandler.MakeAndReportError("error deleting default security_role privileges", fmt.Sprint("error on DELETE API created default privileges: {path: 'DEFAULT', access: 'none', query: ''} :", err))
+				errorHandler.MakeAndReportError("error creating security_role privileges", fmt.Sprint("error on creating privileges:", err))
 				return
-			}
-			if !hasDefaultPathInPlan {
-				// DELETE on this path
-				err = interfaces.DeleteSecurityRolePrivileges(errorHandler, *client, "DEFAULT", plan.Name.ValueString(), svm.UUID)
-				if err != nil {
-					return
-				}
 			}
 
 		}

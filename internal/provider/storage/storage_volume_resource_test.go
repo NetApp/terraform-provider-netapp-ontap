@@ -2,10 +2,11 @@ package storage_test
 
 import (
 	"fmt"
-	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
 	"os"
 	"regexp"
 	"testing"
+
+	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -27,14 +28,14 @@ func TestAccStorageVolumeResource(t *testing.T) {
 			},
 			// Read testing
 			{
-				Config: testAccStorageVolumeResourceConfig("acc_test", "accVolume1"),
+				Config: testAccStorageVolumeResourceConfig("tf_acc_svm", "tf_acc_volume2"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_volume.example", "name", "accVolume1"),
+					resource.TestCheckResourceAttr("netapp-ontap_volume.example", "name", "tf_acc_volume2"),
 					resource.TestCheckNoResourceAttr("netapp-ontap_volume.example", "volname"),
 				),
 			},
 			{
-				Config: testAccStorageVolumeResourceConfigUpdate("automation", "accVolume1"),
+				Config: testAccStorageVolumeResourceConfigUpdate("tf_acc_svm", "accVolume1"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_volume.example", "name", "accVolume1"),
 					resource.TestCheckResourceAttr("netapp-ontap_volume.example", "nas.group_id", "10"),
@@ -45,9 +46,9 @@ func TestAccStorageVolumeResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_volume.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s", "acc_test_root", "acc_test", "cluster5"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s", "tf_acc_volume", "tf_acc_svm", "cluster5"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_volume.example", "name", "automation"),
+					resource.TestCheckResourceAttr("netapp-ontap_volume.example", "name", "tf_acc_svm"),
 				),
 			},
 		},
@@ -55,12 +56,12 @@ func TestAccStorageVolumeResource(t *testing.T) {
 }
 
 func testAccStorageVolumeResourceConfig(svm, volName string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST2")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -81,7 +82,7 @@ resource "netapp-ontap_volume" "example" {
   name = "%s"
   svm_name = "%s"
   aggregates = [
-	{name = "acc_test"}
+	{name = "tf_acc_aggr"}
 ]
   space_guarantee = "none"
   snapshot_policy = "default-1weekly"
@@ -98,7 +99,7 @@ resource "netapp-ontap_volume" "example" {
   	policy_name = "all"
   }
   nas = {
-    export_policy_name = "test"
+    export_policy_name = "default"
     group_id = 1
     user_id = 2
     unix_permissions = "100"
@@ -109,12 +110,12 @@ resource "netapp-ontap_volume" "example" {
 }
 
 func testAccStorageVolumeResourceConfigUpdate(svm, volName string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST2")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -135,7 +136,7 @@ resource "netapp-ontap_volume" "example" {
   name = "%s"
   svm_name = "%s"
   aggregates = [
-	{name = "acc_test"}
+	{name = "tf_acc_aggr"}
 ]
   space_guarantee = "none"
   snapshot_policy = "default-1weekly"
@@ -152,7 +153,7 @@ resource "netapp-ontap_volume" "example" {
   	policy_name = "all"
   }
   nas = {
-    export_policy_name = "test"
+    export_policy_name = "default"
     group_id = 10
     user_id = 20
     unix_permissions = "755"

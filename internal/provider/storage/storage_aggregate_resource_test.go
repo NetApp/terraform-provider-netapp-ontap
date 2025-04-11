@@ -2,10 +2,11 @@ package storage_test
 
 import (
 	"fmt"
-	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
 	"os"
 	"regexp"
 	"testing"
+
+	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -20,7 +21,7 @@ func TestAccStorageAggregateResource(t *testing.T) {
 				ExpectError: regexp.MustCompile("is an invalid value"),
 			},
 			{
-				Config: testAccStorageAggregateResourceConfig("swenjun-vsim2"),
+				Config: testAccStorageAggregateResourceConfig("bsuhas-vsim1"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_aggregate.example", "name", "acc_test_aggr"),
 					resource.TestCheckNoResourceAttr("netapp-ontap_aggregate.example", "vol"),
@@ -30,9 +31,9 @@ func TestAccStorageAggregateResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_aggregate.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s", "acc_test_aggr", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s", "tf_acc_aggr", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_aggregate.example", "name", "acc_test_aggr"),
+					resource.TestCheckResourceAttr("netapp-ontap_aggregate.example", "name", "tf_acc_aggr"),
 				),
 			},
 		},
@@ -40,11 +41,11 @@ func TestAccStorageAggregateResource(t *testing.T) {
 }
 
 func testAccStorageAggregateResourceConfig(node string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST2")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST2, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`

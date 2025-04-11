@@ -64,7 +64,7 @@ func TestAccNetworkIpInterfaceResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_network_ip_interface.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s", "test-interface-1", "svm0", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s", "test-interface-1", "tf_acc_svm", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_network_ip_interface.example", "name", "test-interface-1"),
 					resource.TestCheckResourceAttr("netapp-ontap_network_ip_interface.example", "ip.address", "10.10.10.20"),
@@ -79,7 +79,7 @@ func TestAccNetworkIpInterfaceResource(t *testing.T) {
 				Config: testAccNetworkIPInterfaceResourceConfigBroadcastDomain("svm0", "10.10.20.10", "tf_test_data_svm0", "default-data-files", "Default"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_network_ip_interface.example", "name", "test-interface-2"),
-					resource.TestCheckResourceAttr("netapp-ontap_network_ip_interface.example", "svm_name", "svm0"),
+					resource.TestCheckResourceAttr("netapp-ontap_network_ip_interface.example", "svm_name", "tf_acc_svm"),
 					resource.TestMatchResourceAttr("netapp-ontap_network_ip_interface.example", "location.broadcast_domain.id", regexp.MustCompile(idRegexNetworkIPInterface)),
 					resource.TestCheckResourceAttr("netapp-ontap_network_ip_interface.example", "location.home_node", "ontap_cluster_1-01"),
 					resource.TestMatchResourceAttr("netapp-ontap_network_ip_interface.example", "location.home_port", regexp.MustCompile("e0a-[0-9]+")),
@@ -102,7 +102,7 @@ func TestAccNetworkIpInterfaceResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_network_ip_interface.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s", "test-interface-2", "svm0", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s", "test-interface-2", "tf_acc_svm", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_network_ip_interface.example", "name", "test-interface-2"),
 					resource.TestCheckResourceAttr("netapp-ontap_network_ip_interface.example", "ip.address", "10.10.20.20"),
@@ -119,9 +119,9 @@ func TestAccNetworkIpInterfaceResource(t *testing.T) {
 func testAccNetworkIPInterfaceProviderConfig() string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
