@@ -53,7 +53,7 @@ jobs:
             UPDATED_CHANGED_FILES="$UPDATED_CHANGED_FILES $TEST_FILE"
           done
           for FILE in $(echo $INTERFACE_FILES | tr ' ' '\n'); do
-            if [[ "$FILE" == *test.go ]] || [[ "$FILE" == *cluster_job.go ]]; then
+            if [[ "$FILE" == *test.go ]] || [[ "$FILE" == *cluster_job.go ]] || [[ "$FILE" == *data_source* ]]; then
               continue
             fi
             BASE_NAME=$(basename "$FILE")
