@@ -49,12 +49,19 @@ type IPInterfaceDataSourceModel struct {
 	IP            *IPDataSourceModel       `tfsdk:"ip"`
 	Location      *LocationDataSourceModel `tfsdk:"location"`
 	ServicePolicy types.String             `tfsdk:"service_policy"`
+	IPSpace		  *IPSpaceDataSourceModel  `tfsdk:"ipspace"`
 }
 
 // IPDataSourceModel describes the data source model for IP address and mask.
 type IPDataSourceModel struct {
 	Address types.String `tfsdk:"address"`
 	Netmask types.Int64  `tfsdk:"netmask"`
+}
+
+// IPSpaceDataSourceModel describes the GET record data for IPSpace.
+type IPSpaceDataSourceModel struct {
+	Name types.String `tfsdk:"name"`
+	UUID types.String `tfsdk:"uuid"`
 }
 
 // LocationDataSourceModel describes the data source model for home node/port and broadcast domain.
@@ -97,6 +104,19 @@ func (d *IPInterfaceDataSource) Schema(ctx context.Context, req datasource.Schem
 			"scope": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "IPInterface scope",
+			},
+			"ipspace": schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"name": schema.StringAttribute{
+						Computed:            true,
+						MarkdownDescription: "IPSpace Name",
+					},
+					"uuid": schema.StringAttribute{
+						MarkdownDescription: "IPSpace UUID",
+						Computed:            true,
+					},
+				},
+				Computed: true,
 			},
 			"ip": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
@@ -202,6 +222,10 @@ func (d *IPInterfaceDataSource) Read(ctx context.Context, req datasource.ReadReq
 	data.IP = &IPDataSourceModel{
 		Address: types.StringValue(restInfo.IP.Address),
 		Netmask: types.Int64Value(int64(intNetmask)),
+	}
+	data.IPSpace = &IPSpaceDataSourceModel{
+		Name: types.StringValue(restInfo.IPSpace.Name),
+		UUID: types.StringValue(restInfo.IPSpace.UUID),
 	}
 	data.Location = &LocationDataSourceModel{
 		HomeNode: types.StringValue(restInfo.Location.HomeNode.Name),

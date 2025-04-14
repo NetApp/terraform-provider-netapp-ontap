@@ -106,6 +106,19 @@ func (d *IPInterfacesDataSource) Schema(ctx context.Context, req datasource.Sche
 							Computed:            true,
 							MarkdownDescription: "IPInterface scope",
 						},
+						"ipspace": schema.SingleNestedAttribute{
+							Attributes: map[string]schema.Attribute{
+								"name": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "IPSpace Name",
+								},
+								"uuid": schema.StringAttribute{
+									MarkdownDescription: "IPSpace UUID",
+									Computed:            true,
+								},
+							},
+							Computed: true,
+						},
 						"ip": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"address": schema.StringAttribute{
@@ -226,6 +239,10 @@ func (d *IPInterfacesDataSource) Read(ctx context.Context, req datasource.ReadRe
 		data.IPInterfaces[index].IP = &IPDataSourceModel{
 			Address: types.StringValue(record.IP.Address),
 			Netmask: types.Int64Value(int64(intNetmask)),
+		}
+		data.IPInterfaces[index].IPSpace = &IPSpaceDataSourceModel{
+			Name: types.StringValue(record.IPSpace.Name),
+			UUID: types.StringValue(record.IPSpace.UUID),
 		}
 		data.IPInterfaces[index].Location = &LocationDataSourceModel{
 			HomeNode: types.StringValue(record.Location.HomeNode.Name),

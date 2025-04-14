@@ -1,4 +1,25 @@
+# 2.2.0 (2025-xx-xx)
+
+FEATURES:
+
+- **New Data Source:** `netapp-ontap_iscsi_service` ([#442](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/442))
+- **New Data Source:** `netapp-ontap_iscsi_services` ([#442](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/442))
+- **New Resource:** `netapp-ontap_iscsi_service` ([#442](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/442))
+
+ENHANCEMENTS:
+
+- **netapp-ontap_aggregate_data_source**, **netapp-ontap_aggregates_data_source**: added `space.block_storage.available` option ([#256](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/256))
+- **netapp-ontap_volume_resource**: added `autosize.*` options. ([#245](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/245))
+
+BUG FIXES:
+
+- **netapp-ontap_security_account**: Error importing security_account resource if same account exists on multiple SVMs([#457](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/457))
+
 # 2.1.2 (not released)
+
+ENHANCEMENTS:
+
+- **netapp-ontap_networking_ip_interface*: added `ipspace` option ([#249](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/249))
 
 BUG FIXES:
 

@@ -18,6 +18,8 @@ type IPInterfaceGetDataModelONTAP struct {
 	ServicePolicy IPInterfaceServicePolicy    `mapstructure:"service_policy"`
 	SVM           IPInterfaceSvmName          `mapstructure:"svm"`
 	UUID          string                      `mapstructure:"uuid"`
+	IPSpace		  *IPInterfaceGetIPSpace	  `mapstructure:"ipspace"`
+
 }
 
 // IPInterfaceGetIP describes the GET record data for IP.
@@ -26,6 +28,13 @@ type IPInterfaceGetIP struct {
 	Netmask string `mapstructure:"netmask"`
 }
 
+// IPInterfaceGetIPSpace describes the GET record data for IPSpace.
+type IPInterfaceGetIPSpace struct {
+	Name string `mapstructure:"name"`
+	UUID string `mapstructure:"uuid"`
+}
+
+
 // IPInterfaceResourceBodyDataModelONTAP describes the body data model using go types for mapping.
 type IPInterfaceResourceBodyDataModelONTAP struct {
 	IP            IPInterfaceResourceIP       `mapstructure:"ip"`
@@ -33,6 +42,11 @@ type IPInterfaceResourceBodyDataModelONTAP struct {
 	Name          string                      `mapstructure:"name"`
 	ServicePolicy IPInterfaceServicePolicy    `mapstructure:"service_policy"`
 	SVM           IPInterfaceSvmName          `mapstructure:"svm,omitempty"` // API errors if body contains svm name when updating. can not use universal 'svm struct'
+	IPSpace		  *IPInterfaceIPSpace         `mapstructure:"ipspace,omitempty"`
+}
+
+type IPInterfaceIPSpace struct {
+	Name string `mapstructure:"name,omitempty"`
 }
 
 // IPInterfaceSvmName describes the svm name specifcally for network ip interface.
@@ -99,6 +113,8 @@ func GetIPInterface(errorHandler *utils.ErrorHandler, r restclient.RestClient, i
 		"scope",
 		"location",
 		"service_policy",
+		"ipspace.name",
+		"ipspace.uuid",
 	})
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
@@ -113,7 +129,7 @@ func GetIPInterface(errorHandler *utils.ErrorHandler, r restclient.RestClient, i
 		return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
 			fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
 	}
-	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read ip_interface data source: %#v", dataONTAP))
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read ip_interface data source1111111: %#v", dataONTAP))
 	return &dataONTAP, nil
 }
 
@@ -135,6 +151,8 @@ func GetIPInterfaceByName(errorHandler *utils.ErrorHandler, r restclient.RestCli
 		"scope",
 		"location",
 		"service_policy",
+		"ipspace.name",
+		"ipspace.uuid",
 	})
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
@@ -164,6 +182,8 @@ func GetListIPInterfaces(errorHandler *utils.ErrorHandler, r restclient.RestClie
 		"scope",
 		"location",
 		"service_policy",
+		"ipspace.name",
+		"ipspace.uuid",
 	})
 
 	if filter != nil {

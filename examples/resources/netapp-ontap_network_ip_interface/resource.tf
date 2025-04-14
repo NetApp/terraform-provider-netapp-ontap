@@ -13,6 +13,8 @@ resource "netapp-ontap_network_ip_interface" "with_node_port" {
     home_port = "e0c"
     home_node = "ontap_cluster_1-01"
   }
+
+  ipspace = "Default"
 }
 
 resource "netapp-ontap_network_ip_interface" "with_broadcast_domain" {
@@ -32,4 +34,5 @@ resource "netapp-ontap_network_ip_interface" "with_broadcast_domain" {
     }
   }
   service_policy = "default-management"
+  ipspace = "Default"
 }

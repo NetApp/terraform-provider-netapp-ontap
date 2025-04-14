@@ -19,7 +19,7 @@ type StorageVolumeGetDataModelONTAP struct {
 	State          string
 	Type           string
 	Comment        string
-	SpaceGuarantee Guarantee `mapstructure:"guarantee"`
+	SpaceGuarantee Guarantee      `mapstructure:"guarantee"`
 	NAS            NAS
 	QOS            QOS
 	Encryption     Encryption
@@ -30,6 +30,7 @@ type StorageVolumeGetDataModelONTAP struct {
 	Analytics      Analytics
 	Language       string
 	Aggregates     []Aggregate
+	Autosize       Autosize       `mapstructure:"autosize,omitempty"`
 	UUID           string
 }
 
@@ -52,6 +53,7 @@ type StorageVolumeResourceModel struct {
 	Analytics      Analytics                `mapstructure:"analytics,omitempty"`
 	Language       string                   `mapstructure:"language,omitempty"`
 	Aggregates     []map[string]interface{} `mapstructure:"aggregates,omitempty"`
+	Autosize       Autosize                 `mapstructure:"autosize,omitempty"`
 }
 
 // Aggregate describes the resource data model.
@@ -149,6 +151,15 @@ type svm struct {
 	Name string `mapstructure:"name,omitempty"`
 }
 
+// Autosize describes the resource data model.
+type Autosize struct {
+	Minimum         int    `mapstructure:"minimum,omitempty"`
+	Maximum         int    `mapstructure:"maximum,omitempty"`
+	ShrinkThreshold int    `mapstructure:"shrink_threshold,omitempty"`
+	GrowThreshold   int    `mapstructure:"grow_threshold,omitempty"`
+	Mode            string `mapstructure:"mode,omitempty"`
+}
+
 // POW2BYTEMAP coverts size based on size unit.
 var POW2BYTEMAP = map[string]int{
 	// Here, 1 kb = 1024
@@ -210,7 +221,7 @@ func GetStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClient,
 	query := r.NewQuery()
 	query.Fields([]string{"name", "svm.name", "aggregates", "space.size", "state", "type", "nas.export_policy.name", "nas.path", "guarantee.type", "space.snapshot.reserve_percent",
 		"nas.security_style", "encryption.enabled", "efficiency.policy.name", "nas.unix_permissions", "nas.gid", "nas.uid", "snapshot_policy.name", "language", "qos.policy.name",
-		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state"})
+		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state", "autosize"})
 	statusCode, response, err := r.GetNilOrOneRecord("storage/volumes/"+uuid, query, nil)
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError("error reading volume info", fmt.Sprintf("error on GET storage/volumes: %s", err))
@@ -235,7 +246,7 @@ func GetStorageVolumeByName(errorHandler *utils.ErrorHandler, r restclient.RestC
 	query.Add("return_records", "true")
 	query.Fields([]string{"name", "uuid", "svm.name", "aggregates", "space.size", "state", "type", "nas.export_policy.name", "nas.path", "guarantee.type", "space.snapshot.reserve_percent",
 		"nas.security_style", "encryption.enabled", "efficiency.policy.name", "nas.unix_permissions", "nas.gid", "nas.uid", "snapshot_policy.name", "language", "qos.policy.name",
-		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state"})
+		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state", "autosize"})
 	statusCode, response, err := r.GetNilOrOneRecord("storage/volumes", query, nil)
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError("error reading volume info by name", fmt.Sprintf("error on GET storage/volumes: %s", err))
