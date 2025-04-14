@@ -1,4 +1,3 @@
-
 package networking_test
 
 import (
@@ -22,12 +21,12 @@ func TestAccNetworkIpInterfaceResource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// non-existant SVM return code 2621462. Must happen before create/read
 			{
-				Config:      testAccNetworkIPInterfaceResourceConfigHomePortNode("non-existant", "10.10.10.10", "e0c", "bsuhas-vsim1", "default-data-files", "Default"),
+				Config:      testAccNetworkIPInterfaceResourceConfigHomePortNode("non-existant", "10.10.10.10", "e0d", "bsuhas-vsim1", "default-data-files", "Default"),
 				ExpectError: regexp.MustCompile("Code:\"2621462\""),
 			},
 			// non-existant home node
 			{
-				Config:      testAccNetworkIPInterfaceResourceConfigHomePortNode("tf_acc_svm", "10.10.10.10", "e0c", "non-existant_home_node", "default-data-files", "Default"),
+				Config:      testAccNetworkIPInterfaceResourceConfigHomePortNode("tf_acc_svm", "10.10.10.10", "e0d", "non-existant_home_node", "default-data-files", "Default"),
 				ExpectError: regexp.MustCompile("Code:\"53281680\""),
 			},
 			// non-existant broadcast domain
@@ -44,7 +43,7 @@ func TestAccNetworkIpInterfaceResource(t *testing.T) {
 
 			// Create and Read (with Home Port & Node)
 			{
-				Config: testAccNetworkIPInterfaceResourceConfigHomePortNode("tf_acc_svm", "10.10.10.10", "e0c", "bsuhas-vsim1", "default-data-files", "Default"),
+				Config: testAccNetworkIPInterfaceResourceConfigHomePortNode("tf_acc_svm", "10.10.10.10", "e0d", "bsuhas-vsim1", "default-data-files", "Default"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_network_ip_interface.example", "name", "test-interface-1"),
 					resource.TestCheckResourceAttr("netapp-ontap_network_ip_interface.example", "svm_name", "tf_acc_svm"),
@@ -53,7 +52,7 @@ func TestAccNetworkIpInterfaceResource(t *testing.T) {
 			},
 			// Update and Read (with Home Port & Node)
 			{
-				Config: testAccNetworkIPInterfaceResourceConfigHomePortNode("tf_acc_svm", "10.10.10.20", "e0c", "bsuhas-vsim1", "default-data-iscsi", "Default"),
+				Config: testAccNetworkIPInterfaceResourceConfigHomePortNode("tf_acc_svm", "10.10.10.20", "e0d", "bsuhas-vsim1", "default-data-iscsi", "Default"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_network_ip_interface.example", "name", "test-interface-1"),
 					resource.TestCheckResourceAttr("netapp-ontap_network_ip_interface.example", "ip.address", "10.10.10.20"),
@@ -68,7 +67,7 @@ func TestAccNetworkIpInterfaceResource(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_network_ip_interface.example", "name", "test-interface-1"),
 					resource.TestCheckResourceAttr("netapp-ontap_network_ip_interface.example", "ip.address", "10.10.10.20"),
-					resource.TestCheckResourceAttr("netapp-ontap_network_ip_interface.example", "location.home_port", "e0c"),
+					resource.TestCheckResourceAttr("netapp-ontap_network_ip_interface.example", "location.home_port", "e0d"),
 					resource.TestCheckResourceAttr("netapp-ontap_network_ip_interface.example", "location.home_node", "bsuhas-vsim1"),
 					resource.TestCheckResourceAttr("netapp-ontap_network_ip_interface.example", "ipspace", "Default"),
 				),
@@ -82,7 +81,7 @@ func TestAccNetworkIpInterfaceResource(t *testing.T) {
 					resource.TestCheckResourceAttr("netapp-ontap_network_ip_interface.example", "svm_name", "tf_acc_svm"),
 					resource.TestMatchResourceAttr("netapp-ontap_network_ip_interface.example", "location.broadcast_domain.id", regexp.MustCompile(idRegexNetworkIPInterface)),
 					resource.TestCheckResourceAttr("netapp-ontap_network_ip_interface.example", "location.home_node", "bsuhas-vsim1"),
-					resource.TestMatchResourceAttr("netapp-ontap_network_ip_interface.example", "location.home_port", regexp.MustCompile("e0c")),
+					resource.TestMatchResourceAttr("netapp-ontap_network_ip_interface.example", "location.home_port", regexp.MustCompile("e0d")),
 					resource.TestCheckResourceAttr("netapp-ontap_network_ip_interface.example", "ipspace", "Default"),
 				),
 			},
@@ -94,7 +93,7 @@ func TestAccNetworkIpInterfaceResource(t *testing.T) {
 					resource.TestCheckResourceAttr("netapp-ontap_network_ip_interface.example", "ip.address", "10.10.20.20"),
 					resource.TestMatchResourceAttr("netapp-ontap_network_ip_interface.example", "location.broadcast_domain.id", regexp.MustCompile(idRegexNetworkIPInterface)),
 					resource.TestCheckResourceAttr("netapp-ontap_network_ip_interface.example", "location.home_node", "bsuhas-vsim1"),
-					resource.TestMatchResourceAttr("netapp-ontap_network_ip_interface.example", "location.home_port", regexp.MustCompile("e0c")),
+					resource.TestMatchResourceAttr("netapp-ontap_network_ip_interface.example", "location.home_port", regexp.MustCompile("e0d")),
 					resource.TestCheckResourceAttr("netapp-ontap_network_ip_interface.example", "ipspace", "Default"),
 				),
 			},
@@ -108,7 +107,7 @@ func TestAccNetworkIpInterfaceResource(t *testing.T) {
 					resource.TestCheckResourceAttr("netapp-ontap_network_ip_interface.example", "ip.address", "10.10.20.20"),
 					resource.TestMatchResourceAttr("netapp-ontap_network_ip_interface.example", "location.broadcast_domain.id", regexp.MustCompile(idRegexNetworkIPInterface)),
 					resource.TestCheckResourceAttr("netapp-ontap_network_ip_interface.example", "location.home_node", "bsuhas-vsim1"),
-					resource.TestMatchResourceAttr("netapp-ontap_network_ip_interface.example", "location.home_port", regexp.MustCompile("e0c")),
+					resource.TestMatchResourceAttr("netapp-ontap_network_ip_interface.example", "location.home_port", regexp.MustCompile("e0d")),
 					resource.TestCheckResourceAttr("netapp-ontap_network_ip_interface.example", "ipspace", "Default"),
 				),
 			},
@@ -139,7 +138,7 @@ provider "netapp-ontap" {
 	`, host, admin, password)
 }
 
-func testAccNetworkIPInterfaceResourceConfigHomePortNode(svmName, address, homePort, homeNode, servicePolicy string,ipspace string) string {
+func testAccNetworkIPInterfaceResourceConfigHomePortNode(svmName, address, homePort, homeNode, servicePolicy string, ipspace string) string {
 	return testAccNetworkIPInterfaceProviderConfig() + fmt.Sprintf(`
 resource "netapp-ontap_network_ip_interface" "example" {
 	cx_profile_name = "cluster4"
@@ -159,7 +158,7 @@ resource "netapp-ontap_network_ip_interface" "example" {
 `, svmName, address, homePort, homeNode, servicePolicy, ipspace)
 }
 
-func testAccNetworkIPInterfaceResourceConfigBroadcastDomain(svmName, address, broadcastDomain, servicePolicy string,ipspace string) string {
+func testAccNetworkIPInterfaceResourceConfigBroadcastDomain(svmName, address, broadcastDomain, servicePolicy string, ipspace string) string {
 	return testAccNetworkIPInterfaceProviderConfig() + fmt.Sprintf(`
 resource "netapp-ontap_network_ip_interface" "example" {
 	cx_profile_name = "cluster4"
