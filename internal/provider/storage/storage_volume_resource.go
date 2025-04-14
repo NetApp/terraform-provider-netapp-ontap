@@ -15,8 +15,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient"
@@ -73,6 +76,7 @@ type StorageVolumeResourceModel struct {
 	Efficiency     types.Object                      `tfsdk:"efficiency"`
 	SnapLock       types.Object                      `tfsdk:"snaplock"`
 	Analytics      types.Object                      `tfsdk:"analytics"`
+	Autosize       types.Object                      `tfsdk:"autosize"`
 }
 
 // StorageVolumeResourceAggregates describes the analytics model.
@@ -124,6 +128,16 @@ type StorageVolumeResourceSpace struct {
 type StorageVolumeResourceSpaceLogicalSpace struct {
 	Enforcement types.Bool `tfsdk:"enforcement"`
 	Reporting   types.Bool `tfsdk:"reporting"`
+}
+
+// StorageVolumeResourceAutosize describes the autosize model.
+type StorageVolumeResourceAutosize struct {
+	Minimum         types.Int64  `tfsdk:"minimum"`
+	Maximum         types.Int64  `tfsdk:"maximum"`
+	ShrinkThreshold types.Int64  `tfsdk:"shrink_threshold"`
+	GrowThreshold   types.Int64  `tfsdk:"grow_threshold"`
+	Mode            types.String `tfsdk:"mode"`
+	SizeUnit        types.String `tfsdk:"size_unit"`
 }
 
 // Metadata returns the resource type name.
@@ -328,6 +342,52 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 					},
 				},
 			},
+			"autosize": schema.SingleNestedAttribute{
+				Optional: true,
+				Computed: true,
+				Attributes: map[string]schema.Attribute{
+					"minimum": schema.Int64Attribute{
+						MarkdownDescription: "Minimum size in bytes up to which the volume shrinks automatically. This size cannot be greater than or equal to the maximum size of volume.",
+						Optional:            true,
+						Computed:            true,
+					},
+					"maximum": schema.Int64Attribute{
+						MarkdownDescription: "Maximum size in bytes up to which a volume grows automatically. This size cannot be less than the current volume size, or less than or equal to the minimum size of volume.",
+						Optional:            true,
+						Computed:            true,
+					},
+					"shrink_threshold": schema.Int64Attribute{
+						MarkdownDescription: "Used space threshold size, in percentage, for the automatic shrinkage of the volume.",
+						Optional:            true,
+						Computed:            true,
+					},
+					"grow_threshold": schema.Int64Attribute{
+						MarkdownDescription: "Used space threshold size, in percentage, for the automatic growth of the volume.",
+						Optional:            true,
+						Computed:            true,
+					},
+					"mode": schema.StringAttribute{
+						MarkdownDescription: `
+											 Autosize mode for the volume.
+											 grow - Volume automatically grows when the amount of used space is above the 'grow_threshold' value.
+							   				 grow_shrink - Volume grows or shrinks in response to the amount of space used.
+											 off - Autosizing of the volume is disabled.
+											 `,
+						Optional:            true,
+						Computed:            true,
+						Validators: []validator.String{
+							stringvalidator.OneOf("off", "grow", "grow_shrink"),
+						},
+					},
+					"size_unit": schema.StringAttribute{
+						MarkdownDescription: "The unit used to interpret the minimum or maximum size parameters",
+						Optional:            true,
+						Validators: []validator.String{
+							stringvalidator.OneOf("bytes", "b", "kb", "mb", "gb", "tb", "pb", "eb", "zb", "yb"),
+						},
+					},
+				},
+			},
 			"id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Volume identifier",
@@ -375,6 +435,20 @@ func (r *StorageVolumeResource) Configure(ctx context.Context, req resource.Conf
 		)
 	}
 	r.config.ProviderConfig = config
+}
+
+// ConfigValidators validates entire resource configurations
+func (d *StorageVolumeResource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
+    return []resource.ConfigValidator{
+        resourcevalidator.RequiredTogether(
+            path.MatchRoot("autosize").AtName("minimum"),
+            path.MatchRoot("autosize").AtName("size_unit"),
+        ),
+		resourcevalidator.RequiredTogether(
+            path.MatchRoot("autosize").AtName("maximum"),
+            path.MatchRoot("autosize").AtName("size_unit"),
+        ),
+    }
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -543,6 +617,35 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 		aggregates = append(aggregates, aggregate)
 	}
 	data.Aggregates = aggregates
+
+	//Autosize
+	elementTypes = map[string]attr.Type{
+		"minimum":          types.Int64Type,
+		"maximum":          types.Int64Type,
+		"shrink_threshold": types.Int64Type,
+		"grow_threshold":   types.Int64Type,
+		"mode":             types.StringType,
+		"size_unit":        types.StringType,
+	}
+	// var sizeUnit is already defined as part of Space model
+	var minimum int64
+	var maximum int64
+	minimum, sizeUnit = interfaces.ByteFormat(int64(response.Autosize.Minimum))
+	maximum, _ = interfaces.ByteFormat(int64(response.Autosize.Maximum))
+
+	elements = map[string]attr.Value{
+		"minimum":          types.Int64Value(minimum),
+		"maximum":          types.Int64Value(maximum),
+		"shrink_threshold": types.Int64Value(int64(response.Autosize.ShrinkThreshold)),
+		"grow_threshold":   types.Int64Value(int64(response.Autosize.GrowThreshold)),
+		"mode":             types.StringValue(response.Autosize.Mode),
+		"size_unit":        types.StringValue(sizeUnit),
+	}
+	objectValue, diags = types.ObjectValue(elementTypes, elements)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+	}
+	data.Autosize = objectValue
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -717,6 +820,32 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 		request.Analytics.State = analytics.State.ValueString()
 	}
 
+	if !data.Autosize.IsUnknown() {
+		var autosize StorageVolumeResourceAutosize
+		diags := data.Autosize.As(ctx, &autosize, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		sizeUnit = autosize.SizeUnit.ValueString()
+
+		if !autosize.Minimum.IsUnknown() {
+			request.Autosize.Minimum = int(autosize.Minimum.ValueInt64()) * interfaces.POW2BYTEMAP[autosize.SizeUnit.ValueString()]
+		}
+		if !autosize.Maximum.IsUnknown() {
+			request.Autosize.Maximum = int(autosize.Maximum.ValueInt64()) * interfaces.POW2BYTEMAP[autosize.SizeUnit.ValueString()]
+		}
+		if !autosize.ShrinkThreshold.IsUnknown() {
+			request.Autosize.ShrinkThreshold = int(autosize.ShrinkThreshold.ValueInt64())
+		}
+		if !autosize.GrowThreshold.IsUnknown() {
+			request.Autosize.GrowThreshold = int(autosize.GrowThreshold.ValueInt64())
+		}
+		if !autosize.Mode.IsUnknown() {
+			request.Autosize.Mode = autosize.Mode.ValueString()
+		}
+	}
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -854,6 +983,30 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 		resp.Diagnostics.Append(diags...)
 	}
 	data.Analytics = objectValue
+
+	//Autosize
+	elementTypes = map[string]attr.Type{
+		"minimum":          types.Int64Type,
+		"maximum":          types.Int64Type,
+		"shrink_threshold": types.Int64Type,
+		"grow_threshold":   types.Int64Type,
+		"mode":             types.StringType,
+		"size_unit":        types.StringType,
+	}
+	elements = map[string]attr.Value{
+		"minimum":          types.Int64Value(int64(response.Autosize.Minimum / interfaces.POW2BYTEMAP[sizeUnit])),
+		"maximum":          types.Int64Value(int64(response.Autosize.Maximum / interfaces.POW2BYTEMAP[sizeUnit])),
+		"shrink_threshold": types.Int64Value(int64(response.Autosize.ShrinkThreshold)),
+		"grow_threshold":   types.Int64Value(int64(response.Autosize.GrowThreshold)),
+		"mode":             types.StringValue(response.Autosize.Mode),
+		"size_unit":        types.StringValue(sizeUnit),
+	}
+	objectValue, diags = types.ObjectValue(elementTypes, elements)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+	}
+	data.Autosize = objectValue
+
 	tflog.Trace(ctx, "created a resource")
 
 	// Save data into Terraform state
@@ -1043,6 +1196,34 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 				return
 			}
 			request.Analytics.State = analytics.State.ValueString()
+		}
+	}
+
+	if !plan.Autosize.IsUnknown() {
+		errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
+		tflog.Debug(errorHandler.Ctx, fmt.Sprintf("autosize minimum in tfstate: %+v", state.Autosize))
+		if !plan.Autosize.Equal(state.Autosize) {
+			var autosize StorageVolumeResourceAutosize
+			diags := plan.Autosize.As(ctx, &autosize, basetypes.ObjectAsOptions{})
+			if diags.HasError() {
+				resp.Diagnostics.Append(diags...)
+				return
+			}
+			if !autosize.Minimum.IsUnknown() {
+				request.Autosize.Minimum = int(autosize.Minimum.ValueInt64()) * interfaces.POW2BYTEMAP[autosize.SizeUnit.ValueString()]
+			}
+			if !autosize.Maximum.IsUnknown() {
+				request.Autosize.Maximum = int(autosize.Maximum.ValueInt64()) * interfaces.POW2BYTEMAP[autosize.SizeUnit.ValueString()]
+			}
+			if !autosize.ShrinkThreshold.IsUnknown() {
+				request.Autosize.ShrinkThreshold = int(autosize.ShrinkThreshold.ValueInt64())
+			}
+			if !autosize.GrowThreshold.IsUnknown() {
+				request.Autosize.GrowThreshold = int(autosize.GrowThreshold.ValueInt64())
+			}
+			if !autosize.Mode.IsUnknown() {
+				request.Autosize.Mode = autosize.Mode.ValueString()
+			}
 		}
 	}
 
@@ -1249,6 +1430,38 @@ func readVolume(ctx context.Context, client *restclient.RestClient, data *Storag
 		allDiags.Append(diags...)
 	}
 	data.Analytics = objectValue
+
+	//Autosize
+	elementTypes = map[string]attr.Type{
+		"minimum":          types.Int64Type,
+		"maximum":          types.Int64Type,
+		"shrink_threshold": types.Int64Type,
+		"grow_threshold":   types.Int64Type,
+		"mode":             types.StringType,
+		"size_unit":        types.StringType,
+	}
+	// var sizeUnit is already defined as part of Space model
+	var autosize StorageVolumeResourceAutosize
+	diags = data.Autosize.As(ctx, &autosize, basetypes.ObjectAsOptions{})
+	if diags.HasError() {
+		allDiags.Append(diags...)
+		return allDiags
+	}
+	sizeUnit = autosize.SizeUnit.ValueString()
+
+	elements = map[string]attr.Value{
+		"minimum":          types.Int64Value(int64(response.Autosize.Minimum / interfaces.POW2BYTEMAP[sizeUnit])),
+		"maximum":          types.Int64Value(int64(response.Autosize.Maximum / interfaces.POW2BYTEMAP[sizeUnit])),
+		"shrink_threshold": types.Int64Value(int64(response.Autosize.ShrinkThreshold)),
+		"grow_threshold":   types.Int64Value(int64(response.Autosize.GrowThreshold)),
+		"mode":             types.StringValue(response.Autosize.Mode),
+		"size_unit":        types.StringValue(sizeUnit),
+	}
+	objectValue, diags = types.ObjectValue(elementTypes, elements)
+	if diags.HasError() {
+		allDiags.Append(diags...)
+	}
+	data.Autosize = objectValue
 
 	return allDiags
 }

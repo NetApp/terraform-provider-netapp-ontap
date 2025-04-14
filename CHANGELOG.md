@@ -9,6 +9,7 @@ FEATURES:
 ENHANCEMENTS:
 
 - **netapp-ontap_aggregate_data_source**, **netapp-ontap_aggregates_data_source**: added `space.block_storage.available` option ([#256](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/256))
+- **netapp-ontap_volume_resource**: added `autosize.*` options. ([#245](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/245))
 
 BUG FIXES:
 
