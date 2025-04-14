@@ -69,6 +69,8 @@ jobs:
               UPDATED_CHANGED_FILES="$UPDATED_CHANGED_FILES $TEST_FILE"
             fi
           done
+          # Remove duplicates
+          UPDATED_CHANGED_FILES=$(echo "$UPDATED_CHANGED_FILES" | tr ' ' '\n' | sort | uniq | tr '\n' ' ')
           printf "Acceptance test files required to run: %b\n" "$UPDATED_CHANGED_FILES"
           printf "INTERFACE_FILES: %b\n" "$INTERFACE_FILES"
           echo "Changed resource files: $UPDATED_CHANGED_FILES"
