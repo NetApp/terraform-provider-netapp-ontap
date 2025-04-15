@@ -1,4 +1,4 @@
-# 2.2.0 (2025-xx-xx)
+# 2.2.0 (2025-04-xx)
 
 FEATURES:
 
@@ -10,19 +10,11 @@ ENHANCEMENTS:
 
 - **netapp-ontap_aggregate_data_source**, **netapp-ontap_aggregates_data_source**: added `space.block_storage.available` option ([#256](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/256))
 - **netapp-ontap_volume_resource**: added `autosize.*` options. ([#245](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/245))
+- **netapp-ontap_networking_ip_interface**: added `ipspace` option ([#249](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/249))
 
 BUG FIXES:
 
 - **netapp-ontap_security_account**: Error importing security_account resource if same account exists on multiple SVMs([#457](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/457))
-
-# 2.1.2 (not released)
-
-ENHANCEMENTS:
-
-- **netapp-ontap_networking_ip_interface*: added `ipspace` option ([#249](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/249))
-
-BUG FIXES:
-
 - **netapp-ontap_svm_qos_policy_activation**: ID parameter missing in QOS policy ([#429](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/429))
 - **netapp-ontap_security_account**: password, comment and locked parameters not passed into body request for creating account ([#462](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/462))
 - **netapp-ontap_security_account**: fixed inconsistency plan changes when re-run with terraform apply ([#465](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/465))
