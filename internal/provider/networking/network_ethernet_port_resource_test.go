@@ -125,7 +125,7 @@ func TestAccNetworkEthernetPortResource(t *testing.T) {
 			// {
 			// 	ResourceName:  "netapp-ontap_port.vlan",
 			// 	ImportState:   true,
-			// 	ImportStateId: fmt.Sprintf("%s,%s", "cluster4", "e0a-300"),
+			// 	ImportStateId: fmt.Sprintf("%s,%s", "e0a-300", "bsuhas-vsim1", "cluster4"),
 			// 	Check: resource.ComposeTestCheckFunc(
 			// 		resource.TestMatchResourceAttr("netapp-ontap_port.vlan", "broadcast_domain.id", regexp.MustCompile(idRegexNetworkEthernetPort)),
 			// 		resource.TestCheckResourceAttr("netapp-ontap_port.vlan", "broadcast_domain.name", "Default"),
