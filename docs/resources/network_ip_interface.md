@@ -39,6 +39,7 @@ resource "netapp-ontap_network_ip_interface" "example" {
         home_node = "ontap_cluster_1-01"
     }
     service_policy = "default-management"
+    ipspace = "Default"
 }
 ```
 
@@ -52,6 +53,7 @@ resource "netapp-ontap_network_ip_interface" "example" {
 - `location` (Attributes) (see [below for nested schema](#nestedatt--location))
 - `name` (String) IPInterface name
 - `svm_name` (String) IPInterface svm name
+- `ipspace` (String) IPInterface ipspace
 
 ### Optional
 
@@ -88,6 +90,15 @@ Optional:
 
 - `name` (String) Name of the broadcast domain, scoped to its IPspace
 - `id` (String) Broadcast domain UUID
+
+<a id="nestedatt--ipspace"></a>
+
+### Nested Schema for `ipspace`
+
+Required:
+
+- `name` (String) IPInterface IPSpace name
+- `uuid` (Number) IPInterface IPSpace uuid
 
 ## Import
 

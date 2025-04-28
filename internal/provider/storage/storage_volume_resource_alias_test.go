@@ -35,7 +35,7 @@ func TestAccStorageVolumeResourceAlias(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccStorageVolumeResourceConfigAliasUpdate("automation", "accVolume1"),
+				Config: testAccStorageVolumeResourceConfigAliasUpdate("tf_acc_svm", "accVolume1"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "name", "accVolume1"),
 					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "nas.group_id", "10"),
@@ -48,7 +48,7 @@ func TestAccStorageVolumeResourceAlias(t *testing.T) {
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s", "tf_acc_volume", "tf_acc_svm", "cluster5"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "name", "automation"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "name", "tf_acc_svm"),
 				),
 			},
 		},
@@ -106,6 +106,14 @@ resource "netapp-ontap_storage_volume_resource" "example" {
     security_style = "mixed"
 	junction_path = "/testacc"
   }
+  autosize = {
+    minimum = 20
+    maximum = 60
+    shrink_threshold = 10
+    grow_threshold = 90
+    mode = "off"
+    size_unit = "mb"
+  }
 }`, host, admin, password, volName, svm)
 }
 
@@ -159,6 +167,14 @@ resource "netapp-ontap_storage_volume_resource" "example" {
     unix_permissions = "755"
     security_style = "mixed"
 	junction_path = "/testacc"
+  }
+  autosize = {
+    minimum = 25
+    maximum = 65
+    shrink_threshold = 15
+    grow_threshold = 95
+    mode = "grow"
+    size_unit = "mb"
   }
 }`, host, admin, password, volName, svm)
 }

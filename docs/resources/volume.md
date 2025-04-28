@@ -61,6 +61,14 @@ resource "netapp-ontap_volume" "example" {
     security_style = "mixed"
     junction_path = "/testacc"
   }
+  autosize = {
+    minimum = 20
+    maximum = 60
+    shrink_threshold = 10
+    grow_threshold = 90
+    mode = "off"
+    size_unit = "mb"
+  }
 }
 ```
 
@@ -78,6 +86,7 @@ resource "netapp-ontap_volume" "example" {
 ### Optional
 
 - `analytics` (Attributes) (see [below for nested schema](#nestedatt--analytics))
+- `autosize` (Attributes) (see [below for nested schema](#nestedatt--autosize))
 - `comment` (String) Sets a comment associated with the volume
 - `efficiency` (Attributes) (see [below for nested schema](#nestedatt--efficiency))
 - `encryption` (Boolean) Whether or not to enable Volume Encryption
@@ -133,6 +142,22 @@ Optional:
 Optional:
 
 - `state` (String) Set file system analytics state of the volume
+
+<a id="nestedatt--autosize"></a>
+
+### Nested Schema for `autosize`
+
+Optional:
+
+- `grow_threshold` (Number) Used space threshold size, in percentage, for the automatic growth of the volume.
+- `maximum` (Number) Maximum size in bytes up to which a volume grows automatically. This size cannot be less than the current volume size, or less than or equal to the minimum size of volume.
+- `minimum` (Number) Minimum size in bytes up to which the volume shrinks automatically. This size cannot be greater than or equal to the maximum size of volume.
+- `mode` (String) Autosize mode for the volume.
+							    grow - Volume automatically grows when the amount of used space is above the 'grow_threshold' value.
+							   	grow_shrink - Volume grows or shrinks in response to the amount of space used.
+									off - Autosizing of the volume is disabled.
+- `shrink_threshold` (Number) Used space threshold size, in percentage, for the automatic shrinkage of the volume.
+- `size_unit` (String) The unit used to interpret the minimum or maximum size parameters
 
 <a id="nestedatt--efficiency"></a>
 

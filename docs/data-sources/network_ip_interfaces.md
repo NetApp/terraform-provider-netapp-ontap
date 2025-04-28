@@ -68,6 +68,7 @@ Read-Only:
 - `scope` (String) IPInterface scope
 - `svm_name` (String) IPInterface svm name. Applies only to SVM-scoped objects
 - `service_policy` (String) IPInterface service policy
+- `ipspace` (String) IPInterface ipspace
 
 <a id="nestedatt--ip_interfaces--ip"></a>
 
@@ -96,3 +97,12 @@ Read-Only:
 
 - `name` (String) Name of the broadcast domain, scoped to its IPspace
 - `id` (String) Broadcast domain UUID
+
+<a id="nestedatt--ipspace"></a>
+
+### Nested Schema for `ipspace`
+
+Read-Only:
+
+- `name` (String) IPInterface IPSpace name
+- `uuid` (Number) IPInterface IPSpace uuid

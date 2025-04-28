@@ -561,14 +561,15 @@ func (r *SecurityAccountResource) ImportState(ctx context.Context, req resource.
 	tflog.Debug(ctx, fmt.Sprintf("import req security account resource: %#v", req))
 	// Parse the ID
 	idParts := strings.Split(req.ID, ",")
-	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+	if len(idParts) != 3 || idParts[0] == "" || idParts[1] == "" || idParts[2] == "" {
 		resp.Diagnostics.AddError(
 			"Unexpected Import Identifier",
-			fmt.Sprint("Expected ID in the format 'name,cx_profile_name', got: ", req.ID),
+			fmt.Sprint("Expected ID in the format 'name,svm,cx_profile_name', got: ", req.ID),
 		)
 		return
 	}
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[0])...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[1])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("owner").AtName("name"), idParts[1])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[2])...)
 }
