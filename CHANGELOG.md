@@ -4,6 +4,10 @@ ENHANCEMENTS:
 
 - **netapp-ontap_aggregate_data_source**, **netapp-ontap_aggregates_data_source**: added `space.block_storage.available` option ([#256](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/256))
 
+BUG FIXES:
+
+- **netapp-ontap_port**: error when importing VLANs in multi-node clusters ([#479](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/479))
+
 # 2.1.2 (not released)
 
 BUG FIXES:
