@@ -281,6 +281,7 @@ func (r *EthernetPortResource) Read(ctx context.Context, req resource.ReadReques
 		restInfo, err = interfaces.GetEthernetPortByName(
 			errorHandler,
 			*client,
+			data.Node.Name.ValueString(),
 			data.Name.ValueString(),
 		)
 		if err != nil {
