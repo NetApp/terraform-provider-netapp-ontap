@@ -143,15 +143,15 @@ Required:
 ## Import
 
 This Resource supports import, which allows you to import existing ethernet port into the state of this resoruce.
-Import require a unique ID composed of the cx_profile_name and port name, separated by a comma.
-id = `cx_profile_name`,`name`
+Import require a unique ID composed of the port name, node name, and cx_profile_name, separated by a comma.
+id = `name`,`node`,`cx_profile_name`
 
 ### Terraform Import
 
 For example
 
 ```shell
- terraform import netapp-ontap_port.example cluster4,e0a-300
+ terraform import netapp-ontap_port.example e0a-300,netapp_single-01,cluster4
 ```
 
 !> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
@@ -165,7 +165,7 @@ First create the block
 ```terraform
 import {
   to = netapp-ontap_port.vlan_import
-  id = "cluster4,e0a-300"
+  id = "e0a-300,netapp_single-01,cluster4"
 }
 ```
 
@@ -180,7 +180,7 @@ This will generate a file called generated.tf, which will contain the configurat
 ```terraform
 # __generated__ by Terraform
 # Please review these resources and move them into your main configuration files.
-# __generated__ by Terraform from "cluster4,e0a-300"
+# __generated__ by Terraform from "e0a-300,netapp_single-01,cluster4"
 resource "netapp-ontap_port" "vlan_import" {
   cx_profile_name = "cluster4"
   type            = "vlan"

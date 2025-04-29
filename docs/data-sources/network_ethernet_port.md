@@ -22,6 +22,9 @@ data "netapp-ontap_port" "physical" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name            = "e0a"
+  node = {
+    name = "netapp_single-01"
+  }
 }
 ```
 
@@ -30,6 +33,9 @@ data "netapp-ontap_port" "lag" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name            = "a0a"
+  node = {
+    name = "netapp_single-01"
+  }
 }
 ```
 
@@ -38,6 +44,9 @@ data "netapp-ontap_port" "vlan" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   name            = "e0a-100"
+  node = {
+    name = "netapp_single-01"
+  }
 }
 ```
 
@@ -49,6 +58,7 @@ data "netapp-ontap_port" "vlan" {
 
 - `cx_profile_name` (String) Connection profile name
 - `name` (String) Portname, such as e0a, e1b-100 (VLAN on Ethernet), a0c (LAG/ifgrp), a0d-200 (VLAN on LAG/ifgrp), e0a.pv1 (p-VLAN, in select environments only)
+- `node` (Attributes) (see [below for nested schema](#nestedatt--node))
 
 ### Read-Only
 
@@ -58,7 +68,6 @@ data "netapp-ontap_port" "vlan" {
 - `lag` (Attributes) (see [below for nested schema](#nestedatt--lag))
 - `mac_address` (String) Port MAC address
 - `mtu` (Number) MTU of the port in bytes
-- `node` (Attributes) (see [below for nested schema](#nestedatt--node))
 - `rdma_protocols` (Set of String) Supported RDMA offload protocols
 - `reachability` (String) Reachability status of the port
 - `speed` (Number) Link speed in Mbps
@@ -92,9 +101,12 @@ Read-Only:
 
 ### Nested Schema for `node`
 
-Read-Only:
+Required:
 
 - `name` (String) Name of the node on which the port is located
+
+Read-Only:
+
 - `id` (String) Node UUID
 
 <a id="nestedatt--vlan"></a>
