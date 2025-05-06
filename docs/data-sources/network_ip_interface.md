@@ -43,6 +43,7 @@ data "netapp-ontap_network_ip_interface" "ip_interface" {
 - `location` (Attributes) (see [below for nested schema](#nestedatt--location))
 - `scope` (String) IPInterface scope
 - `service_policy` (String) IPInterface service policy
+- `ipspace` (String) IPInterface ipspace
 
 <a id="nestedatt--ip"></a>
 
@@ -71,3 +72,12 @@ Read-Only:
 
 - `name` (String) Name of the broadcast domain, scoped to its IPspace
 - `id` (String) Broadcast domain UUID
+
+<a id="nestedatt--ipspace"></a>
+
+### Nested Schema for `ipspace`
+
+Read-Only:
+
+- `name` (String) IPInterface IPSpace name
+- `uuid` (Number) IPInterface IPSpace uuid

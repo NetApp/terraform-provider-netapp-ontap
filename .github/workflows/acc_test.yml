@@ -2,9 +2,13 @@ name: Go ACC Tests
 
 on: 
   push:
+    branches:
+      - "integration/main"
+      - "release*"
   pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [ "integration/main" ]
+    branches:
+      - "integration/main"
+      - "release*"
 
 jobs:
   build:
@@ -23,7 +27,60 @@ jobs:
         with:
           go-version: '1.21'
 
-      - name: Build
+      - name: Detect changed resource files
+        id: changes
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE_BRANCH=${{ github.event.pull_request.base.ref }}
+          else
+            BASE_BRANCH=integration/main
+          fi
+          CHANGED_FILES=$(git diff --name-only origin/$BASE_BRANCH | grep -E '.*resource.go$|.*provider.*test.go$' || true)
+          INTERFACE_FILES=$(git diff --name-only origin/$BASE_BRANCH | grep -E '.*interfaces.*.go$' || true)
+          if [ -z "$CHANGED_FILES" ] && [ -z "$INTERFACE_FILES" ]; then
+            echo "No resource, test, or interface files changed."
+            echo "CHANGED_FILES=" >> $GITHUB_ENV
+            echo "interface_files=" >> $GITHUB_ENV
+            exit 0
+          fi
+          UPDATED_CHANGED_FILES=""
+          for FILE in $CHANGED_FILES; do
+            if [[ "$FILE" == *resource.go ]]; then
+              TEST_FILE="${FILE%.go}_test.go"
+            else
+              TEST_FILE="$FILE"
+            fi
+            UPDATED_CHANGED_FILES="$UPDATED_CHANGED_FILES $TEST_FILE"
+          done
+          for FILE in $(echo $INTERFACE_FILES | tr ' ' '\n'); do
+            if [[ "$FILE" == *test.go ]] || [[ "$FILE" == *cluster_job.go ]] || [[ "$FILE" == *data_source* ]]; then
+              continue
+            fi
+            BASE_NAME=$(basename "$FILE")
+            if [[ "$BASE_NAME" == *name_services* ]]; then
+              PREFIX=$(echo "$BASE_NAME" | awk -F'_' '{print $1"_"$2}')
+            elif [[ "$BASE_NAME" == *network* ]]; then
+              PREFIX="${BASE_NAME%%_*}ing"
+            else
+              PREFIX=${BASE_NAME%%_*}
+            fi
+            TEST_FILE="internal/provider/${PREFIX}/${BASE_NAME%.go}_resource_test.go"
+            if ! echo "$UPDATED_CHANGED_FILES" | grep -q "$TEST_FILE"; then
+              UPDATED_CHANGED_FILES="$UPDATED_CHANGED_FILES $TEST_FILE"
+            fi
+          done
+          # Remove duplicates
+          UPDATED_CHANGED_FILES=$(echo "$UPDATED_CHANGED_FILES" | tr ' ' '\n' | sort | uniq | tr '\n' ' ')
+          printf "Acceptance test files required to run: %b\n" "$UPDATED_CHANGED_FILES"
+          printf "INTERFACE_FILES: %b\n" "$INTERFACE_FILES"
+          echo "Changed resource files: $UPDATED_CHANGED_FILES"
+          echo "UPDATED_CHANGED_FILES=$UPDATED_CHANGED_FILES" >> $GITHUB_ENV
+
+      - name: Create temporary directory
+        run: mkdir -p ~/tmp/
+
+      - name: Run Accesptance Tests
+        if: env.UPDATED_CHANGED_FILES != ''
         env:
           TF_ACC_NETAPP_HOST: ${{ secrets.TF_ACC_NETAPP_HOST }}
           TF_ACC_NETAPP_HOST2: ${{ secrets.TF_ACC_NETAPP_HOST2 }}
@@ -41,4 +98,12 @@ jobs:
           export GOFLAGS=-buildvcs=false
           export TF_ACC=1
           export TMPDIR=~/tmp/
-          go test `go list ./... | grep -e provider`
+          for FILE in $UPDATED_CHANGED_FILES; do
+            printf "Running acceptance test for %s\n" "$FILE"
+            go test "$FILE"
+          done
+
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -rf ~/tmp/

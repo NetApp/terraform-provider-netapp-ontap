@@ -3,14 +3,41 @@ name: Blackduck Scan
 on:
   push:
     branches:
-      - integration/main
+      - "integration/main"
+      - "release*"
   pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [ "integration/main" ]
+    branches:
+      - "integration/main"
+      - "release*"
 
 jobs:
-  build:
+  validate-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
+      - name: Get Latest Release Version
+        id: get_latest_release
+        run: |
+          LATEST_RELEASE=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r '.tag_name' | sed 's/^v//')
+          echo "Latest release: $LATEST_RELEASE"
+          echo "LATEST_RELEASE=${LATEST_RELEASE}" >> $GITHUB_ENV
+
+      - name: Validate DETECT_PROJECT_VERSION_NAME
+        id: validate_version
+        run: |
+          LATEST_VERSION=${LATEST_RELEASE}
+          CURRENT_VERSION=$(grep -oP 'DETECT_PROJECT_VERSION_NAME=\K.*' scripts/bd_scan.bash)
+          echo "Latest version released: $LATEST_VERSION"
+          echo "Current version for scanning: $CURRENT_VERSION"
+          if [ "$(printf '%s\n' "$LATEST_VERSION" "$CURRENT_VERSION" | sort -V | tail -n 1)" == "$LATEST_VERSION" ]; then
+            echo "Error: DETECT_PROJECT_VERSION_NAME ($CURRENT_VERSION) must be greater than the latest release version ($LATEST_VERSION) in bd_scan.sh script."
+            exit 1
+          fi
+
+  build:
+    needs: validate-version
     runs-on: self-hosted
     steps:
       - uses: actions/setup-java@v4
@@ -22,7 +49,8 @@ jobs:
         with:
           go-version: '1.21'
       - uses: actions/checkout@v4
-
+      - name: Run Go Mod Tidy
+        run: go mod tidy
       - name: Build
         env:
           BLACKDUCK_URL: ${{ secrets.BLACKDUCK_URL }}

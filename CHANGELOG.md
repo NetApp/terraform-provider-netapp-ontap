@@ -1,8 +1,30 @@
-# 2.1.2 (not released)
+# 2.3.0 (2025-xx-xx)
+
+# 2.2.0 (2025-05-01)
+
+FEATURES:
+
+- **New Data Source:** `netapp-ontap_iscsi_service` ([#442](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/442))
+- **New Data Source:** `netapp-ontap_iscsi_services` ([#442](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/442))
+- **New Resource:** `netapp-ontap_iscsi_service` ([#442](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/442))
+
+ENHANCEMENTS:
+
+- **netapp-ontap_aggregate_data_source**, **netapp-ontap_aggregates_data_source**: added `space.block_storage.available` option ([#256](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/256))
+- **netapp-ontap_volume_resource**: added `autosize.*` options. ([#245](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/245))
+- **netapp-ontap_networking_ip_interface**: added `ipspace` option ([#249](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/249))
 
 BUG FIXES:
 
+- **netapp-ontap_security_account**: Error importing security_account resource if same account exists on multiple SVMs([#457](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/457))
 - **netapp-ontap_svm_qos_policy_activation**: ID parameter missing in QOS policy ([#429](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/429))
+- **netapp-ontap_security_account**: password, comment and locked parameters not passed into body request for creating account ([#462](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/462))
+- **netapp-ontap_security_account**: fixed inconsistency plan changes when re-run with terraform apply ([#465](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/465))
+- Corrected Resource and Data Source documentation Names ([#441](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/441))
+- **netapp-ontap_security_role**: Fixed provider produced inconsistent result after apply on privileges. Fixed Documentation typo. Removed delting default privileges after create. ([#469](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/469))
+- **netapp-ontap_svm_qos_policy_activation**: Renamed documentation from `svm_qos_policy_activation_resource` to `svm_qos_policy_activation` ([#430](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/430))
+- **netapp-ontap_cifs_service**: Fixed no resource state after creation by modifying the "kdc_encrytion" version check and also idempotency issue with CIFS server name ([#367](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/367))
+- **netapp-ontap_volume**: Fixed an issue where modifying a volume incorrectly attempted an in-place update when changing the volume type from read-write (RW) to data-protection (DP), which now correctly triggers a resource replacement. ([#329](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/329))
 
 # 2.1.1 (2025-02-26)
 

@@ -19,6 +19,7 @@ type StorageAggregateGetDataModelONTAP struct {
 	DataEncryption AggregateDataEncryption `mapstructure:"data_encryption"`
 	SnaplockType   string                  `mapstructure:"snaplock_type"`
 	State          string                  `mapstructure:"state"`
+	Space          AggregateSpace          `mapstructure:"space"`
 }
 
 // StorageAggregateGetDataFilterModel describes filter model
@@ -46,6 +47,16 @@ type AggregateBlockStorage struct {
 // AggregateBlockStorageMirror describes mirror within AggregateBlockStorage
 type AggregateBlockStorageMirror struct {
 	Enabled bool `mapstructure:"enabled"`
+}
+
+// AggregateSpace describes space within StorageAggregateGetDataModelONTAP
+type AggregateSpace struct {
+	BlockStorage AggregateSpaceBlockStorage `mapstructure:"block_storage"`
+}
+
+// AggregateSpaceBlockStorage describes block_storage within AggregateSpace
+type AggregateSpaceBlockStorage struct {
+	Available int64 `mapstructure:"available"`
 }
 
 // StorageAggregateResourceModel describes the resource data model.
@@ -94,7 +105,7 @@ func GetStorageAggregateByName(errorHandler *utils.ErrorHandler, r restclient.Re
 	query := r.NewQuery()
 	query.Set("name", name)
 
-	query.Fields([]string{"name", "node.name", "uuid", "state", "block_storage.primary.disk_class", "block_storage.primary.disk_count", "block_storage.primary.raid_size", "block_storage.primary.raid_type", "block_storage.mirror.enabled", "snaplock_type", "data_encryption.software_encryption_enabled"})
+	query.Fields([]string{"name", "node.name", "uuid", "state", "block_storage.primary.disk_class", "block_storage.primary.disk_count", "block_storage.primary.raid_size", "block_storage.primary.raid_type", "block_storage.mirror.enabled", "snaplock_type", "data_encryption.software_encryption_enabled", "space.block_storage.available"})
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
 		err = fmt.Errorf("no response for GET %s", api)
@@ -116,7 +127,7 @@ func GetStorageAggregateByName(errorHandler *utils.ErrorHandler, r restclient.Re
 func GetStorageAggregates(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *StorageAggregateGetDataFilterModel) ([]StorageAggregateGetDataModelONTAP, error) {
 	api := "storage/aggregates"
 	query := r.NewQuery()
-	query.Fields([]string{"name", "node.name", "uuid", "state", "block_storage.primary.disk_class", "block_storage.primary.disk_count", "block_storage.primary.raid_size", "block_storage.primary.raid_type", "block_storage.mirror.enabled", "snaplock_type", "data_encryption.software_encryption_enabled"})
+	query.Fields([]string{"name", "node.name", "uuid", "state", "block_storage.primary.disk_class", "block_storage.primary.disk_count", "block_storage.primary.raid_size", "block_storage.primary.raid_type", "block_storage.mirror.enabled", "snaplock_type", "data_encryption.software_encryption_enabled", "space.block_storage.available"})
 	if filter != nil {
 		var filterMap map[string]interface{}
 		if err := mapstructure.Decode(filter, &filterMap); err != nil {
