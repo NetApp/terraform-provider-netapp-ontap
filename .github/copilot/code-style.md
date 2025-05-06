@@ -4,82 +4,21 @@ Please Adhere to these Standard.
 ## Directory Structure
 - New Resources and Data Sources should be kept in `/internal/provider/<api>` with the API being the based REST API that Resources and Data Sources is based off of. We only make 1 level of directories for API for example if we had `storage/volumes/files` the directory would look like `/internal/provider/storage/storage_volumes_files_resource.go`
 - Function that make REST API calls should be placed in `/internal/interfaces` and be named after the REST API. For example `storage/volumes/files` become `storage_volumes_files.go`
-- All Resources need examples at `/examples/resources/` with the name starting with netapp-ontap followed by the resource
-- All Data Sources need Examples at `/examples/data-sources/` with the name starting with netapp-ontap followed by the resource
 - All Resources need a doc page at `/docs/resources/` with a .md file in all lower cases that matches the api name
 - All Data Sources need a doc page at `/docs/data-sources/` with a .md file in all lower cases that matches the api name
 - The provider.go files is located at `/internal/provider/provider.go`
 
 ## Building
-- Aftering creating a new Resouce you must built it to see if it works. To build the provider run the folowing command
+- After creating a new resource, you must build it to see if it works. To build the provider, run the following command
 ```
           export GOFLAGS=-buildvcs=false
           go mod tidy
           go build -v -o .
 ```
 
-## runing test
-- After creating a new Resouce you must the ACC test you created for that resouces. To reun the acc test run the following
-```
-          export GOFLAGS=-buildvcs=false
-          export TF_ACC=1
-          go test <path to file you added for testing>
-```
-
-
 ## Naming Rules
-- Test live in the same directory as the file it testing. so `cluster_peer_resource.go` test is in the same directory with `cluster_peer_resource_test.go`
+- Tests should reside in the same directory as the file they are testing. For example, the test for `cluster_peer_resource.go` should be located in the same directory and named `cluster_peer_resource_test.go`.  
 
-## Rules for Examples
-- For every example in `/examples/resources/` and `/examples/data-sources/ a directory called netapp-ontap followed by the resource or data source name
-- In this directory will be 3 files (provider.tf, resource.tf and variables.tf)
-- below is an example of what provider.tf should look like
-```tf
-terraform {
-  required_providers {
-    netapp-ontap = {
-      source = "NetApp/netapp-ontap"
-      version = "0.0.1"
-    }
-  }
-}
-
-
-provider "netapp-ontap" {
-  # A connection profile defines how to interface with an ONTAP cluster or svm.
-  # At least one is required.
-  connection_profiles = [
-    {
-      name = "cluster1"
-      hostname = "********219"
-      username = var.username
-      password = var.password
-      validate_certs = var.validate_certs
-    },
-    {
-      name = "cluster2"
-      hostname = "********222"
-      username = var.username
-      password = var.password
-      validate_certs = var.validate_certs
-    },
-  ]
-}
-```
-- variables.tf should always look like the example below
-```tf
-# Terraform will prompt for values, unless a tfvars file is present.
-variable "username" {
-    type = string
-}
-variable "password" {
-    type = string
-    sensitive = true
-}
-variable "validate_certs" {
-    type = bool
-}
-```
 
 ## rules for Docs
 - All options that exist in Resources and Data Sources must be listed in the documentation for that module.

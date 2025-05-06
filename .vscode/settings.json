@@ -11,9 +11,14 @@
     ],
     "github.copilot.chat.codeGeneration.instructions": [
 
+
         {
             "file": ".github/copilot/code-style.md"
+        },
+        {
+            "test": "All code should be written in TypeScript."
         }
+
     ],
     "github.copilot.chat.codeGeneration.useInstructionFiles": true
 }
