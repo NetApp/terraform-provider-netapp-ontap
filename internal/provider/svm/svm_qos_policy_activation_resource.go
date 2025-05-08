@@ -44,6 +44,7 @@ type SvmQosPolicyActivationResourceModel struct {
 	CxProfileName types.String                                  `tfsdk:"cx_profile_name"`
 	Svm           *SvmQosPolicyActivationSvmResourceModel       `tfsdk:"svm"`
 	QoSPolicy     *SvmQosPolicyActivationQosPolicyResourceModel `tfsdk:"qos_policy"`
+	ID            types.String                                  `tfsdk:"id"`
 }
 
 type SvmQosPolicyActivationSvmResourceModel struct {
@@ -112,6 +113,13 @@ func (r *SvmQosPolicyActivationResource) Schema(ctx context.Context, req resourc
 				},
 				MarkdownDescription: "QoS policy group to apply to the SVM (name or UUID)",
 				Required:            true,
+			},
+			"id": schema.StringAttribute{
+				MarkdownDescription: "The unique identifier of the SVM QoS Policy Activation",
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 		},
 	}
@@ -207,6 +215,7 @@ func (r *SvmQosPolicyActivationResource) Read(ctx context.Context, req resource.
 		data.QoSPolicy = &SvmQosPolicyActivationQosPolicyResourceModel{}
 	}
 	data.QoSPolicy.ID = types.StringValue(svm.QoSPolicy.UUID)
+	data.ID = types.StringValue(svm.QoSPolicy.UUID)
 	data.QoSPolicy.Name = types.StringValue(svm.QoSPolicy.Name)
 
 	// Write logs using the tflog package
@@ -301,6 +310,7 @@ func (r *SvmQosPolicyActivationResource) Create(ctx context.Context, req resourc
 	// Copy remaining svm info to resource model
 	data.Svm.Name = types.StringValue(svm.Name)
 	data.QoSPolicy.ID = types.StringValue(svm.QoSPolicy.UUID)
+	data.ID = types.StringValue(svm.QoSPolicy.UUID)
 	data.QoSPolicy.Name = types.StringValue(svm.QoSPolicy.Name)
 
 	// Save data into Terraform state
@@ -363,6 +373,7 @@ func (r *SvmQosPolicyActivationResource) Update(ctx context.Context, req resourc
 	// Copy remaining svm info to resource model
 	data.Svm.Name = types.StringValue(svm.Name)
 	data.QoSPolicy.ID = types.StringValue(svm.QoSPolicy.UUID)
+	data.ID = types.StringValue(svm.QoSPolicy.UUID)
 	data.QoSPolicy.Name = types.StringValue(svm.QoSPolicy.Name)
 
 	// Save updated data into Terraform state

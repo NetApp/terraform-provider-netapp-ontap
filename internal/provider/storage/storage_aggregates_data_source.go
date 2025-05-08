@@ -133,6 +133,20 @@ func (d *StorageAggregatesDataSource) Schema(ctx context.Context, req datasource
 							MarkdownDescription: "Whether to enable software encryption. This is equivalent to -encrypt-with-aggr-key when using the CLI.Requires a VE license.",
 							Computed:            true,
 						},
+						"space": schema.SingleNestedAttribute{
+							Computed:   true,
+							Attributes: map[string]schema.Attribute{
+								"block_storage": schema.SingleNestedAttribute{
+									Computed:   true,
+									Attributes: map[string]schema.Attribute{
+										"available": schema.Int64Attribute{
+											Computed:            true,
+											MarkdownDescription: "Space available in bytes.",
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 				Computed:            true,
@@ -206,6 +220,11 @@ func (d *StorageAggregatesDataSource) Read(ctx context.Context, req datasource.R
 			State:         types.StringValue(record.State),
 			Name:          types.StringValue(record.Name),
 			Node:          types.StringValue(record.Node.Name),
+			Space:         &StorageAggregateDataSourceSpace{
+				BlockStorage: &StorageAggregateDataSourceSpaceBlockStorage{
+					Available: types.Int64Value(record.Space.BlockStorage.Available),
+				},
+			},
 		}
 	}
 

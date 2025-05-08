@@ -20,24 +20,22 @@ func TestAccSvmQosPolicyActivationResource(t *testing.T) {
 		ProtoV6ProviderFactories: ntest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSvmQosPolicyActivationResourceConfig("svm02", "performance-svm02"),
+				Config: testAccSvmQosPolicyActivationResourceConfig("tf_acc_svm", "tf_acc_qos_policy"),
 				Check: resource.ComposeTestCheckFunc(
 					// Check to see if names are set correctly
-					resource.TestCheckResourceAttr("netapp-ontap_svm_qos_policy_activation.example", "svm.name", "svm02"),
-					resource.TestCheckResourceAttr("netapp-ontap_svm_qos_policy_activation.example", "qos_policy.name", "performance-svm02"),
-					// Check to see if IDs are set correctly (we don't know what the value is as it changes)
+					resource.TestCheckResourceAttr("netapp-ontap_svm_qos_policy_activation.example", "svm.name", "tf_acc_svm"),
+					resource.TestCheckResourceAttr("netapp-ontap_svm_qos_policy_activation.example", "qos_policy.name", "tf_acc_qos_policy"),
 					resource.TestMatchResourceAttr("netapp-ontap_svm_qos_policy_activation.example", "svm.id", regexp.MustCompile(idRegex)),
 					resource.TestMatchResourceAttr("netapp-ontap_svm_qos_policy_activation.example", "qos_policy.id", regexp.MustCompile(idRegex)),
 				),
 			},
 			// Update qos_policy
 			{
-				Config: testAccSvmQosPolicyActivationResourceConfig("svm02", "test-svm02"),
+				Config: testAccSvmQosPolicyActivationResourceConfig("tf_acc_svm", "tf_acc_qos_policy"),
 				Check: resource.ComposeTestCheckFunc(
 					// Check to see if names are set correctly
-					resource.TestCheckResourceAttr("netapp-ontap_svm_qos_policy_activation.example", "svm.name", "svm02"),
-					resource.TestCheckResourceAttr("netapp-ontap_svm_qos_policy_activation.example", "qos_policy.name", "test-svm02"),
-					// Check to see if IDs are set correctly (we don't know what the value is as it changes)
+					resource.TestCheckResourceAttr("netapp-ontap_svm_qos_policy_activation.example", "svm.name", "tf_acc_svm"),
+					resource.TestCheckResourceAttr("netapp-ontap_svm_qos_policy_activation.example", "qos_policy.name", "tf_acc_qos_policy"),
 					resource.TestMatchResourceAttr("netapp-ontap_svm_qos_policy_activation.example", "svm.id", regexp.MustCompile(idRegex)),
 					resource.TestMatchResourceAttr("netapp-ontap_svm_qos_policy_activation.example", "qos_policy.id", regexp.MustCompile(idRegex)),
 				),
@@ -46,12 +44,11 @@ func TestAccSvmQosPolicyActivationResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_svm_qos_policy_activation.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s", "svm02", "cluster4"),
+				ImportStateId: fmt.Sprintf("%s,%s", "tf_acc_svm", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
 					// Check to see if names are set correctly
-					resource.TestCheckResourceAttr("netapp-ontap_svm_qos_policy_activation.example", "svm.name", "svm02"),
+					resource.TestCheckResourceAttr("netapp-ontap_svm_qos_policy_activation.example", "svm.name", "tf_acc_svm"),
 					resource.TestCheckResourceAttr("netapp-ontap_svm_qos_policy_activation.example", "qos_policy.name", "test-svm02"),
-					// Check to see if IDs are set correctly (we don't know what the value is as it changes)
 					resource.TestMatchResourceAttr("netapp-ontap_svm_qos_policy_activation.example", "svm.id", regexp.MustCompile(idRegex)),
 					resource.TestMatchResourceAttr("netapp-ontap_svm_qos_policy_activation.example", "qos_policy.id", regexp.MustCompile(idRegex)),
 				),

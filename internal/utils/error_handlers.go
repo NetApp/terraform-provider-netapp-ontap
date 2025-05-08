@@ -40,7 +40,7 @@ func (e *ErrorHandler) MakeAndLogError(msg string) error {
 // The error is added to the diagnostic and will be reported by Terraform
 func (e *ErrorHandler) MakeAndReportError(summary string, msg string) error {
 	e.validate()
-	fullMsg := fmt.Sprintf("HERE  %s: %s", summary, msg)
+	fullMsg := fmt.Sprintf("%s: %s", summary, msg)
 	tflog.SubsystemError(e.subCtx, e.name, msg)
 	e.diags.AddError(summary, msg)
 	return errors.New(fullMsg)

@@ -72,4 +72,19 @@ Read-Only:
 - `raid_size` (Number) Sets the maximum number of drives per raid group.
 - `raid_type` (String)
 - `snaplock_type` (String) Type of snaplock for the aggregate being created.
+- `space` (Attributes) (see [below for nested schema](#nestedatt--storage_aggregates--space))
 - `state` (String) Whether the specified aggregate should be enabled or disabled. Creates aggregate if doesn't exist.
+
+<a id="nestedatt--storage_aggregates--space"></a>
+### Nested Schema for `storage_aggregates.space`
+
+Read-Only:
+
+- `block_storage` (Attributes) (see [below for nested schema](#nestedatt--storage_aggregates--space--block_storage))
+
+<a id="nestedatt--storage_aggregates--space--block_storage"></a>
+### Nested Schema for `storage_aggregates.space.block_storage`
+
+Read-Only:
+
+- `available` (Number) Space available in bytes.

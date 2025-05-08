@@ -40,11 +40,11 @@ func TestLicensingLicenseResouce(t *testing.T) {
 }
 
 func testAccLicensingLicenseResourceConfig(key string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST5")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`

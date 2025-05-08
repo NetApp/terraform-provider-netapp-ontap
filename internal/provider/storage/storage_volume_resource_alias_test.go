@@ -28,14 +28,14 @@ func TestAccStorageVolumeResourceAlias(t *testing.T) {
 			},
 			// Read testing
 			{
-				Config: testAccStorageVolumeResourceConfigAlias("acc_test", "accVolume1"),
+				Config: testAccStorageVolumeResourceConfigAlias("tf_acc_svm", "tf_acc_volume2"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "name", "accVolume1"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "name", "tf_acc_volume2"),
 					resource.TestCheckNoResourceAttr("netapp-ontap_storage_volume_resource.example", "volname"),
 				),
 			},
 			{
-				Config: testAccStorageVolumeResourceConfigAliasUpdate("automation", "accVolume1"),
+				Config: testAccStorageVolumeResourceConfigAliasUpdate("tf_acc_svm", "accVolume1"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "name", "accVolume1"),
 					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "nas.group_id", "10"),
@@ -46,9 +46,9 @@ func TestAccStorageVolumeResourceAlias(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_storage_volume_resource.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s", "acc_test_root", "acc_test", "cluster5"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s", "tf_acc_volume", "tf_acc_svm", "cluster5"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "name", "automation"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "name", "tf_acc_svm"),
 				),
 			},
 		},
@@ -56,12 +56,12 @@ func TestAccStorageVolumeResourceAlias(t *testing.T) {
 }
 
 func testAccStorageVolumeResourceConfigAlias(svm, volName string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST2")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -82,7 +82,7 @@ resource "netapp-ontap_storage_volume_resource" "example" {
   name = "%s"
   svm_name = "%s"
   aggregates = [
-	{name = "acc_test"}
+	{name = "tf_acc_aggr"}
 ]
   space_guarantee = "none"
   snapshot_policy = "default-1weekly"
@@ -99,23 +99,31 @@ resource "netapp-ontap_storage_volume_resource" "example" {
   	policy_name = "all"
   }
   nas = {
-    export_policy_name = "test"
+    export_policy_name = "default"
     group_id = 1
     user_id = 2
     unix_permissions = "100"
     security_style = "mixed"
 	junction_path = "/testacc"
   }
+  autosize = {
+    minimum = 20
+    maximum = 60
+    shrink_threshold = 10
+    grow_threshold = 90
+    mode = "off"
+    size_unit = "mb"
+  }
 }`, host, admin, password, volName, svm)
 }
 
 func testAccStorageVolumeResourceConfigAliasUpdate(svm, volName string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST2")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -136,7 +144,7 @@ resource "netapp-ontap_storage_volume_resource" "example" {
   name = "%s"
   svm_name = "%s"
   aggregates = [
-	{name = "acc_test"}
+	{name = "tf_acc_aggr"}
 ]
   space_guarantee = "none"
   snapshot_policy = "default-1weekly"
@@ -153,12 +161,20 @@ resource "netapp-ontap_storage_volume_resource" "example" {
   	policy_name = "all"
   }
   nas = {
-    export_policy_name = "test"
+    export_policy_name = "default"
     group_id = 10
     user_id = 20
     unix_permissions = "755"
     security_style = "mixed"
 	junction_path = "/testacc"
+  }
+  autosize = {
+    minimum = 25
+    maximum = 65
+    shrink_threshold = 15
+    grow_threshold = 95
+    mode = "grow"
+    size_unit = "mb"
   }
 }`, host, admin, password, volName, svm)
 }

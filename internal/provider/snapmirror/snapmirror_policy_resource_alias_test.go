@@ -23,57 +23,57 @@ func TestAccSnapmirrorPolicyResourceAlias(t *testing.T) {
 			},
 			// Test create snapmirror policy basic
 			{
-				Config: testAccSnapmirrorPolicyResourceBasicConfigAlias("terraform"),
+				Config: testAccSnapmirrorPolicyResourceBasicConfigAlias("tf_acc_svm"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "carchitestme4"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "tf_acc_test"),
 				),
 			},
 			//  Test adding transfer_schedule
 			{
-				Config: testAccSnapmirrorPolicyResourceAddTransferScheduleBasicConfigAlias("terraform", "weekly"),
+				Config: testAccSnapmirrorPolicyResourceAddTransferScheduleBasicConfigAlias("tf_acc_svm", "weekly"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "carchitestme4"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "tf_acc_test"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "transfer_schedule_name", "weekly"),
 				),
 			},
 			//  Test update transfer_schedule
 			{
-				Config: testAccSnapmirrorPolicyResourceAddTransferScheduleBasicConfigAlias("terraform", "daily"),
+				Config: testAccSnapmirrorPolicyResourceAddTransferScheduleBasicConfigAlias("tf_acc_svm", "daily"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "carchitestme4"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "tf_acc_test"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "transfer_schedule_name", "daily"),
 				),
 			},
 			// Test remove snapmirror policy transfer schedule
 			{
-				Config: testAccSnapmirrorPolicyResourceBasicConfigAlias("terraform"),
+				Config: testAccSnapmirrorPolicyResourceBasicConfigAlias("tf_acc_svm"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "carchitestme4"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "tf_acc_test"),
 				),
 			},
 			// Test add snapmirror policy with comment and identity_preservation
 			{
-				Config: testAccSnapmirrorPolicyResourceConfigAlias("terraform", "test comment", "full"),
+				Config: testAccSnapmirrorPolicyResourceConfigAlias("tf_acc_svm", "test comment", "full"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "carchitestme4"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "tf_acc_test"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "comment", "test comment"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "identity_preservation", "full"),
 				),
 			},
 			// Test update snapmirror policy with comment and identity_preservation change
 			{
-				Config: testAccSnapmirrorPolicyResourceConfigAlias("terraform", "update comment", "exclude_network_config"),
+				Config: testAccSnapmirrorPolicyResourceConfigAlias("tf_acc_svm", "update comment", "exclude_network_config"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "carchitestme4"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "tf_acc_test"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "comment", "update comment"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "identity_preservation", "exclude_network_config"),
 				),
 			},
 			// Test update snapmirror policy with adding two retention rules
 			{
-				Config: testAccSnapmirrorPolicyResourceAddTwoRetentionConfigAlias("terraform", "update comment", "exclude_network_config", "weekly", 5),
+				Config: testAccSnapmirrorPolicyResourceAddTwoRetentionConfigAlias("tf_acc_svm", "update comment", "exclude_network_config", "weekly", 5),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "carchitestme4"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "tf_acc_test"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "comment", "update comment"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "identity_preservation", "exclude_network_config"),
 					// check number of reteion
@@ -86,9 +86,9 @@ func TestAccSnapmirrorPolicyResourceAlias(t *testing.T) {
 			},
 			// Test update snapmirror policy with removing one retention rule
 			{
-				Config: testAccSnapmirrorPolicyResourceRemoveOneRetentionConfigAlias("terraform", "update comment", "exclude_network_config"),
+				Config: testAccSnapmirrorPolicyResourceRemoveOneRetentionConfigAlias("tf_acc_svm", "update comment", "exclude_network_config"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "carchitestme4"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "name", "tf_acc_test"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "comment", "update comment"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.example", "identity_preservation", "exclude_network_config"),
 					// check number of reteion
@@ -99,7 +99,7 @@ func TestAccSnapmirrorPolicyResourceAlias(t *testing.T) {
 			},
 			// Test create sync type snapmirror policy
 			{
-				Config: testAccSnapmirrorPolicyResourceSyncBasicConfigAlias("terraform", "test sync"),
+				Config: testAccSnapmirrorPolicyResourceSyncBasicConfigAlias("tf_acc_svm", "test sync"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.sync_example", "name", "test_sync"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.sync_example", "comment", "test sync"),
@@ -107,7 +107,7 @@ func TestAccSnapmirrorPolicyResourceAlias(t *testing.T) {
 			},
 			// Test update sync type snapmirror policy with changing comment
 			{
-				Config: testAccSnapmirrorPolicyResourceSyncBasicConfigAlias("terraform", "test update sync comment"),
+				Config: testAccSnapmirrorPolicyResourceSyncBasicConfigAlias("tf_acc_svm", "test update sync comment"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.sync_example", "name", "test_sync"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.sync_example", "comment", "test update sync comment"),
@@ -115,7 +115,7 @@ func TestAccSnapmirrorPolicyResourceAlias(t *testing.T) {
 			},
 			// Test update sync type snapmirror policy with adding a retention
 			{
-				Config: testAccSnapmirrorPolicyResourceSyncAddRetentionConfigAlias("terraform", "test add retenion in sync type"),
+				Config: testAccSnapmirrorPolicyResourceSyncAddRetentionConfigAlias("tf_acc_svm", "test add retenion in sync type"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.sync_example", "name", "test_sync"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy_resource.sync_example", "comment", "test add retenion in sync type"),
@@ -127,7 +127,7 @@ func TestAccSnapmirrorPolicyResourceAlias(t *testing.T) {
 			},
 			// Test update sync type snapmirror policy with adding extra retention - max is 1
 			{
-				Config:      testAccSnapmirrorPolicyResourceSyncAddExtraRetentionConfigAlias("terraform", "test add extra retenion in sync type"),
+				Config:      testAccSnapmirrorPolicyResourceSyncAddExtraRetentionConfigAlias("tf_acc_svm", "test add extra retenion in sync type"),
 				ExpectError: regexp.MustCompile("error updating sync snapshot policies"),
 			},
 		},
@@ -135,11 +135,11 @@ func TestAccSnapmirrorPolicyResourceAlias(t *testing.T) {
 }
 
 func testAccSnapmirrorPolicyResourceBasicConfigAlias(svm string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST5")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -157,18 +157,18 @@ provider "netapp-ontap" {
 
 resource "netapp-ontap_snapmirror_policy_resource" "example" {
   cx_profile_name = "cluster4"
-  name = "carchitestme4"
+  name = "tf_acc_test"
   svm_name = "%s"
   type = "async"
 }`, host, admin, password, svm)
 }
 
 func testAccSnapmirrorPolicyResourceAddTransferScheduleBasicConfigAlias(svm string, transferScheduleName string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST5")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -186,7 +186,7 @@ provider "netapp-ontap" {
 
 resource "netapp-ontap_snapmirror_policy_resource" "example" {
   cx_profile_name = "cluster4"
-  name = "carchitestme4"
+  name = "tf_acc_test"
   svm_name = "%s"
   type = "async"
   transfer_schedule_name = "%s"
@@ -194,11 +194,11 @@ resource "netapp-ontap_snapmirror_policy_resource" "example" {
 }
 
 func testAccSnapmirrorPolicyResourceConfigAlias(svm string, comment string, identityPreservation string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST5")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -216,7 +216,7 @@ provider "netapp-ontap" {
 
 resource "netapp-ontap_snapmirror_policy_resource" "example" {
   cx_profile_name = "cluster4"
-  name = "carchitestme4"
+  name = "tf_acc_test"
   svm_name = "%s"
   comment = "%s"
   identity_preservation = "%s"
@@ -225,11 +225,11 @@ resource "netapp-ontap_snapmirror_policy_resource" "example" {
 }
 
 func testAccSnapmirrorPolicyResourceAddTwoRetentionConfigAlias(svm string, comment string, identityPreservation string, label string, count int) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST5")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -247,7 +247,7 @@ provider "netapp-ontap" {
 
 resource "netapp-ontap_snapmirror_policy_resource" "example" {
   cx_profile_name = "cluster4"
-  name = "carchitestme4"
+  name = "tf_acc_test"
   svm_name = "%s"
   comment = "%s"
   identity_preservation = "%s"
@@ -267,11 +267,11 @@ resource "netapp-ontap_snapmirror_policy_resource" "example" {
 }
 
 func testAccSnapmirrorPolicyResourceRemoveOneRetentionConfigAlias(svm string, comment string, identityPreservation string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST5")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -289,7 +289,7 @@ provider "netapp-ontap" {
 
 resource "netapp-ontap_snapmirror_policy_resource" "example" {
   cx_profile_name = "cluster4"
-  name = "carchitestme4"
+  name = "tf_acc_test"
   svm_name = "%s"
   comment = "%s"
   identity_preservation = "%s"
@@ -305,11 +305,11 @@ resource "netapp-ontap_snapmirror_policy_resource" "example" {
 }
 
 func testAccSnapmirrorPolicyResourceSyncBasicConfigAlias(svm string, comment string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST5")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -336,11 +336,11 @@ resource "netapp-ontap_snapmirror_policy_resource" "sync_example" {
 }
 
 func testAccSnapmirrorPolicyResourceSyncAddRetentionConfigAlias(svm string, comment string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST5")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
@@ -373,11 +373,11 @@ resource "netapp-ontap_snapmirror_policy_resource" "sync_example" {
 }
 
 func testAccSnapmirrorPolicyResourceSyncAddExtraRetentionConfigAlias(svm string, comment string) string {
-	host := os.Getenv("TF_ACC_NETAPP_HOST5")
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
-	password := os.Getenv("TF_ACC_NETAPP_PASS2")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST5, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`
