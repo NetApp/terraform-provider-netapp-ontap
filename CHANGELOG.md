@@ -1,3 +1,10 @@
+# 2.2.1
+
+DOCUMENTATION:
+
+- Corrected `aws` to `aws_lambda` in provider config.
+
+
 # 2.2.0 (2025-05-01)
 
 FEATURES:
