@@ -17,7 +17,7 @@ type SecurityAccountResourceBodyDataModelONTAP struct {
 	Role         SecurityAccountRole      `mapstructure:"role,omitempty"`
 	Password     string                   `mapstructure:"password,omitempty"`
 	Comment      string                   `mapstructure:"comment,omitempty"`
-	Locked       bool                     `mapstructure:"locked,omitempty"`
+	Locked       *bool                    `mapstructure:"locked,omitempty"`
 }
 
 // SecurityAccountGetDataModelONTAP describes the GET record data model using go types for mapping.
@@ -38,7 +38,7 @@ type SecurityAccountResourceUpdateBodyDataModelONTAP struct {
 	Role     SecurityAccountRole `mapstructure:"role,omitempty"`
 	Password string              `mapstructure:"password,omitempty"`
 	Comment  string              `mapstructure:"comment,omitempty"`
-	Locked   bool                `mapstructure:"locked,omitempty"`
+	Locked   *bool               `mapstructure:"locked,omitempty"`
 }
 
 // SecurityAccountApplication describes the application data model using go types for mapping.
