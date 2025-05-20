@@ -3,11 +3,11 @@ on:
   push:
     branches:
       - "integration/main"
-      - "release*"
+      - "stable*"
   pull_request:
     branches:
       - "integration/main"
-      - "release*"
+      - "stable*"
 
 jobs:
   build:
