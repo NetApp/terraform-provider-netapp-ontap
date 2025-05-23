@@ -1,4 +1,8 @@
-# 2.3.0 (2025-xx-xx)
+# 2.2.1
+
+ENHANCEMENTS:
+
+- **netapp-ontap_volume**, **netapp-ontap_volumes**: added `autosize.*` options to data sources. ([#509](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/509))
 
 # 2.2.0 (2025-05-01)
 
