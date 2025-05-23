@@ -65,6 +65,7 @@ Read-Only:
 
 - `aggregates` (Attributes List) Aggregates the volume is on (see [below for nested schema](#nestedatt--aggregates))
 - `analytics` (Attributes) (see [below for nested schema](#nestedatt--storage_volumes--analytics))
+- `autosize` (Attributes) (see [below for nested schema](#nestedatt--storage_volumes--autosize))
 - `comment` (String) Sets a comment associated with the volume
 - `efficiency` (Attributes) (see [below for nested schema](#nestedatt--storage_volumes--efficiency))
 - `encryption` (Boolean) Whether or not to enable Volume Encryption
@@ -95,6 +96,22 @@ Read-Only:
 Read-Only:
 
 - `state` (String) Set file system analytics state of the volume
+
+<a id="nestedatt--storage_volumes--autosize"></a>
+
+### Nested Schema for `storage_volumes.autosize`
+
+Read-Only:
+
+- `grow_threshold` (Number) Used space threshold size, in percentage, for the automatic growth of the volume.
+- `maximum` (Number) Maximum size up to which a volume grows automatically. This size cannot be less than the current volume size, or less than or equal to the minimum size of volume.
+- `minimum` (Number) Minimum size up to which the volume shrinks automatically. This size cannot be greater than or equal to the maximum size of volume.
+- `mode` (String) Autosize mode for the volume.
+									grow - Volume automatically grows when the amount of used space is above the 'grow_threshold' value.
+									grow_shrink - Volume grows or shrinks in response to the amount of space used.
+									off - Autosizing of the volume is disabled.
+- `shrink_threshold` (Number) Used space threshold size, in percentage, for the automatic shrinkage of the volume.
+- `size_unit` (String) The unit used to interpret the minimum or maximum size parameters.
 
 <a id="nestedatt--storage_volumes--efficiency"></a>
 
