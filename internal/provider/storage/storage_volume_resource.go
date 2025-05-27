@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -1102,8 +1101,6 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 		"mode":             types.StringType,
 		"size_unit":        types.StringType,
 	}
-	log.Printf("here here here %v", autoSizeUnit)
-	log.Printf("yes yes yes %v", interfaces.POW2BYTEMAP[autoSizeUnit])
 	elements = map[string]attr.Value{
 		"minimum":          types.Int64Value(int64(response.Autosize.Minimum / interfaces.POW2BYTEMAP[autoSizeUnit])),
 		"maximum":          types.Int64Value(int64(response.Autosize.Maximum / interfaces.POW2BYTEMAP[autoSizeUnit])),
