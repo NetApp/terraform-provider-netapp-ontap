@@ -1,5 +1,9 @@
 # 2.2.1
 
+DOCUMENTATION:
+
+- Corrected `aws` to `aws_lambda` in provider config.
+
 BUG FIXES:
 
 - **netapp-ontap_san_igroup_resource**: fixed issue with adding initiators to new igroup ([#274](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/274))
