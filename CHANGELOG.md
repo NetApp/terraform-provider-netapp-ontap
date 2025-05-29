@@ -1,4 +1,8 @@
-# 2.3.0 (2025-xx-xx)
+# 2.2.1
+
+ENHANCEMENTS:
+
+- **netapp-ontap_lun**: added `space.scsi_thin_provisioning_support_enabled` option. ([#496](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/496))
 
 # 2.2.0 (2025-05-01)
 
