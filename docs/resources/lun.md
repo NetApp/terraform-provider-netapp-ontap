@@ -34,7 +34,6 @@ resource "netapp-ontap_lun" "storage_lun" {
   volume_name = "lunTest"
   os_type = "linux"
   size = 1048576
-
 }
 
 ```
@@ -54,6 +53,7 @@ resource "netapp-ontap_lun" "storage_lun" {
 ### Optional
 
 - `qos_policy_name` (String) QoS policy name
+- `scsi_thin_provisioning_support_enabled` (Boolean) Specifies the value for the space allocation attribute, which determines if the LUN supports the SCSI Thin Provisioning features
 - `size_unit` (String) The unit used to interpret the size parameter
 
 ### Read-Only
