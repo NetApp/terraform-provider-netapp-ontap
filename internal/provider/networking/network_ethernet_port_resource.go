@@ -281,6 +281,7 @@ func (r *EthernetPortResource) Read(ctx context.Context, req resource.ReadReques
 		restInfo, err = interfaces.GetEthernetPortByName(
 			errorHandler,
 			*client,
+			data.Node.Name.ValueString(),
 			data.Name.ValueString(),
 		)
 		if err != nil {
@@ -641,16 +642,17 @@ func (r *EthernetPortResource) ImportState(ctx context.Context, req resource.Imp
 
 	// Extract ethernet_port info from import identifier
 	idParts := strings.Split(req.ID, ",")
-	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+	if len(idParts) != 3 || idParts[0] == "" || idParts[1] == "" || idParts[2] == "" {
 		resp.Diagnostics.AddError(
 			"Unexpected Import Identifier",
-			fmt.Sprintf("Expected import identifier with format: cx_profile_name,name, got: %q.", req.ID),
+			fmt.Sprintf("Expected import identifier with format: name,node,cx_profile_name, got: %q.", req.ID),
 		)
 
 		return
 	}
 
 	// Save ethernet_port info to attributes
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[0])...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[1])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("node").AtName("name"), idParts[1])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[2])...)
 }
