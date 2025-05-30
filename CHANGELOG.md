@@ -6,7 +6,8 @@ DOCUMENTATION:
 
 BUG FIXES:
 
-- **netapp-ontap_san_igroup_resource**: fixed issue with adding initiators to new igroup ([#274](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/274))
+- **netapp-ontap_port**: fixed error when importing VLANs in multi-node clusters ([#479](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/479))
+- **netapp-ontap_san_igroup**: fixed issue with adding initiators to new igroup ([#274](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/274))
 
 # 2.2.0 (2025-05-01)
 
