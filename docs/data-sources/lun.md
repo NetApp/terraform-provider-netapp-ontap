@@ -50,6 +50,7 @@ data "netapp-ontap_lun" "storage_lun" {
 - `id` (String) Lun uuid
 - `os_type` (String) OS type for lun
 - `qos_policy` (Attributes) (see [below for nested schema](#nestedatt--qos_policy))
+- `serial_number` (String) Serial number for lun
 - `space` (Attributes) (see [below for nested schema](#nestedatt--space))
 
 <a id="nestedatt--location"></a>
