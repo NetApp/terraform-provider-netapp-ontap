@@ -1,4 +1,8 @@
-# 2.3.0 (2025-xx-xx)
+# 2.2.1
+
+DOCUMENTATION:
+
+- **netapp-ontap_lun**: updated documentation, added attribute validation ([#498](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/498))
 
 # 2.2.0 (2025-05-01)
 
