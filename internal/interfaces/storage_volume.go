@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mitchellh/mapstructure"
@@ -19,7 +20,7 @@ type StorageVolumeGetDataModelONTAP struct {
 	State          string
 	Type           string
 	Comment        string
-	SpaceGuarantee Guarantee      `mapstructure:"guarantee"`
+	SpaceGuarantee Guarantee `mapstructure:"guarantee"`
 	NAS            NAS
 	QOS            QOS
 	Encryption     Encryption
@@ -30,7 +31,7 @@ type StorageVolumeGetDataModelONTAP struct {
 	Analytics      Analytics
 	Language       string
 	Aggregates     []Aggregate
-	Autosize       Autosize       `mapstructure:"autosize,omitempty"`
+	Autosize       Autosize `mapstructure:"autosize,omitempty"`
 	UUID           string
 }
 
@@ -418,4 +419,28 @@ func ByteFormat(value int64) (int64, string) {
 	}
 
 	return number, unit
+}
+
+// ConvertBytesToUnitInt converts a byte value to the specified unit ("bytes", "kb", "mb", "gb", "tb", "pb", "eb", "zb", "yb").
+// Returns the converted value as int64. If the unit is not recognized, returns the original value as bytes.
+func ConvertBytesToUnitInt(bytes int64, unit string) int64 {
+	unit = strings.ToLower(unit)
+	switch unit {
+	case "bytes", "b":
+		return bytes
+	case "kb", "k":
+		return bytes / 1024
+	case "mb", "m":
+		return bytes / (1024 * 1024)
+	case "gb", "g":
+		return bytes / (1024 * 1024 * 1024)
+	case "tb", "t":
+		return bytes / (1024 * 1024 * 1024 * 1024)
+	case "pb", "p":
+		return bytes / (1024 * 1024 * 1024 * 1024 * 1024)
+	case "eb", "e":
+		return bytes / (1024 * 1024 * 1024 * 1024 * 1024 * 1024)
+	default:
+		return bytes
+	}
 }

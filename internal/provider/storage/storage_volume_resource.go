@@ -616,9 +616,16 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 		"percent_snapshot_space": types.Int64Type,
 		"logical_space":          types.ObjectType{AttrTypes: nestedElementTypes},
 	}
-	var sizeUnit string
+
+	var space StorageVolumeResourceSpace
+	diags := data.Space.As(ctx, &space, basetypes.ObjectAsOptions{})
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	sizeUnit := space.SizeUnit.ValueString()
 	var size int64
-	size, sizeUnit = interfaces.ByteFormat(int64(response.Space.Size))
+	size = interfaces.ConvertBytesToUnitInt(int64(response.Space.Size), sizeUnit)
 
 	elements := map[string]attr.Value{
 		"size":                   types.Int64Value(size),
@@ -737,8 +744,21 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 	// var sizeUnit is already defined as part of Space model
 	var minimum int64
 	var maximum int64
-	minimum, sizeUnit = interfaces.ByteFormat(int64(response.Autosize.Minimum))
-	maximum, _ = interfaces.ByteFormat(int64(response.Autosize.Maximum))
+	var autoSizeUnit string
+	if !data.Autosize.IsUnknown() {
+		var autosize StorageVolumeResourceAutosize
+		diags := data.Autosize.As(ctx, &autosize, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		autoSizeUnit = autosize.SizeUnit.ValueString()
+		minimum = interfaces.ConvertBytesToUnitInt(int64(response.Autosize.Minimum), autoSizeUnit)
+		maximum = interfaces.ConvertBytesToUnitInt(int64(response.Autosize.Maximum), autoSizeUnit)
+	} else {
+		minimum, autoSizeUnit = interfaces.ByteFormat(int64(response.Autosize.Minimum))
+		maximum, _ = interfaces.ByteFormat(int64(response.Autosize.Maximum))
+	}
 
 	elements = map[string]attr.Value{
 		"minimum":          types.Int64Value(minimum),
@@ -746,7 +766,7 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 		"shrink_threshold": types.Int64Value(int64(response.Autosize.ShrinkThreshold)),
 		"grow_threshold":   types.Int64Value(int64(response.Autosize.GrowThreshold)),
 		"mode":             types.StringValue(response.Autosize.Mode),
-		"size_unit":        types.StringValue(sizeUnit),
+		"size_unit":        types.StringValue(autoSizeUnit),
 	}
 	objectValue, diags = types.ObjectValue(elementTypes, elements)
 	if diags.HasError() {
