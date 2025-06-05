@@ -9,8 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -166,8 +164,6 @@ func (r *SecurityAccountResource) Schema(ctx context.Context, req resource.Schem
 				MarkdownDescription: "Account locked",
 				Optional:            true,
 				Computed:            true,
-				Default:             booldefault.StaticBool(false),
-				PlanModifiers:       []planmodifier.Bool{boolplanmodifier.UseStateForUnknown()},
 			},
 			"id": schema.StringAttribute{
 				MarkdownDescription: "SecurityAccount id",
@@ -346,7 +342,7 @@ func (r *SecurityAccountResource) Create(ctx context.Context, req resource.Creat
 		body.Comment = data.Comment.ValueString()
 	}
 	if !data.Locked.IsNull() {
-		body.Locked = data.Locked.ValueBool()
+		body.Locked = data.Locked.ValueBoolPointer()
 	}
 
 	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
@@ -410,6 +406,7 @@ func (r *SecurityAccountResource) Create(ctx context.Context, req resource.Creat
 
 	data.ID = types.StringValue(resource.Name)
 	data.OwnerID = types.StringValue(resource.Owner.UUID)
+	data.Locked = types.BoolValue(resource.Locked)
 
 	tflog.Trace(ctx, "created a resource")
 
@@ -472,7 +469,7 @@ func (r *SecurityAccountResource) Update(ctx context.Context, req resource.Updat
 
 	// locked update
 	if !plan.Locked.IsNull() {
-		request.Locked = plan.Locked.ValueBool()
+		request.Locked = plan.Locked.ValueBoolPointer()
 	}
 
 	// comment update
