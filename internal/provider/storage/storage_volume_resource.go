@@ -350,12 +350,12 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 				Computed: true,
 				Attributes: map[string]schema.Attribute{
 					"minimum": schema.Int64Attribute{
-						MarkdownDescription: "Minimum size in bytes up to which the volume shrinks automatically. This size cannot be greater than or equal to the maximum size of volume.",
+						MarkdownDescription: "Minimum size up to which the volume shrinks automatically. This size cannot be greater than or equal to the maximum size of volume.",
 						Optional:            true,
 						Computed:            true,
 					},
 					"maximum": schema.Int64Attribute{
-						MarkdownDescription: "Maximum size in bytes up to which a volume grows automatically. This size cannot be less than the current volume size, or less than or equal to the minimum size of volume.",
+						MarkdownDescription: "Maximum size up to which a volume grows automatically. This size cannot be less than the current volume size, or less than or equal to the minimum size of volume.",
 						Optional:            true,
 						Computed:            true,
 					},
