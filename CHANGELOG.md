@@ -1,4 +1,9 @@
-# 2.3.0 (2025-xx-xx)
+# 2.2.1 (2025-xx-xx)
+
+BUG FIXES:
+
+- **netapp-ontap_storage_volume**: Fixed autosize value conversion error. ([#494](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/494))
+
 
 # 2.2.0 (2025-05-01)
 
