@@ -151,9 +151,10 @@ func GetEthernetPort(errorHandler *utils.ErrorHandler, r restclient.RestClient, 
 
 // Retrieve ethernet port details
 // https://docs.netapp.com/us-en/ontap-restapi/ontap/get-network-ethernet-ports.html
-func GetEthernetPortByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string) (*EthernetPortGetDataModelONTAP, error) {
+func GetEthernetPortByName(errorHandler *utils.ErrorHandler, r restclient.RestClient, node, name string) (*EthernetPortGetDataModelONTAP, error) {
 	api := "/network/ethernet/ports/"
 	query := r.NewQuery()
+	query.Set("node.name", node)
 	query.Set("name", name)
 	query.Fields([]string{
 		"broadcast_domain",

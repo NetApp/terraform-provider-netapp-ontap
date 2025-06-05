@@ -1,9 +1,15 @@
-# 2.2.1 (2025-xx-xx)
+# 2.2.1
+
+DOCUMENTATION:
+
+- Corrected `aws` to `aws_lambda` in provider config.
 
 BUG FIXES:
 
 - **netapp-ontap_storage_volume**: Fixed autosize value conversion error. ([#494](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/494))
-
+- **netapp-ontap_security_account**: unable to unlock existing `security_account` resource ([#499](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/499))
+- **netapp-ontap_port**: fixed error when importing VLANs in multi-node clusters ([#479](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/479))
+- **netapp-ontap_san_igroup**: fixed issue with adding initiators to new igroup ([#274](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/274))
 
 # 2.2.0 (2025-05-01)
 
