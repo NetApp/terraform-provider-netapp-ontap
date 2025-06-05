@@ -7,6 +7,7 @@ DOCUMENTATION:
 BUG FIXES:
 
 - **netapp-ontap_port**: error when importing VLANs in multi-node clusters ([#479](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/479))
+- **netapp-ontap_volume**: fixed issue with modifying `percent_snapshot_space` ([#497](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/497))
 
 # 2.2.0 (2025-05-01)
 
