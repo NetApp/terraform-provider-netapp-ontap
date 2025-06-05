@@ -6,6 +6,7 @@ DOCUMENTATION:
 
 BUG FIXES:
 
+- **netapp-ontap_security_account**: unable to unlock existing `security_account` resource ([#499](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/499))
 - **netapp-ontap_port**: fixed error when importing VLANs in multi-node clusters ([#479](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/479))
 - **netapp-ontap_san_igroup**: fixed issue with adding initiators to new igroup ([#274](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/274))
 
