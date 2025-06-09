@@ -23,7 +23,7 @@ var basicStorageVolumeRecord = StorageVolumeGetDataModelONTAP{
 	Space: Space{
 		Size: 0,
 		Snapshot: Snapshot{
-			ReservePercent: 0,
+			*ReservePercent: 0,
 		},
 		LogicalSpace: LogicalSpace{
 			Enforcement: false,
