@@ -73,8 +73,9 @@ type StorageLunDataSourceQoSPolicyModel struct {
 
 // StorageLunDataSourceSpaceModel describes the data source data model for queries.
 type StorageLunDataSourceSpaceModel struct {
-	Size types.Int64 `tfsdk:"size"`
-	Used types.Int64 `tfsdk:"used"`
+	Size       types.Int64 `tfsdk:"size"`
+	Used       types.Int64 `tfsdk:"used"`
+	Allocation types.Bool  `tfsdk:"scsi_thin_provisioning_support_enabled"`
 }
 
 // Metadata returns the data source type name.
@@ -162,6 +163,10 @@ func (d *StorageLunDataSource) Schema(ctx context.Context, req datasource.Schema
 						MarkdownDescription: "Used space of the lun",
 						Computed:            true,
 					},
+					"scsi_thin_provisioning_support_enabled": schema.BoolAttribute{
+						MarkdownDescription: "Specifies the value for the space allocation attribute, which determines if the LUN supports the SCSI Thin Provisioning features",
+						Computed:            true,
+					},
 				},
 			},
 			"id": schema.StringAttribute{
@@ -227,8 +232,9 @@ func (d *StorageLunDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		data.QoSPolicy.UUID = types.StringValue(restInfo.QoSPolicy.UUID)
 	}
 	data.Space = &StorageLunDataSourceSpaceModel{
-		Size: types.Int64Value(restInfo.Space.Size),
-		Used: types.Int64Value(restInfo.Space.Used),
+		Size:       types.Int64Value(restInfo.Space.Size),
+		Used:       types.Int64Value(restInfo.Space.Used),
+		Allocation: types.BoolPointerValue(restInfo.Space.Allocation),
 	}
 	data.ID = types.StringValue(restInfo.UUID)
 

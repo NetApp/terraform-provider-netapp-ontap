@@ -42,8 +42,9 @@ type LunQoSPolicy struct {
 
 // LunSpace describes the data model for space.
 type LunSpace struct {
-	Size int64 `mapstructure:"size,omitempty"`
-	Used int64 `mapstructure:"used,omitempty"`
+	Size       int64 `mapstructure:"size,omitempty"`
+	Used       int64 `mapstructure:"used,omitempty"`
+	Allocation *bool  `mapstructure:"scsi_thin_provisioning_support_enabled,omitempty"`
 }
 
 // StorageLunResourceBodyDataModelONTAP describes the body data model using go types for mapping.
@@ -66,7 +67,8 @@ type volume struct {
 }
 
 type space struct {
-	Size int64 `mapstructure:"size,omitempty"`
+	Size       int64 `mapstructure:"size,omitempty"`
+	Allocation *bool  `mapstructure:"scsi_thin_provisioning_support_enabled,omitempty"`
 }
 
 // StorageLunDataSourceFilterModel describes the data source data model for queries.

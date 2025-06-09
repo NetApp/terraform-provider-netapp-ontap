@@ -159,6 +159,10 @@ func (d *StorageLunsDataSource) Schema(ctx context.Context, req datasource.Schem
 									MarkdownDescription: "Used space of lun in bytes",
 									Computed:            true,
 								},
+								"scsi_thin_provisioning_support_enabled": schema.BoolAttribute{
+									MarkdownDescription: "Specifies the value for the space allocation attribute, which determines if the LUN supports the SCSI Thin Provisioning features",
+									Computed:            true,
+								},
 							},
 						},
 						"id": schema.StringAttribute{
@@ -244,8 +248,9 @@ func (d *StorageLunsDataSource) Read(ctx context.Context, req datasource.ReadReq
 				UUID: types.StringValue(record.QoSPolicy.UUID),
 			},
 			Space: &StorageLunDataSourceSpaceModel{
-				Size: types.Int64Value(record.Space.Size),
-				Used: types.Int64Value(record.Space.Used),
+				Size:       types.Int64Value(record.Space.Size),
+				Used:       types.Int64Value(record.Space.Used),
+				Allocation: types.BoolPointerValue(record.Space.Allocation),
 			},
 			ID: types.StringValue(record.UUID),
 		}
