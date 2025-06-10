@@ -150,8 +150,8 @@ Optional:
 Optional:
 
 - `grow_threshold` (Number) Used space threshold size, in percentage, for the automatic growth of the volume.
-- `maximum` (Number) Maximum size in bytes up to which a volume grows automatically. This size cannot be less than the current volume size, or less than or equal to the minimum size of volume.
-- `minimum` (Number) Minimum size in bytes up to which the volume shrinks automatically. This size cannot be greater than or equal to the maximum size of volume.
+- `maximum` (Number) Maximum size up to which a volume grows automatically. This size cannot be less than the current volume size, or less than or equal to the minimum size of volume.
+- `minimum` (Number) Minimum size up to which the volume shrinks automatically. This size cannot be greater than or equal to the maximum size of volume.
 - `mode` (String) Autosize mode for the volume.
 							    grow - Volume automatically grows when the amount of used space is above the 'grow_threshold' value.
 							   	grow_shrink - Volume grows or shrinks in response to the amount of space used.

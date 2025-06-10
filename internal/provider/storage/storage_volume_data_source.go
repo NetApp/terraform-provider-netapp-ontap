@@ -59,6 +59,7 @@ type StorageVolumeDataSourceModel struct {
 	Efficiency     *StorageVolumeDataSourceEfficiency  `tfsdk:"efficiency"`
 	SnapLock       *StorageVolumeDataSourceSnapLock    `tfsdk:"snaplock"`
 	Analytics      *StorageVolumeDataSourceAnalytics   `tfsdk:"analytics"`
+	Autosize       *StorageVolumeDataSourceAutosize    `tfsdk:"autosize"`
 }
 
 // StorageVolumeDataSourceAggregates describes the analytics model.
@@ -110,6 +111,16 @@ type StorageVolumeDataSourceSpace struct {
 type StorageVolumeDataSourceSpaceLogicalSpace struct {
 	Enforcement types.Bool `tfsdk:"enforcement"`
 	Reporting   types.Bool `tfsdk:"reporting"`
+}
+
+// StorageVolumeDataSourceAutosize describes the autosize model.
+type StorageVolumeDataSourceAutosize struct {
+	Minimum         types.Int64  `tfsdk:"minimum"`
+	Maximum         types.Int64  `tfsdk:"maximum"`
+	SizeUnit        types.String `tfsdk:"size_unit"`
+	ShrinkThreshold types.Int64  `tfsdk:"shrink_threshold"`
+	GrowThreshold   types.Int64  `tfsdk:"grow_threshold"`
+	Mode            types.String `tfsdk:"mode"`
 }
 
 // Metadata returns the data source type name.
@@ -285,6 +296,40 @@ func (d *StorageVolumeDataSource) Schema(ctx context.Context, req datasource.Sch
 					},
 				},
 			},
+			"autosize": schema.SingleNestedAttribute{
+				Computed: true,
+				Attributes: map[string]schema.Attribute{
+					"minimum": schema.Int64Attribute{
+						MarkdownDescription: "Minimum size up to which the volume shrinks automatically. This size cannot be greater than or equal to the maximum size of volume.",
+						Computed:            true,
+					},
+					"maximum": schema.Int64Attribute{
+						MarkdownDescription: "Maximum size up to which a volume grows automatically. This size cannot be less than the current volume size, or less than or equal to the minimum size of volume.",
+						Computed:            true,
+					},
+					"size_unit": schema.StringAttribute{
+						MarkdownDescription: "The unit used to interpret the minimum or maximum size parameters.",
+						Computed:            true,
+					},
+					"shrink_threshold": schema.Int64Attribute{
+						MarkdownDescription: "Used space threshold size, in percentage, for the automatic shrinkage of the volume.",
+						Computed:            true,
+					},
+					"grow_threshold": schema.Int64Attribute{
+						MarkdownDescription: "Used space threshold size, in percentage, for the automatic growth of the volume.",
+						Computed:            true,
+					},
+					"mode": schema.StringAttribute{
+						MarkdownDescription: `
+											 Autosize mode for the volume.
+											 grow - Volume automatically grows when the amount of used space is above the 'grow_threshold' value.
+							   				 grow_shrink - Volume grows or shrinks in response to the amount of space used.
+											 off - Autosizing of the volume is disabled.
+											 `,
+						Computed:            true,
+					},
+				},
+			},
 			"id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Volume identifier",
@@ -320,6 +365,9 @@ func (d *StorageVolumeDataSource) Read(ctx context.Context, req datasource.ReadR
 		errorHandler.MakeAndReportError("No volume found", fmt.Sprintf("Volume %s not found.", data.Name))
 		return
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("autosize info: %#v", volume.Autosize))
+
 	data.Name = types.StringValue(volume.Name)
 	data.SVMName = types.StringValue(volume.SVM.Name)
 	var aggregates = make([]StorageVolumeDataSourceAggregates, len(volume.Aggregates))
@@ -367,6 +415,17 @@ func (d *StorageVolumeDataSource) Read(ctx context.Context, req datasource.ReadR
 	data.Analytics = &StorageVolumeDataSourceAnalytics{
 		State: types.StringValue(volume.Analytics.State),
 	}
+	minimum_size, autosize_units := interfaces.ByteFormat(int64(volume.Autosize.Minimum))
+	maximum_size, _ := interfaces.ByteFormat(int64(volume.Autosize.Maximum))
+	data.Autosize = &StorageVolumeDataSourceAutosize{
+		Minimum:         types.Int64Value(minimum_size),
+		Maximum:         types.Int64Value(maximum_size),
+		SizeUnit:        types.StringValue(autosize_units),
+		ShrinkThreshold: types.Int64Value(int64(volume.Autosize.ShrinkThreshold)),
+		GrowThreshold:   types.Int64Value(int64(volume.Autosize.GrowThreshold)),
+		Mode:            types.StringValue(volume.Autosize.Mode),
+	}
+	tflog.Debug(ctx, fmt.Sprintf("autosize info compiled: %#v", data.Autosize))
 	data.ID = types.StringValue(volume.UUID)
 
 	// Write logs using the tflog package
