@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+- **netapp-ontap_lun**: added `space.scsi_thin_provisioning_support_enabled` option. ([#496](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/496))
 - **netapp-ontap_volume**, **netapp-ontap_volumes**: added `autosize.*` options to data sources. ([#509](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/509))
 
 # 2.2.1

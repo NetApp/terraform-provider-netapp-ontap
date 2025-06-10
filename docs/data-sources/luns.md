@@ -102,5 +102,6 @@ Read-Only:
 
 Read-Only:
 
+- `scsi_thin_provisioning_support_enabled` (Boolean) Specifies the value for the space allocation attribute, which determines if the LUN supports the SCSI Thin Provisioning features
 - `size` (Number) Size of lun in bytes
 - `used` (Number) Used space of lun in bytes

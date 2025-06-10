@@ -53,14 +53,14 @@ func TestAccStorageLunResouce(t *testing.T) {
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "/vol/tf_acc_volume/tf_acc_lun", "tf_acc_volume", "tf_acc_svm", "cluster5"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "name", "ACC-import-lun"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "name", "tf_acc_lun"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "os_type", "linux"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "size", "1048576"),
 				),
 			},
 			// create storage lun with size_unit
 			{
-				Config: testAccStorageLunResourceWithSizeUnitConfig("ACC-lun-size", "tf_acc_svm", "tf_acc_volume", "linux", 4, "kb"),
+				Config: testAccStorageLunResourceWithSizeUnitConfig("ACC-lun-size", "tf_acc_svm", "tf_acc_volume", "linux", 4, "kb", true),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "name", "/vol/tf_acc_volume/ACC-lun-size"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "svm_name", "tf_acc_svm"),
@@ -68,11 +68,12 @@ func TestAccStorageLunResouce(t *testing.T) {
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "os_type", "linux"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "size", "4"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "size_unit", "kb"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "scsi_thin_provisioning_support_enabled", "true"),
 				),
 			},
 			// update storage lun with size_unit
 			{
-				Config: testAccStorageLunResourceWithSizeUnitConfig("ACC-lun-size", "tf_acc_svm", "tf_acc_volume", "linux", 5, "kb"),
+				Config: testAccStorageLunResourceWithSizeUnitConfig("ACC-lun-size", "tf_acc_svm", "tf_acc_volume", "linux", 5, "kb", false),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "name", "/vol/tf_acc_volume/ACC-lun-size"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "svm_name", "tf_acc_svm"),
@@ -80,11 +81,12 @@ func TestAccStorageLunResouce(t *testing.T) {
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "os_type", "linux"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "size", "5"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "size_unit", "kb"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "scsi_thin_provisioning_support_enabled", "false"),
 				),
 			},
 			// update storage lun size_unit
 			{
-				Config: testAccStorageLunResourceWithSizeUnitConfig("ACC-lun-size", "tf_acc_svm", "tf_acc_volume", "linux", 5, "mb"),
+				Config: testAccStorageLunResourceWithSizeUnitConfig("ACC-lun-size", "tf_acc_svm", "tf_acc_volume", "linux", 5, "mb", true),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "name", "/vol/tf_acc_volume/ACC-lun-size"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example_size", "svm_name", "tf_acc_svm"),
@@ -130,7 +132,7 @@ resource "netapp-ontap_lun" "example" {
 }`, host, admin, password, logicalUnit, svmname, volumeName, osType, size)
 }
 
-func testAccStorageLunResourceWithSizeUnitConfig(logicalUnit string, svmname string, volumeName string, osType string, size int64, sizeUnit string) string {
+func testAccStorageLunResourceWithSizeUnitConfig(logicalUnit string, svmname string, volumeName string, osType string, size int64, sizeUnit string, spaceAllocation bool) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS")
@@ -160,5 +162,6 @@ resource "netapp-ontap_lun" "example_size" {
   os_type = "%s"
   size = "%d"
   size_unit = "%s"
-}`, host, admin, password, logicalUnit, svmname, volumeName, osType, size, sizeUnit)
+  scsi_thin_provisioning_support_enabled = "%t"
+}`, host, admin, password, logicalUnit, svmname, volumeName, osType, size, sizeUnit, spaceAllocation)
 }

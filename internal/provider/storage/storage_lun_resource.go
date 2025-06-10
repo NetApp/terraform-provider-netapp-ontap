@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
@@ -58,6 +59,7 @@ type StorageLunResourceModel struct {
 	QoSPolicyName types.String `tfsdk:"qos_policy_name"`
 	SerialNumber  types.String `tfsdk:"serial_number"`
 	LogicalUnit   types.String `tfsdk:"logical_unit"`
+	Allocation    types.Bool   `tfsdk:"scsi_thin_provisioning_support_enabled"`
 	ID            types.String `tfsdk:"id"`
 }
 
@@ -122,6 +124,14 @@ func (r *StorageLunResource) Schema(ctx context.Context, req resource.SchemaRequ
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"scsi_thin_provisioning_support_enabled": schema.BoolAttribute{
+				MarkdownDescription: "Specifies the value for the space allocation attribute, which determines if the LUN supports the SCSI Thin Provisioning features",
+				Optional:            true,
+				Computed:			 true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"id": schema.StringAttribute{
@@ -207,6 +217,7 @@ func (r *StorageLunResource) Read(ctx context.Context, req resource.ReadRequest,
 	data.VolumeName = types.StringValue(restInfo.Location.Volume.Name)
 	data.OSType = types.StringValue(restInfo.OSType)
 	data.SerialNumber = types.StringValue(restInfo.SerialNumber)
+	data.Allocation = types.BoolPointerValue(restInfo.Space.Allocation)
 	if !data.SizeUnit.IsNull() {
 		var sizeUnit string
 		var size int64
@@ -264,6 +275,9 @@ func (r *StorageLunResource) Create(ctx context.Context, req resource.CreateRequ
 	if !data.QoSPolicyName.IsNull() {
 		body.QosPolicy = data.QoSPolicyName.ValueString()
 	}
+	if !data.Allocation.IsNull() {
+		body.Space.Allocation = data.Allocation.ValueBoolPointer()
+	}
 
 	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
@@ -280,6 +294,7 @@ func (r *StorageLunResource) Create(ctx context.Context, req resource.CreateRequ
 	data.SerialNumber = types.StringValue(resource.SerialNumber)
 	data.LogicalUnit = types.StringValue(resource.Location.LogicalUnit)
 	data.Name = types.StringValue(resource.Name)
+	data.Allocation = types.BoolPointerValue(resource.Space.Allocation)
 
 	tflog.Trace(ctx, "created a resource")
 
@@ -333,6 +348,9 @@ func (r *StorageLunResource) Update(ctx context.Context, req resource.UpdateRequ
 
 	if !plan.QoSPolicyName.Equal(state.QoSPolicyName) {
 		request.QosPolicy = plan.QoSPolicyName.ValueString()
+	}
+	if !plan.Allocation.Equal(state.Allocation) {
+		request.Space.Allocation = plan.Allocation.ValueBoolPointer()
 	}
 	err = interfaces.UpdateStorageLun(errorHandler, *client, state.ID.ValueString(), request)
 	if err != nil {

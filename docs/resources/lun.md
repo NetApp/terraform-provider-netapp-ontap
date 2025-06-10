@@ -54,6 +54,7 @@ resource "netapp-ontap_lun" "storage_lun" {
 - `logical_unit` (String) The base name component of the LUN
 - `name` (String) Path for the LUN you want to create or modify. Example of correct LUN path: /vol/vol1/lun1. At least one of `name` or `logical_unit` must be provided.
 - `qos_policy_name` (String) QoS policy name
+- `scsi_thin_provisioning_support_enabled` (Boolean) Specifies the value for the space allocation attribute, which determines if the LUN supports the SCSI Thin Provisioning features
 - `size_unit` (String) The unit used to interpret the size parameter
 
 ### Read-Only
