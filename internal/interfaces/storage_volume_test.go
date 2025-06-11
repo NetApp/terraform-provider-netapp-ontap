@@ -13,6 +13,7 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
+var temp int64 = 0
 var basicStorageVolumeRecord = StorageVolumeGetDataModelONTAP{
 	Name: "string",
 	SVM: svm{
@@ -23,7 +24,7 @@ var basicStorageVolumeRecord = StorageVolumeGetDataModelONTAP{
 	Space: Space{
 		Size: 0,
 		Snapshot: Snapshot{
-			*ReservePercent: 0,
+			ReservePercent: &temp,
 		},
 		LogicalSpace: LogicalSpace{
 			Enforcement: false,
