@@ -630,7 +630,7 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 	elements := map[string]attr.Value{
 		"size":                   types.Int64Value(size),
 		"size_unit":              types.StringValue(sizeUnit),
-		"percent_snapshot_space": types.Int64Value(int64(response.Space.Snapshot.ReservePercent)),
+		"percent_snapshot_space": types.Int64PointerValue(response.Space.Snapshot.ReservePercent),
 		"logical_space":          logicalObjectValue,
 	}
 
@@ -879,7 +879,7 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	request.Space.Size = int(space.Size.ValueInt64()) * interfaces.POW2BYTEMAP[space.SizeUnit.ValueString()]
 
 	if !space.PercentSnapshotSpace.IsUnknown() {
-		request.Space.Snapshot.ReservePercent = int(space.PercentSnapshotSpace.ValueInt64())
+		request.Space.Snapshot.ReservePercent = space.PercentSnapshotSpace.ValueInt64Pointer()
 	}
 	if !space.LogicalSpace.IsUnknown() {
 		var logicalSpace StorageVolumeResourceSpaceLogicalSpace
@@ -1019,7 +1019,7 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	elements := map[string]attr.Value{
 		"size":                   types.Int64Value(int64(response.Space.Size / interfaces.POW2BYTEMAP[sizeUnit])),
 		"size_unit":              types.StringValue(sizeUnit),
-		"percent_snapshot_space": types.Int64Value(int64(response.Space.Snapshot.ReservePercent)),
+		"percent_snapshot_space": types.Int64PointerValue(response.Space.Snapshot.ReservePercent),
 		"logical_space":          logicalObjectValue,
 	}
 
@@ -1251,7 +1251,7 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 			request.Space.Size = int(space.Size.ValueInt64()) * interfaces.POW2BYTEMAP[space.SizeUnit.ValueString()]
 
 			if !space.PercentSnapshotSpace.IsUnknown() {
-				request.Space.Snapshot.ReservePercent = int(space.PercentSnapshotSpace.ValueInt64())
+				request.Space.Snapshot.ReservePercent = space.PercentSnapshotSpace.ValueInt64Pointer()
 			}
 			if !space.LogicalSpace.IsUnknown() {
 				var logicalSpace StorageVolumeResourceSpaceLogicalSpace
@@ -1328,8 +1328,6 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 	}
 
 	if !plan.Autosize.IsUnknown() {
-		errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-		tflog.Debug(errorHandler.Ctx, fmt.Sprintf("autosize minimum in tfstate: %+v", state.Autosize))
 		if !plan.Autosize.Equal(state.Autosize) {
 			var autosize StorageVolumeResourceAutosize
 			diags := plan.Autosize.As(ctx, &autosize, basetypes.ObjectAsOptions{})
@@ -1466,7 +1464,7 @@ func readVolume(ctx context.Context, client *restclient.RestClient, data *Storag
 	elements := map[string]attr.Value{
 		"size":                   types.Int64Value(int64(response.Space.Size / interfaces.POW2BYTEMAP[sizeUnit])),
 		"size_unit":              types.StringValue(sizeUnit),
-		"percent_snapshot_space": types.Int64Value(int64(response.Space.Snapshot.ReservePercent)),
+		"percent_snapshot_space": types.Int64PointerValue(response.Space.Snapshot.ReservePercent),
 		"logical_space":          logicalObjectValue,
 	}
 
