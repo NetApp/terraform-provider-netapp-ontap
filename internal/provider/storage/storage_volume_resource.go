@@ -13,6 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -348,26 +350,41 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 			"autosize": schema.SingleNestedAttribute{
 				Optional: true,
 				Computed: true,
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
 				Attributes: map[string]schema.Attribute{
 					"minimum": schema.Int64Attribute{
 						MarkdownDescription: "Minimum size in bytes up to which the volume shrinks automatically. This size cannot be greater than or equal to the maximum size of volume.",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.Int64{
+							int64planmodifier.UseStateForUnknown(),
+						},
 					},
 					"maximum": schema.Int64Attribute{
 						MarkdownDescription: "Maximum size in bytes up to which a volume grows automatically. This size cannot be less than the current volume size, or less than or equal to the minimum size of volume.",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.Int64{
+							int64planmodifier.UseStateForUnknown(),
+						},
 					},
 					"shrink_threshold": schema.Int64Attribute{
 						MarkdownDescription: "Used space threshold size, in percentage, for the automatic shrinkage of the volume.",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.Int64{
+							int64planmodifier.UseStateForUnknown(),
+						},
 					},
 					"grow_threshold": schema.Int64Attribute{
 						MarkdownDescription: "Used space threshold size, in percentage, for the automatic growth of the volume.",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.Int64{
+							int64planmodifier.UseStateForUnknown(),
+						},
 					},
 					"mode": schema.StringAttribute{
 						MarkdownDescription: `
@@ -378,6 +395,9 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 											 `,
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
 						Validators: []validator.String{
 							stringvalidator.OneOf("off", "grow", "grow_shrink"),
 						},
@@ -385,6 +405,7 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 					"size_unit": schema.StringAttribute{
 						MarkdownDescription: "The unit used to interpret the minimum or maximum size parameters",
 						Optional:            true,
+						Computed:            true,
 						Validators: []validator.String{
 							stringvalidator.OneOf("bytes", "b", "kb", "mb", "gb", "tb", "pb", "eb", "zb", "yb"),
 						},
@@ -519,7 +540,7 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 	elements := map[string]attr.Value{
 		"size":                   types.Int64Value(size),
 		"size_unit":              types.StringValue(sizeUnit),
-		"percent_snapshot_space": types.Int64Value(int64(response.Space.Snapshot.ReservePercent)),
+		"percent_snapshot_space": types.Int64PointerValue(response.Space.Snapshot.ReservePercent),
 		"logical_space":          logicalObjectValue,
 	}
 
@@ -740,6 +761,7 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	}
 
 	var sizeUnit string
+	autoSizeUnit := "mb"
 	var space StorageVolumeResourceSpace
 	diags := data.Space.As(ctx, &space, basetypes.ObjectAsOptions{})
 	if diags.HasError() {
@@ -754,7 +776,7 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	request.Space.Size = int(space.Size.ValueInt64()) * interfaces.POW2BYTEMAP[space.SizeUnit.ValueString()]
 
 	if !space.PercentSnapshotSpace.IsUnknown() {
-		request.Space.Snapshot.ReservePercent = int(space.PercentSnapshotSpace.ValueInt64())
+		request.Space.Snapshot.ReservePercent = space.PercentSnapshotSpace.ValueInt64Pointer()
 	}
 	if !space.LogicalSpace.IsUnknown() {
 		var logicalSpace StorageVolumeResourceSpaceLogicalSpace
@@ -830,7 +852,7 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		sizeUnit = autosize.SizeUnit.ValueString()
+		autoSizeUnit = autosize.SizeUnit.ValueString()
 
 		if !autosize.Minimum.IsUnknown() {
 			request.Autosize.Minimum = int(autosize.Minimum.ValueInt64()) * interfaces.POW2BYTEMAP[autosize.SizeUnit.ValueString()]
@@ -894,7 +916,7 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	elements := map[string]attr.Value{
 		"size":                   types.Int64Value(int64(response.Space.Size / interfaces.POW2BYTEMAP[sizeUnit])),
 		"size_unit":              types.StringValue(sizeUnit),
-		"percent_snapshot_space": types.Int64Value(int64(response.Space.Snapshot.ReservePercent)),
+		"percent_snapshot_space": types.Int64PointerValue(response.Space.Snapshot.ReservePercent),
 		"logical_space":          logicalObjectValue,
 	}
 
@@ -997,12 +1019,12 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 		"size_unit":        types.StringType,
 	}
 	elements = map[string]attr.Value{
-		"minimum":          types.Int64Value(int64(response.Autosize.Minimum / interfaces.POW2BYTEMAP[sizeUnit])),
-		"maximum":          types.Int64Value(int64(response.Autosize.Maximum / interfaces.POW2BYTEMAP[sizeUnit])),
+		"minimum":          types.Int64Value(int64(response.Autosize.Minimum / interfaces.POW2BYTEMAP[autoSizeUnit])),
+		"maximum":          types.Int64Value(int64(response.Autosize.Maximum / interfaces.POW2BYTEMAP[autoSizeUnit])),
 		"shrink_threshold": types.Int64Value(int64(response.Autosize.ShrinkThreshold)),
 		"grow_threshold":   types.Int64Value(int64(response.Autosize.GrowThreshold)),
 		"mode":             types.StringValue(response.Autosize.Mode),
-		"size_unit":        types.StringValue(sizeUnit),
+		"size_unit":        types.StringValue(autoSizeUnit),
 	}
 	objectValue, diags = types.ObjectValue(elementTypes, elements)
 	if diags.HasError() {
@@ -1126,7 +1148,7 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 			request.Space.Size = int(space.Size.ValueInt64()) * interfaces.POW2BYTEMAP[space.SizeUnit.ValueString()]
 
 			if !space.PercentSnapshotSpace.IsUnknown() {
-				request.Space.Snapshot.ReservePercent = int(space.PercentSnapshotSpace.ValueInt64())
+				request.Space.Snapshot.ReservePercent = space.PercentSnapshotSpace.ValueInt64Pointer()
 			}
 			if !space.LogicalSpace.IsUnknown() {
 				var logicalSpace StorageVolumeResourceSpaceLogicalSpace
@@ -1203,8 +1225,6 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 	}
 
 	if !plan.Autosize.IsUnknown() {
-		errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-		tflog.Debug(errorHandler.Ctx, fmt.Sprintf("autosize minimum in tfstate: %+v", state.Autosize))
 		if !plan.Autosize.Equal(state.Autosize) {
 			var autosize StorageVolumeResourceAutosize
 			diags := plan.Autosize.As(ctx, &autosize, basetypes.ObjectAsOptions{})
@@ -1341,7 +1361,7 @@ func readVolume(ctx context.Context, client *restclient.RestClient, data *Storag
 	elements := map[string]attr.Value{
 		"size":                   types.Int64Value(int64(response.Space.Size / interfaces.POW2BYTEMAP[sizeUnit])),
 		"size_unit":              types.StringValue(sizeUnit),
-		"percent_snapshot_space": types.Int64Value(int64(response.Space.Snapshot.ReservePercent)),
+		"percent_snapshot_space": types.Int64PointerValue(response.Space.Snapshot.ReservePercent),
 		"logical_space":          logicalObjectValue,
 	}
 

@@ -339,7 +339,7 @@ func (d *StorageVolumeDataSource) Read(ctx context.Context, req datasource.ReadR
 	data.Space = &StorageVolumeDataSourceSpace{
 		Size:                 types.Int64Value(vsize),
 		SizeUnit:             types.StringValue(vunits),
-		PercentSnapshotSpace: types.Int64Value(int64(volume.Space.Snapshot.ReservePercent)),
+		PercentSnapshotSpace: types.Int64PointerValue(volume.Space.Snapshot.ReservePercent),
 		LogicalSpace: &StorageVolumeDataSourceSpaceLogicalSpace{
 			Enforcement: types.BoolValue(volume.Space.LogicalSpace.Enforcement),
 			Reporting:   types.BoolValue(volume.Space.LogicalSpace.Reporting),

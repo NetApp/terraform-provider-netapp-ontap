@@ -103,7 +103,7 @@ type TieringPolicy struct {
 
 // Snapshot describes the resource data model.
 type Snapshot struct {
-	ReservePercent int `mapstructure:"reserve_percent,omitempty"`
+	ReservePercent *int64 `mapstructure:"reserve_percent,omitempty"`
 }
 
 // Guarantee describes the resource data model.
