@@ -58,6 +58,7 @@ type SecurityCertificateResourceModel struct {
 	KeySize            types.Int64  `tfsdk:"key_size"`
 	ExpiryTime         types.String `tfsdk:"expiry_time"`
 	ID                 types.String `tfsdk:"id"`
+	IntermediateCertificates types.List `tfsdk:"intermediate_certificates"`
 }
 
 // Metadata returns the resource type name.
@@ -145,6 +146,11 @@ func (r *SecurityCertificateResource) Schema(ctx context.Context, req resource.S
 			"signing_request": schema.StringAttribute{
 				MarkdownDescription: "Certificate signing request to be signed by the given certificate authority. Request should be in X509 PEM format.",
 				Optional:            true,
+			},
+			"intermediate_certificates": schema.ListAttribute{
+				MarkdownDescription: "Chain of intermediate Certificates in PEM format. Only valid in POST when installing a certificate.",
+				Optional:            true,
+				ElementType: types.StringType,
 			},
 			"hash_function": schema.StringAttribute{
 				MarkdownDescription: "Hashing function.",
@@ -379,6 +385,15 @@ func (r *SecurityCertificateResource) Create(ctx context.Context, req resource.C
 		}
 		if !data.PrivateKey.IsUnknown() {
 			body.PrivateKey = data.PrivateKey.ValueString()
+		}
+		if !data.IntermediateCertificates.IsNull() && data.IntermediateCertificates.Elements() != nil {
+			var certs []string
+			diags := data.IntermediateCertificates.ElementsAs(ctx, &certs, false)
+			resp.Diagnostics.Append(diags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			body.IntermediateCertificates = certs
 		}
 		if !data.HashFunction.IsUnknown() {
 			body.HashFunction = data.HashFunction.ValueString()
