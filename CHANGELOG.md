@@ -4,6 +4,7 @@ ENHANCEMENTS:
 
 - **netapp-ontap_lun**: added `space.scsi_thin_provisioning_support_enabled` option. ([#496](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/496))
 - **netapp-ontap_volume**, **netapp-ontap_volumes**: added `autosize.*` options to data sources. ([#509](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/509))
+- **netapp-ontap_snapmirror**, **netapp-ontap_snapmirrors**: added `transfer_schedule.name` option to resource and data sources. ([#444](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/444))
 
 # 2.2.0 (2025-05-01)
 

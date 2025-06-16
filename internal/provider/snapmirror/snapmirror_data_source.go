@@ -81,7 +81,8 @@ type SnapmirrorCluster struct {
 
 // SnapmirrorPolicy describes data source model
 type SnapmirrorPolicy struct {
-	UUID types.String `tfsdk:"uuid"`
+	UUID             types.String      `tfsdk:"uuid"`
+	TransferSchedule *TransferSchedule `tfsdk:"transfer_schedule"`
 }
 
 // Metadata returns the data source type name.
@@ -186,6 +187,16 @@ func (d *SnapmirrorDataSource) Schema(ctx context.Context, req datasource.Schema
 						MarkdownDescription: "Policy UUID",
 						Computed:            true,
 					},
+					"transfer_schedule": schema.SingleNestedAttribute{
+						MarkdownDescription: "transfer schedule details",
+						Computed:            true,
+						Attributes: map[string]schema.Attribute{
+							"name": schema.StringAttribute{
+								MarkdownDescription: "schedule name",
+								Computed:            true,
+							},
+						},
+					},
 				},
 			},
 			"group_type": schema.StringAttribute{
@@ -275,11 +286,20 @@ func (d *SnapmirrorDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		Restore: types.BoolValue(restInfo.Restore),
 		ID:      types.StringValue(restInfo.UUID),
 		State:   types.StringValue(restInfo.State),
+		Policy: &SnapmirrorPolicy{
+			UUID: types.StringValue(restInfo.Policy.UUID),
+		},
 	}
 
 	if cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
 		data.Throttle = types.Int64Value(int64(restInfo.Throttle))
 		data.GroupType = types.StringValue(restInfo.GroupType)
+	}
+
+	if restInfo.Policy.TransferSchedule != nil && restInfo.Policy.TransferSchedule.Name != "" {
+		data.Policy.TransferSchedule = &TransferSchedule{
+			Name: types.StringValue(restInfo.Policy.TransferSchedule.Name),
+		}
 	}
 
 	// Write logs using the tflog package
