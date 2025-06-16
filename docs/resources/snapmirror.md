@@ -36,6 +36,12 @@ resource "netapp-ontap_snapmirror" "snapmirror" {
   destination_endpoint = {
     path = "snapmirror_dest_svm:snap_dest"
   }
+  policy = {
+    name = "MirrorAllSnapshots"
+    transfer_schedule = {
+      name = "hourly"
+    }
+  }
 }
 ```
 
@@ -98,6 +104,15 @@ Optional:
 Optional:
 
 - `name` (String) Snapmirror policy name
+- `transfer_schedule` (Attributes) Transfer schedule for the SnapMirror relationship (see [below for nested schema](#nestedatt--transfer_schedule))
+
+<a id="nestedatt--transfer_schedule"></a>
+
+### Nested Schema for `transfer_schedule`
+
+Required:
+
+- `name` (String) Schedule name for transferring snapshots
 
 <a id="nestedatt--cluster_destination"></a>
 
