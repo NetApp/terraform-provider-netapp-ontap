@@ -624,8 +624,7 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 	sizeUnit := space.SizeUnit.ValueString()
-	var size int64
-	size = interfaces.ConvertBytesToUnitInt(int64(response.Space.Size), sizeUnit)
+	size := interfaces.ConvertBytesToUnitInt(int64(response.Space.Size), sizeUnit)
 
 	elements := map[string]attr.Value{
 		"size":                   types.Int64Value(size),
