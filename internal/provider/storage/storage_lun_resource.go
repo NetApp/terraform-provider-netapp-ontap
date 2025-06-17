@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
@@ -79,7 +80,7 @@ func (r *StorageLunResource) Schema(ctx context.Context, req resource.SchemaRequ
 				Required:            true,
 			},
 			"name": schema.StringAttribute{
-				MarkdownDescription: "Lun name",
+				MarkdownDescription: "Path for the LUN you want to create or modify. Example of correct LUN path: /vol/vol1/lun1",
 				Optional:            true,
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
@@ -87,7 +88,7 @@ func (r *StorageLunResource) Schema(ctx context.Context, req resource.SchemaRequ
 				},
 			},
 			"logical_unit": schema.StringAttribute{
-				MarkdownDescription: "Logical unit for lun",
+				MarkdownDescription: "The base name component of the LUN",
 				Optional:            true,
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
@@ -95,15 +96,15 @@ func (r *StorageLunResource) Schema(ctx context.Context, req resource.SchemaRequ
 				},
 			},
 			"svm_name": schema.StringAttribute{
-				MarkdownDescription: "SVM name",
+				MarkdownDescription: "The name of the SVM in which the LUN is located",
 				Required:            true,
 			},
 			"volume_name": schema.StringAttribute{
-				MarkdownDescription: "Volume name",
+				MarkdownDescription: "The volume in which the LUN is located",
 				Required:            true,
 			},
 			"os_type": schema.StringAttribute{
-				MarkdownDescription: "OS type",
+				MarkdownDescription: "The operating system type of the LUN",
 				Required:            true,
 			},
 			"size": schema.Int64Attribute{
@@ -158,6 +159,16 @@ func (r *StorageLunResource) Configure(ctx context.Context, req resource.Configu
 		)
 	}
 	r.config.ProviderConfig = config
+}
+
+// ConfigValidators validates entire resource configurations
+func (d *StorageLunResource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
+    return []resource.ConfigValidator{
+        resourcevalidator.AtLeastOneOf(
+            path.MatchRoot("name"),
+            path.MatchRoot("logical_unit"),
+        ),
+    }
 }
 
 // Read refreshes the Terraform state with the latest data.

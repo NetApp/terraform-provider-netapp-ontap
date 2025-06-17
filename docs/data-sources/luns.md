@@ -65,6 +65,7 @@ Read-Only:
 - `name` (String) StorageLun name
 - `os_type` (String) OS type for lun
 - `qos_policy` (Attributes) (see [below for nested schema](#nestedatt--storage_luns--qos_policy))
+- `serial_number` (String) Serial number for lun
 - `space` (Attributes) (see [below for nested schema](#nestedatt--storage_luns--space))
 - `svm_name` (String) StorageLun svm name
 
