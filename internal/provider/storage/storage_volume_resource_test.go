@@ -83,7 +83,8 @@ resource "netapp-ontap_volume" "example" {
   svm_name = "%s"
   aggregates = [
 	{name = "tf_acc_aggr"}
-]
+  ]
+  encryption = true
   space_guarantee = "none"
   snapshot_policy = "default-1weekly"
   space = {
