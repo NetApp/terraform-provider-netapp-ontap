@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/mitchellh/mapstructure"
@@ -275,17 +276,11 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 								MarkdownDescription: "Whether to perform logical space accounting on the volume",
 								Optional:            true,
 								Computed:            true,
-								PlanModifiers: []planmodifier.Bool{
-									boolplanmodifier.UseStateForUnknown(),
-								},
 							},
 							"reporting": schema.BoolAttribute{
 								MarkdownDescription: "Whether to report space logically",
 								Optional:            true,
 								Computed:            true,
-								PlanModifiers: []planmodifier.Bool{
-									boolplanmodifier.UseStateForUnknown(),
-								},
 							},
 						},
 					},
@@ -430,28 +425,20 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 					},
 				},
 			},
+			// 'autosize' can not use UseStateForUnknown because it will changed by PATCH API on changing size.
 			"autosize": schema.SingleNestedAttribute{
 				Optional: true,
 				Computed: true,
-				PlanModifiers: []planmodifier.Object{
-					objectplanmodifier.UseStateForUnknown(),
-				},
 				Attributes: map[string]schema.Attribute{
 					"minimum": schema.Int64Attribute{
 						MarkdownDescription: "Minimum size in bytes up to which the volume shrinks automatically. This size cannot be greater than or equal to the maximum size of volume.",
 						Optional:            true,
 						Computed:            true,
-						PlanModifiers: []planmodifier.Int64{
-							int64planmodifier.UseStateForUnknown(),
-						},
 					},
 					"maximum": schema.Int64Attribute{
 						MarkdownDescription: "Maximum size in bytes up to which a volume grows automatically. This size cannot be less than the current volume size, or less than or equal to the minimum size of volume.",
 						Optional:            true,
 						Computed:            true,
-						PlanModifiers: []planmodifier.Int64{
-							int64planmodifier.UseStateForUnknown(),
-						},
 					},
 					"shrink_threshold": schema.Int64Attribute{
 						MarkdownDescription: "Used space threshold size, in percentage, for the automatic shrinkage of the volume.",
@@ -617,14 +604,21 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 		"logical_space":          types.ObjectType{AttrTypes: nestedElementTypes},
 	}
 
-	var space StorageVolumeResourceSpace
-	diags := data.Space.As(ctx, &space, basetypes.ObjectAsOptions{})
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
+	var sizeUnit string
+	var size int64
+	// If state does not have size unit, which is the case for importing volume, we pick the proper size unit.
+	if data.Space.IsNull() {
+		size, sizeUnit = interfaces.ByteFormat(int64(response.Space.Size))
+	} else {
+		var space StorageVolumeResourceSpace
+		diags := data.Space.As(ctx, &space, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		sizeUnit = space.SizeUnit.ValueString()
+		size = interfaces.ConvertBytesToUnitInt(int64(response.Space.Size), sizeUnit)
 	}
-	sizeUnit := space.SizeUnit.ValueString()
-	size := interfaces.ConvertBytesToUnitInt(int64(response.Space.Size), sizeUnit)
 
 	elements := map[string]attr.Value{
 		"size":                   types.Int64Value(size),
@@ -744,7 +738,8 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 	var minimum int64
 	var maximum int64
 	var autoSizeUnit string
-	if !data.Autosize.IsUnknown() {
+	// If state does not have size unit, which is the case for importing volume, we pick the proper size unit.
+	if !data.Autosize.IsNull() {
 		var autosize StorageVolumeResourceAutosize
 		diags := data.Autosize.As(ctx, &autosize, basetypes.ObjectAsOptions{})
 		if diags.HasError() {
@@ -781,13 +776,11 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data *StorageVolumeResourceModel
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	var request interfaces.StorageVolumeResourceModel
 
 	//var aggregates = make([]interfaces.Aggregate, len(data.Aggregates))
@@ -811,8 +804,9 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	request.SVM.Name = data.SVMName.ValueString()
 
 	if !data.State.IsUnknown() {
-		request.State = data.Type.ValueString()
+		request.State = data.State.ValueString()
 	}
+
 	if !data.Type.IsUnknown() {
 		request.Type = data.Type.ValueString()
 	}
@@ -1162,205 +1156,174 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 
 	var request interfaces.StorageVolumeResourceModel
 
-	if !plan.State.IsUnknown() {
-		if !plan.Type.Equal(state.Type) {
-			request.State = plan.State.ValueString()
-		}
+	if !plan.Type.Equal(state.Type) {
+		request.State = plan.State.ValueString()
 	}
-	if !plan.Type.IsUnknown() {
-		if !plan.Type.Equal(state.Type) {
-			request.Type = plan.Type.ValueString()
-		}
-	}
-	if !plan.SnapshotPolicy.IsUnknown() {
-		if !plan.SnapshotPolicy.Equal(state.SnapshotPolicy) {
-			request.SnapshotPolicy.Name = plan.SnapshotPolicy.ValueString()
-		}
-	}
-	if !plan.Language.IsUnknown() {
-		if !plan.Language.Equal(state.Language) {
-			request.Language = plan.Language.ValueString()
-		}
-	}
-	if !plan.QOSPolicyGroup.IsUnknown() {
-		if !plan.QOSPolicyGroup.Equal(state.QOSPolicyGroup) {
-			request.QOS.Policy.Name = plan.QOSPolicyGroup.ValueString()
-		}
-	}
-	if !plan.Comment.IsUnknown() {
-		if !plan.Comment.Equal(state.Comment) {
-			request.Comment = plan.Comment.ValueString()
-		}
 
+	if !plan.Type.Equal(state.Type) {
+		request.Type = plan.Type.ValueString()
 	}
-	if !plan.SpaceGuarantee.IsUnknown() {
-		if !plan.SpaceGuarantee.Equal(state.SpaceGuarantee) {
-			request.SpaceGuarantee.Type = plan.SpaceGuarantee.ValueString()
-		}
+
+	if !plan.SnapshotPolicy.Equal(state.SnapshotPolicy) {
+		request.SnapshotPolicy.Name = plan.SnapshotPolicy.ValueString()
 	}
+
+	if !plan.Language.Equal(state.Language) {
+		request.Language = plan.Language.ValueString()
+	}
+
+	if !plan.QOSPolicyGroup.Equal(state.QOSPolicyGroup) {
+		request.QOS.Policy.Name = plan.QOSPolicyGroup.ValueString()
+	}
+
+	if !plan.Comment.Equal(state.Comment) {
+		request.Comment = plan.Comment.ValueString()
+	}
+
+	if !plan.SpaceGuarantee.Equal(state.SpaceGuarantee) {
+		request.SpaceGuarantee.Type = plan.SpaceGuarantee.ValueString()
+	}
+
+	// encryption is tricky in PATCH. The meaning of this option more like the action rather than the end state.
+	// if it is set to false, it means that we want to disable encryption, if it is set to true, it means that we want to enable encryption.
+	// Regardless of the current state. And the API returns errors depend on the cuurent state and the end action.
+	// so if there is no change in the encryption state, we don't send it to the API.
+	// But omitempty is annoying because it ignores the value if it is false.
+	// Use a flag 'ignoreEncrption' to determine if we should send the encryption state to the API.
+	ignoreEncrption := true
 	if !plan.Encrypt.IsUnknown() {
 		if !plan.Encrypt.Equal(state.Encrypt) {
+			ignoreEncrption = false
 			request.Encryption.Enabled = plan.Encrypt.ValueBool()
 		}
 	}
 
-	if !plan.Nas.IsUnknown() {
-		if !plan.Nas.Equal(state.Nas) {
-			var nas StorageVolumeResourceNas
-			diags := plan.Nas.As(ctx, &nas, basetypes.ObjectAsOptions{})
-			if diags.HasError() {
-				resp.Diagnostics.Append(diags...)
-				return
-			}
-			if !nas.ExportPolicy.IsUnknown() {
-				request.NAS.ExportPolicy.Name = nas.ExportPolicy.ValueString()
-			}
-			if !nas.JunctionPath.IsUnknown() {
-				request.NAS.JunctionPath = nas.JunctionPath.ValueString()
-			}
-			if !nas.SecurityStyle.IsUnknown() {
-				request.NAS.SecurityStyle = nas.SecurityStyle.ValueString()
-			}
-			if !nas.UnixPermissions.IsUnknown() {
-				request.NAS.UnixPermissions = int(nas.UnixPermissions.ValueInt64())
-			}
-			if !nas.GroupID.IsUnknown() {
-				request.NAS.GroupID = int(nas.GroupID.ValueInt64())
-			}
-
-			if !nas.UserID.IsUnknown() {
-				request.NAS.UserID = int(nas.UserID.ValueInt64())
-			}
-		}
-	}
-
-	if !plan.Space.IsUnknown() {
-
-		var space StorageVolumeResourceSpace
-		diags := plan.Space.As(ctx, &space, basetypes.ObjectAsOptions{})
+	if !plan.Nas.Equal(state.Nas) {
+		var nas StorageVolumeResourceNas
+		diags := plan.Nas.As(ctx, &nas, basetypes.ObjectAsOptions{})
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		if _, ok := interfaces.POW2BYTEMAP[space.SizeUnit.ValueString()]; !ok {
-			errorHandler.MakeAndReportError("error updating volume", fmt.Sprintf("invalid input for size_unit: %s, required one of: bytes, b, kb, mb, gb, tb, pb, eb, zb, yb", space.SizeUnit.ValueString()))
+		request.NAS.ExportPolicy.Name = nas.ExportPolicy.ValueString()
+		request.NAS.JunctionPath = nas.JunctionPath.ValueString()
+		request.NAS.SecurityStyle = nas.SecurityStyle.ValueString()
+		request.NAS.UnixPermissions = int(nas.UnixPermissions.ValueInt64())
+		request.NAS.GroupID = int(nas.GroupID.ValueInt64())
+		request.NAS.UserID = int(nas.UserID.ValueInt64())
+
+	}
+
+	ignoreLogicalSpace := true
+	var space StorageVolumeResourceSpace
+	diags := plan.Space.As(ctx, &space, basetypes.ObjectAsOptions{})
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	if _, ok := interfaces.POW2BYTEMAP[space.SizeUnit.ValueString()]; !ok {
+		errorHandler.MakeAndReportError("error updating volume", fmt.Sprintf("invalid input for size_unit: %s, required one of: bytes, b, kb, mb, gb, tb, pb, eb, zb, yb", space.SizeUnit.ValueString()))
+		return
+	}
+	if !plan.Space.Equal(state.Space) {
+		ignoreLogicalSpace = false
+		request.Space.Size = int(space.Size.ValueInt64()) * interfaces.POW2BYTEMAP[space.SizeUnit.ValueString()]
+		request.Space.Snapshot.ReservePercent = space.PercentSnapshotSpace.ValueInt64Pointer()
+
+		var logicalSpace StorageVolumeResourceSpaceLogicalSpace
+		space.LogicalSpace.As(ctx, &logicalSpace, basetypes.ObjectAsOptions{})
+		request.Space.LogicalSpace.Enforcement = logicalSpace.Enforcement.ValueBool()
+		request.Space.LogicalSpace.Reporting = logicalSpace.Reporting.ValueBool()
+
+	}
+
+	if !plan.Efficiency.Equal(state.Efficiency) {
+		var efficiency StorageVolumeResourceEfficiency
+		diags := plan.Efficiency.As(ctx, &efficiency, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
 			return
 		}
-		if !plan.Space.Equal(state.Space) {
-			request.Space.Size = int(space.Size.ValueInt64()) * interfaces.POW2BYTEMAP[space.SizeUnit.ValueString()]
-
-			if !space.PercentSnapshotSpace.IsUnknown() {
-				request.Space.Snapshot.ReservePercent = space.PercentSnapshotSpace.ValueInt64Pointer()
-			}
-			if !space.LogicalSpace.IsUnknown() {
-				var logicalSpace StorageVolumeResourceSpaceLogicalSpace
-				space.LogicalSpace.As(ctx, &logicalSpace, basetypes.ObjectAsOptions{})
-				if !logicalSpace.Enforcement.IsUnknown() {
-					request.Space.LogicalSpace.Enforcement = logicalSpace.Enforcement.ValueBool()
-				}
-				if !logicalSpace.Reporting.IsUnknown() {
-					request.Space.LogicalSpace.Reporting = logicalSpace.Reporting.ValueBool()
-				}
-			}
+		if efficiency.Policy.ValueString() == "" || efficiency.Policy.ValueString() == "-" {
+			request.Efficiency.Policy.Name = "default"
+		} else {
+			request.Efficiency.Policy.Name = efficiency.Policy.ValueString()
 		}
-
-	}
-
-	if !plan.Efficiency.IsUnknown() {
-		if !plan.Efficiency.Equal(state.Efficiency) {
-			var efficiency StorageVolumeResourceEfficiency
-			diags := plan.Efficiency.As(ctx, &efficiency, basetypes.ObjectAsOptions{})
-			if diags.HasError() {
-				resp.Diagnostics.Append(diags...)
-				return
-			}
-			if efficiency.Policy.ValueString() == "" || efficiency.Policy.ValueString() == "-" {
-				request.Efficiency.Policy.Name = "default"
-			} else {
-				request.Efficiency.Policy.Name = efficiency.Policy.ValueString()
-			}
-			if !efficiency.Compression.IsUnknown() {
-				request.Efficiency.Compression = efficiency.Compression.ValueString()
-			}
+		if !efficiency.Compression.IsUnknown() {
+			request.Efficiency.Compression = efficiency.Compression.ValueString()
 		}
 	}
 
-	if !plan.Tiering.IsUnknown() {
-		if !plan.Tiering.Equal(state.Tiering) {
-			var tiering StorageVolumeResourceTiering
-			diags := plan.Tiering.As(ctx, &tiering, basetypes.ObjectAsOptions{})
-			if diags.HasError() {
-				resp.Diagnostics.Append(diags...)
-				return
-			}
-			if !tiering.Policy.IsUnknown() {
-				request.TieringPolicy.Policy = tiering.Policy.ValueString()
-			}
-			if !tiering.MinimumCoolingDays.IsUnknown() {
-				request.TieringPolicy.MinCoolingDays = int(tiering.MinimumCoolingDays.ValueInt64())
-			}
+	if !plan.Tiering.Equal(state.Tiering) {
+		var tiering StorageVolumeResourceTiering
+		diags := plan.Tiering.As(ctx, &tiering, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
 		}
+		request.TieringPolicy.Policy = tiering.Policy.ValueString()
+		request.TieringPolicy.MinCoolingDays = int(tiering.MinimumCoolingDays.ValueInt64())
 	}
 
-	if !plan.SnapLock.IsUnknown() {
-		if !plan.SnapLock.Equal(state.SnapLock) {
-			var snapLock StorageVolumeResourceSnapLock
-			diags := plan.SnapLock.As(ctx, &snapLock, basetypes.ObjectAsOptions{})
-			if diags.HasError() {
-				resp.Diagnostics.Append(diags...)
-				return
-			}
-			request.Snaplock.Type = snapLock.SnaplockType.ValueString()
+	if !plan.SnapLock.Equal(state.SnapLock) {
+		var snapLock StorageVolumeResourceSnapLock
+		diags := plan.SnapLock.As(ctx, &snapLock, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
 		}
+		request.Snaplock.Type = snapLock.SnaplockType.ValueString()
 	}
 
-	if !plan.Analytics.IsUnknown() {
-		if !plan.Analytics.Equal(state.Analytics) {
-			var analytics StorageVolumeResourceAnalytics
-			diags := plan.Analytics.As(ctx, &analytics, basetypes.ObjectAsOptions{})
-			if diags.HasError() {
-				resp.Diagnostics.Append(diags...)
-				return
-			}
-			request.Analytics.State = analytics.State.ValueString()
+	if !plan.Analytics.Equal(state.Analytics) {
+		var analytics StorageVolumeResourceAnalytics
+		diags := plan.Analytics.As(ctx, &analytics, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
 		}
+		request.Analytics.State = analytics.State.ValueString()
 	}
 
 	if !plan.Autosize.IsUnknown() {
-		if !plan.Autosize.Equal(state.Autosize) {
-			var autosize StorageVolumeResourceAutosize
-			diags := plan.Autosize.As(ctx, &autosize, basetypes.ObjectAsOptions{})
-			if diags.HasError() {
-				resp.Diagnostics.Append(diags...)
-				return
-			}
-			if !autosize.Minimum.IsUnknown() {
-				request.Autosize.Minimum = int(autosize.Minimum.ValueInt64()) * interfaces.POW2BYTEMAP[autosize.SizeUnit.ValueString()]
-			}
-			if !autosize.Maximum.IsUnknown() {
-				request.Autosize.Maximum = int(autosize.Maximum.ValueInt64()) * interfaces.POW2BYTEMAP[autosize.SizeUnit.ValueString()]
-			}
-			if !autosize.ShrinkThreshold.IsUnknown() {
-				request.Autosize.ShrinkThreshold = int(autosize.ShrinkThreshold.ValueInt64())
-			}
-			if !autosize.GrowThreshold.IsUnknown() {
-				request.Autosize.GrowThreshold = int(autosize.GrowThreshold.ValueInt64())
-			}
-			if !autosize.Mode.IsUnknown() {
-				request.Autosize.Mode = autosize.Mode.ValueString()
-			}
+		// if size changes, autosize might change as well from the API side. When autosize is not unknown, we should set it in the PATCH request.
+		var autosize StorageVolumeResourceAutosize
+		diags := plan.Autosize.As(ctx, &autosize, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
 		}
+		request.Autosize.Minimum = int(autosize.Minimum.ValueInt64()) * interfaces.POW2BYTEMAP[autosize.SizeUnit.ValueString()]
+		request.Autosize.Maximum = int(autosize.Maximum.ValueInt64()) * interfaces.POW2BYTEMAP[autosize.SizeUnit.ValueString()]
+		request.Autosize.ShrinkThreshold = int(autosize.ShrinkThreshold.ValueInt64())
+		request.Autosize.GrowThreshold = int(autosize.GrowThreshold.ValueInt64())
+		request.Autosize.Mode = autosize.Mode.ValueString()
 	}
 
-	err = interfaces.UpddateStorageVolume(errorHandler, *client, request, plan.ID.ValueString())
+	err = interfaces.UpddateStorageVolume(errorHandler, *client, request, plan.ID.ValueString(), ignoreEncrption, ignoreLogicalSpace)
 	if err != nil {
 		return
 	}
 	// Save updated data into Terraform state
+	planEncryption := plan.Encrypt.ValueBool()
 	readDiags := readVolume(ctx, client, plan)
 	resp.Diagnostics.Append(readDiags...)
 	if resp.Diagnostics.HasError() {
 		return
+	}
+	timeout := 10
+	// Wait for the encryption state to be updated if it was changed.
+	for !ignoreEncrption && plan.Encrypt.ValueBool() != planEncryption {
+		time.Sleep(time.Second * 30)
+		readDiags := readVolume(ctx, client, plan)
+		resp.Diagnostics.Append(readDiags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		timeout--
+		if timeout <= 0 {
+			break
+		}
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
@@ -1566,13 +1529,15 @@ func readVolume(ctx context.Context, client *restclient.RestClient, data *Storag
 		"size_unit":        types.StringType,
 	}
 	// var sizeUnit is already defined as part of Space model
-	var autosize StorageVolumeResourceAutosize
-	diags = data.Autosize.As(ctx, &autosize, basetypes.ObjectAsOptions{})
-	if diags.HasError() {
-		allDiags.Append(diags...)
-		return allDiags
+	if !data.Autosize.IsUnknown() {
+		var autosize StorageVolumeResourceAutosize
+		diags = data.Autosize.As(ctx, &autosize, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			allDiags.Append(diags...)
+			return allDiags
+		}
+		sizeUnit = autosize.SizeUnit.ValueString()
 	}
-	sizeUnit = autosize.SizeUnit.ValueString()
 
 	elements = map[string]attr.Value{
 		"minimum":          types.Int64Value(int64(response.Autosize.Minimum / interfaces.POW2BYTEMAP[sizeUnit])),
