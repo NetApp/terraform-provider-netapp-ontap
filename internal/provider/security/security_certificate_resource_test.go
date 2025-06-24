@@ -11,6 +11,9 @@ import (
 )
 
 func TestAccSecurityCertificateResource(t *testing.T) {
+	t.Setenv("TF_ACC_NETAPP_HOST_CIFS", "10.196.21.226")
+	t.Setenv("TF_ACC_NETAPP_USER", "admin")
+	t.Setenv("TF_ACC_NETAPP_PASS2", "netapp1!")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { ntest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ntest.TestAccProtoV6ProviderFactories,
@@ -26,12 +29,31 @@ func TestAccSecurityCertificateResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_security_certificate.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "acc_test_ca_cert1", "acc_test_ca_cert", "root_ca", "cluster1"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "acc_test_ca_cert2", "acc_test_ca_cert", "server", "cluster1"),
 				Check:         resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_security_certificate.example", "name", "acc_test_ca_cert1"),
+					resource.TestCheckResourceAttr("netapp-ontap_security_certificate.example", "name", "acc_test_ca_cert2"),
 				),
 			},
 			// Delete testing automatically occurs in TestCase
+
+			// Update security certificate and read
+			{
+				Config: testAccSecurityCertificateResourceCertificateConfig(),
+				Check:  resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_security_certificate.example", "name", "acc_test_ca_cert2"),
+					resource.TestCheckResourceAttr("netapp-ontap_security_certificate.example", "intermediate_certificates.#", "3"),
+				),
+			},
+			// Import and read
+			{
+				ResourceName:  "netapp-ontap_security_certificate.example",
+				ImportState:   true,
+				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "acc_test_ca_cert2", "acc_test_ca_cert", "server", "cluster1"),
+				Check:         resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_security_certificate.example", "name", "acc_test_ca_cert2"),
+				),
+			},
+
 		},
 	})
 }
@@ -61,7 +83,12 @@ resource "netapp-ontap_security_certificate" "example" {
   cx_profile_name = "cluster1"
   name            = "acc_test_ca_cert2"
   common_name     = "acc_test_ca_cert"
-  type            = "root_ca"
+  type            = "server"
   svm_name        = "acc_test"
+  intermediate_certificates = [
+    "-----BEGIN CERTIFICATE-----\n INTERMEDIATE CERTIFICATE \n-----END CERTIFICATE-----",
+    "-----BEGIN CERTIFICATE-----\n INTERMEDIATE CERTIFICATE \n-----END CERTIFICATE-----",
+    "-----BEGIN CERTIFICATE-----\n ROOT CERTIFICATE \n-----END CERTIFICATE-----"
+]
 }`, host, admin, password)
 }
