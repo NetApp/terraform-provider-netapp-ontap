@@ -10,6 +10,10 @@ ENHANCEMENTS:
 - **netapp-ontap_volume**, **netapp-ontap_volumes**: added `autosize.*` options to data sources. ([#509](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/509))
 - **netapp-ontap_security_certificate**: added `intermediate_certificates` option to resources. ([#484](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/484))
 
+BUG FIXES:
+
+- **netapp-ontap_nfs_service**: fixed `v41_enabled` to modify when disabled instead of forcing resource replacement. ([#523](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/523))
+
 # 2.2.0 (2025-05-01)
 
 FEATURES:

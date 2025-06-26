@@ -220,7 +220,6 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 						Optional:            true,
 						Computed:            true,
 						Default:             booldefault.StaticBool(true),
-						PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 					},
 					"v41_features": schema.SingleNestedAttribute{
 						Optional: true,
@@ -873,7 +872,11 @@ func (r *ProtocolsNfsServiceResource) Update(ctx context.Context, req resource.U
 			errors = append(errors, "windows.v3_ms_dos_client_enabled")
 		}
 	}
-	request.SVM.Name = data.SVMName.ValueString()
+
+	// Field svm.name cannot be set in update operation when v41 is disabled.
+	if !data.Protocol.V41Enabled.IsNull() && data.Protocol.V41Enabled.ValueBool() {
+		request.SVM.Name = data.SVMName.ValueString()
+	}
 	data.ID = data.SVMName
 	if len(errors) > 0 {
 		errorsString := strings.Join(errors, ", ")
