@@ -714,7 +714,7 @@ func (r *StorageFlexcacheResource) Delete(ctx context.Context, req resource.Dele
 		request.NAS.JunctionPath = ""
 		// Set volume state to offline
 		request.State = "offline"
-		err = interfaces.UpddateStorageVolume(errorHandler, *client, request, data.ID.ValueString(), true, true)
+		err = interfaces.UpddateStorageVolume(errorHandler, *client, request, data.ID.ValueString(), []string{})
 		if err != nil {
 			return
 		}

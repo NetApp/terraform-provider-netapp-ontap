@@ -7,6 +7,7 @@ DOCUMENTATION:
 BUG FIXES:
 
 - **netapp-ontap_storage_volume**: Fixed autosize value conversion error. ([#494](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/494))
+- **netapp-ontap_storage_volume**: Fixed modify error for security style ntfs.
 - **netapp-ontap_port**: error when importing VLANs in multi-node clusters ([#479](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/479))
 - **netapp-ontap_volume**: fixed issue with modifying `percent_snapshot_space` ([#497](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/497))
 - **netapp-ontap_security_account**: unable to unlock existing `security_account` resource ([#499](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/499))
