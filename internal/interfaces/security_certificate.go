@@ -43,6 +43,7 @@ type SecurityCertificateResourceCreateBodyDataModelONTAP struct {
 	HashFunction      string `mapstructure:"hash_function,omitempty"`
 	KeySize           int64  `mapstructure:"key_size,omitempty"`
 	ExpiryTime        string `mapstructure:"expiry_time,omitempty"`
+	IntermediateCertificates []string `mapstructure:"intermediate_certificates,omitempty"`
 }
 
 // SecurityCertificateResourceSignBodyDataModelONTAP describes the signing body data model using go types for mapping.
