@@ -77,6 +77,7 @@ type StorageVolumeResourceModel struct {
 	SnapLock       types.Object                      `tfsdk:"snaplock"`
 	Analytics      types.Object                      `tfsdk:"analytics"`
 	Autosize       types.Object                      `tfsdk:"autosize"`
+	SnapshotLockingEnabled        types.Bool         `tfsdk:"snapshot_locking_enabled"`
 }
 
 // StorageVolumeResourceAggregates describes the analytics model.
@@ -196,6 +197,11 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 			},
 			"encryption": schema.BoolAttribute{
 				MarkdownDescription: "Whether or not to enable Volume Encryption",
+				Optional:            true,
+				Computed:            true,
+			},
+			"snapshot_locking_enabled": schema.BoolAttribute{
+				MarkdownDescription: "Whether or not snapshot copy locking is enabled on the volume.",
 				Optional:            true,
 				Computed:            true,
 			},
@@ -480,6 +486,7 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 		data.ID = types.StringValue(response.UUID)
 	} else {
 		response, err = interfaces.GetStorageVolume(errorHandler, *client, data.ID.ValueString())
+		
 		if err != nil {
 			return
 		}
@@ -495,6 +502,7 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 	data.SpaceGuarantee = types.StringValue(response.SpaceGuarantee.Type)
 	data.SnapshotPolicy = types.StringValue(response.SnapshotPolicy.Name)
 	data.Type = types.StringValue(response.Type)
+	data.SnapshotLockingEnabled = types.BoolValue(response.SnapshotLockingEnabled)
 
 	//Space
 	nestedElementTypes := map[string]attr.Type{
@@ -699,6 +707,9 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	if !data.Encrypt.IsUnknown() {
 		request.Encryption.Enabled = data.Encrypt.ValueBool()
 	}
+	if !data.SnapshotLockingEnabled.IsUnknown() {
+		request.SnapshotLockingEnabled = data.SnapshotLockingEnabled.ValueBool()
+	}
 	if !data.SnapshotPolicy.IsUnknown() {
 		request.SnapshotPolicy.Name = data.SnapshotPolicy.ValueString()
 	}
@@ -860,6 +871,7 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	}
 
 	response, err := interfaces.CreateStorageVolume(errorHandler, *client, request)
+
 	if err != nil {
 		return
 	}
@@ -873,6 +885,7 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	data.SpaceGuarantee = types.StringValue(response.SpaceGuarantee.Type)
 	data.SnapshotPolicy = types.StringValue(response.SnapshotPolicy.Name)
 	data.Type = types.StringValue(response.Type)
+	data.SnapshotLockingEnabled = types.BoolValue(response.SnapshotLockingEnabled)
 
 	//Space
 	nestedElementTypes := map[string]attr.Type{
@@ -1077,6 +1090,11 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 	if !plan.Encrypt.IsUnknown() {
 		if !plan.Encrypt.Equal(state.Encrypt) {
 			request.Encryption.Enabled = plan.Encrypt.ValueBool()
+		}
+	}
+	if !plan.SnapshotLockingEnabled.IsUnknown() {
+		if !plan.SnapshotLockingEnabled.Equal(state.SnapshotLockingEnabled) {
+			request.SnapshotLockingEnabled = plan.SnapshotLockingEnabled.ValueBool()
 		}
 	}
 
@@ -1308,6 +1326,7 @@ func readVolume(ctx context.Context, client *restclient.RestClient, data *Storag
 	data.SpaceGuarantee = types.StringValue(response.SpaceGuarantee.Type)
 	data.SnapshotPolicy = types.StringValue(response.SnapshotPolicy.Name)
 	data.Type = types.StringValue(response.Type)
+	data.SnapshotLockingEnabled = types.BoolValue(response.SnapshotLockingEnabled)
 
 	//Space
 	nestedElementTypes := map[string]attr.Type{

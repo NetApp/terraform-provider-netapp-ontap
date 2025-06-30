@@ -37,3 +37,21 @@ resource "netapp-ontap_volume" "example2" {
     size_unit = "mb"
   }
 }
+
+
+# creating a volume with snapshot_locking_enabled
+resource "netapp-ontap_volume" "ontap_vol" {
+  cx_profile_name = "cluster4"
+  name = "terraformTest"
+  svm_name = "ansibleSVM"
+  aggregates = [
+    {
+      name = "aggr1"
+    },
+  ]
+  space = {
+    size = 20
+    size_unit = "mb"
+  }
+  snapshot_locking_enabled = "true"
+}
