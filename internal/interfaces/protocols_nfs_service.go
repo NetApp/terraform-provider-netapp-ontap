@@ -211,7 +211,7 @@ func UpdateProtocolsNfsService(errorHandler *utils.ErrorHandler, r restclient.Re
 	query.Add("return_records", "true")
 	statusCode, _, err := r.CallUpdateMethod("protocols/nfs/services/"+uuid, query, body)
 	if err != nil {
-		return errorHandler.MakeAndReportError("error modifying NFS Service", fmt.Sprintf("error on PATCH rotocols/nfs/services/s: %s, statusCode %d", err, statusCode))
+		return errorHandler.MakeAndReportError("error modifying NFS Service", fmt.Sprintf("error on PATCH protocols/nfs/services/s: %s, statusCode %d", err, statusCode))
 	}
 	return nil
 }

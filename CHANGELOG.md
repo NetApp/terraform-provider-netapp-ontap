@@ -11,6 +11,10 @@ ENHANCEMENTS:
 - **netapp-ontap_snapmirror**, **netapp-ontap_snapmirrors**: added `transfer_schedule.name` option to resource and data sources. ([#444](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/444))
 - **netapp-ontap_security_certificate**: added `intermediate_certificates` option to resources. ([#484](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/484))
 
+BUG FIXES:
+
+- **netapp-ontap_nfs_service**: fixed `v41_enabled` to modify when disabled instead of forcing resource replacement. ([#523](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/523))
+
 # 2.2.0 (2025-05-01)
 
 FEATURES:
