@@ -80,6 +80,12 @@ type Cluster struct {
 
 // Policy describes Policy data model.
 type Policy struct {
+	Name             types.String      `tfsdk:"name"`
+	TransferSchedule *TransferSchedule `tfsdk:"transfer_schedule"`
+}
+
+// TransferSchedule describes the transfer schedule data model.
+type TransferSchedule struct {
 	Name types.String `tfsdk:"name"`
 }
 
@@ -171,6 +177,16 @@ func (r *SnapmirrorResource) Schema(ctx context.Context, req resource.SchemaRequ
 						MarkdownDescription: "policy name",
 						Required:            true,
 					},
+					"transfer_schedule": schema.SingleNestedAttribute{
+						MarkdownDescription: "transfer schedule details",
+						Optional:            true,
+						Attributes: map[string]schema.Attribute{
+							"name": schema.StringAttribute{
+								MarkdownDescription: "schedule name",
+								Required:            true,
+							},
+						},
+					},
 				},
 			},
 			"id": schema.StringAttribute{
@@ -227,6 +243,7 @@ func (r *SnapmirrorResource) Read(ctx context.Context, req resource.ReadRequest,
 		data.ID = types.StringValue(restInfo.UUID)
 		data.Healthy = types.BoolValue(restInfo.Healthy)
 		data.State = types.StringValue(restInfo.State)
+		data.Policy.TransferSchedule.Name = types.StringValue(restInfo.Policy.TransferSchedule.Name)
 	} else {
 		restInfoImport, err := interfaces.GetSnapmirrorByDestinationPath(errorHandler, *client, data.DestinationEndPoint.Path.ValueString(), nil)
 		if err != nil {
@@ -237,6 +254,7 @@ func (r *SnapmirrorResource) Read(ctx context.Context, req resource.ReadRequest,
 		data.Healthy = types.BoolValue(restInfoImport.Healthy)
 		data.State = types.StringValue(restInfoImport.State)
 		data.DestinationEndPoint.Path = types.StringValue(restInfoImport.Destination.Path)
+		data.Policy.TransferSchedule.Name = types.StringValue(restInfoImport.Policy.TransferSchedule.Name)
 	}
 
 	// Write logs using the tflog package
@@ -280,6 +298,11 @@ func (r *SnapmirrorResource) Create(ctx context.Context, req resource.CreateRequ
 	if data.Policy != nil {
 		if !data.Policy.Name.IsNull() {
 			body.Policy.Name = data.Policy.Name.ValueString()
+		}
+		if data.Policy.TransferSchedule != nil && !data.Policy.TransferSchedule.Name.IsNull() {
+			body.Policy.TransferSchedule = &interfaces.TransferSchedule{
+				Name: data.Policy.TransferSchedule.Name.ValueString(),
+			}
 		}
 	}
 
@@ -373,6 +396,11 @@ func (r *SnapmirrorResource) Update(ctx context.Context, req resource.UpdateRequ
 	if plan.Policy != nil {
 		if !plan.Policy.Name.IsNull() {
 			body.Policy.Name = plan.Policy.Name.ValueString()
+		}
+		if plan.Policy.TransferSchedule != nil && !plan.Policy.TransferSchedule.Name.IsNull() {
+			body.Policy.TransferSchedule = &interfaces.TransferSchedule{
+				Name: plan.Policy.TransferSchedule.Name.ValueString(),
+			}
 		}
 	}
 
