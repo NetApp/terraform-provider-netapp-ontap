@@ -342,20 +342,29 @@ func DeleteStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClie
 }
 
 // UpddateStorageVolume to update volume
-func UpddateStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClient, data StorageVolumeResourceModel, ID string, ignoreEncrption bool, ignoreLogicalSpace bool) error {
+func UpddateStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClient, data StorageVolumeResourceModel, ID string, ignoreOptions []string) error {
 	var body map[string]interface{}
 	if err := mapstructure.Decode(data, &body); err != nil {
 		return errorHandler.MakeAndReportError("error encoding volume body", fmt.Sprintf("error on encoding storage/volumes body: %s, body: %#v", err, data))
 	}
-	if ignoreEncrption {
-		delete(body, "encryption")
-	}
-	if ignoreLogicalSpace {
-		if nestedMap, ok := body["space"].(map[string]interface{}); ok {
-			delete(nestedMap, "logical_space")
+	for _, option := range ignoreOptions {
+		if option == "encryption" {
+			delete(body, "encryption")
+		} else if option == "logical_space" {
+			if nestedMap, ok := body["space"].(map[string]interface{}); ok {
+				delete(nestedMap, "logical_space")
+			}
+		} else if option == "nas.group_id" {
+			if nestedMap, ok := body["nas"].(map[string]interface{}); ok {
+				delete(nestedMap, "gid")
+			}
+		} else if option == "nas.user_id" {
+			if nestedMap, ok := body["nas"].(map[string]interface{}); ok {
+				delete(nestedMap, "uid")
+			}
 		}
 	}
-	log.Printf("body body: %#v", body)
+
 	statusCode, _, err := r.CallUpdateMethod("storage/volumes/"+ID, nil, body)
 	if err != nil {
 		return errorHandler.MakeAndReportError("error updating volume", fmt.Sprintf("error on POST storage/volumes: %s, statusCode %d", err, statusCode))

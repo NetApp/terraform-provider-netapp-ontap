@@ -855,7 +855,6 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 			request.NAS.UserID = int(nas.UserID.ValueInt64())
 		}
 	}
-
 	var sizeUnit string
 	autoSizeUnit := "mb"
 	var space StorageVolumeResourceSpace
@@ -1198,19 +1197,32 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 		}
 	}
 
+	ignoreNASgid := true
+	ignoreNASuid := true
 	if !plan.Nas.Equal(state.Nas) {
-		var nas StorageVolumeResourceNas
-		diags := plan.Nas.As(ctx, &nas, basetypes.ObjectAsOptions{})
+		var planNas, stateNas StorageVolumeResourceNas
+		diags := plan.Nas.As(ctx, &planNas, basetypes.ObjectAsOptions{})
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		request.NAS.ExportPolicy.Name = nas.ExportPolicy.ValueString()
-		request.NAS.JunctionPath = nas.JunctionPath.ValueString()
-		request.NAS.SecurityStyle = nas.SecurityStyle.ValueString()
-		request.NAS.UnixPermissions = int(nas.UnixPermissions.ValueInt64())
-		request.NAS.GroupID = int(nas.GroupID.ValueInt64())
-		request.NAS.UserID = int(nas.UserID.ValueInt64())
+		diags = state.Nas.As(ctx, &stateNas, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		request.NAS.ExportPolicy.Name = planNas.ExportPolicy.ValueString()
+		request.NAS.JunctionPath = planNas.JunctionPath.ValueString()
+		request.NAS.SecurityStyle = planNas.SecurityStyle.ValueString()
+		request.NAS.UnixPermissions = int(planNas.UnixPermissions.ValueInt64())
+		if !planNas.GroupID.Equal(stateNas.GroupID) {
+			ignoreNASgid = false
+			request.NAS.GroupID = int(planNas.GroupID.ValueInt64())
+		}
+		if !planNas.UserID.Equal(stateNas.UserID) {
+			ignoreNASuid = false
+			request.NAS.UserID = int(planNas.UserID.ValueInt64())
+		}
 
 	}
 
@@ -1300,7 +1312,21 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 		request.Autosize.Mode = autosize.Mode.ValueString()
 	}
 
-	err = interfaces.UpddateStorageVolume(errorHandler, *client, request, plan.ID.ValueString(), ignoreEncrption, ignoreLogicalSpace)
+	ignoreOptions := []string{}
+	if ignoreEncrption {
+		ignoreOptions = append(ignoreOptions, "encryption")
+	}
+	if ignoreLogicalSpace {
+		ignoreOptions = append(ignoreOptions, "logical_space")
+	}
+	if ignoreNASgid {
+		ignoreOptions = append(ignoreOptions, "nas.group_id")
+	}
+	if ignoreNASuid {
+		ignoreOptions = append(ignoreOptions, "nas.user_id")
+	}
+
+	err = interfaces.UpddateStorageVolume(errorHandler, *client, request, plan.ID.ValueString(), ignoreOptions)
 	if err != nil {
 		return
 	}
