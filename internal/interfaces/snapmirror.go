@@ -11,9 +11,10 @@ import (
 
 // SnapmirrorGetDataModelONTAP defines the resource get data model
 type SnapmirrorGetDataModelONTAP struct {
-	Healthy bool   `mapstructure:"healthy"`
-	State   string `mapstructure:"state"`
-	UUID    string `mapstructure:"uuid"`
+	Healthy bool             `mapstructure:"healthy"`
+	State   string           `mapstructure:"state"`
+	UUID    string           `mapstructure:"uuid"`
+	Policy  PolicySnapmirror `mapstructure:"policy"`
 }
 
 // SnapmirrorGetRawDataModelONTAP defines the resource get data model
