@@ -12,7 +12,7 @@ import (
 )
 
 // example ID: aeef4e4f-a663-11ef-9ca8-00a0b8bc0407
-const idRegexNetworkEthernetPort string = "[[:xdigit:]]{8}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{12}"
+// const idRegexNetworkEthernetPort string = "[[:xdigit:]]{8}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{12}"
 
 func TestAccNetworkEthernetPortResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
