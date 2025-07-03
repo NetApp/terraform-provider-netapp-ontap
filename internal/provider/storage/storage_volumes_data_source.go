@@ -245,6 +245,40 @@ func (d *StorageVolumesDataSource) Schema(ctx context.Context, req datasource.Sc
 								},
 							},
 						},
+						"autosize": schema.SingleNestedAttribute{
+							Computed: true,
+							Attributes: map[string]schema.Attribute{
+								"minimum": schema.Int64Attribute{
+									MarkdownDescription: "Minimum size up to which the volume shrinks automatically. This size cannot be greater than or equal to the maximum size of volume.",
+									Computed:            true,
+								},
+								"maximum": schema.Int64Attribute{
+									MarkdownDescription: "Maximum size up to which a volume grows automatically. This size cannot be less than the current volume size, or less than or equal to the minimum size of volume.",
+									Computed:            true,
+								},
+								"size_unit": schema.StringAttribute{
+									MarkdownDescription: "The unit used to interpret the minimum or maximum size parameters.",
+									Computed:            true,
+								},
+								"shrink_threshold": schema.Int64Attribute{
+									MarkdownDescription: "Used space threshold size, in percentage, for the automatic shrinkage of the volume.",
+									Computed:            true,
+								},
+								"grow_threshold": schema.Int64Attribute{
+									MarkdownDescription: "Used space threshold size, in percentage, for the automatic growth of the volume.",
+									Computed:            true,
+								},
+								"mode": schema.StringAttribute{
+									MarkdownDescription: `
+														Autosize mode for the volume.
+														grow - Volume automatically grows when the amount of used space is above the 'grow_threshold' value.
+														grow_shrink - Volume grows or shrinks in response to the amount of space used.
+														off - Autosizing of the volume is disabled.
+														`,
+									Computed:            true,
+								},
+							},
+						},
 						"id": schema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "Volume identifier",
@@ -310,6 +344,7 @@ func (d *StorageVolumesDataSource) Read(ctx context.Context, req datasource.Read
 	for index, record := range restInfo {
 
 		vsize, vunits := interfaces.ByteFormat(int64(record.Space.Size))
+		autosize_minimum, autosize_units := interfaces.ByteFormat(int64(record.Autosize.Minimum))
 		var aggregates = make([]StorageVolumeDataSourceAggregates, len(record.Aggregates))
 		for i, v := range record.Aggregates {
 			aggregates[i].Name = types.StringValue(v.Name)
@@ -358,6 +393,14 @@ func (d *StorageVolumesDataSource) Read(ctx context.Context, req datasource.Read
 			},
 			Analytics: &StorageVolumeDataSourceAnalytics{
 				State: types.StringValue(record.Analytics.State),
+			},
+			Autosize: &StorageVolumeDataSourceAutosize{
+				Minimum:         types.Int64Value(autosize_minimum),
+				Maximum:         types.Int64Value(int64(record.Autosize.Maximum)),
+				SizeUnit:        types.StringValue(autosize_units),
+				ShrinkThreshold: types.Int64Value(int64(record.Autosize.ShrinkThreshold)),
+				GrowThreshold:   types.Int64Value(int64(record.Autosize.GrowThreshold)),
+				Mode:            types.StringValue(record.Autosize.Mode),
 			},
 			ID: types.StringValue(record.UUID),
 		}

@@ -65,6 +65,7 @@ Read-Only:
 - `name` (String) StorageLun name
 - `os_type` (String) OS type for lun
 - `qos_policy` (Attributes) (see [below for nested schema](#nestedatt--storage_luns--qos_policy))
+- `serial_number` (String) Serial number for lun
 - `space` (Attributes) (see [below for nested schema](#nestedatt--storage_luns--space))
 - `svm_name` (String) StorageLun svm name
 
@@ -101,5 +102,6 @@ Read-Only:
 
 Read-Only:
 
+- `scsi_thin_provisioning_support_enabled` (Boolean) Specifies the value for the space allocation attribute, which determines if the LUN supports the SCSI Thin Provisioning features
 - `size` (Number) Size of lun in bytes
 - `used` (Number) Used space of lun in bytes

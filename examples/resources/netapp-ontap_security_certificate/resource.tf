@@ -50,4 +50,10 @@ EOT
 private-key
 -----END PRIVATE KEY-----
 EOT
+
+  intermediate_certificates = [
+    "-----BEGIN CERTIFICATE-----\n INTERMEDIATE CERTIFICATE \n-----END CERTIFICATE-----",
+    "-----BEGIN CERTIFICATE-----\n INTERMEDIATE CERTIFICATE \n-----END CERTIFICATE-----",
+    "-----BEGIN CERTIFICATE-----\n ROOT CERTIFICATE \n-----END CERTIFICATE-----"
+]
 }

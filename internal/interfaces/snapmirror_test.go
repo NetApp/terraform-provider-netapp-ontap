@@ -72,8 +72,11 @@ var record911Snapmirror = SnapmirrorDataSourceModel{
 }
 
 var updateSnapmirrorBody = UpdateSnapmirrorResourceBodyDataModelONTAP{
-	Policy: Policy{
+	Policy: PolicySnapmirror{
 		Name: "string",
+		TransferSchedule: &TransferSchedule{
+			Name: "string",
+		},
 	},
 }
 
