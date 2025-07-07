@@ -9,17 +9,20 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient"
@@ -98,6 +101,8 @@ type StorageVolumeResourceSnapLock struct {
 type StorageVolumeResourceEfficiency struct {
 	Policy      types.String `tfsdk:"policy_name"`
 	Compression types.String `tfsdk:"compression"`
+	Dedupe      types.String `tfsdk:"dedupe"`
+	Compaction  types.String `tfsdk:"compaction"`
 }
 
 // StorageVolumeResourceTiering describes the tiering model.
@@ -180,12 +185,16 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 				MarkdownDescription: "Whether the specified volume is online, or not",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"type": schema.StringAttribute{
 				MarkdownDescription: "The volume type, either read-write (RW) or data-protection (DP)",
 				Optional:            true,
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
@@ -193,32 +202,50 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 				MarkdownDescription: "Space guarantee style for the volume",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"encryption": schema.BoolAttribute{
 				MarkdownDescription: "Whether or not to enable Volume Encryption",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"snapshot_policy": schema.StringAttribute{
 				MarkdownDescription: "The name of the snapshot policy",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"language": schema.StringAttribute{
 				MarkdownDescription: "Language to use for volume",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			// with Rest API qos_policy_group and qos_adaptive_policy_group are now the same thing and cannot be set at the same time
 			"qos_policy_group": schema.StringAttribute{
 				MarkdownDescription: "Specifies a QoS policy group to be set on volume",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"comment": schema.StringAttribute{
 				MarkdownDescription: "Sets a comment associated with the volume",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"space": schema.SingleNestedAttribute{
 				Required: true,
@@ -235,139 +262,228 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 						MarkdownDescription: "Amount of space reserved for snapshot copies of the volume",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.Int64{
+							int64planmodifier.UseStateForUnknown(),
+						},
 					},
 					"logical_space": schema.SingleNestedAttribute{
-						Optional: true,
-						Computed: true,
+						Optional:      true,
+						Computed:      true,
+						PlanModifiers: []planmodifier.Object{objectplanmodifier.UseStateForUnknown()},
 						Attributes: map[string]schema.Attribute{
 							"enforcement": schema.BoolAttribute{
 								MarkdownDescription: "Whether to perform logical space accounting on the volume",
 								Optional:            true,
 								Computed:            true,
+								PlanModifiers: []planmodifier.Bool{
+									boolplanmodifier.UseStateForUnknown(),
+								},
 							},
 							"reporting": schema.BoolAttribute{
 								MarkdownDescription: "Whether to report space logically",
 								Optional:            true,
 								Computed:            true,
+								PlanModifiers: []planmodifier.Bool{
+									boolplanmodifier.UseStateForUnknown(),
+								},
 							},
 						},
 					},
 				},
 			},
 			"nas": schema.SingleNestedAttribute{
-				Optional: true,
-				Computed: true,
+				Optional:      true,
+				Computed:      true,
+				PlanModifiers: []planmodifier.Object{objectplanmodifier.UseStateForUnknown()},
 				Attributes: map[string]schema.Attribute{
 					"export_policy_name": schema.StringAttribute{
 						MarkdownDescription: "The name of the export policy",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
 					},
 					"junction_path": schema.StringAttribute{
 						MarkdownDescription: "Junction path of the volume",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
 					},
 					"group_id": schema.Int64Attribute{
 						MarkdownDescription: "The UNIX group ID for the volume",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.Int64{
+							int64planmodifier.UseStateForUnknown(),
+						},
 					},
 					"user_id": schema.Int64Attribute{
 						MarkdownDescription: "The UNIX user ID for the volume",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.Int64{
+							int64planmodifier.UseStateForUnknown(),
+						},
 					},
 					"security_style": schema.StringAttribute{
 						MarkdownDescription: "The security style associated to the volume",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
 					},
 					"unix_permissions": schema.Int64Attribute{
 						MarkdownDescription: "Unix permission bits in octal or symbolic format. For example, 0 is equivalent to ------------, 777 is equivalent to ---rwxrwxrwx,both formats are accepted",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.Int64{
+							int64planmodifier.UseStateForUnknown(),
+						},
 					},
 				},
 			},
 			"tiering": schema.SingleNestedAttribute{
-				Optional: true,
-				Computed: true,
+				Optional:      true,
+				Computed:      true,
+				PlanModifiers: []planmodifier.Object{objectplanmodifier.UseStateForUnknown()},
 				Attributes: map[string]schema.Attribute{
 					"policy_name": schema.StringAttribute{
 						MarkdownDescription: "The tiering policy that is to be associated with the volume",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
 					},
 					"minimum_cooling_days": schema.Int64Attribute{
 						MarkdownDescription: "Determines how many days must pass before inactive data in a volume using the Auto or Snapshot-Only policy is considered cold and eligible for tiering",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.Int64{
+							int64planmodifier.UseStateForUnknown(),
+						},
 					},
 				},
 			},
 			"efficiency": schema.SingleNestedAttribute{
-				Computed: true,
-				Optional: true,
+				Computed:      true,
+				Optional:      true,
+				PlanModifiers: []planmodifier.Object{objectplanmodifier.UseStateForUnknown()},
 				Attributes: map[string]schema.Attribute{
 					"policy_name": schema.StringAttribute{
 						MarkdownDescription: "Allows a storage efficiency policy to be set on volume creation",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
 					},
 					"compression": schema.StringAttribute{
 						MarkdownDescription: "Whether to enable compression for the volume (HDD and Flash Pool aggregates)",
 						Optional:            true,
 						Computed:            true,
+						Validators: []validator.String{
+							stringvalidator.OneOf("inline", "background", "both", "none", "mixed"),
+						},
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
+					},
+					"dedupe": schema.StringAttribute{
+						MarkdownDescription: "The system can be enabled/disabled dedupe",
+						Optional:            true,
+						Computed:            true,
+						Validators: []validator.String{
+							stringvalidator.OneOf("inline", "background", "both", "none", "mixed"),
+						},
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
+					},
+					"compaction": schema.StringAttribute{
+						MarkdownDescription: "The system can be enabled/disabled compaction",
+						Optional:            true,
+						Computed:            true,
+						Validators: []validator.String{
+							stringvalidator.OneOf("inline", "none", "mixed"),
+						},
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
 					},
 				},
 			},
 
 			"snaplock": schema.SingleNestedAttribute{
-				Computed: true,
-				Optional: true,
+				Computed:      true,
+				Optional:      true,
+				PlanModifiers: []planmodifier.Object{objectplanmodifier.UseStateForUnknown()},
 				Attributes: map[string]schema.Attribute{
 					"type": schema.StringAttribute{
 						MarkdownDescription: "The SnapLock type of the volume",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
 					},
 				},
 			},
 			"analytics": schema.SingleNestedAttribute{
-				Optional: true,
-				Computed: true,
+				Optional:      true,
+				Computed:      true,
+				PlanModifiers: []planmodifier.Object{objectplanmodifier.UseStateForUnknown()},
 				Attributes: map[string]schema.Attribute{
 					"state": schema.StringAttribute{
 						Optional:            true,
 						Computed:            true,
 						MarkdownDescription: "Set file system analytics state of the volume",
+						Validators: []validator.String{
+							stringvalidator.OneOf("om", "off", "initializing", "initialization_paused", "unknown"),
+						},
 					},
 				},
 			},
 			"autosize": schema.SingleNestedAttribute{
-				Optional: true,
-				Computed: true,
+				Optional:      true,
+				Computed:      true,
+				PlanModifiers: []planmodifier.Object{objectplanmodifier.UseStateForUnknown()},
 				Attributes: map[string]schema.Attribute{
 					"minimum": schema.Int64Attribute{
 						MarkdownDescription: "Minimum size up to which the volume shrinks automatically. This size cannot be greater than or equal to the maximum size of volume.",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.Int64{
+							int64planmodifier.UseStateForUnknown(),
+						},
 					},
 					"maximum": schema.Int64Attribute{
 						MarkdownDescription: "Maximum size up to which a volume grows automatically. This size cannot be less than the current volume size, or less than or equal to the minimum size of volume.",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.Int64{
+							int64planmodifier.UseStateForUnknown(),
+						},
 					},
 					"shrink_threshold": schema.Int64Attribute{
 						MarkdownDescription: "Used space threshold size, in percentage, for the automatic shrinkage of the volume.",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.Int64{
+							int64planmodifier.UseStateForUnknown(),
+						},
 					},
 					"grow_threshold": schema.Int64Attribute{
 						MarkdownDescription: "Used space threshold size, in percentage, for the automatic growth of the volume.",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.Int64{
+							int64planmodifier.UseStateForUnknown(),
+						},
 					},
 					"mode": schema.StringAttribute{
 						MarkdownDescription: `
@@ -376,10 +492,13 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 							   				 grow_shrink - Volume grows or shrinks in response to the amount of space used.
 											 off - Autosizing of the volume is disabled.
 											 `,
-						Optional:            true,
-						Computed:            true,
+						Optional: true,
+						Computed: true,
 						Validators: []validator.String{
 							stringvalidator.OneOf("off", "grow", "grow_shrink"),
+						},
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
 						},
 					},
 					"size_unit": schema.StringAttribute{
@@ -387,6 +506,9 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 						Optional:            true,
 						Validators: []validator.String{
 							stringvalidator.OneOf("bytes", "b", "kb", "mb", "gb", "tb", "pb", "eb", "zb", "yb"),
+						},
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
 						},
 					},
 				},
@@ -442,16 +564,16 @@ func (r *StorageVolumeResource) Configure(ctx context.Context, req resource.Conf
 
 // ConfigValidators validates entire resource configurations
 func (d *StorageVolumeResource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
-    return []resource.ConfigValidator{
-        resourcevalidator.RequiredTogether(
-            path.MatchRoot("autosize").AtName("minimum"),
-            path.MatchRoot("autosize").AtName("size_unit"),
-        ),
+	return []resource.ConfigValidator{
 		resourcevalidator.RequiredTogether(
-            path.MatchRoot("autosize").AtName("maximum"),
-            path.MatchRoot("autosize").AtName("size_unit"),
-        ),
-    }
+			path.MatchRoot("autosize").AtName("minimum"),
+			path.MatchRoot("autosize").AtName("size_unit"),
+		),
+		resourcevalidator.RequiredTogether(
+			path.MatchRoot("autosize").AtName("maximum"),
+			path.MatchRoot("autosize").AtName("size_unit"),
+		),
+	}
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -546,6 +668,8 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 	elementTypes = map[string]attr.Type{
 		"compression": types.StringType,
 		"policy_name": types.StringType,
+		"dedupe":      types.StringType,
+		"compaction":  types.StringType,
 	}
 	policyName := response.Efficiency.Policy.Name
 	if policyName == "" || policyName == "-" {
@@ -554,6 +678,8 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 	elements = map[string]attr.Value{
 		"compression": types.StringValue(response.Efficiency.Compression),
 		"policy_name": types.StringValue(policyName),
+		"dedupe":      types.StringValue(response.Efficiency.Dedupe),
+		"compaction":  types.StringValue(response.Efficiency.Compaction),
 	}
 	objectValue, diags = types.ObjectValue(elementTypes, elements)
 	if diags.HasError() {
@@ -786,6 +912,12 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 		if !efficiency.Compression.IsUnknown() {
 			request.Efficiency.Compression = efficiency.Compression.ValueString()
 		}
+		if !efficiency.Dedupe.IsUnknown() {
+			request.Efficiency.Dedupe = efficiency.Dedupe.ValueString()
+		}
+		if !efficiency.Compaction.IsUnknown() {
+			request.Efficiency.Compaction = efficiency.Compaction.ValueString()
+		}
 	}
 
 	if !data.Tiering.IsUnknown() {
@@ -921,6 +1053,8 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	elementTypes = map[string]attr.Type{
 		"compression": types.StringType,
 		"policy_name": types.StringType,
+		"dedupe":      types.StringType,
+		"compaction":  types.StringType,
 	}
 	policyName := response.Efficiency.Policy.Name
 	if policyName == "" || policyName == "-" {
@@ -929,6 +1063,8 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	elements = map[string]attr.Value{
 		"compression": types.StringValue(response.Efficiency.Compression),
 		"policy_name": types.StringValue(policyName),
+		"dedupe":      types.StringValue(response.Efficiency.Dedupe),
+		"compaction":  types.StringValue(response.Efficiency.Compaction),
 	}
 	objectValue, diags = types.ObjectValue(elementTypes, elements)
 	if diags.HasError() {
@@ -1158,6 +1294,12 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 			if !efficiency.Compression.IsUnknown() {
 				request.Efficiency.Compression = efficiency.Compression.ValueString()
 			}
+			if !efficiency.Dedupe.IsUnknown() {
+				request.Efficiency.Dedupe = efficiency.Dedupe.ValueString()
+			}
+			if !efficiency.Compaction.IsUnknown() {
+				request.Efficiency.Compaction = efficiency.Compaction.ValueString()
+			}
 		}
 	}
 
@@ -1368,6 +1510,8 @@ func readVolume(ctx context.Context, client *restclient.RestClient, data *Storag
 	elementTypes = map[string]attr.Type{
 		"compression": types.StringType,
 		"policy_name": types.StringType,
+		"dedupe":      types.StringType,
+		"compaction":  types.StringType,
 	}
 	policyName := response.Efficiency.Policy.Name
 	if policyName == "" || policyName == "-" {
@@ -1376,6 +1520,8 @@ func readVolume(ctx context.Context, client *restclient.RestClient, data *Storag
 	elements = map[string]attr.Value{
 		"compression": types.StringValue(response.Efficiency.Compression),
 		"policy_name": types.StringValue(policyName),
+		"dedupe":      types.StringValue(response.Efficiency.Dedupe),
+		"compaction":  types.StringValue(response.Efficiency.Compaction),
 	}
 	objectValue, diags = types.ObjectValue(elementTypes, elements)
 	if diags.HasError() {

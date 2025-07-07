@@ -162,6 +162,8 @@ Read-Only:
 
 - `enforcement` (Boolean) Whether to perform logical space accounting on the volume
 - `reporting` (Boolean) Whether to report space logically
+- `dedupe` (String) The system can be enabled/disabled dedupe
+- `compaction` (String) The system can be enabled/disabled compression
 
 <a id="nestedatt--storage_volumes--tiering"></a>
 

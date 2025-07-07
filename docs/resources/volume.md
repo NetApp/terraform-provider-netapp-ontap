@@ -167,6 +167,8 @@ Optional:
 
 - `compression` (String) Whether to enable compression for the volume (HDD and Flash Pool aggregates)
 - `policy_name` (String) Allows a storage efficiency policy to be set on volume creation
+- `dedupe` (String) The system can be enabled/disabled dedupe
+- `compaction` (String) The system can be enabled/disabled compression
 
 <a id="nestedatt--nas"></a>
 
