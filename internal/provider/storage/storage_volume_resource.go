@@ -518,9 +518,6 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 						Validators: []validator.String{
 							stringvalidator.OneOf("off", "grow", "grow_shrink"),
 						},
-						PlanModifiers: []planmodifier.String{
-							stringplanmodifier.UseStateForUnknown(),
-						},
 					},
 					"size_unit": schema.StringAttribute{
 						MarkdownDescription: "The unit used to interpret the minimum or maximum size parameters",
