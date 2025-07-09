@@ -102,6 +102,8 @@ type StorageVolumeResourceSnapLock struct {
 type StorageVolumeResourceEfficiency struct {
 	Policy      types.String `tfsdk:"policy_name"`
 	Compression types.String `tfsdk:"compression"`
+	Dedupe      types.String `tfsdk:"dedupe"`
+	Compaction  types.String `tfsdk:"compaction"`
 }
 
 // StorageVolumeResourceTiering describes the tiering model.
@@ -193,6 +195,7 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 				Optional:            true,
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 					stringplanmodifier.RequiresReplace(),
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -276,11 +279,17 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 								MarkdownDescription: "Whether to perform logical space accounting on the volume",
 								Optional:            true,
 								Computed:            true,
+								PlanModifiers: []planmodifier.Bool{
+									boolplanmodifier.UseStateForUnknown(),
+								},
 							},
 							"reporting": schema.BoolAttribute{
 								MarkdownDescription: "Whether to report space logically",
 								Optional:            true,
 								Computed:            true,
+								PlanModifiers: []planmodifier.Bool{
+									boolplanmodifier.UseStateForUnknown(),
+								},
 							},
 						},
 					},
@@ -362,6 +371,9 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 						MarkdownDescription: "Determines how many days must pass before inactive data in a volume using the Auto or Snapshot-Only policy is considered cold and eligible for tiering",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.Int64{
+							int64planmodifier.UseStateForUnknown(),
+						},
 					},
 				},
 			},
@@ -384,6 +396,31 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 						MarkdownDescription: "Whether to enable compression for the volume (HDD and Flash Pool aggregates)",
 						Optional:            true,
 						Computed:            true,
+						Validators: []validator.String{
+							stringvalidator.OneOf("inline", "background", "both", "none", "mixed"),
+						},
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
+					},
+					"dedupe": schema.StringAttribute{
+						MarkdownDescription: "The system can be enabled/disabled dedupe",
+						Optional:            true,
+						Computed:            true,
+						Validators: []validator.String{
+							stringvalidator.OneOf("inline", "background", "both", "none", "mixed"),
+						},
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
+					},
+					"compaction": schema.StringAttribute{
+						MarkdownDescription: "The system can be enabled/disabled compaction",
+						Optional:            true,
+						Computed:            true,
+						Validators: []validator.String{
+							stringvalidator.OneOf("inline", "none", "mixed"),
+						},
 						PlanModifiers: []planmodifier.String{
 							stringplanmodifier.UseStateForUnknown(),
 						},
@@ -422,23 +459,33 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 							stringplanmodifier.UseStateForUnknown(),
 						},
 						MarkdownDescription: "Set file system analytics state of the volume",
+						Validators: []validator.String{
+							stringvalidator.OneOf("om", "off", "initializing", "initialization_paused", "unknown"),
+						},
 					},
 				},
 			},
 			// 'autosize' can not use UseStateForUnknown because it will changed by PATCH API on changing size.
 			"autosize": schema.SingleNestedAttribute{
-				Optional: true,
-				Computed: true,
+				Optional:      true,
+				Computed:      true,
+				PlanModifiers: []planmodifier.Object{objectplanmodifier.UseStateForUnknown()},
 				Attributes: map[string]schema.Attribute{
 					"minimum": schema.Int64Attribute{
 						MarkdownDescription: "Minimum size up to which the volume shrinks automatically. This size cannot be greater than or equal to the maximum size of volume.",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.Int64{
+							int64planmodifier.UseStateForUnknown(),
+						},
 					},
 					"maximum": schema.Int64Attribute{
 						MarkdownDescription: "Maximum size up to which a volume grows automatically. This size cannot be less than the current volume size, or less than or equal to the minimum size of volume.",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.Int64{
+							int64planmodifier.UseStateForUnknown(),
+						},
 					},
 					"shrink_threshold": schema.Int64Attribute{
 						MarkdownDescription: "Used space threshold size, in percentage, for the automatic shrinkage of the volume.",
@@ -471,6 +518,9 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 						Validators: []validator.String{
 							stringvalidator.OneOf("off", "grow", "grow_shrink"),
 						},
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
 					},
 					"size_unit": schema.StringAttribute{
 						MarkdownDescription: "The unit used to interpret the minimum or maximum size parameters",
@@ -478,6 +528,9 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 						Computed:            true,
 						Validators: []validator.String{
 							stringvalidator.OneOf("bytes", "b", "kb", "mb", "gb", "tb", "pb", "eb", "zb", "yb"),
+						},
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
 						},
 					},
 				},
@@ -650,6 +703,8 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 	elementTypes = map[string]attr.Type{
 		"compression": types.StringType,
 		"policy_name": types.StringType,
+		"dedupe":      types.StringType,
+		"compaction":  types.StringType,
 	}
 	policyName := response.Efficiency.Policy.Name
 	if policyName == "" || policyName == "-" {
@@ -658,6 +713,8 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 	elements = map[string]attr.Value{
 		"compression": types.StringValue(response.Efficiency.Compression),
 		"policy_name": types.StringValue(policyName),
+		"dedupe":      types.StringValue(response.Efficiency.Dedupe),
+		"compaction":  types.StringValue(response.Efficiency.Compaction),
 	}
 	objectValue, diags = types.ObjectValue(elementTypes, elements)
 	if diags.HasError() {
@@ -903,6 +960,12 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 		if !efficiency.Compression.IsUnknown() {
 			request.Efficiency.Compression = efficiency.Compression.ValueString()
 		}
+		if !efficiency.Dedupe.IsUnknown() {
+			request.Efficiency.Dedupe = efficiency.Dedupe.ValueString()
+		}
+		if !efficiency.Compaction.IsUnknown() {
+			request.Efficiency.Compaction = efficiency.Compaction.ValueString()
+		}
 	}
 
 	if !data.Tiering.IsUnknown() {
@@ -1038,6 +1101,8 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	elementTypes = map[string]attr.Type{
 		"compression": types.StringType,
 		"policy_name": types.StringType,
+		"dedupe":      types.StringType,
+		"compaction":  types.StringType,
 	}
 	policyName := response.Efficiency.Policy.Name
 	if policyName == "" || policyName == "-" {
@@ -1046,6 +1111,8 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	elements = map[string]attr.Value{
 		"compression": types.StringValue(response.Efficiency.Compression),
 		"policy_name": types.StringValue(policyName),
+		"dedupe":      types.StringValue(response.Efficiency.Dedupe),
+		"compaction":  types.StringValue(response.Efficiency.Compaction),
 	}
 	objectValue, diags = types.ObjectValue(elementTypes, elements)
 	if diags.HasError() {
@@ -1249,20 +1316,28 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 
 	}
 
-	if !plan.Efficiency.Equal(state.Efficiency) {
-		var efficiency StorageVolumeResourceEfficiency
-		diags := plan.Efficiency.As(ctx, &efficiency, basetypes.ObjectAsOptions{})
-		if diags.HasError() {
-			resp.Diagnostics.Append(diags...)
-			return
-		}
-		if efficiency.Policy.ValueString() == "" || efficiency.Policy.ValueString() == "-" {
-			request.Efficiency.Policy.Name = "default"
-		} else {
-			request.Efficiency.Policy.Name = efficiency.Policy.ValueString()
-		}
-		if !efficiency.Compression.IsUnknown() {
-			request.Efficiency.Compression = efficiency.Compression.ValueString()
+	if !plan.Efficiency.IsUnknown() {
+		if !plan.Efficiency.Equal(state.Efficiency) {
+			var efficiency StorageVolumeResourceEfficiency
+			diags := plan.Efficiency.As(ctx, &efficiency, basetypes.ObjectAsOptions{})
+			if diags.HasError() {
+				resp.Diagnostics.Append(diags...)
+				return
+			}
+			if efficiency.Policy.ValueString() == "" || efficiency.Policy.ValueString() == "-" {
+				request.Efficiency.Policy.Name = "default"
+			} else {
+				request.Efficiency.Policy.Name = efficiency.Policy.ValueString()
+			}
+			if !efficiency.Compression.IsUnknown() {
+				request.Efficiency.Compression = efficiency.Compression.ValueString()
+			}
+			if !efficiency.Dedupe.IsUnknown() {
+				request.Efficiency.Dedupe = efficiency.Dedupe.ValueString()
+			}
+			if !efficiency.Compaction.IsUnknown() {
+				request.Efficiency.Compaction = efficiency.Compaction.ValueString()
+			}
 		}
 	}
 
@@ -1479,6 +1554,8 @@ func readVolume(ctx context.Context, client *restclient.RestClient, data *Storag
 	elementTypes = map[string]attr.Type{
 		"compression": types.StringType,
 		"policy_name": types.StringType,
+		"dedupe":      types.StringType,
+		"compaction":  types.StringType,
 	}
 	policyName := response.Efficiency.Policy.Name
 	if policyName == "" || policyName == "-" {
@@ -1487,6 +1564,8 @@ func readVolume(ctx context.Context, client *restclient.RestClient, data *Storag
 	elements = map[string]attr.Value{
 		"compression": types.StringValue(response.Efficiency.Compression),
 		"policy_name": types.StringValue(policyName),
+		"dedupe":      types.StringValue(response.Efficiency.Dedupe),
+		"compaction":  types.StringValue(response.Efficiency.Compaction),
 	}
 	objectValue, diags = types.ObjectValue(elementTypes, elements)
 	if diags.HasError() {

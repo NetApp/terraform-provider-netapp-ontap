@@ -84,6 +84,8 @@ type LogicalSpace struct {
 type Efficiency struct {
 	Policy      Policy `mapstructure:"policy,omitempty"`
 	Compression string `mapstructure:"compression,omitempty"`
+	Dedupe      string `mapstructure:"dedupe,omitempty"`
+	Compaction  string `mapstructure:"compaction,omitempty"`
 }
 
 // Snaplock describes the resource data model.
@@ -222,7 +224,7 @@ func GetStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClient,
 	query := r.NewQuery()
 	query.Fields([]string{"name", "svm.name", "aggregates", "space.size", "state", "type", "nas.export_policy.name", "nas.path", "guarantee.type", "space.snapshot.reserve_percent",
 		"nas.security_style", "encryption.enabled", "efficiency.policy.name", "nas.unix_permissions", "nas.gid", "nas.uid", "snapshot_policy.name", "language", "qos.policy.name",
-		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state", "autosize"})
+		"tiering.policy", "comment", "efficiency.compression", "efficiency.dedupe", "efficiency.compaction", "tiering.min_cooling_days", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state", "autosize"})
 	statusCode, response, err := r.GetNilOrOneRecord("storage/volumes/"+uuid, query, nil)
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError("error reading volume info", fmt.Sprintf("error on GET storage/volumes: %s", err))
@@ -247,7 +249,7 @@ func GetStorageVolumeByName(errorHandler *utils.ErrorHandler, r restclient.RestC
 	query.Add("return_records", "true")
 	query.Fields([]string{"name", "uuid", "svm.name", "aggregates", "space.size", "state", "type", "nas.export_policy.name", "nas.path", "guarantee.type", "space.snapshot.reserve_percent",
 		"nas.security_style", "encryption.enabled", "efficiency.policy.name", "nas.unix_permissions", "nas.gid", "nas.uid", "snapshot_policy.name", "language", "qos.policy.name",
-		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state", "autosize"})
+		"tiering.policy", "comment", "efficiency.compression", "efficiency.dedupe", "efficiency.compaction", "tiering.min_cooling_days", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state", "autosize"})
 	statusCode, response, err := r.GetNilOrOneRecord("storage/volumes", query, nil)
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError("error reading volume info by name", fmt.Sprintf("error on GET storage/volumes: %s", err))
@@ -274,7 +276,7 @@ func GetStorageVolumes(errorHandler *utils.ErrorHandler, r restclient.RestClient
 	query := r.NewQuery()
 	query.Fields([]string{"name", "svm.name", "aggregates", "space.size", "state", "type", "nas.export_policy.name", "nas.path", "guarantee.type", "space.snapshot.reserve_percent",
 		"nas.security_style", "encryption.enabled", "efficiency.policy.name", "nas.unix_permissions", "nas.gid", "nas.uid", "snapshot_policy.name", "language", "qos.policy.name",
-		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state", "autosize"})
+		"tiering.policy", "comment", "efficiency.compression", "efficiency.dedupe", "efficiency.compaction", "tiering.min_cooling_days", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state", "autosize"})
 
 	if filter != nil {
 		var filterMap map[string]interface{}
