@@ -34,7 +34,7 @@ func TestAccNetworkEthernetPortResource(t *testing.T) {
 				Config:      testAccNetworkEthernetPortLAGResourceConfig("Default", "Default", true, "bsuhas-vsim1", "mac", "\"e0z\"", "singlemode"),
 				ExpectError: regexp.MustCompile("Code:\"1967095\""),
 			},
-			// Error 1966466: VLAN ID must be a number from 1 to 4094
+			// // Error 1966466: VLAN ID must be a number from 1 to 4094
 			// {
 			// 	Config:      testAccNetworkEthernetPortVLANResourceConfig("Default", "Default", true, "bsuhas-vsim1", "e0a", 9999),
 			// 	ExpectError: regexp.MustCompile("Code:\"1966466\""),
@@ -45,7 +45,7 @@ func TestAccNetworkEthernetPortResource(t *testing.T) {
 			// 	ExpectError: regexp.MustCompile("Code:\"1967091\""),
 			// },
 
-			// Create and Read LAG
+			// // Create and Read LAG
 			// {
 			// 	Config: testAccNetworkEthernetPortLAGResourceConfig("Default", "Default", true, "bsuhas-vsim1", "mac", "\"e0b\",\"e0c\"", "singlemode"),
 			// 	Check: resource.ComposeTestCheckFunc(
@@ -79,7 +79,7 @@ func TestAccNetworkEthernetPortResource(t *testing.T) {
 			// {
 			// 	ResourceName:  "netapp-ontap_port.lag",
 			// 	ImportState:   true,
-			// 	ImportStateId: fmt.Sprintf("%s,%s", "cluster4", "a0a"),
+			// 	ImportStateId: fmt.Sprintf("%s,%s,%s", "a0a", "bsuhas-vsim1", "cluster4"),
 			// 	Check: resource.ComposeTestCheckFunc(
 			// 		resource.TestMatchResourceAttr("netapp-ontap_port.lag", "broadcast_domain.id", regexp.MustCompile(idRegexNetworkEthernetPort)),
 			// 		resource.TestCheckResourceAttr("netapp-ontap_port.lag", "broadcast_domain.name", "tf_test"),
@@ -125,7 +125,7 @@ func TestAccNetworkEthernetPortResource(t *testing.T) {
 			// {
 			// 	ResourceName:  "netapp-ontap_port.vlan",
 			// 	ImportState:   true,
-			// 	ImportStateId: fmt.Sprintf("%s,%s", "cluster4", "e0a-300"),
+			// 	ImportStateId: fmt.Sprintf("%s,%s,%s", "e0a-300", "bsuhas-vsim1", "cluster4"),
 			// 	Check: resource.ComposeTestCheckFunc(
 			// 		resource.TestMatchResourceAttr("netapp-ontap_port.vlan", "broadcast_domain.id", regexp.MustCompile(idRegexNetworkEthernetPort)),
 			// 		resource.TestCheckResourceAttr("netapp-ontap_port.vlan", "broadcast_domain.name", "Default"),

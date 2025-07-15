@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mitchellh/mapstructure"
@@ -75,8 +76,8 @@ type Space struct {
 
 // LogicalSpace describes the resource data model.
 type LogicalSpace struct {
-	Enforcement bool `mapstructure:"enforcement,omitempty"`
-	Reporting   bool `mapstructure:"reporting,omitempty"`
+	Enforcement bool `mapstructure:"enforcement"`
+	Reporting   bool `mapstructure:"reporting"`
 }
 
 // Efficiency describes the resource data model.
@@ -105,7 +106,7 @@ type TieringPolicy struct {
 
 // Snapshot describes the resource data model.
 type Snapshot struct {
-	ReservePercent int `mapstructure:"reserve_percent,omitempty"`
+	ReservePercent *int64 `mapstructure:"reserve_percent,omitempty"`
 }
 
 // Guarantee describes the resource data model.
@@ -140,7 +141,7 @@ type NAS struct {
 
 // Encryption describes the resource data model.
 type Encryption struct {
-	Enabled bool `mapstructure:"enabled,omitempty"`
+	Enabled bool `mapstructure:"enabled"`
 }
 
 // ExportPolicy describes the resource data model.
@@ -343,12 +344,29 @@ func DeleteStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClie
 }
 
 // UpddateStorageVolume to update volume
-func UpddateStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClient, data StorageVolumeResourceModel, ID string) error {
+func UpddateStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClient, data StorageVolumeResourceModel, ID string, ignoreOptions []string) error {
 	var body map[string]interface{}
 	if err := mapstructure.Decode(data, &body); err != nil {
 		return errorHandler.MakeAndReportError("error encoding volume body", fmt.Sprintf("error on encoding storage/volumes body: %s, body: %#v", err, data))
 	}
-	log.Printf("body body: %#v", body)
+	for _, option := range ignoreOptions {
+		if option == "encryption" {
+			delete(body, "encryption")
+		} else if option == "logical_space" {
+			if nestedMap, ok := body["space"].(map[string]interface{}); ok {
+				delete(nestedMap, "logical_space")
+			}
+		} else if option == "nas.group_id" {
+			if nestedMap, ok := body["nas"].(map[string]interface{}); ok {
+				delete(nestedMap, "gid")
+			}
+		} else if option == "nas.user_id" {
+			if nestedMap, ok := body["nas"].(map[string]interface{}); ok {
+				delete(nestedMap, "uid")
+			}
+		}
+	}
+
 	statusCode, _, err := r.CallUpdateMethod("storage/volumes/"+ID, nil, body)
 	if err != nil {
 		return errorHandler.MakeAndReportError("error updating volume", fmt.Sprintf("error on POST storage/volumes: %s, statusCode %d", err, statusCode))
@@ -420,4 +438,28 @@ func ByteFormat(value int64) (int64, string) {
 	}
 
 	return number, unit
+}
+
+// ConvertBytesToUnitInt converts a byte value to the specified unit ("bytes", "kb", "mb", "gb", "tb", "pb", "eb", "zb", "yb").
+// Returns the converted value as int64. If the unit is not recognized, returns the original value as bytes.
+func ConvertBytesToUnitInt(bytes int64, unit string) int64 {
+	unit = strings.ToLower(unit)
+	switch unit {
+	case "bytes", "b":
+		return bytes
+	case "kb", "k":
+		return bytes / 1024
+	case "mb", "m":
+		return bytes / (1024 * 1024)
+	case "gb", "g":
+		return bytes / (1024 * 1024 * 1024)
+	case "tb", "t":
+		return bytes / (1024 * 1024 * 1024 * 1024)
+	case "pb", "p":
+		return bytes / (1024 * 1024 * 1024 * 1024 * 1024)
+	case "eb", "e":
+		return bytes / (1024 * 1024 * 1024 * 1024 * 1024 * 1024)
+	default:
+		return bytes
+	}
 }

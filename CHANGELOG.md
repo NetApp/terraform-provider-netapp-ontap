@@ -2,7 +2,19 @@
 
 DOCUMENTATION:
 
+- Corrected `aws` to `aws_lambda` in provider config.
 - **netapp-ontap_lun**: updated documentation, added attribute validation ([#498](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/498))
+
+BUG FIXES:
+
+- **netapp-ontap_storage_volume**: Fixed autosize value conversion error. ([#494](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/494))
+- **netapp-ontap_storage_volume**: Fixed modify error for security style ntfs.
+- **netapp-ontap_port**: error when importing VLANs in multi-node clusters ([#479](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/479))
+- **netapp-ontap_volume**: fixed issue with modifying `percent_snapshot_space` ([#497](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/497))
+- **netapp-ontap_security_account**: unable to unlock existing `security_account` resource ([#499](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/499))
+- **netapp-ontap_port**: fixed error when importing VLANs in multi-node clusters ([#479](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/479))
+- **netapp-ontap_san_igroup**: fixed issue with adding initiators to new igroup ([#274](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/274))
+- **netapp-ontap_nfs_service**: fixed `v41_enabled` to modify when disabled instead of forcing resource replacement. ([#523](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/523))
 
 ENHANCEMENTS:
 
@@ -10,10 +22,6 @@ ENHANCEMENTS:
 - **netapp-ontap_volume**, **netapp-ontap_volumes**: added `autosize.*` options to data sources. ([#509](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/509))
 - **netapp-ontap_snapmirror**, **netapp-ontap_snapmirrors**: added `transfer_schedule.name` option to resource and data sources. ([#444](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/444))
 - **netapp-ontap_security_certificate**: added `intermediate_certificates` option to resources. ([#484](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/484))
-
-BUG FIXES:
-
-- **netapp-ontap_nfs_service**: fixed `v41_enabled` to modify when disabled instead of forcing resource replacement. ([#523](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/523))
 
 # 2.2.0 (2025-05-01)
 
