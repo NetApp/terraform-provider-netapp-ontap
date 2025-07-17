@@ -20,15 +20,25 @@ func TestAccSecurityAccountResource(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_security_account.security_account", "name", "tf_acc_test"),
 					resource.TestCheckResourceAttr("netapp-ontap_security_account.security_account", "password", "password123"),
+					resource.TestCheckResourceAttr("netapp-ontap_security_account.security_account", "locked", "false"),
 				),
 			},
 			// Test updating a resource with comment and locked
 			{
-				Config: testAccSecurityAccountResourceConfig("tf_acc_test", "update", true),
+				Config: testAccSecurityAccountResourceConfig("tf_acc_test", "locked", true),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_security_account.security_account", "name", "tf_acc_test"),
-					resource.TestCheckResourceAttr("netapp-ontap_security_account.security_account", "comment", "update"),
+					resource.TestCheckResourceAttr("netapp-ontap_security_account.security_account", "comment", "locked"),
 					resource.TestCheckResourceAttr("netapp-ontap_security_account.security_account", "locked", "true"),
+				),
+			},
+			// Test updating a resource with comment and unlocked
+			{
+				Config: testAccSecurityAccountResourceConfig("tf_acc_test", "unlocked", false),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_security_account.security_account", "name", "tf_acc_test"),
+					resource.TestCheckResourceAttr("netapp-ontap_security_account.security_account", "comment", "unlocked"),
+					resource.TestCheckResourceAttr("netapp-ontap_security_account.security_account", "locked", "false"),
 				),
 			},
 			// Test updating a resource with application and secondAuthenticationMethod

@@ -15,11 +15,11 @@ on:
   push:
     branches:
       - "integration/main"
-      - "release*"
+      - "stable*"
   pull_request:
     branches:
       - "integration/main"
-      - "release*"
+      - "stable*"
   schedule:
     - cron: '16 9 * * 1'
 

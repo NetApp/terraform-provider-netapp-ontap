@@ -5,23 +5,7 @@ resource "netapp-ontap_volume" "example1" {
   svm_name = "ansibleSVM"
   aggregates = [
     {
-      name = "aggr2"
-    },
-  ]
-  space = {
-    size = 20
-    size_unit = "mb"
-  }
-}
-
-# creating a volume with autosize options
-resource "netapp-ontap_volume" "example2" {
-  cx_profile_name = "cluster4"
-  name = "terraformTest3"
-  svm_name = "ansibleSVM"
-  aggregates = [
-    {
-      name = "aggr2"
+      name = "aggr1"
     },
   ]
   space = {
@@ -29,11 +13,11 @@ resource "netapp-ontap_volume" "example2" {
     size_unit = "mb"
   }
   autosize = {
-    minimum = 20
+    minimum = 40
     maximum = 60
     shrink_threshold = 10
     grow_threshold = 90
-    mode = "off"
+    mode = "grow"
     size_unit = "mb"
   }
 }

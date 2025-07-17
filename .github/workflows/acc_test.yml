@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - "integration/main"
-      - "release*"
+      - "stable*"
   pull_request:
     branches:
       - "integration/main"
-      - "release*"
+      - "stable*"
 
 jobs:
   build:
@@ -64,6 +64,8 @@ jobs:
             else
               PREFIX=${BASE_NAME%%_*}
             fi
+            # Remove the .go extension from the prefix if it exists
+            PREFIX=${PREFIX%.go}
             TEST_FILE="internal/provider/${PREFIX}/${BASE_NAME%.go}_resource_test.go"
             if ! echo "$UPDATED_CHANGED_FILES" | grep -q "$TEST_FILE"; then
               UPDATED_CHANGED_FILES="$UPDATED_CHANGED_FILES $TEST_FILE"

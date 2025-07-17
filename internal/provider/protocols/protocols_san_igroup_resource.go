@@ -284,7 +284,7 @@ func (r *ProtocolsSanIgroupResource) Create(ctx context.Context, req resource.Cr
 
 	if data.Initiators != nil {
 		initiators := []interfaces.IgroupInitiator{}
-		for _, v := range data.Igroups {
+		for _, v := range data.Initiators {
 			var initiator interfaces.IgroupInitiator
 			initiator.Name = v.Name.ValueString()
 			initiators = append(initiators, initiator)

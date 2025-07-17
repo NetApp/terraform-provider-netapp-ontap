@@ -160,7 +160,7 @@ func (d *EthernetPortDataSource) Schema(ctx context.Context, req datasource.Sche
 				Attributes: map[string]schema.Attribute{
 					"name": schema.StringAttribute{
 						MarkdownDescription: "Name of the node on which the port is located",
-						Computed:            true,
+						Required:            true,
 					},
 					"id": schema.StringAttribute{
 						MarkdownDescription: "Node UUID",
@@ -168,7 +168,7 @@ func (d *EthernetPortDataSource) Schema(ctx context.Context, req datasource.Sche
 					},
 				},
 				MarkdownDescription: "Node properties",
-				Computed:            true,
+				Required:            true,
 			},
 			"rdma_protocols": schema.SetAttribute{
 				MarkdownDescription: "Supported RDMA offload protocols",
@@ -257,6 +257,7 @@ func (d *EthernetPortDataSource) Read(ctx context.Context, req datasource.ReadRe
 	restInfo, err := interfaces.GetEthernetPortByName(
 		errorHandler,
 		*client,
+		data.Node.Name.ValueString(),
 		data.Name.ValueString(),
 	)
 	if err != nil {

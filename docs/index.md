@@ -55,7 +55,7 @@ provider "netapp-ontap" {
       hostname = "aws.management.endpoint.com"
       username = "admin"
       password = "Password"
-      aws = {
+      aws_lambda = {
         function_name = "lambda_func"
         region = "aws_region"
         shared_config_profile = "fsx_profile"

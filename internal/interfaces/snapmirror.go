@@ -11,9 +11,10 @@ import (
 
 // SnapmirrorGetDataModelONTAP defines the resource get data model
 type SnapmirrorGetDataModelONTAP struct {
-	Healthy bool   `mapstructure:"healthy"`
-	State   string `mapstructure:"state"`
-	UUID    string `mapstructure:"uuid"`
+	Healthy bool             `mapstructure:"healthy"`
+	State   string           `mapstructure:"state"`
+	UUID    string           `mapstructure:"uuid"`
+	Policy  PolicySnapmirror `mapstructure:"policy"`
 }
 
 // SnapmirrorGetRawDataModelONTAP defines the resource get data model
@@ -26,21 +27,31 @@ type SnapmirrorResourceBodyDataModelONTAP struct {
 	SourceEndPoint      EndPoint          `mapstructure:"source"`
 	DestinationEndPoint EndPoint          `mapstructure:"destination"`
 	CreateDestination   CreateDestination `mapstructure:"create_destination,omitempty"`
-	Policy              Policy            `mapstructure:"policy,omitempty"`
+	Policy              PolicySnapmirror  `mapstructure:"policy,omitempty"`
 }
 
 // UpdateSnapmirrorResourceBodyDataModelONTAP defines the resource data model
 type UpdateSnapmirrorResourceBodyDataModelONTAP struct {
-	SourceEndPoint      EndPoint `mapstructure:"source"`
-	DestinationEndPoint EndPoint `mapstructure:"destination"`
-	Policy              Policy   `mapstructure:"policy,omitempty"`
-	State               string   `mapstructure:"state,omitempty"`
+	SourceEndPoint      EndPoint         `mapstructure:"source"`
+	DestinationEndPoint EndPoint         `mapstructure:"destination"`
+	Policy              PolicySnapmirror `mapstructure:"policy,omitempty"`
+	State               string           `mapstructure:"state,omitempty"`
+}
+
+// PolicySnapmirror describes the resource data model.
+type PolicySnapmirror struct {
+	Name             string            `mapstructure:"name,omitempty"`
+	TransferSchedule *TransferSchedule `mapstructure:"transfer_schedule,omitempty"`
 }
 
 // EndPoint defines source/destination endpoint data model.
 type EndPoint struct {
 	Cluster Cluster `mapstructure:"cluster,omitempty"`
 	Path    string  `mapstructure:"path"`
+}
+
+type TransferSchedule struct {
+	Name string `mapstructure:"name,omitempty"`
 }
 
 // CreateDestination defines CreateDestination data model.
@@ -92,8 +103,9 @@ type SnapmirrorCluster struct {
 
 // SnapmirrorPolicy data model
 type SnapmirrorPolicy struct {
-	UUID string `mapstructure:"uuid"`
-	Name string `mapstructure:"name"`
+	UUID             string            `mapstructure:"uuid"`
+	Name             string            `mapstructure:"name"`
+	TransferSchedule *TransferSchedule `mapstructure:"transfer_schedule,omitempty"`
 }
 
 // GetSnapmirrorByID ...

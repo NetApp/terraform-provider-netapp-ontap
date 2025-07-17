@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -82,6 +83,8 @@ type StorageVolumeDataSourceSnapLock struct {
 type StorageVolumeDataSourceEfficiency struct {
 	Policy      types.String `tfsdk:"policy_name"`
 	Compression types.String `tfsdk:"compression"`
+	Dedupe      types.String `tfsdk:"dedupe"`
+	Compaction  types.String `tfsdk:"compaction"`
 }
 
 // StorageVolumeDataSourceTiering describes the tiering model.
@@ -276,6 +279,14 @@ func (d *StorageVolumeDataSource) Schema(ctx context.Context, req datasource.Sch
 						MarkdownDescription: "Whether to enable compression for the volume (HDD and Flash Pool aggregates)",
 						Computed:            true,
 					},
+					"dedupe": schema.StringAttribute{
+						MarkdownDescription: "The system can be enabled/disabled dedupe",
+						Computed:            true,
+					},
+					"compaction": schema.StringAttribute{
+						MarkdownDescription: "The system can be enabled/disabled compaction",
+						Computed:            true,
+					},
 				},
 			},
 
@@ -327,7 +338,7 @@ func (d *StorageVolumeDataSource) Schema(ctx context.Context, req datasource.Sch
 							   				 grow_shrink - Volume grows or shrinks in response to the amount of space used.
 											 off - Autosizing of the volume is disabled.
 											 `,
-						Computed:            true,
+						Computed: true,
 					},
 				},
 			},
@@ -393,7 +404,7 @@ func (d *StorageVolumeDataSource) Read(ctx context.Context, req datasource.ReadR
 	data.Space = &StorageVolumeDataSourceSpace{
 		Size:                 types.Int64Value(vsize),
 		SizeUnit:             types.StringValue(vunits),
-		PercentSnapshotSpace: types.Int64Value(int64(volume.Space.Snapshot.ReservePercent)),
+		PercentSnapshotSpace: types.Int64PointerValue(volume.Space.Snapshot.ReservePercent),
 		LogicalSpace: &StorageVolumeDataSourceSpaceLogicalSpace{
 			Enforcement: types.BoolValue(volume.Space.LogicalSpace.Enforcement),
 			Reporting:   types.BoolValue(volume.Space.LogicalSpace.Reporting),
@@ -414,6 +425,8 @@ func (d *StorageVolumeDataSource) Read(ctx context.Context, req datasource.ReadR
 	data.Efficiency = &StorageVolumeDataSourceEfficiency{
 		Policy:      types.StringValue(volume.Efficiency.Policy.Name),
 		Compression: types.StringValue(volume.Efficiency.Compression),
+		Dedupe:      types.StringValue(volume.Efficiency.Dedupe),
+		Compaction:  types.StringValue(volume.Efficiency.Compaction),
 	}
 	data.SnapLock = &StorageVolumeDataSourceSnapLock{
 		SnaplockType: types.StringValue(volume.Snaplock.Type),

@@ -41,7 +41,7 @@ provider "netapp-ontap" {
       hostname = "aws.management.endpoint.com" #the management endpoints for the FSxN system.
       username = "admin"
       password = "Password"
-      aws = {
+      aws_lambda = {
         function_name = "lambda_link_name"
         region = "aws_region"
         shared_config_profile = "fsx"

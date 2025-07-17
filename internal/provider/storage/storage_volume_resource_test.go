@@ -28,16 +28,16 @@ func TestAccStorageVolumeResource(t *testing.T) {
 			},
 			// Read testing
 			{
-				Config: testAccStorageVolumeResourceConfig("tf_acc_svm", "tf_acc_volume2"),
+				Config: testAccStorageVolumeResourceConfig("tf_acc_svm", "tf_acc_volume_1"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_volume.example", "name", "tf_acc_volume2"),
+					resource.TestCheckResourceAttr("netapp-ontap_volume.example", "name", "tf_acc_volume_1"),
 					resource.TestCheckNoResourceAttr("netapp-ontap_volume.example", "volname"),
 				),
 			},
 			{
-				Config: testAccStorageVolumeResourceConfigUpdate("tf_acc_svm", "accVolume1"),
+				Config: testAccStorageVolumeResourceConfigUpdate("tf_acc_svm", "tf_acc_volume_1"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_volume.example", "name", "accVolume1"),
+					resource.TestCheckResourceAttr("netapp-ontap_volume.example", "name", "tf_acc_volume_1"),
 					resource.TestCheckResourceAttr("netapp-ontap_volume.example", "nas.group_id", "10"),
 					resource.TestCheckNoResourceAttr("netapp-ontap_volume.example", "volname"),
 				),
@@ -83,7 +83,8 @@ resource "netapp-ontap_volume" "example" {
   svm_name = "%s"
   aggregates = [
 	{name = "tf_acc_aggr"}
-]
+  ]
+  encryption = true
   space_guarantee = "none"
   snapshot_policy = "default-1weekly"
   space = {
@@ -118,6 +119,8 @@ resource "netapp-ontap_volume" "example" {
 }`, host, admin, password, volName, svm)
 }
 
+// testAccStorageVolumeResourceConfigUpdate updates percent_snapshot_space from 10 to 20
+// and group_id from 1 to 10, and size from 30 to 60
 func testAccStorageVolumeResourceConfigUpdate(svm, volName string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
@@ -147,10 +150,11 @@ resource "netapp-ontap_volume" "example" {
   aggregates = [
 	{name = "tf_acc_aggr"}
 ]
+  encryption = true
   space_guarantee = "none"
   snapshot_policy = "default-1weekly"
   space = {
-	size = 30
+	size = 60
 	size_unit = "mb"
 	percent_snapshot_space = 20
     logical_space = {

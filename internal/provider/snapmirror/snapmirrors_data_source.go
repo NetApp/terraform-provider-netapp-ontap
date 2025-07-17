@@ -170,6 +170,16 @@ func (d *SnapmirrorsDataSource) Schema(ctx context.Context, req datasource.Schem
 									MarkdownDescription: "Policy UUID",
 									Computed:            true,
 								},
+								"transfer_schedule": schema.SingleNestedAttribute{
+									MarkdownDescription: "transfer schedule details",
+									Computed:            true,
+									Attributes: map[string]schema.Attribute{
+										"name": schema.StringAttribute{
+											MarkdownDescription: "schedule name",
+											Computed:            true,
+										},
+									},
+								},
 							},
 						},
 						"group_type": schema.StringAttribute{
@@ -272,11 +282,19 @@ func (d *SnapmirrorsDataSource) Read(ctx context.Context, req datasource.ReadReq
 			Restore: types.BoolValue(record.Restore),
 			ID:      types.StringValue(record.UUID),
 			State:   types.StringValue(record.State),
+			Policy: &SnapmirrorPolicy{
+				UUID: types.StringValue(record.Policy.UUID),
+			},
 		}
 
 		if cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
 			data.Snapmirrors[index].Throttle = types.Int64Value(int64(record.Throttle))
 			data.Snapmirrors[index].GroupType = types.StringValue(record.GroupType)
+		}
+		if record.Policy.TransferSchedule != nil && record.Policy.TransferSchedule.Name != "" {
+			data.Snapmirrors[index].Policy.TransferSchedule = &TransferSchedule{
+				Name: types.StringValue(record.Policy.TransferSchedule.Name),
+			}
 		}
 	}
 
