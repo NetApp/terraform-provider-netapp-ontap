@@ -1282,7 +1282,6 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 		if !plan.SnapshotLockingEnabled.Equal(state.SnapshotLockingEnabled) {
 			val := plan.SnapshotLockingEnabled.ValueBool()
 			request.SnapshotLockingEnabled = &val
-			fmt.Sprintf("testing: %#v", request.SnapshotLockingEnabled)
 		}
 	}
 
