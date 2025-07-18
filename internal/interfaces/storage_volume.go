@@ -224,7 +224,7 @@ func GetUUIDVolumeByName(errorHandler *utils.ErrorHandler, r restclient.RestClie
 // GetStorageVolume to get volume info by uuid
 func GetStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) (*StorageVolumeGetDataModelONTAP, error) {
 	query := r.NewQuery()
-	query.Fields([]string{"name", "svm.name", "aggregates", "space.size", "state", "type", "nas.export_policy.name", "nas.path", "guarantee.type", "space.snapshot.reserve_percent",
+	query.Fields([]string{"name", "svm.name", "aggregates", "space.size", "state", "type", "nas.export_policy.name", "nas.path", "guarantee.type", "space.snapshot.reserve_percent", "efficiency.dedupe", "efficiency.compaction",
 		"nas.security_style", "encryption.enabled", "efficiency.policy.name", "nas.unix_permissions", "nas.gid", "nas.uid", "snapshot_policy.name", "language", "qos.policy.name", "snapshot_locking_enabled",
 		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state", "autosize"})
 	statusCode, response, err := r.GetNilOrOneRecord("storage/volumes/"+uuid, query, nil)
@@ -249,7 +249,7 @@ func GetStorageVolumeByName(errorHandler *utils.ErrorHandler, r restclient.RestC
 	query.Add("name", name)
 	query.Add("svm.name", svmName)
 	query.Add("return_records", "true")
-	query.Fields([]string{"name", "uuid", "svm.name", "aggregates", "space.size", "state", "type", "nas.export_policy.name", "nas.path", "guarantee.type", "space.snapshot.reserve_percent",
+	query.Fields([]string{"name", "uuid", "svm.name", "aggregates", "space.size", "state", "type", "nas.export_policy.name", "nas.path", "guarantee.type", "space.snapshot.reserve_percent", "efficiency.dedupe", "efficiency.compaction",
 		"nas.security_style", "encryption.enabled", "efficiency.policy.name", "nas.unix_permissions", "nas.gid", "nas.uid", "snapshot_policy.name", "language", "qos.policy.name", "snapshot_locking_enabled",
 		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state", "autosize"})
 	statusCode, response, err := r.GetNilOrOneRecord("storage/volumes", query, nil)
@@ -276,7 +276,7 @@ func GetStorageVolumeByName(errorHandler *utils.ErrorHandler, r restclient.RestC
 func GetStorageVolumes(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *StorageVolumeDataSourceFilterModel) ([]StorageVolumeGetDataModelONTAP, error) {
 	api := "storage/volumes"
 	query := r.NewQuery()
-	query.Fields([]string{"name", "svm.name", "aggregates", "space.size", "state", "type", "nas.export_policy.name", "nas.path", "guarantee.type", "space.snapshot.reserve_percent",
+	query.Fields([]string{"name", "svm.name", "aggregates", "space.size", "state", "type", "nas.export_policy.name", "nas.path", "guarantee.type", "space.snapshot.reserve_percent", "efficiency.dedupe", "efficiency.compaction",
 		"nas.security_style", "encryption.enabled", "efficiency.policy.name", "nas.unix_permissions", "nas.gid", "nas.uid", "snapshot_policy.name", "language", "qos.policy.name", "snapshot_locking_enabled",
 		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state", "autosize"})
 
