@@ -643,7 +643,9 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 	data.SpaceGuarantee = types.StringValue(response.SpaceGuarantee.Type)
 	data.SnapshotPolicy = types.StringValue(response.SnapshotPolicy.Name)
 	data.Type = types.StringValue(response.Type)
-	data.SnapshotLockingEnabled = types.BoolValue(response.SnapshotLockingEnabled)
+	if response.SnapshotLockingEnabled != nil {
+		data.SnapshotLockingEnabled = types.BoolValue(*response.SnapshotLockingEnabled)
+	}
 
 	//Space
 	nestedElementTypes := map[string]attr.Type{
@@ -879,7 +881,8 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 		request.Encryption.Enabled = data.Encrypt.ValueBool()
 	}
 	if !data.SnapshotLockingEnabled.IsUnknown() {
-		request.SnapshotLockingEnabled = data.SnapshotLockingEnabled.ValueBool()
+		val := data.SnapshotLockingEnabled.ValueBool()
+		request.SnapshotLockingEnabled = &val
 	}
 	if !data.SnapshotPolicy.IsUnknown() {
 		request.SnapshotPolicy.Name = data.SnapshotPolicy.ValueString()
@@ -1062,7 +1065,9 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	data.SpaceGuarantee = types.StringValue(response.SpaceGuarantee.Type)
 	data.SnapshotPolicy = types.StringValue(response.SnapshotPolicy.Name)
 	data.Type = types.StringValue(response.Type)
-	data.SnapshotLockingEnabled = types.BoolValue(response.SnapshotLockingEnabled)
+	if response.SnapshotLockingEnabled != nil {
+		data.SnapshotLockingEnabled = types.BoolValue(*response.SnapshotLockingEnabled)
+	}
 
 	//Space
 	nestedElementTypes := map[string]attr.Type{
@@ -1275,7 +1280,9 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 	}
 	if !plan.SnapshotLockingEnabled.IsUnknown() {
 		if !plan.SnapshotLockingEnabled.Equal(state.SnapshotLockingEnabled) {
-			request.SnapshotLockingEnabled = plan.SnapshotLockingEnabled.ValueBool()
+			val := plan.SnapshotLockingEnabled.ValueBool()
+			request.SnapshotLockingEnabled = &val
+			fmt.Sprintf("testing: %#v", request.SnapshotLockingEnabled)
 		}
 	}
 
@@ -1509,7 +1516,9 @@ func readVolume(ctx context.Context, client *restclient.RestClient, data *Storag
 	data.SpaceGuarantee = types.StringValue(response.SpaceGuarantee.Type)
 	data.SnapshotPolicy = types.StringValue(response.SnapshotPolicy.Name)
 	data.Type = types.StringValue(response.Type)
-	data.SnapshotLockingEnabled = types.BoolValue(response.SnapshotLockingEnabled)
+	if response.SnapshotLockingEnabled != nil {
+		data.SnapshotLockingEnabled = types.BoolValue(*response.SnapshotLockingEnabled)
+	}
 
 	//Space
 	nestedElementTypes := map[string]attr.Type{
@@ -1565,6 +1574,9 @@ func readVolume(ctx context.Context, client *restclient.RestClient, data *Storag
 		allDiags.Append(diags...)
 	}
 	data.SnapLock = objectValue
+	if response.SnapshotLockingEnabled != nil {
+		data.SnapshotLockingEnabled = types.BoolValue(*response.SnapshotLockingEnabled)
+	}
 
 	//Efficiency
 	elementTypes = map[string]attr.Type{

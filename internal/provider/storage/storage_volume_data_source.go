@@ -396,7 +396,6 @@ func (d *StorageVolumeDataSource) Read(ctx context.Context, req datasource.ReadR
 	data.SpaceGuarantee = types.StringValue(volume.SpaceGuarantee.Type)
 	data.Encrypt = types.BoolValue(volume.Encryption.Enabled)
 	data.SnapshotPolicy = types.StringValue(volume.SnapshotPolicy.Name)
-	data.SnapshotLockingEnabled = types.BoolValue(volume.SnapshotLockingEnabled)
 	data.Language = types.StringValue(volume.Language)
 	data.QOSPolicyGroup = types.StringValue(volume.QOS.Policy.Name)
 	data.Comment = types.StringValue(volume.Comment)
@@ -431,6 +430,8 @@ func (d *StorageVolumeDataSource) Read(ctx context.Context, req datasource.ReadR
 	data.SnapLock = &StorageVolumeDataSourceSnapLock{
 		SnaplockType: types.StringValue(volume.Snaplock.Type),
 	}
+	data.SnapshotLockingEnabled = types.BoolValue(*volume.SnapshotLockingEnabled)
+
 	data.Analytics = &StorageVolumeDataSourceAnalytics{
 		State: types.StringValue(volume.Analytics.State),
 	}

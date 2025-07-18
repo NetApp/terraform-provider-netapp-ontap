@@ -105,7 +105,7 @@ resource "netapp-ontap_volume" "example" {
     user_id = 2
     unix_permissions = "100"
     security_style = "mixed"
-	junction_path = "/testacc"
+	  junction_path = "/testacc"
   }
   autosize = {
     minimum = 20
@@ -163,7 +163,7 @@ resource "netapp-ontap_volume" "example" {
     }
   }
   tiering = {
-  	policy_name = "all"
+  	policy_name = "none"
   }
   nas = {
     export_policy_name = "default"
@@ -171,7 +171,7 @@ resource "netapp-ontap_volume" "example" {
     user_id = 20
     unix_permissions = "755"
     security_style = "mixed"
-	junction_path = "/testacc"
+	  junction_path = "/testacc"
   }
   autosize = {
     minimum = 25

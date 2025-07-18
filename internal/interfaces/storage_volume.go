@@ -33,7 +33,7 @@ type StorageVolumeGetDataModelONTAP struct {
 	Aggregates     []Aggregate
 	Autosize       Autosize `mapstructure:"autosize,omitempty"`
 	UUID           string
-	SnapshotLockingEnabled bool	  `mapstructure:"snapshot_locking_enabled,omitempty"`
+	SnapshotLockingEnabled *bool	  `mapstructure:"snapshot_locking_enabled,omitempty"`
 }
 
 // StorageVolumeResourceModel describes the resource data model.
@@ -56,7 +56,7 @@ type StorageVolumeResourceModel struct {
 	Language       string                   `mapstructure:"language,omitempty"`
 	Aggregates     []map[string]interface{} `mapstructure:"aggregates,omitempty"`
 	Autosize       Autosize                 `mapstructure:"autosize,omitempty"`
-	SnapshotLockingEnabled       bool		`mapstructure:"snapshot_locking_enabled,omitempty"`
+	SnapshotLockingEnabled       *bool		`mapstructure:"snapshot_locking_enabled,omitempty"`
 }
 
 // Aggregate describes the resource data model.
