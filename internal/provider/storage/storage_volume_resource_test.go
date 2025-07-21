@@ -12,9 +12,6 @@ import (
 )
 
 func TestAccStorageVolumeResource(t *testing.T) {
-  t.Setenv("TF_ACC_NETAPP_HOST", "10.193.73.2")
-  t.Setenv("TF_ACC_NETAPP_USER", "admin")
-  t.Setenv("TF_ACC_NETAPP_PASS", "Netapp1!")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { ntest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ntest.TestAccProtoV6ProviderFactories,
