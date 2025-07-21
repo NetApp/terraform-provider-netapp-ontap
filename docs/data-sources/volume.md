@@ -53,6 +53,7 @@ data "netapp-ontap_volume" "storage_volume" {
 - `state` (String) Whether the specified volume is online, or not
 - `tiering` (Attributes) (see [below for nested schema](#nestedatt--tiering))
 - `type` (String) The volume type, either read-write (RW) or data-protection (DP)
+- `snapshot_locking_enabled` (Boolean) Whether or not snapshot copy locking is enabled on the volume
 
 <a id="nestedatt--aggregates"></a>
 

@@ -12,6 +12,9 @@ import (
 )
 
 func TestAccStorageVolumeResource(t *testing.T) {
+  t.Setenv("TF_ACC_NETAPP_HOST", "10.193.73.2")
+  t.Setenv("TF_ACC_NETAPP_USER", "admin")
+  t.Setenv("TF_ACC_NETAPP_PASS", "Netapp1!")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { ntest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ntest.TestAccProtoV6ProviderFactories,
@@ -97,7 +100,7 @@ resource "netapp-ontap_volume" "example" {
     }
   }
   tiering = {
-  	policy_name = "all"
+  	policy_name = "none"
   }
   nas = {
     export_policy_name = "default"
@@ -115,6 +118,7 @@ resource "netapp-ontap_volume" "example" {
     mode = "off"
     size_unit = "mb"
   }
+  snapshot_locking_enabled = true
 }`, host, admin, password, volName, svm)
 }
 
@@ -162,7 +166,7 @@ resource "netapp-ontap_volume" "example" {
     }
   }
   tiering = {
-  	policy_name = "all"
+  	policy_name = "none"
   }
   nas = {
     export_policy_name = "default"
@@ -180,5 +184,6 @@ resource "netapp-ontap_volume" "example" {
     mode = "grow"
     size_unit = "mb"
   }
+  snapshot_locking_enabled = false
 }`, host, admin, password, volName, svm)
 }
