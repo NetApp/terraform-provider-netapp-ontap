@@ -74,6 +74,7 @@ type ProtocolsCIFSShareResourceModel struct {
 	UnixSymlink           types.String `tfsdk:"unix_symlink"`
 	VscanProfile          types.String `tfsdk:"vscan_profile"`
 	ID                    types.String `tfsdk:"id"`
+	AccessBasedEnumeration types.Bool   `tfsdk:"access_based_enumeration"`
 }
 
 // ProtocolsCIFSShareResourceAcls describes the acls resource data model.
@@ -175,6 +176,15 @@ func (r *ProtocolsCIFSShareResource) Schema(ctx context.Context, req resource.Sc
 			},
 			"encryption": schema.BoolAttribute{
 				MarkdownDescription: "Specifies that SMB encryption must be used when accessing this share. Clients that do not support encryption are not able to access this share.",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"access_based_enumeration": schema.BoolAttribute{
+				MarkdownDescription: `If enabled, all folders inside this share are visible to a user based on that individual user access right; prevents
+				the display of folders or other shared resources that the user does not have access to.`,
 				Optional:            true,
 				Computed:            true,
 				PlanModifiers: []planmodifier.Bool{
@@ -377,6 +387,9 @@ func (r *ProtocolsCIFSShareResource) Read(ctx context.Context, req resource.Read
 	data.ShowSnapshot = types.BoolValue(restInfo.ShowSnapshot)
 	data.UnixSymlink = types.StringValue(restInfo.UnixSymlink)
 	data.VscanProfile = types.StringValue(restInfo.VscanProfile)
+	if restInfo.AccessBasedEnumeration != nil {
+		data.AccessBasedEnumeration = types.BoolValue(*restInfo.AccessBasedEnumeration)
+	}
 
 	// Acls
 	setElements := []attr.Value{}
@@ -487,6 +500,10 @@ func (r *ProtocolsCIFSShareResource) Create(ctx context.Context, req resource.Cr
 	if !data.Encryption.IsUnknown() {
 		body.Encryption = data.Encryption.ValueBool()
 	}
+	if !data.AccessBasedEnumeration.IsUnknown() {
+		val := data.AccessBasedEnumeration.ValueBool()
+		body.AccessBasedEnumeration = &val
+	}
 	if !data.FileUmask.IsUnknown() {
 		body.FileUmask = data.FileUmask.ValueInt64()
 	}
@@ -549,7 +566,9 @@ func (r *ProtocolsCIFSShareResource) Create(ctx context.Context, req resource.Cr
 	data.ShowSnapshot = types.BoolValue(restInfo.ShowSnapshot)
 	data.UnixSymlink = types.StringValue(restInfo.UnixSymlink)
 	data.VscanProfile = types.StringValue(restInfo.VscanProfile)
-
+	if restInfo.AccessBasedEnumeration != nil {
+		data.AccessBasedEnumeration = types.BoolValue(*restInfo.AccessBasedEnumeration)
+	}
 	// Acls
 	setElements := []attr.Value{}
 	if restInfo.Acls == nil {
@@ -663,6 +682,12 @@ func (r *ProtocolsCIFSShareResource) Update(ctx context.Context, req resource.Up
 	if !plan.Encryption.IsUnknown() {
 		if plan.Encryption != state.Encryption {
 			body.Encryption = plan.Encryption.ValueBool()
+		}
+	}
+	if !plan.AccessBasedEnumeration.IsUnknown() {
+		if plan.AccessBasedEnumeration != state.AccessBasedEnumeration {
+			val := plan.AccessBasedEnumeration.ValueBool()
+			body.AccessBasedEnumeration = &val
 		}
 	}
 	if !plan.FileUmask.IsUnknown() {
