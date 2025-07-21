@@ -61,6 +61,7 @@ type StorageVolumeDataSourceModel struct {
 	SnapLock       *StorageVolumeDataSourceSnapLock    `tfsdk:"snaplock"`
 	Analytics      *StorageVolumeDataSourceAnalytics   `tfsdk:"analytics"`
 	Autosize       *StorageVolumeDataSourceAutosize    `tfsdk:"autosize"`
+	SnapshotLockingEnabled        types.Bool           `tfsdk:"snapshot_locking_enabled"`
 }
 
 // StorageVolumeDataSourceAggregates describes the analytics model.
@@ -345,6 +346,10 @@ func (d *StorageVolumeDataSource) Schema(ctx context.Context, req datasource.Sch
 				Computed:            true,
 				MarkdownDescription: "Volume identifier",
 			},
+			"snapshot_locking_enabled": schema.BoolAttribute{
+				MarkdownDescription: "Whether or not snapshot copy locking is enabled on the volume.",
+				Computed:            true,
+			},
 		},
 	}
 }
@@ -425,6 +430,8 @@ func (d *StorageVolumeDataSource) Read(ctx context.Context, req datasource.ReadR
 	data.SnapLock = &StorageVolumeDataSourceSnapLock{
 		SnaplockType: types.StringValue(volume.Snaplock.Type),
 	}
+	data.SnapshotLockingEnabled = types.BoolValue(*volume.SnapshotLockingEnabled)
+
 	data.Analytics = &StorageVolumeDataSourceAnalytics{
 		State: types.StringValue(volume.Analytics.State),
 	}

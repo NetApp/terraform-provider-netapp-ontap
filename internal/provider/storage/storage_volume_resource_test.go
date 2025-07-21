@@ -97,7 +97,7 @@ resource "netapp-ontap_volume" "example" {
     }
   }
   tiering = {
-  	policy_name = "all"
+  	policy_name = "none"
   }
   nas = {
     export_policy_name = "default"
@@ -115,6 +115,7 @@ resource "netapp-ontap_volume" "example" {
     mode = "off"
     size_unit = "mb"
   }
+  snapshot_locking_enabled = true
 }`, host, admin, password, volName, svm)
 }
 
@@ -162,7 +163,7 @@ resource "netapp-ontap_volume" "example" {
     }
   }
   tiering = {
-  	policy_name = "all"
+  	policy_name = "none"
   }
   nas = {
     export_policy_name = "default"
@@ -180,5 +181,6 @@ resource "netapp-ontap_volume" "example" {
     mode = "grow"
     size_unit = "mb"
   }
+  snapshot_locking_enabled = false
 }`, host, admin, password, volName, svm)
 }
