@@ -1,3 +1,9 @@
+# 2.3.1
+
+ENHANCEMENTS:
+
+- **netapp-ontap_cifs_share**, **netapp-ontap_cifs_shares**: added `access_based_enumeration` option to data sources and resource. ([#259](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/259))
+
 # 2.3.0
 
 DOCUMENTATION:

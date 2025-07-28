@@ -12,4 +12,5 @@ resource "netapp-ontap_cifs_share" "protocols_cifs_share" {
               }
             ]
   comment = "abedf"
+  access_based_enumeration = true
 }

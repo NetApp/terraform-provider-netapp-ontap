@@ -237,6 +237,11 @@ func (d *ProtocolsCIFSSharesDataSource) Schema(ctx context.Context, req datasour
 								stringvalidator.OneOf("no_scan", "standard", "strict", "writes_only"),
 							},
 						},
+						"access_based_enumeration": schema.BoolAttribute{
+							MarkdownDescription: `If enabled, all folders inside this share are visible to a user based on that individual user access right; prevents
+							the display of folders or other shared resources that the user does not have access to.`,
+							Computed:            true,
+						},
 					},
 				},
 				Computed:            true,
@@ -316,6 +321,7 @@ func (d *ProtocolsCIFSSharesDataSource) Read(ctx context.Context, req datasource
 		data.ProtocolsCIFSShares[index].ShowSnapshot = types.BoolValue(record.ShowSnapshot)
 		data.ProtocolsCIFSShares[index].UnixSymlink = types.StringValue(record.UnixSymlink)
 		data.ProtocolsCIFSShares[index].VscanProfile = types.StringValue(record.VscanProfile)
+		data.ProtocolsCIFSShares[index].AccessBasedEnumeration = types.BoolValue(*record.AccessBasedEnumeration)
 
 		if len(record.Acls) == 0 {
 			setValue, diags := types.SetValue(types.ObjectType{

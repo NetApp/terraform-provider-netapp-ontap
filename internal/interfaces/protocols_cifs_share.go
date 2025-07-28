@@ -85,7 +85,7 @@ func GetProtocolsCIFSShareByName(errorHandler *utils.ErrorHandler, r restclient.
 	query := r.NewQuery()
 	query.Add("name", name)
 	query.Add("svm.name", svmName)
-	query.Fields([]string{"name", "svm.name", "unix_symlink", "dir_umask", "file_umask", "acls", "home_directory", "force_group_for_create", "no_strict_security", "oplocks", "volume", "change_notify", "path", "encryption", "vscan_profile", "offline_files", "comment", "show_snapshot", "continuously_available", "namespace_caching"})
+	query.Fields([]string{"name", "svm.name", "unix_symlink", "dir_umask", "file_umask", "acls", "home_directory", "force_group_for_create", "no_strict_security", "oplocks", "volume", "change_notify", "path", "encryption", "vscan_profile", "offline_files", "comment", "show_snapshot", "continuously_available", "namespace_caching", "access_based_enumeration"})
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
 		err = fmt.Errorf("no response for GET %s", api)
