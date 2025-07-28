@@ -1,10 +1,10 @@
-# 2.3.1
+# 2.4.0 (2025-**-**)
 
 ENHANCEMENTS:
 
 - **netapp-ontap_cifs_share**, **netapp-ontap_cifs_shares**: added `access_based_enumeration` option to data sources and resource. ([#259](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/259))
 
-# 2.3.0
+# 2.3.0 (2025-07-22)
 
 DOCUMENTATION:
 
@@ -28,6 +28,7 @@ ENHANCEMENTS:
 - **netapp-ontap_volume**, **netapp-ontap_volumes**: added `autosize.*` options to data sources. ([#509](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/509))
 - **netapp-ontap_snapmirror**, **netapp-ontap_snapmirrors**: added `transfer_schedule.name` option to resource and data sources. ([#444](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/444))
 - **netapp-ontap_security_certificate**: added `intermediate_certificates` option to resources. ([#484](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/484))
+- **netapp-ontap_volume**: added `snapshot_locking_enabled` options to data sources and resources. ([#398](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/398))
 
 # 2.2.0 (2025-05-01)
 

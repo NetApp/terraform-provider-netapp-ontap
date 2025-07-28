@@ -20,4 +20,5 @@ resource "netapp-ontap_volume" "example1" {
     mode = "grow"
     size_unit = "mb"
   }
+  snapshot_locking_enabled = true
 }
