@@ -45,6 +45,9 @@ type ConnectionProfileModel struct {
 	Password              types.String `tfsdk:"password"`
 	ValidateCerts         types.Bool   `tfsdk:"validate_certs"`
 	ONTAPProviderAWSModel types.Object `tfsdk:"aws_lambda"`
+	ClientCertFile	   types.String `tfsdk:"client_cert_file"`
+	ClientKeyFile	   types.String `tfsdk:"client_key_file"`
+	CACertFile	   types.String `tfsdk:"ca_cert_file"`
 }
 
 // ONTAPProviderModel describes the provider data model.
@@ -94,15 +97,27 @@ func (p *ONTAPProvider) Schema(ctx context.Context, req provider.SchemaRequest, 
 						},
 						"username": schema.StringAttribute{
 							MarkdownDescription: "ONTAP management user name (cluster or svm)",
-							Required:            true,
+							Optional:            true,
 						},
 						"password": schema.StringAttribute{
 							MarkdownDescription: "ONTAP management password for username",
-							Required:            true,
+							Optional:            true,
 							Sensitive:           true,
 						},
 						"validate_certs": schema.BoolAttribute{
 							MarkdownDescription: "Whether to enforce SSL certificate validation, defaults to true. Not applicable for AWS Lambda",
+							Optional:            true,
+						},
+						"client_key_file": schema.StringAttribute{
+							MarkdownDescription: "Path to the client key file. Not applicable for AWS Lambda",
+							Optional:            true,
+						},
+						"client_cert_file": schema.StringAttribute{
+							MarkdownDescription: "Path to the client certificate file. Not applicable for AWS Lambda",
+							Optional:            true,
+						},
+						"ca_cert_file": schema.StringAttribute{
+							MarkdownDescription: "Path to the CA certificate file. Not applicable for AWS Lambda",
 							Optional:            true,
 						},
 						"aws_lambda": schema.SingleNestedAttribute{
@@ -178,6 +193,9 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 			Password:              connectionProfile.Password.ValueString(),
 			ValidateCerts:         validateCerts,
 			MaxConcurrentRequests: 0,
+			ClientCertFile:        connectionProfile.ClientCertFile.ValueString(),
+			ClientKeyFile:         connectionProfile.ClientKeyFile.ValueString(),
+			CACertFile:            connectionProfile.CACertFile.ValueString(),
 		}
 		if !connectionProfile.ONTAPProviderAWSModel.IsNull() {
 			var lambdaConfig ONTAPProviderAWSLambdaModel

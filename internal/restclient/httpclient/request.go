@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -40,7 +41,20 @@ func (r *Request) BuildHTTPReq(c *HTTPClient, baseURL string) (*http.Request, er
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.SetBasicAuth(c.cxProfile.Username, c.cxProfile.Password)
+	
+	// Use Ansible-like authentication logic
+	authMethod, err := c.setAuthMethod()
+	if err != nil {
+		return nil, fmt.Errorf("authentication error: %v", err)
+	}
+	
+	// Apply authentication based on the determined method
+	switch authMethod {
+	case AuthMethodBasic, AuthMethodCertWithBasic:
+		req.SetBasicAuth(c.cxProfile.Username, c.cxProfile.Password)
+	case AuthMethodCert:
+		// Certificate authentication is handled at TLS level in http.Client
+	}
 	// telemetry header
 	req.Header.Set("X-Dot-Client-App", c.tag)
 	// TODO: low pty: add support for form data (require to create a file)
