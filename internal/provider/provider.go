@@ -45,8 +45,8 @@ type ConnectionProfileModel struct {
 	Password              types.String `tfsdk:"password"`
 	ValidateCerts         types.Bool   `tfsdk:"validate_certs"`
 	ONTAPProviderAWSModel types.Object `tfsdk:"aws_lambda"`
-	ClientCertFile	   types.String `tfsdk:"client_cert_file"`
-	ClientKeyFile	   types.String `tfsdk:"client_key_file"`
+	CertFilepath	   types.String `tfsdk:"cert_filepath"`
+	KeyFilepath	   types.String `tfsdk:"key_filepath"`
 	CACertFile	   types.String `tfsdk:"ca_cert_file"`
 }
 
@@ -108,12 +108,12 @@ func (p *ONTAPProvider) Schema(ctx context.Context, req provider.SchemaRequest, 
 							MarkdownDescription: "Whether to enforce SSL certificate validation, defaults to true. Not applicable for AWS Lambda",
 							Optional:            true,
 						},
-						"client_key_file": schema.StringAttribute{
-							MarkdownDescription: "Path to the client key file. Not applicable for AWS Lambda",
+						"key_filepath": schema.StringAttribute{
+							MarkdownDescription: "Path to the key file. Not applicable for AWS Lambda",
 							Optional:            true,
 						},
-						"client_cert_file": schema.StringAttribute{
-							MarkdownDescription: "Path to the client certificate file. Not applicable for AWS Lambda",
+						"cert_filepath": schema.StringAttribute{
+							MarkdownDescription: "Path to the certificate file. Not applicable for AWS Lambda",
 							Optional:            true,
 						},
 						"ca_cert_file": schema.StringAttribute{
@@ -193,8 +193,8 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 			Password:              connectionProfile.Password.ValueString(),
 			ValidateCerts:         validateCerts,
 			MaxConcurrentRequests: 0,
-			ClientCertFile:        connectionProfile.ClientCertFile.ValueString(),
-			ClientKeyFile:         connectionProfile.ClientKeyFile.ValueString(),
+			CertFilepath:          connectionProfile.CertFilepath.ValueString(),
+			KeyFilepath:           connectionProfile.KeyFilepath.ValueString(),
 			CACertFile:            connectionProfile.CACertFile.ValueString(),
 		}
 		if !connectionProfile.ONTAPProviderAWSModel.IsNull() {

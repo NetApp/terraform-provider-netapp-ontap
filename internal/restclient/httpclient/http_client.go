@@ -29,9 +29,9 @@ type HTTPProfile struct {
 	Username      string
 	Password      string
 	ValidateCerts bool
-	ClientCertFile string
-	ClientKeyFile  string
-	CACertFile     string
+	CertFilepath  string
+	KeyFilepath   string
+	CACertFile    string
 }
 
 // AuthMethod represents the authentication method to use
@@ -40,37 +40,36 @@ type AuthMethod int
 const (
 	AuthMethodNone AuthMethod = iota
 	AuthMethodBasic
-	AuthMethodCert
-	AuthMethodCertWithBasic
+	AuthMethodSingleCert  // single_cert - cert file only
+	AuthMethodCertKey     // cert_key - cert and key files
 )
 
 // setAuthMethod determines the authentication method based on available credentials
 func (c *HTTPClient) setAuthMethod() (AuthMethod, error) {
-	// defaults to cert authentication if both basic and client certificate authentication parameters are given
-	if c.cxProfile.ClientCertFile != "" {
-		if c.cxProfile.ClientKeyFile == "" {
-			return AuthMethodNone, errors.New("error: cannot have a cert file without a key file")
+	// Defaults to cert authentication if both basic and client certificate authentication parameters are given
+	if c.cxProfile.CertFilepath != "" {
+		if c.cxProfile.KeyFilepath == "" {
+			// single_cert method (cert file only, no key file)
+			return AuthMethodSingleCert, nil
+		} else {
+			// cert_key method (both cert and key files)
+			return AuthMethodCertKey, nil
 		}
-		// If username is also provided with cert, use both
-		if c.cxProfile.Username != "" {
-			return AuthMethodCertWithBasic, nil
+	} else {
+		// No certificate file provided
+		if c.cxProfile.Password == "" && c.cxProfile.Username == "" {
+			if c.cxProfile.KeyFilepath != "" {
+				return AuthMethodNone, errors.New("Error: cannot have a key file without a cert file")
+			} else {
+				return AuthMethodNone, errors.New("Error: ONTAP module requires username/password or SSL certificate file(s)")
+			}
+		} else if c.cxProfile.Password != "" && c.cxProfile.Username != "" {
+			// Both username and password provided - use basic auth
+			return AuthMethodBasic, nil
+		} else {
+			return AuthMethodNone, errors.New("Error: username and password have to be provided together")
 		}
-		return AuthMethodCert, nil
 	}
-	
-	if c.cxProfile.ClientKeyFile != "" {
-		return AuthMethodNone, errors.New("error: cannot have a key file without a cert file")
-	}
-	
-	if c.cxProfile.Password == "" && c.cxProfile.Username == "" {
-		return AuthMethodNone, errors.New("error: ONTAP module requires username/password or SSL certificate file(s)")
-	}
-	
-	if c.cxProfile.Password != "" && c.cxProfile.Username != "" {
-		return AuthMethodBasic, nil
-	}
-	
-	return AuthMethodNone, errors.New("error: username and password have to be provided together")
 }
 
 // Do sends the API Request, parses the response as JSON, and returns the HTTP status code as int, the "result" value as byte
@@ -128,6 +127,8 @@ func NewClient(ctx context.Context, cxProfile HTTPProfile, tag string) HTTPClien
 func (c HTTPClient) create() http.Client {
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: !c.cxProfile.ValidateCerts,
+		// When using client certificates, we might want to skip server cert validation
+		// but still validate client certs
 	}
 	
 	// Determine and log authentication method
@@ -139,10 +140,13 @@ func (c HTTPClient) create() http.Client {
 		switch authMethod {
 		case AuthMethodBasic:
 			authDesc = "basic_auth (username/password)"
-		case AuthMethodCert:
-			authDesc = "cert_key (certificate only)"
-		case AuthMethodCertWithBasic:
-			authDesc = "cert_key + basic_auth (certificate with username)"
+			tflog.Debug(c.ctx, "Using basic authentication")
+		case AuthMethodSingleCert:
+			authDesc = "single_cert (certificate only)"
+			tflog.Debug(c.ctx, "Using single certificate authentication")
+		case AuthMethodCertKey:
+			authDesc = "cert_key (certificate with key)"
+			tflog.Debug(c.ctx, "Using certificate key authentication")
 		default:
 			authDesc = "none"
 		}
@@ -150,13 +154,20 @@ func (c HTTPClient) create() http.Client {
 	}
 	
 	// Load client cert/key if provided (for cert-based auth)
-	if c.cxProfile.ClientCertFile != "" && c.cxProfile.ClientKeyFile != "" {
-		cert, err := tls.LoadX509KeyPair(c.cxProfile.ClientCertFile, c.cxProfile.ClientKeyFile)
-		if err != nil {
-			tflog.Error(c.ctx, fmt.Sprintf("Failed to load client certificate: %v", err))
+	if c.cxProfile.CertFilepath != "" {
+		if c.cxProfile.KeyFilepath != "" {
+			// cert_key method - load both cert and key
+			cert, err := tls.LoadX509KeyPair(c.cxProfile.CertFilepath, c.cxProfile.KeyFilepath)
+			if err != nil {
+				tflog.Error(c.ctx, fmt.Sprintf("Failed to load client certificate: %v", err))
+			} else {
+				tlsConfig.Certificates = []tls.Certificate{cert}
+				tflog.Debug(c.ctx, "Client certificate and key loaded successfully")
+			}
 		} else {
-			tlsConfig.Certificates = []tls.Certificate{cert}
-			tflog.Debug(c.ctx, "Client certificate loaded successfully")
+			// single_cert method - load only certificate (no private key)
+			// This is typically used for server certificate validation, not client auth
+			tflog.Debug(c.ctx, "Single certificate mode - certificate file provided without key")
 		}
 	}
 	

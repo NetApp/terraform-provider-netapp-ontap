@@ -42,7 +42,6 @@ func (r *Request) BuildHTTPReq(c *HTTPClient, baseURL string) (*http.Request, er
 
 	req.Header.Set("Content-Type", "application/json")
 	
-	// Use Ansible-like authentication logic
 	authMethod, err := c.setAuthMethod()
 	if err != nil {
 		return nil, fmt.Errorf("authentication error: %v", err)
@@ -50,9 +49,14 @@ func (r *Request) BuildHTTPReq(c *HTTPClient, baseURL string) (*http.Request, er
 	
 	// Apply authentication based on the determined method
 	switch authMethod {
-	case AuthMethodBasic, AuthMethodCertWithBasic:
+	case AuthMethodBasic:
+		// basic_auth - use username and password
 		req.SetBasicAuth(c.cxProfile.Username, c.cxProfile.Password)
-	case AuthMethodCert:
+	case AuthMethodSingleCert:
+		// single_cert - certificate authentication only (no Basic Auth headers)
+		// Certificate authentication is handled at TLS level in http.Client
+	case AuthMethodCertKey:
+		// cert_key - certificate with key authentication (no Basic Auth headers)
 		// Certificate authentication is handled at TLS level in http.Client
 	}
 	// telemetry header

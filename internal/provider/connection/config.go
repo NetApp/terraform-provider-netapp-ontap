@@ -23,8 +23,8 @@ type Profile struct {
 	MaxConcurrentRequests int
 	UseAWSLambda          bool
 	AWS                   AWSConfig `mapstructure:"aws,omitempty"`
-	ClientCertFile   string
-	ClientKeyFile    string
+	CertFilepath     string
+	KeyFilepath      string
 	CACertFile       string
 }
 
