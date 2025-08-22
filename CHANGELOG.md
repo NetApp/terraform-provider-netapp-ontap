@@ -1,4 +1,6 @@
-# 2.4.0 (2025-**-**)
+# 2.4.0
+
+- Configured SSL certificate based authentication in addition to basic username and password authentication in provider config.
 
 # 2.3.0 (2025-07-22)
 
