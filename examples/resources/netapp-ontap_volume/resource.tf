@@ -21,4 +21,6 @@ resource "netapp-ontap_volume" "example1" {
     size_unit = "mb"
   }
   snapshot_locking_enabled = true
+  constituents_per_aggregate = 3
+  style = "flexvol"
 }

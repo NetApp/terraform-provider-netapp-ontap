@@ -82,6 +82,8 @@ type StorageVolumeResourceModel struct {
 	Analytics      types.Object                      `tfsdk:"analytics"`
 	Autosize       types.Object                      `tfsdk:"autosize"`
 	SnapshotLockingEnabled        types.Bool         `tfsdk:"snapshot_locking_enabled"`
+	Style          types.String                      `tfsdk:"style"`
+	ConstituentsPerAggregate      types.Int64        `tfsdk:"constituents_per_aggregate"`
 }
 
 // StorageVolumeResourceAggregates describes the analytics model.
@@ -545,6 +547,27 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
+			"style": schema.StringAttribute{
+				MarkdownDescription: "The style of the volume. If \"style\" is not specified, the volume type is determined based on the specified aggregates or license. Specifying a single aggregate, without \"constituents_per_aggregate\", creates a flexible volume. Specifying multiple aggregates, or a single aggregate with \"constituents_per_aggregate\", creates a FlexGroup volume. When the UDO License is installed, and no aggregates are specified, the system automatically provisions a FlexGroup volume on system selected aggregates. Specifying a volume \"style\" creates a volume of that type. For example, if the style is \"flexvol\", you must specify a single aggregate. If the style is \"flexgroup\", the system either uses the specified aggregates or automatically provisions aggregates if there are no specified aggregates. Note: The style \"flexgroup_constituent\" is not supported when creating a volume. Supported values: \"flexvol\" (flexible volumes and FlexClone volumes), \"flexgroup\" (FlexGroup volumes).",
+				Optional:            true,
+				Computed:            true,
+				Validators: []validator.String{
+					stringvalidator.OneOf("flexvol", "flexgroup", "flexgroup_constituent"),
+				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"constituents_per_aggregate": schema.Int64Attribute{
+				MarkdownDescription: "Number of constituents per aggregate for FlexGroup volumes. Specifying this parameter with a single aggregate creates a FlexGroup volume. This is a write-only field that cannot be read back from ONTAP API.",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+					int64planmodifier.RequiresReplace(),
+				},
+			},
 		},
 	}
 }
@@ -832,6 +855,15 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 	}
 	data.Autosize = objectValue
 
+	data.Style = types.StringValue(response.Style)
+	
+	// constituents_per_aggregate is write-only
+	if !data.ConstituentsPerAggregate.IsNull() && !data.ConstituentsPerAggregate.IsUnknown() {
+		tflog.Debug(ctx, fmt.Sprintf("READ: Preserving ConstituentsPerAggregate from state: %d", data.ConstituentsPerAggregate.ValueInt64()))
+	} else {
+		data.ConstituentsPerAggregate = types.Int64Null()
+	}
+
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -895,6 +927,13 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	}
 	if !data.Comment.IsUnknown() {
 		request.Comment = data.Comment.ValueString()
+	}
+	
+	if !data.Style.IsUnknown() {
+		request.Style = data.Style.ValueString()
+	}
+	if !data.ConstituentsPerAggregate.IsUnknown() {
+		request.ConstituentsPerAggregate = int(data.ConstituentsPerAggregate.ValueInt64())
 	}
 
 	if !data.Nas.IsUnknown() {
@@ -1068,6 +1107,9 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	if response.SnapshotLockingEnabled != nil {
 		data.SnapshotLockingEnabled = types.BoolValue(*response.SnapshotLockingEnabled)
 	}
+	
+	// Set style and constituents_per_aggregate - preserve plan values as API may not return them
+	// These fields are set during creation and typically not returned in the response
 
 	//Space
 	nestedElementTypes := map[string]attr.Type{
@@ -1208,6 +1250,18 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 		resp.Diagnostics.Append(diags...)
 	}
 	data.Autosize = objectValue
+
+	// Set the new FlexGroup fields
+	tflog.Debug(ctx, fmt.Sprintf("Setting Style from API response: '%s'", response.Style))
+	tflog.Debug(ctx, fmt.Sprintf("Setting ConstituentsPerAggregate from API response: %d", response.ConstituentsPerAggregate))
+	
+	data.Style = types.StringValue(response.Style)
+	// constituents_per_aggregate is write-only
+	if !data.ConstituentsPerAggregate.IsNull() && !data.ConstituentsPerAggregate.IsUnknown() {
+		tflog.Debug(ctx, fmt.Sprintf("CREATE: Preserving ConstituentsPerAggregate from config: %d", data.ConstituentsPerAggregate.ValueInt64()))
+	} else {
+		data.ConstituentsPerAggregate = types.Int64Null()
+	}
 
 	tflog.Trace(ctx, "created a resource")
 
