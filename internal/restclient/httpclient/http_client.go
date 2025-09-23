@@ -46,7 +46,7 @@ const (
 
 // setAuthMethod determines the authentication method based on available credentials
 func (c *HTTPClient) setAuthMethod() (AuthMethod, error) {
-	// Defaults to cert authentication if both basic and client certificate authentication parameters are given
+	// cert authentication is prioritized if both basic and client certificate authentication parameters are given
 	if c.cxProfile.CertFilepath != "" {
 		if c.cxProfile.KeyFilepath == "" {
 			// single_cert method (cert file only, no key file)
@@ -59,15 +59,15 @@ func (c *HTTPClient) setAuthMethod() (AuthMethod, error) {
 		// No certificate file provided
 		if c.cxProfile.Password == "" && c.cxProfile.Username == "" {
 			if c.cxProfile.KeyFilepath != "" {
-				return AuthMethodNone, errors.New("Error: cannot have a key file without a cert file")
+				return AuthMethodNone, errors.New("cannot have a key file without a cert file")
 			} else {
-				return AuthMethodNone, errors.New("Error: ONTAP module requires username/password or SSL certificate file(s)")
+				return AuthMethodNone, errors.New("ONTAP module requires username/password or SSL certificate file(s)")
 			}
 		} else if c.cxProfile.Password != "" && c.cxProfile.Username != "" {
 			// Both username and password provided - use basic auth
 			return AuthMethodBasic, nil
 		} else {
-			return AuthMethodNone, errors.New("Error: username and password have to be provided together")
+			return AuthMethodNone, errors.New("username and password have to be provided together")
 		}
 	}
 }
