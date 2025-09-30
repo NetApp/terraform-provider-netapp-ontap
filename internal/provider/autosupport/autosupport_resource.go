@@ -10,18 +10,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
-
-// TODO:
-// copy this file to match you resource (should match internal/provider/autosupport_resource.go)
-// replace AutoSupport with the name of the resource, following go conventions, eg IPInterface
-// replace autosupport with the name of the resource, for logging purposes, eg ip_interface
-// make sure to create internal/interfaces/autosupport.go too)
-// delete these 5 lines
 
 // Ensure provider defined types fully satisfy framework interfaces
 var _ resource.Resource = &AutoSupportResource{}
@@ -44,6 +39,7 @@ type AutoSupportResource struct {
 // AutoSupportResourceModel describes the resource data model.
 type AutoSupportResourceModel struct {
 	CxProfileName                 types.String `tfsdk:"cx_profile_name"`
+	ID                            types.String `tfsdk:"id"`
 	Enabled                       types.Bool   `tfsdk:"enabled"`
 	Transport                     types.String `tfsdk:"transport"`
 	To                            types.Set    `tfsdk:"to_addresses"`
@@ -55,6 +51,7 @@ type AutoSupportResourceModel struct {
 	IsMinimal                     types.Bool   `tfsdk:"is_minimal"`
 	OndemandEnabled               types.Bool   `tfsdk:"ondemand_enabled"`
 	SmtpEncryption                types.String `tfsdk:"smtp_encryption"`
+	Force                         types.Bool   `tfsdk:"force"`
 }
 
 // Metadata returns the resource type name.
@@ -72,6 +69,13 @@ func (r *AutoSupportResource) Schema(ctx context.Context, req resource.SchemaReq
 			"cx_profile_name": schema.StringAttribute{
 				MarkdownDescription: "Connection profile name",
 				Required:            true,
+			},
+			"id": schema.StringAttribute{
+				MarkdownDescription: "AutoSupport identifier",
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"enabled": schema.BoolAttribute{
 				MarkdownDescription: "Specifies whether the AutoSupport daemon is enabled. When enabled, AutoSupport messages are generated",
@@ -131,6 +135,11 @@ func (r *AutoSupportResource) Schema(ctx context.Context, req resource.SchemaReq
 				Optional:            true,
 				Computed:            true,
 			},
+			"force": schema.BoolAttribute{
+				MarkdownDescription: "Force the configuration update even if it might disrupt AutoSupport operations",
+				Optional:            true,
+				Computed:            false,
+			},
 		},
 	}
 }
@@ -176,6 +185,7 @@ func (r *AutoSupportResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
+	data.ID = data.CxProfileName // For singleton resources, use cx_profile_name as ID
 	data.Enabled = types.BoolValue(restInfo.Enabled)
 	data.Transport = types.StringValue(restInfo.Transport)
 	data.From = types.StringValue(restInfo.From)
@@ -334,6 +344,7 @@ func (r *AutoSupportResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	// Update data with current state
+	data.ID = data.CxProfileName // For singleton resources, use cx_profile_name as ID
 	data.Enabled = types.BoolValue(restInfo.Enabled)
 	data.Transport = types.StringValue(restInfo.Transport)
 	data.From = types.StringValue(restInfo.From)
@@ -442,6 +453,10 @@ func (r *AutoSupportResource) Update(ctx context.Context, req resource.UpdateReq
 		smtpEncryption := data.SmtpEncryption.ValueString()
 		body.SmtpEncryption = &smtpEncryption
 	}
+	if !data.Force.IsNull() && !data.Force.IsUnknown() {
+		force := data.Force.ValueBool()
+		body.Force = &force
+	}
 
 	// Handle sets
 	if !data.To.IsNull() && !data.To.IsUnknown() {
@@ -490,6 +505,7 @@ func (r *AutoSupportResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 
 	// Update data with current state
+	data.ID = data.CxProfileName // For singleton resources, use cx_profile_name as ID
 	data.Enabled = types.BoolValue(restInfo.Enabled)
 	data.Transport = types.StringValue(restInfo.Transport)
 	data.From = types.StringValue(restInfo.From)
@@ -560,5 +576,6 @@ func (r *AutoSupportResource) Delete(ctx context.Context, req resource.DeleteReq
 
 // ImportState imports a resource using ID from terraform import command by calling the Read method.
 func (r *AutoSupportResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("cx_profile_name"), req, resp)
+	// For singleton resources, we just need to set the cx_profile_name from the import ID
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), req.ID)...)
 }

@@ -11,18 +11,22 @@ import (
 "github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
-// removeDefaultPortFromMailHosts removes default SMTP port (:25) from mail host addresses
-// This handles the case where ONTAP API returns "mail.example.com:25" but we want to show "mail.example.com" 
-// to match user configuration. Custom ports like :587, :465 are preserved.
+// removeDefaultPortFromMailHosts removes common SMTP ports from mail host addresses
+// This handles the case where ONTAP API adds default ports but we want to show just the hostname
+// to match user configuration when no explicit port was specified.
+// Removes: :25 (default SMTP), :587 (SMTP-TLS), :465 (SMTPS) 
 func removeDefaultPortFromMailHosts(mailHosts []string) []string {
 	normalized := make([]string, len(mailHosts))
+	commonPorts := []string{":25", ":587", ":465"}
+	
 	for i, host := range mailHosts {
-		// Remove default SMTP port :25 from the host to match config
-		if strings.HasSuffix(host, ":25") {
-			normalized[i] = strings.TrimSuffix(host, ":25")
-		} else {
-			// Custom port specified, keep as-is
-			normalized[i] = host
+		normalized[i] = host
+		// Remove common SMTP ports to match user config when no port specified
+		for _, port := range commonPorts {
+			if strings.HasSuffix(host, port) {
+				normalized[i] = strings.TrimSuffix(host, port)
+				break
+			}
 		}
 	}
 	return normalized
@@ -46,6 +50,7 @@ type AutoSupportGetDataModelONTAP struct {
 // AutoSupportDataSourceModel describes the data source data model.
 type AutoSupportDataSourceModel struct {
 	CxProfileName                 types.String `tfsdk:"cx_profile_name"`
+	ID                            types.String `tfsdk:"id"`
 	Enabled                       types.Bool   `tfsdk:"enabled"`
 	Transport                     types.String `tfsdk:"transport"`
 	To                            types.Set    `tfsdk:"to_addresses"`
@@ -90,32 +95,7 @@ tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read AutoSupport data source: %#v", d
 return &dataONTAP, nil
 }
 
-// GetAutoSupports to get multiple AutoSupport configs
-func GetAutoSupports(errorHandler *utils.ErrorHandler, r restclient.RestClient) ([]AutoSupportGetDataModelONTAP, error) {
-	query := r.NewQuery()
-	query.Fields([]string{"enabled", "transport", "to", "from", "contact_support", "partner_addresses", 
-		"proxy_url", "mail_hosts", "is_minimal", "ondemand_enabled", "smtp_encryption"})
 
-statusCode, response, err := r.GetZeroOrMoreRecords("support/autosupport", query, nil)
-if err != nil {
-return nil, errorHandler.MakeAndReportError("error reading AutoSupport configs", 
-fmt.Sprintf("error on GET support/autosupport: %s, statusCode: %d", err, statusCode))
-}
-
-var dataONTAP []AutoSupportGetDataModelONTAP
-for _, info := range response {
-var record AutoSupportGetDataModelONTAP
-if err := mapstructure.Decode(info, &record); err != nil {
-return nil, errorHandler.MakeAndReportError("error decoding AutoSupport info",
-fmt.Sprintf("statusCode %d, response %#v", statusCode, info))
-}
-// Normalize mail hosts to remove default port :25 for state consistency
-record.MailHosts = removeDefaultPortFromMailHosts(record.MailHosts)
-dataONTAP = append(dataONTAP, record)
-}
-	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read AutoSupport data sources: %#v", dataONTAP))
-	return dataONTAP, nil
-}
 
 // AutoSupportResourceBodyDataModelONTAP describes the body data model for requests using go types for mapping.
 type AutoSupportResourceBodyDataModelONTAP struct {
@@ -130,6 +110,7 @@ type AutoSupportResourceBodyDataModelONTAP struct {
 	IsMinimal                     *bool     `mapstructure:"is_minimal,omitempty"`
 	OndemandEnabled               *bool     `mapstructure:"ondemand_enabled,omitempty"`
 	SmtpEncryption                *string   `mapstructure:"smtp_encryption,omitempty"`
+	Force                         *bool     `mapstructure:"force,omitempty"`
 }
 
 // UpdateAutoSupport to update AutoSupport configuration using PATCH

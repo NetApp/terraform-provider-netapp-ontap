@@ -48,6 +48,10 @@ func (d *AutoSupportDataSource) Schema(ctx context.Context, req datasource.Schem
 				MarkdownDescription: "Connection profile name",
 				Required:            true,
 			},
+			"id": schema.StringAttribute{
+				MarkdownDescription: "AutoSupport identifier",
+				Computed:            true,
+			},
 			"enabled": schema.BoolAttribute{
 				MarkdownDescription: "Specifies whether the AutoSupport daemon is enabled. When enabled, AutoSupport messages are generated",
 				Computed:            true,
@@ -138,6 +142,7 @@ func (d *AutoSupportDataSource) Read(ctx context.Context, req datasource.ReadReq
 		return
 	}
 
+	data.ID = data.CxProfileName // For data sources, use cx_profile_name as ID
 	data.Enabled = types.BoolValue(cluster.Enabled)
 	data.Transport = types.StringValue(cluster.Transport)
 	data.From = types.StringValue(cluster.From)
