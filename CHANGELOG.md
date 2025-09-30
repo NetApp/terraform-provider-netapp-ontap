@@ -1,4 +1,7 @@
-# 2.4.0 (2025-**-**)
+# 2.4.0
+
+- **New Data Source:** `netapp-ontap_autosupport` ([#555](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/555))
+- **New Resource:** `netapp-ontap_autosupport` ([#555](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/555))
 
 # 2.3.0 (2025-07-22)
 
