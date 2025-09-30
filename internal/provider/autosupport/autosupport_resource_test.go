@@ -11,9 +11,6 @@ import (
 )
 
 func TestAccAutoSupportResource(t *testing.T) {
-	t.Setenv("TF_ACC_NETAPP_HOST", "10.193.180.52")
-   	t.Setenv("TF_ACC_NETAPP_USER", "admin")
-   	t.Setenv("TF_ACC_NETAPP_PASS", "Netapp1!")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { ntest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ntest.TestAccProtoV6ProviderFactories,
