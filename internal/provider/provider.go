@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/autosupport"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/cluster"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/name_services"
@@ -214,6 +215,7 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 // Resources defines the provider's resources.
 func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
+		autosupport.NewAutoSupportResource,
 		cluster.NewClusterLicensingLicenseResource,
 		cluster.NewClusterPeerResource,
 		cluster.NewClusterResource,
@@ -370,6 +372,7 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		storage.NewStorageVolumesFilesDataSource,
 		storage.NewVolumeEfficiencyPoliciesDataSource,
 		storage.NewVolumeEfficiencyPolicyDataSource,
+		autosupport.NewAutoSupportDataSource,
 		svm.NewSVMPeerDataSource,
 		svm.NewSVMPeersDataSource,
 		svm.NewSvmDataSource,
