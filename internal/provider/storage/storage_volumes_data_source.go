@@ -291,6 +291,10 @@ func (d *StorageVolumesDataSource) Schema(ctx context.Context, req datasource.Sc
 							Computed:            true,
 							MarkdownDescription: "Volume identifier",
 						},
+						"snapshot_locking_enabled": schema.BoolAttribute{
+							MarkdownDescription: "Whether or not snapshot copy locking is enabled on the volume.",
+							Computed:            true,
+						},
 					},
 				},
 				Computed:            true,
@@ -412,7 +416,8 @@ func (d *StorageVolumesDataSource) Read(ctx context.Context, req datasource.Read
 				GrowThreshold:   types.Int64Value(int64(record.Autosize.GrowThreshold)),
 				Mode:            types.StringValue(record.Autosize.Mode),
 			},
-			ID: types.StringValue(record.UUID),
+			ID:                     types.StringValue(record.UUID),
+			SnapshotLockingEnabled: types.BoolValue(*record.SnapshotLockingEnabled),
 		}
 	}
 
