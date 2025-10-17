@@ -48,8 +48,10 @@ type StorageVolumesDataSourceModel struct {
 
 // StorageVolumeDataSourceFilterModel describes the data source data model for queries.
 type StorageVolumeDataSourceFilterModel struct {
-	Name    types.String `tfsdk:"name"`
-	SVMName types.String `tfsdk:"svm_name"`
+	Name              types.String `tfsdk:"name"`
+	SVMName           types.String `tfsdk:"svm_name"`
+	TieringObjectTags types.String `tfsdk:"tiering_object_tags"`
+	Tags              types.String `tfsdk:"tags"`
 }
 
 // Metadata returns the data source type name.
@@ -76,6 +78,14 @@ func (d *StorageVolumesDataSource) Schema(ctx context.Context, req datasource.Sc
 					},
 					"svm_name": schema.StringAttribute{
 						MarkdownDescription: "StorageVolume svm name",
+						Optional:            true,
+					},
+					"tags": schema.StringAttribute{
+						MarkdownDescription: "StorageVolume tag value",
+						Optional:            true,
+					},
+					"tiering_object_tags": schema.StringAttribute{
+						MarkdownDescription: "StorageVolume tiering object tag value",
 						Optional:            true,
 					},
 				},
@@ -211,6 +221,11 @@ func (d *StorageVolumesDataSource) Schema(ctx context.Context, req datasource.Sc
 									MarkdownDescription: "Determines how many days must pass before inactive data in a volume using the Auto or Snapshot-Only policy is considered cold and eligible for tiering",
 									Computed:            true,
 								},
+								"object_tags": schema.ListAttribute{
+									ElementType:         types.StringType,
+									MarkdownDescription: "Object tags are applied to objects in tiered storage",
+									Computed:            true,
+								},
 							},
 						},
 						"efficiency": schema.SingleNestedAttribute{
@@ -291,6 +306,11 @@ func (d *StorageVolumesDataSource) Schema(ctx context.Context, req datasource.Sc
 							Computed:            true,
 							MarkdownDescription: "Volume identifier",
 						},
+						"tags": schema.ListAttribute{
+							ElementType:         types.StringType,
+							MarkdownDescription: "List of tags associated with the volume",
+							Computed:            true,
+						},
 					},
 				},
 				Computed:            true,
@@ -338,8 +358,10 @@ func (d *StorageVolumesDataSource) Read(ctx context.Context, req datasource.Read
 	var filter *interfaces.StorageVolumeDataSourceFilterModel = nil
 	if data.Filter != nil {
 		filter = &interfaces.StorageVolumeDataSourceFilterModel{
-			Name:    data.Filter.Name.ValueString(),
-			SVMName: data.Filter.SVMName.ValueString(),
+			Name:              data.Filter.Name.ValueString(),
+			SVMName:           data.Filter.SVMName.ValueString(),
+			Tags:              data.Filter.Tags.ValueString(),
+			TieringObjectTags: data.Filter.TieringObjectTags.ValueString(),
 		}
 	}
 	restInfo, err := interfaces.GetStorageVolumes(errorHandler, *client, filter)
@@ -356,6 +378,18 @@ func (d *StorageVolumesDataSource) Read(ctx context.Context, req datasource.Read
 		var aggregates = make([]StorageVolumeDataSourceAggregates, len(record.Aggregates))
 		for i, v := range record.Aggregates {
 			aggregates[i].Name = types.StringValue(v.Name)
+		}
+
+		objectTagsList, diags := stringSliceToList(ctx, record.TieringPolicy.ObjectTags)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+
+		tagsList, diags := stringSliceToList(ctx, record.Tags)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
 		}
 
 		data.StorageVolumes[index] = StorageVolumeDataSourceModel{
@@ -391,6 +425,7 @@ func (d *StorageVolumesDataSource) Read(ctx context.Context, req datasource.Read
 			Tiering: &StorageVolumeDataSourceTiering{
 				Policy:             types.StringValue(record.TieringPolicy.Policy),
 				MinimumCoolingDays: types.Int64Value(int64(record.TieringPolicy.MinCoolingDays)),
+				ObjectTags:         objectTagsList,
 			},
 			Efficiency: &StorageVolumeDataSourceEfficiency{
 				Policy:      types.StringValue(record.Efficiency.Policy.Name),
@@ -412,7 +447,8 @@ func (d *StorageVolumesDataSource) Read(ctx context.Context, req datasource.Read
 				GrowThreshold:   types.Int64Value(int64(record.Autosize.GrowThreshold)),
 				Mode:            types.StringValue(record.Autosize.Mode),
 			},
-			ID: types.StringValue(record.UUID),
+			ID:   types.StringValue(record.UUID),
+			Tags: tagsList,
 		}
 	}
 

@@ -47,16 +47,16 @@ data "netapp-ontap_volume" "storage_volume" {
 - `nas` (Attributes) (see [below for nested schema](#nestedatt--nas))
 - `qos_policy_group` (String) Specifies a QoS policy group to be set on volume
 - `snaplock` (Attributes) (see [below for nested schema](#nestedatt--snaplock))
+- `snapshot_locking_enabled` (Boolean) Whether or not snapshot copy locking is enabled on the volume.
 - `snapshot_policy` (String) The name of the snapshot policy
 - `space` (Attributes) (see [below for nested schema](#nestedatt--space))
 - `space_guarantee` (String) Space guarantee style for the volume
 - `state` (String) Whether the specified volume is online, or not
+- `tags` (List of String) List of tags associated with the volume
 - `tiering` (Attributes) (see [below for nested schema](#nestedatt--tiering))
 - `type` (String) The volume type, either read-write (RW) or data-protection (DP)
-- `snapshot_locking_enabled` (Boolean) Whether or not snapshot copy locking is enabled on the volume
 
 <a id="nestedatt--aggregates"></a>
-
 ### Nested Schema for `aggregates`
 
 Read-Only:
@@ -93,10 +93,11 @@ Read-Only:
 
 Read-Only:
 
+- `compaction` (String) The system can be enabled/disabled compaction
 - `compression` (String) Whether to enable compression for the volume (HDD and Flash Pool aggregates)
-- `policy_name` (String) Allows a storage efficiency policy to be set on volume creation
 - `dedupe` (String) The system can be enabled/disabled dedupe
-- `compaction` (String) The system can be enabled/disabled compression
+- `policy_name` (String) Allows a storage efficiency policy to be set on volume creation
+
 
 <a id="nestedatt--nas"></a>
 
@@ -146,4 +147,5 @@ Read-Only:
 Read-Only:
 
 - `minimum_cooling_days` (Number) Determines how many days must pass before inactive data in a volume using the Auto or Snapshot-Only policy is considered cold and eligible for tiering
+- `object_tags` (List of String) Object tags are applied to objects in tiered storage
 - `policy_name` (String) The tiering policy that is to be associated with the volume

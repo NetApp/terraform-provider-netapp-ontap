@@ -50,6 +50,9 @@ Optional:
 
 - `name` (String) StorageVolume name
 - `svm_name` (String) StorageVolume svm name
+- `tags` (String) StorageVolume tag value
+- `tiering_object_tags` (String) StorageVolume tiering object tag value
+
 
 <a id="nestedatt--storage_volumes"></a>
 
@@ -63,7 +66,7 @@ Required:
 
 Read-Only:
 
-- `aggregates` (Attributes List) Aggregates the volume is on (see [below for nested schema](#nestedatt--aggregates))
+- `aggregates` (Attributes List) List of aggregates that the volume is on (see [below for nested schema](#nestedatt--storage_volumes--aggregates))
 - `analytics` (Attributes) (see [below for nested schema](#nestedatt--storage_volumes--analytics))
 - `autosize` (Attributes) (see [below for nested schema](#nestedatt--storage_volumes--autosize))
 - `comment` (String) Sets a comment associated with the volume
@@ -74,10 +77,12 @@ Read-Only:
 - `nas` (Attributes) (see [below for nested schema](#nestedatt--storage_volumes--nas))
 - `qos_policy_group` (String) Specifies a QoS policy group to be set on volume
 - `snaplock` (Attributes) (see [below for nested schema](#nestedatt--storage_volumes--snaplock))
+- `snapshot_locking_enabled` (Boolean) Whether or not snapshot copy locking is enabled on the volume.
 - `snapshot_policy` (String) The name of the snapshot policy
 - `space` (Attributes) (see [below for nested schema](#nestedatt--storage_volumes--space))
 - `space_guarantee` (String) Space guarantee style for the volume
 - `state` (String) Whether the specified volume is online, or not
+- `tags` (List of String) List of tags associated with the volume
 - `tiering` (Attributes) (see [below for nested schema](#nestedatt--storage_volumes--tiering))
 - `type` (String) The volume type, either read-write (RW) or data-protection (DP)
 
@@ -97,8 +102,8 @@ Read-Only:
 
 - `state` (String) Set file system analytics state of the volume
 
-<a id="nestedatt--storage_volumes--autosize"></a>
 
+<a id="nestedatt--storage_volumes--autosize"></a>
 ### Nested Schema for `storage_volumes.autosize`
 
 Read-Only:
@@ -107,9 +112,9 @@ Read-Only:
 - `maximum` (Number) Maximum size up to which a volume grows automatically. This size cannot be less than the current volume size, or less than or equal to the minimum size of volume.
 - `minimum` (Number) Minimum size up to which the volume shrinks automatically. This size cannot be greater than or equal to the maximum size of volume.
 - `mode` (String) Autosize mode for the volume.
-									grow - Volume automatically grows when the amount of used space is above the 'grow_threshold' value.
-									grow_shrink - Volume grows or shrinks in response to the amount of space used.
-									off - Autosizing of the volume is disabled.
+														grow - Volume automatically grows when the amount of used space is above the 'grow_threshold' value.
+														grow_shrink - Volume grows or shrinks in response to the amount of space used.
+														off - Autosizing of the volume is disabled.
 - `shrink_threshold` (Number) Used space threshold size, in percentage, for the automatic shrinkage of the volume.
 - `size_unit` (String) The unit used to interpret the minimum or maximum size parameters.
 
@@ -119,7 +124,9 @@ Read-Only:
 
 Read-Only:
 
+- `compaction` (String) The system can be enabled/disabled compaction
 - `compression` (String) Whether to enable compression for the volume (HDD and Flash Pool aggregates)
+- `dedupe` (String) The system can be enabled/disabled dedupe
 - `policy_name` (String) Allows a storage efficiency policy to be set on volume creation
 
 <a id="nestedatt--storage_volumes--nas"></a>
@@ -172,4 +179,5 @@ Read-Only:
 Read-Only:
 
 - `minimum_cooling_days` (Number) Determines how many days must pass before inactive data in a volume using the Auto or Snapshot-Only policy is considered cold and eligible for tiering
+- `object_tags` (List of String) Object tags are applied to objects in tiered storage
 - `policy_name` (String) The tiering policy that is to be associated with the volume
