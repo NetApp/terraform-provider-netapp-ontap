@@ -82,7 +82,7 @@ func GetStorageFlexcacheByName(errorHandler *utils.ErrorHandler, r restclient.Re
 	query := r.NewQuery()
 	query.Add("name", name)
 	query.Add("svm.name", svmName)
-	query.Fields([]string{"size", "path", "origins", "guarantee.type", "constituents_per_aggregate", "dr_cache", "global_file_locking_enabled", "use_tiered_aggregate", "aggregates"})
+	query.Fields([]string{"size", "path", "origins", "guarantee.type", "constituents_per_aggregate", "dr_cache", "global_file_locking_enabled", "aggregates"})
 	statusCode, response, err := r.GetNilOrOneRecord("storage/flexcache/flexcaches", query, nil)
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError("error reading flexcache info", fmt.Sprintf("error on GET storage/flexcache/flexcaches: %s", err))
@@ -99,7 +99,7 @@ func GetStorageFlexcacheByName(errorHandler *utils.ErrorHandler, r restclient.Re
 func GetStorageFlexcaches(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *StorageFlexcacheDataSourceFilterModel) ([]StorageFlexcacheGetDataModelONTAP, error) {
 	api := "storage/flexcache/flexcaches"
 	query := r.NewQuery()
-	query.Fields([]string{"size", "path", "origins", "guarantee.type", "constituents_per_aggregate", "dr_cache", "global_file_locking_enabled", "use_tiered_aggregate", "aggregates"})
+	query.Fields([]string{"size", "path", "origins", "guarantee.type", "constituents_per_aggregate", "dr_cache", "global_file_locking_enabled", "aggregates"})
 	if filter != nil {
 		var filterMap map[string]interface{}
 		if err := mapstructure.Decode(filter, &filterMap); err != nil {
