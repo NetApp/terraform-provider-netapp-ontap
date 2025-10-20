@@ -48,6 +48,95 @@ type RestClient struct {
 	tag                   string
 }
 
+// parseHref parses an href URL to separate the base path from query parameters
+func (r *RestClient) parseHref(href string) (string, *RestQuery, error) {
+	// Remove "/api" prefix to match other requests
+	cleanHref := strings.TrimPrefix(href, "/api/")
+
+	// Parse the URL to separate path and query
+	parsedURL, err := url.Parse(cleanHref)
+	if err != nil {
+		return "", nil, fmt.Errorf("failed to parse href URL: %s", err)
+	}
+
+	// Create RestQuery from parsed query parameters
+	query := &RestQuery{Values: parsedURL.Query()}
+
+	// Return the path without query parameters
+	return parsedURL.Path, query, nil
+}
+
+// handlePagination processes paginated responses by following _links.next.href
+func (r *RestClient) handlePagination(initialResponse RestResponse, method string, originalQuery *RestQuery, body map[string]interface{}) (int, RestResponse, error) {
+	allRecords := initialResponse.Records
+	currentResponse := initialResponse
+	lastStatusCode := initialResponse.StatusCode
+
+	for {
+		// Check if there's a next link in the response
+		nextHref, hasNext := r.extractNextHref(currentResponse)
+		if !hasNext {
+			break
+		}
+
+		// Parse the href to separate base URL and query parameters
+		baseURL, query, err := r.parseHref(nextHref)
+		if err != nil {
+			tflog.Error(r.ctx, fmt.Sprintf("Failed to parse pagination href: %s, error: %s", nextHref, err))
+			return lastStatusCode, currentResponse, err
+		}
+
+		tflog.Debug(r.ctx, fmt.Sprintf("Following pagination link - baseURL: %s, query: %v", baseURL, query))
+
+		// Make request for next page with parsed URL and query
+		statusCode, nextResponse, err := r.callAPIMethod(method, baseURL, query, body)
+		if err != nil {
+			tflog.Error(r.ctx, fmt.Sprintf("Pagination request failed: %s", err))
+			return statusCode, currentResponse, err
+		}
+
+		// Update last status code
+		lastStatusCode = statusCode
+
+		// Add records from this page
+		allRecords = append(allRecords, nextResponse.Records...)
+		currentResponse = nextResponse
+	}
+
+	// Update the final response with all collected records
+	finalResponse := initialResponse
+	finalResponse.Records = allRecords
+	finalResponse.NumRecords = len(allRecords)
+	finalResponse.StatusCode = lastStatusCode
+
+	return lastStatusCode, finalResponse, nil
+}
+
+// extractNextHref extracts the next href from response-level _links
+func (r *RestClient) extractNextHref(response RestResponse) (string, bool) {
+	if response.Links == nil {
+		return "", false
+	}
+
+	if next, hasNext := response.Links["next"]; hasNext {
+		if nextMap, ok := next.(map[string]interface{}); ok {
+			if href, hasHref := nextMap["href"]; hasHref {
+				if hrefStr, ok := href.(string); ok {
+					return hrefStr, true
+				}
+			}
+		}
+	}
+
+	return "", false
+}
+
+// shouldHandlePagination determines if we should attempt to handle pagination
+func (r *RestClient) shouldHandlePagination(response RestResponse) bool {
+	_, hasNext := r.extractNextHref(response)
+	return hasNext
+}
+
 // CallCreateMethod returns response from POST results.  An error is reported if an error is received.
 func (r *RestClient) CallCreateMethod(baseURL string, query *RestQuery, body map[string]interface{}) (int, RestResponse, error) {
 	if query == nil {
@@ -123,14 +212,26 @@ func (r *RestClient) CallDeleteMethod(baseURL string, query *RestQuery, body map
 	return statusCode, response, err
 }
 
-// GetNilOrOneRecord returns nil if no record is found or a single record.  An error is reported if multiple records are received.
+// GetNilOrOneRecord returns nil if no record is found or a single record.
+// Handles pagination and returns error if multiple records are received after pagination.
 func (r *RestClient) GetNilOrOneRecord(baseURL string, query *RestQuery, body map[string]interface{}) (int, map[string]interface{}, error) {
 	statusCode, response, err := r.callAPIMethod("GET", baseURL, query, body)
 	if err != nil {
 		return statusCode, nil, err
 	}
+
+	// Handle pagination if present
+	if r.shouldHandlePagination(response) {
+		statusCode, paginatedResponse, paginationErr := r.handlePagination(response, "GET", query, body)
+		if paginationErr != nil {
+			tflog.Error(r.ctx, fmt.Sprintf("Pagination failed: %s", paginationErr))
+			return statusCode, nil, paginationErr
+		}
+		response = paginatedResponse
+	}
+
 	if response.NumRecords > 1 {
-		msg := fmt.Sprintf("received 2 or more records when only one is expected - statusCode %d, err=%#v, response=%#v", statusCode, err, response)
+		msg := fmt.Sprintf("received %d records when only one is expected - statusCode %d, err=%#v, response=%#v", response.NumRecords, statusCode, err, response)
 		tflog.Error(r.ctx, msg)
 		return statusCode, nil, errors.New(msg)
 	}
@@ -140,12 +241,23 @@ func (r *RestClient) GetNilOrOneRecord(baseURL string, query *RestQuery, body ma
 	return statusCode, nil, err
 }
 
-// GetZeroOrMoreRecords returns a list of records.
+// GetZeroOrMoreRecords returns a list of records, handling pagination automatically.
 func (r *RestClient) GetZeroOrMoreRecords(baseURL string, query *RestQuery, body map[string]interface{}) (int, []map[string]interface{}, error) {
 	statusCode, response, err := r.callAPIMethod("GET", baseURL, query, body)
 	if err != nil {
 		return statusCode, nil, err
 	}
+
+	// Handle pagination if present
+	if r.shouldHandlePagination(response) {
+		statusCode, paginatedResponse, paginationErr := r.handlePagination(response, "GET", query, body)
+		if paginationErr != nil {
+			tflog.Error(r.ctx, fmt.Sprintf("Pagination failed: %s", paginationErr))
+			return statusCode, response.Records, paginationErr
+		}
+		return statusCode, paginatedResponse.Records, err
+	}
+
 	return statusCode, response.Records, err
 }
 
