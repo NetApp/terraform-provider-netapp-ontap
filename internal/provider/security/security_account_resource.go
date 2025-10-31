@@ -341,7 +341,7 @@ func (r *SecurityAccountResource) Create(ctx context.Context, req resource.Creat
 	if !data.Comment.IsNull() {
 		body.Comment = data.Comment.ValueString()
 	}
-	if !data.Locked.IsNull() {
+	if !data.Locked.IsNull() && !data.Locked.IsUnknown() {
 		body.Locked = data.Locked.ValueBoolPointer()
 	}
 
@@ -468,7 +468,7 @@ func (r *SecurityAccountResource) Update(ctx context.Context, req resource.Updat
 	}
 
 	// locked update
-	if !plan.Locked.IsNull() {
+	if !plan.Locked.Equal(state.Locked) && !plan.Locked.IsNull() && !plan.Locked.IsUnknown() {
 		request.Locked = plan.Locked.ValueBoolPointer()
 	}
 
