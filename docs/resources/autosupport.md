@@ -72,7 +72,7 @@ terraform import netapp-ontap_autosupport.autosupport cluster4
 - `mail_hosts` (Set of String) List of mail server(s) used to deliver AutoSupport messages via SMTP. Specify hostnames or IP addresses (e.g., "smtp.example.com"). Ports are automatically selected based on smtp_encryption setting (:25 for none, :587 for start_tls)
 - `is_minimal` (Boolean) Specifies whether the system information is collected in compliant form to remove private data or in complete form to enhance diagnostics
 - `ondemand_enabled` (Boolean) Specifies whether the AutoSupport OnDemand Download feature is enabled. Requires ONTAP 9.16.1 or higher
-- `smtp_encryption` (String) SMTP encryption type for AutoSupport messages. Valid values: none, start_tls
+- `smtp_encryption` (String) SMTP encryption type for AutoSupport messages. Valid values: none, start_tls. Requires ONTAP 9.15 or higher
 - `force` (Boolean) Force the configuration update even if it might disrupt AutoSupport operations. Only used for modify operations, ignored during resource creation
 
 ### Read-Only

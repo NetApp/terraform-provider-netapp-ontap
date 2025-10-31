@@ -50,4 +50,4 @@ data "netapp-ontap_autosupport" "autosupport" {
 - `mail_hosts` (Set of String) List of mail server(s) used to deliver AutoSupport messages via SMTP. Specify hostnames or IP addresses. Ports are automatically selected based on smtp_encryption setting
 - `is_minimal` (Boolean) Specifies whether the system information is collected in compliant form to remove private data or in complete form to enhance diagnostics
 - `ondemand_enabled` (Boolean) Specifies whether the AutoSupport OnDemand Download feature is enabled. Requires ONTAP 9.16.1 or higher
-- `smtp_encryption` (String) SMTP encryption type for AutoSupport messages. Valid values: none, start_tls
+- `smtp_encryption` (String) SMTP encryption type for AutoSupport messages. Valid values: none, start_tls. Requires ONTAP 9.15 or higher
