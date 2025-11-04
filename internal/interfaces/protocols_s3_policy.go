@@ -1,8 +1,8 @@
 package interfaces
 
 import (
-    "encoding/json"
     "fmt"
+    "strings"
 
     "github.com/hashicorp/terraform-plugin-framework/types"
     "github.com/mitchellh/mapstructure"
@@ -20,24 +20,23 @@ type ProtocolsS3PolicyGetDataModelONTAP struct {
 
 // ProtocolsS3PolicyStatementONTAP describes policy statement structure
 type ProtocolsS3PolicyStatementONTAP struct {
-    Effect      string                     `mapstructure:"effect" json:"effect"`
-    Actions     []string                   `mapstructure:"actions,omitempty" json:"actions,omitempty"`
-    Resources   []string                   `mapstructure:"resources,omitempty" json:"resources,omitempty"`
-    SID         string                     `mapstructure:"sid,omitempty" json:"sid,omitempty"`
+    Effect      string                     `mapstructure:"effect"`
+    Actions     []string                   `mapstructure:"actions,omitempty"`
+    Resources   []string                   `mapstructure:"resources,omitempty"`
+    SID         string                     `mapstructure:"sid,omitempty"`
 }
 
 // ProtocolsS3PolicySVMONTAP describes the SVM data model
 type ProtocolsS3PolicySVMONTAP struct {
-    Name string `mapstructure:"name" json:"name"`
-    UUID string `mapstructure:"uuid,omitempty" json:"uuid,omitempty"`
+    Name string `mapstructure:"name"`
+    UUID string `mapstructure:"uuid,omitempty"`
 }
 
 // ProtocolsS3PolicyResourceBodyDataModelONTAP describes the body data model using go types for mapping.
 type ProtocolsS3PolicyResourceBodyDataModelONTAP struct {
-    Name       string                              `mapstructure:"name" json:"name"`
-    Comment    string                              `mapstructure:"comment,omitempty" json:"comment,omitempty"`
-    Statements []ProtocolsS3PolicyStatementONTAP   `mapstructure:"statements,omitempty" json:"statements,omitempty"`
-    SVM        ProtocolsS3PolicySVMONTAP           `mapstructure:"svm" json:"-"`
+    Name       string                              `mapstructure:"name"`
+    Comment    string                              `mapstructure:"comment,omitempty"`
+    Statements []ProtocolsS3PolicyStatementONTAP   `mapstructure:"statements,omitempty"`
 }
 
 // ProtocolsS3PolicyDataSourceModel describes the data source data model.
@@ -70,9 +69,8 @@ type ProtocolsS3PolicyDataSourceFilterModel struct {
     SVMName types.String `tfsdk:"svm_name"`
 }
 
-// GetProtocolsS3Policy to get protocols_s3_policy info
-func GetProtocolsS3Policy(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, svmName string) (*ProtocolsS3PolicyGetDataModelONTAP, error) {
-    // First get SVM UUID
+// getSVMUUID is a helper function to get SVM UUID from SVM name
+func getSVMUUID(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmName string) (string, error) {
     svmAPI := "svm/svms"
     svmQuery := r.NewQuery()
     svmQuery.Set("name", svmName)
@@ -80,20 +78,31 @@ func GetProtocolsS3Policy(errorHandler *utils.ErrorHandler, r restclient.RestCli
     
     statusCode, svmResponse, err := r.GetNilOrOneRecord(svmAPI, svmQuery, nil)
     if err != nil {
-        return nil, errorHandler.MakeAndReportError("error reading svm info", fmt.Sprintf("error on GET %s: %s, statusCode %d", svmAPI, err, statusCode))
+        return "", errorHandler.MakeAndReportError("error reading svm info", fmt.Sprintf("error on GET %s: %s, statusCode %d", svmAPI, err, statusCode))
     }
     if svmResponse == nil {
-        return nil, errorHandler.MakeAndReportError("svm not found", fmt.Sprintf("svm %s not found", svmName))
+        return "", errorHandler.MakeAndReportError("svm not found", fmt.Sprintf("svm %s not found", svmName))
     }
     
     var svmData map[string]interface{}
     if err := mapstructure.Decode(svmResponse, &svmData); err != nil {
-        return nil, errorHandler.MakeAndReportError("error decoding svm info", fmt.Sprintf("error decoding svm info: %s", err))
+        return "", errorHandler.MakeAndReportError("error decoding svm info", fmt.Sprintf("error decoding svm info: %s", err))
     }
     
     svmUUID, ok := svmData["uuid"].(string)
     if !ok {
-        return nil, errorHandler.MakeAndReportError("error getting svm uuid", "could not extract svm uuid")
+        return "", errorHandler.MakeAndReportError("error getting svm uuid", "could not extract svm uuid")
+    }
+    
+    return svmUUID, nil
+}
+
+// GetProtocolsS3Policy to get protocols_s3_policy info
+func GetProtocolsS3Policy(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, svmName string) (*ProtocolsS3PolicyGetDataModelONTAP, error) {
+    // Get SVM UUID using helper function
+    svmUUID, err := getSVMUUID(errorHandler, r, svmName)
+    if err != nil {
+        return nil, err
     }
     
     api := fmt.Sprintf("protocols/s3/services/%s/policies", svmUUID)
@@ -119,28 +128,10 @@ func GetProtocolsS3Policy(errorHandler *utils.ErrorHandler, r restclient.RestCli
 
 // GetProtocolsS3Policies to get protocols_s3_policy info for all resources matching a filter
 func GetProtocolsS3Policies(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *ProtocolsS3PolicyDataSourceFilterModel) ([]ProtocolsS3PolicyGetDataModelONTAP, error) {
-    // First get SVM UUID
-    svmAPI := "svm/svms"
-    svmQuery := r.NewQuery()
-    svmQuery.Set("name", filter.SVMName.ValueString())
-    svmQuery.Fields([]string{"uuid"})
-    
-    statusCode, svmResponse, err := r.GetNilOrOneRecord(svmAPI, svmQuery, nil)
+    // Get SVM UUID using helper function
+    svmUUID, err := getSVMUUID(errorHandler, r, filter.SVMName.ValueString())
     if err != nil {
-        return nil, errorHandler.MakeAndReportError("error reading svm info", fmt.Sprintf("error on GET %s: %s, statusCode %d", svmAPI, err, statusCode))
-    }
-    if svmResponse == nil {
-        return nil, errorHandler.MakeAndReportError("svm not found", fmt.Sprintf("svm %s not found", filter.SVMName.ValueString()))
-    }
-    
-    var svmData map[string]interface{}
-    if err := mapstructure.Decode(svmResponse, &svmData); err != nil {
-        return nil, errorHandler.MakeAndReportError("error decoding svm info", fmt.Sprintf("error decoding svm info: %s", err))
-    }
-    
-    svmUUID, ok := svmData["uuid"].(string)
-    if !ok {
-        return nil, errorHandler.MakeAndReportError("error getting svm uuid", "could not extract svm uuid")
+        return nil, err
     }
     
     api := fmt.Sprintf("protocols/s3/services/%s/policies", svmUUID)
@@ -171,41 +162,36 @@ func GetProtocolsS3Policies(errorHandler *utils.ErrorHandler, r restclient.RestC
 
 // CreateProtocolsS3Policy to create protocols_s3_policy
 func CreateProtocolsS3Policy(errorHandler *utils.ErrorHandler, r restclient.RestClient, body ProtocolsS3PolicyResourceBodyDataModelONTAP, svmName string) (*ProtocolsS3PolicyGetDataModelONTAP, error) {
-    // First get SVM UUID
-    svmAPI := "svm/svms"
-    svmQuery := r.NewQuery()
-    svmQuery.Set("name", svmName)
-    svmQuery.Fields([]string{"uuid"})
-    
-    statusCode, svmResponse, err := r.GetNilOrOneRecord(svmAPI, svmQuery, nil)
+    // Get SVM UUID using helper function
+    svmUUID, err := getSVMUUID(errorHandler, r, svmName)
     if err != nil {
-        return nil, errorHandler.MakeAndReportError("error reading svm info", fmt.Sprintf("error on GET %s: %s, statusCode %d", svmAPI, err, statusCode))
-    }
-    if svmResponse == nil {
-        return nil, errorHandler.MakeAndReportError("svm not found", fmt.Sprintf("svm %s not found", svmName))
-    }
-    
-    var svmData map[string]interface{}
-    if err := mapstructure.Decode(svmResponse, &svmData); err != nil {
-        return nil, errorHandler.MakeAndReportError("error decoding svm info", fmt.Sprintf("error decoding svm info: %s", err))
-    }
-    
-    svmUUID, ok := svmData["uuid"].(string)
-    if !ok {
-        return nil, errorHandler.MakeAndReportError("error getting svm uuid", "could not extract svm uuid")
+        return nil, err
     }
     
     api := fmt.Sprintf("protocols/s3/services/%s/policies", svmUUID)
     
-    // Use JSON marshal/unmarshal to respect JSON tags (including json:"-")
-    bodyJSON, err := json.Marshal(body)
-    if err != nil {
-        return nil, errorHandler.MakeAndReportError("error marshaling protocols_s3_policy body", fmt.Sprintf("error marshaling body: %s, body: %#v", err, body))
+    // Manually create the body map with correct lowercase field names
+    bodyMap := map[string]interface{}{
+        "name": body.Name,
     }
     
-    var bodyMap map[string]interface{}
-    if err := json.Unmarshal(bodyJSON, &bodyMap); err != nil {
-        return nil, errorHandler.MakeAndReportError("error unmarshaling protocols_s3_policy body", fmt.Sprintf("error unmarshaling body: %s", err))
+    if body.Comment != "" {
+        bodyMap["comment"] = body.Comment
+    }
+    
+    if len(body.Statements) > 0 {
+        statements := make([]map[string]interface{}, len(body.Statements))
+        for i, stmt := range body.Statements {
+            // Ensure effect is lowercase for API consistency
+            effect := strings.ToLower(stmt.Effect)
+            statements[i] = map[string]interface{}{
+                "effect": effect,
+                "actions": stmt.Actions,
+                "resources": stmt.Resources,
+                "sid": stmt.SID,
+            }
+        }
+        bodyMap["statements"] = statements
     }
 
     query := r.NewQuery()
@@ -225,18 +211,35 @@ func CreateProtocolsS3Policy(errorHandler *utils.ErrorHandler, r restclient.Rest
 }
 
 // UpdateProtocolsS3Policy to update protocols_s3_policy
-func UpdateProtocolsS3Policy(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmUUID string, policyName string, body interface{}) error {
-    api := fmt.Sprintf("protocols/s3/services/%s/policies/%s", svmUUID, policyName)
-    
-    // Use JSON marshal/unmarshal to respect JSON tags (including json:"-")
-    bodyJSON, err := json.Marshal(body)
+func UpdateProtocolsS3Policy(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmName string, policyName string, body interface{}) error {
+    // Get SVM UUID using helper function
+    svmUUID, err := getSVMUUID(errorHandler, r, svmName)
     if err != nil {
-        return errorHandler.MakeAndReportError("error marshaling protocols_s3_policy body", fmt.Sprintf("error marshaling body: %s, body: %#v", err, body))
+        return err
     }
     
-    var bodyMap map[string]interface{}
-    if err := json.Unmarshal(bodyJSON, &bodyMap); err != nil {
-        return errorHandler.MakeAndReportError("error unmarshaling protocols_s3_policy body", fmt.Sprintf("error unmarshaling body: %s", err))
+    api := fmt.Sprintf("protocols/s3/services/%s/policies/%s", svmUUID, policyName)
+    
+    // Body should already be a properly formatted map
+    bodyMap, ok := body.(map[string]interface{})
+    if !ok {
+        return errorHandler.MakeAndReportError("error processing update body", "update body must be a map[string]interface{}")
+    }
+    
+    // Ensure effect is lowercase for API compatibility
+    if bodyMap["statements"] != nil {
+        if statements, ok := bodyMap["statements"].([]interface{}); ok {
+            for i, stmt := range statements {
+                if stmtMap, ok := stmt.(map[string]interface{}); ok {
+                    // Convert effect to lowercase if it exists
+                    if effect, exists := stmtMap["effect"]; exists {
+                        stmtMap["effect"] = strings.ToLower(fmt.Sprintf("%v", effect))
+                    }
+                    statements[i] = stmtMap
+                }
+            }
+            bodyMap["statements"] = statements
+        }
     }
 
     statusCode, _, err := r.CallUpdateMethod(api, nil, bodyMap)
@@ -248,7 +251,13 @@ func UpdateProtocolsS3Policy(errorHandler *utils.ErrorHandler, r restclient.Rest
 }
 
 // DeleteProtocolsS3Policy to delete protocols_s3_policy
-func DeleteProtocolsS3Policy(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmUUID string, policyName string) error {
+func DeleteProtocolsS3Policy(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmName string, policyName string) error {
+    // Get SVM UUID using helper function
+    svmUUID, err := getSVMUUID(errorHandler, r, svmName)
+    if err != nil {
+        return err
+    }
+    
     api := fmt.Sprintf("protocols/s3/services/%s/policies/%s", svmUUID, policyName)
 
     statusCode, _, err := r.CallDeleteMethod(api, nil, nil)

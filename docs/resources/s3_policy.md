@@ -22,7 +22,7 @@ resource "netapp-ontap_s3_policy" "protocols_s3_policy" {
     {
       sid       = "AllowFullAccessToBucket1"
       effect    = "allow"
-      actions   = ["GetObject", "PutObject", "ListBucket"]
+      actions   = ["GetObject", "PutObject"]
       resources = ["bucket1", "bucket1/*"]
     },
     {

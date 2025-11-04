@@ -8,12 +8,12 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/name_services"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/networking"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/object_store"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/protocols"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/security"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/snapmirror"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/storage"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/svm"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -225,6 +225,7 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		networking.NewIPInterfaceResource,
 		networking.NewIPRouteResource,
 		NewExampleResource,
+		object_store.NewProtocolsS3PolicyResource,
 		protocols.NewCifsLocalGroupMembersResource,
 		protocols.NewCifsLocalGroupResource,
 		protocols.NewCifsLocalUserResource,
@@ -313,6 +314,8 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		networking.NewIPRouteDataSource,
 		networking.NewIPRoutesDataSource,
 		NewExampleDataSource,
+		object_store.NewProtocolsS3PolicyDataSource,
+		object_store.NewProtocolsS3PoliciesDataSource,
 		protocols.NewCifsLocalGroupDataSource,
 		protocols.NewCifsLocalGroupMemberDataSource,
 		protocols.NewCifsLocalGroupMembersDataSource,
