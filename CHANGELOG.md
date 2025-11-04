@@ -1,4 +1,6 @@
 # 2.4.0 (2025-**-**)
+- **New Data Source:** `netapp-ontap_s3_policy` and `netapp-ontap_s3_policies`([#593](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/593))
+- **New Resource:** `netapp-ontap_s3_policy` ([#594](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/594))
 
 # 2.3.0 (2025-07-22)
 

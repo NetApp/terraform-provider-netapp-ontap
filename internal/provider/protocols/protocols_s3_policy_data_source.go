@@ -1,16 +1,16 @@
 package protocols
 
 import (
-    "context"
-    "fmt"
+	"context"
+	"fmt"
 
-    "github.com/hashicorp/terraform-plugin-framework/datasource"
-    "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-    "github.com/hashicorp/terraform-plugin-framework/types"
-    "github.com/hashicorp/terraform-plugin-log/tflog"
-    "github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
-    "github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
-    "github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
 // Ensure provider defined interface
@@ -25,7 +25,7 @@ type ProtocolsS3PolicyDataSource struct {
 func NewProtocolsS3PolicyDataSource() datasource.DataSource {
     return &ProtocolsS3PolicyDataSource{
         config: connection.ResourceOrDataSourceConfig{
-            Name: "protocols_s3_policy",
+            Name: "s3_policy",
         },
     }
 }
@@ -57,7 +57,7 @@ type ProtocolsS3PolicyStatementModel struct {
 
 // Metadata returns the data source type name.
 func (d *ProtocolsS3PolicyDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-    resp.TypeName = req.ProviderTypeName + "_protocols_s3_policy"
+    resp.TypeName = req.ProviderTypeName + "_" + d.config.Name
 }
 
 // Schema defines the schema for the data source.

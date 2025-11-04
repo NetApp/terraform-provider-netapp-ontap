@@ -25,7 +25,7 @@ type ProtocolsS3PoliciesDataSource struct {
 func NewProtocolsS3PoliciesDataSource() datasource.DataSource {
     return &ProtocolsS3PoliciesDataSource{
         config: connection.ResourceOrDataSourceConfig{
-            Name: "protocols_s3_policies",
+            Name: "s3_policies",
         },
     }
 }
@@ -54,7 +54,7 @@ type ProtocolsS3PolicyDataModel struct {
 
 // Metadata returns the data source type name.
 func (d *ProtocolsS3PoliciesDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-    resp.TypeName = req.ProviderTypeName + "_protocols_s3_policies"
+    resp.TypeName = req.ProviderTypeName + "_" + d.config.Name
 }
 
 // Schema defines the schema for the data source.
@@ -135,6 +135,7 @@ func (d *ProtocolsS3PoliciesDataSource) Schema(_ context.Context, _ datasource.S
                                         MarkdownDescription: "List of S3 resources",
                                         Computed:            true,
                                     },
+
                                 },
                             },
                         },
@@ -163,6 +164,7 @@ func (d *ProtocolsS3PoliciesDataSource) Read(ctx context.Context, req datasource
         return
     }
 
+    // Prepare filter
     var filter interfaces.ProtocolsS3PolicyDataSourceFilterModel
     filter.SVMName = data.SVMName
     if data.Filter != nil && !data.Filter.Name.IsNull() {
