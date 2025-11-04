@@ -119,9 +119,26 @@ func (d *AutoSupportDataSource) Configure(ctx context.Context, req datasource.Co
 	d.config.ProviderConfig = config
 }
 
+// AutoSupportDataSourceModel describes the data source data model.
+type AutoSupportDataSourceModel struct {
+	CxProfileName                 types.String `tfsdk:"cx_profile_name"`
+	ID                            types.String `tfsdk:"id"`
+	Enabled                       types.Bool   `tfsdk:"enabled"`
+	Transport                     types.String `tfsdk:"transport"`
+	To                            types.Set    `tfsdk:"to_addresses"`
+	From                          types.String `tfsdk:"from"`
+	ContactSupport                types.Bool   `tfsdk:"contact_support"`
+	PartnerAddresses              types.Set    `tfsdk:"partner_addresses"`
+	ProxyURL                      types.String `tfsdk:"proxy_url"`
+	MailHosts                     types.Set    `tfsdk:"mail_hosts"`
+	IsMinimal                     types.Bool   `tfsdk:"is_minimal"`
+	OndemandEnabled               types.Bool   `tfsdk:"ondemand_enabled"`
+	SmtpEncryption                types.String `tfsdk:"smtp_encryption"`
+}
+
 // Read refreshes the Terraform state with the latest data.
 func (d *AutoSupportDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data interfaces.AutoSupportDataSourceModel
+	var data AutoSupportDataSourceModel
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
