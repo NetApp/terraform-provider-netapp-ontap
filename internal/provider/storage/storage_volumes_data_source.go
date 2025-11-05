@@ -221,7 +221,7 @@ func (d *StorageVolumesDataSource) Schema(ctx context.Context, req datasource.Sc
 									MarkdownDescription: "Determines how many days must pass before inactive data in a volume using the Auto or Snapshot-Only policy is considered cold and eligible for tiering",
 									Computed:            true,
 								},
-								"object_tags": schema.ListAttribute{
+								"object_tags": schema.SetAttribute{
 									ElementType:         types.StringType,
 									MarkdownDescription: "Object tags are applied to objects in tiered storage",
 									Computed:            true,
@@ -306,9 +306,9 @@ func (d *StorageVolumesDataSource) Schema(ctx context.Context, req datasource.Sc
 							Computed:            true,
 							MarkdownDescription: "Volume identifier",
 						},
-						"tags": schema.ListAttribute{
+						"tags": schema.SetAttribute{
 							ElementType:         types.StringType,
-							MarkdownDescription: "List of tags associated with the volume",
+							MarkdownDescription: "Set of tags associated with the volume",
 							Computed:            true,
 						},
 					},

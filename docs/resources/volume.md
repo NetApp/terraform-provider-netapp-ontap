@@ -99,7 +99,7 @@ resource "netapp-ontap_volume" "example" {
 - `snapshot_policy` (String) The name of the snapshot policy
 - `space_guarantee` (String) Space guarantee style for the volume
 - `state` (String) Whether the specified volume is online, or not
-- `tags` (List of String) List of tags associated with the volume
+- `tags` (Set of String) Set of tags associated with the volume
 - `tiering` (Attributes) (see [below for nested schema](#nestedatt--tiering))
 - `type` (String) The volume type, either read-write (RW) or data-protection (DP)
 
@@ -201,7 +201,7 @@ Optional:
 Optional:
 
 - `minimum_cooling_days` (Number) Determines how many days must pass before inactive data in a volume using the Auto or Snapshot-Only policy is considered cold and eligible for tiering
-- `object_tags` (List of String) Object tags are applied to objects in tiered storage
+- `object_tags` (Set of String) Object tags are applied to objects in tiered storage
 - `policy_name` (String) The tiering policy that is to be associated with the volume
 
 ## Import

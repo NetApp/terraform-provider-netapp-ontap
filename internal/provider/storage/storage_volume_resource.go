@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -413,11 +414,14 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 							int64planmodifier.UseStateForUnknown(),
 						},
 					},
-					"object_tags": schema.ListAttribute{
+					"object_tags": schema.SetAttribute{
 						ElementType:         types.StringType,
 						MarkdownDescription: "Object tags are applied to objects in tiered storage",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.Set{
+							setplanmodifier.UseStateForUnknown(),
+						},
 					},
 				},
 			},
@@ -576,11 +580,14 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 					},
 				},
 			},
-			"tags": schema.ListAttribute{
+			"tags": schema.SetAttribute{
 				ElementType:         types.StringType,
-				MarkdownDescription: "List of tags associated with the volume",
+				MarkdownDescription: "Set of tags associated with the volume",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"id": schema.StringAttribute{
 				Computed:            true,
