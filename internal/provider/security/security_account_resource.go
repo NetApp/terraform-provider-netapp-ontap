@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -164,6 +165,7 @@ func (r *SecurityAccountResource) Schema(ctx context.Context, req resource.Schem
 				MarkdownDescription: "Account locked",
 				Optional:            true,
 				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 			},
 			"id": schema.StringAttribute{
 				MarkdownDescription: "SecurityAccount id",
@@ -341,7 +343,7 @@ func (r *SecurityAccountResource) Create(ctx context.Context, req resource.Creat
 	if !data.Comment.IsNull() {
 		body.Comment = data.Comment.ValueString()
 	}
-	if !data.Locked.IsNull() && !data.Locked.IsUnknown() {
+	if !data.Locked.IsNull() && data.Locked.ValueBool() {
 		body.Locked = data.Locked.ValueBoolPointer()
 	}
 
@@ -468,7 +470,7 @@ func (r *SecurityAccountResource) Update(ctx context.Context, req resource.Updat
 	}
 
 	// locked update
-	if !plan.Locked.Equal(state.Locked) && !plan.Locked.IsNull() && !plan.Locked.IsUnknown() {
+	if !plan.Locked.Equal(state.Locked) {
 		request.Locked = plan.Locked.ValueBoolPointer()
 	}
 
