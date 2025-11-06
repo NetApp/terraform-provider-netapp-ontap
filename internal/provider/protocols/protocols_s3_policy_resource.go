@@ -138,18 +138,6 @@ func (r *ProtocolsS3PolicyResource) Schema(ctx context.Context, req resource.Sch
 	}
 }
 
-// attrTypes returns a map of the attribute types for the statement.
-func (o ProtocolsS3PolicyStatement) attrTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"sid":        types.StringType,
-		"effect":     types.StringType,
-		"actions":    types.SetType{ElemType: types.StringType},
-		"resources":  types.SetType{ElemType: types.StringType},
-
-		"index":      types.Int64Type,
-	}
-}
-
 // statementsSliceToList converts a slice of statements to a Go slice
 func statementsSliceToList(ctx context.Context, statementsSliceIn []interfaces.ProtocolsS3PolicyStatementONTAP, diags *diag.Diagnostics) []ProtocolsS3PolicyStatement {
 	var statements []ProtocolsS3PolicyStatement
