@@ -1,5 +1,11 @@
 # 2.4.0 (2025-**-**)
 
+FEATURES:
+
+- **New Data Source:** `netapp-ontap_s3_group` ([#591](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/591))
+- **New Data Source:** `netapp-ontap_s3_groups` ([#591](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/591))
+- **New Resource:** `netapp-ontap_s3_group` ([#592](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/592))
+
 # 2.3.0 (2025-07-22)
 
 DOCUMENTATION:
