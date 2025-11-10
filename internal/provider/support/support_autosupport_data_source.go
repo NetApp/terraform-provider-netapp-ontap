@@ -153,26 +153,37 @@ func (d *AutoSupportDataSource) Read(ctx context.Context, req datasource.ReadReq
 		return
 	}
 
-	cluster, err := interfaces.GetAutoSupport(errorHandler, *client)
+	// Get cluster version to determine field availability
+	cluster, err := interfaces.GetCluster(errorHandler, *client)
+	if err != nil {
+		// error reporting done inside GetCluster
+		return
+	}
+	if cluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", "cluster not found")
+		return
+	}
+
+	autosupport, err := interfaces.GetAutoSupport(errorHandler, *client, cluster.Version)
 	if err != nil {
 		// error reporting done inside GetAutoSupport
 		return
 	}
 
 	data.ID = data.CxProfileName // For data sources, use cx_profile_name as ID
-	data.Enabled = types.BoolValue(cluster.Enabled)
-	data.Transport = types.StringValue(cluster.Transport)
-	data.From = types.StringValue(cluster.From)
-	data.ContactSupport = types.BoolValue(cluster.ContactSupport)
-	data.ProxyURL = types.StringValue(cluster.ProxyURL)
-	data.IsMinimal = types.BoolValue(cluster.IsMinimal)
-	data.OndemandEnabled = types.BoolValue(cluster.OndemandEnabled)
-	data.SmtpEncryption = types.StringValue(cluster.SmtpEncryption)
+	data.Enabled = types.BoolValue(autosupport.Enabled)
+	data.Transport = types.StringValue(autosupport.Transport)
+	data.From = types.StringValue(autosupport.From)
+	data.ContactSupport = types.BoolValue(autosupport.ContactSupport)
+	data.ProxyURL = types.StringValue(autosupport.ProxyURL)
+	data.IsMinimal = types.BoolValue(autosupport.IsMinimal)
+	data.OndemandEnabled = types.BoolValue(autosupport.OndemandEnabled)
+	data.SmtpEncryption = types.StringValue(autosupport.SmtpEncryption)
 
 	// Handle string slices for sets
-	if cluster.To != nil {
+	if autosupport.To != nil {
 		elements := []attr.Value{}
-		for _, address := range cluster.To {
+		for _, address := range autosupport.To {
 			elements = append(elements, types.StringValue(address))
 		}
 		setVal, diags := types.SetValue(types.StringType, elements)
@@ -185,9 +196,9 @@ func (d *AutoSupportDataSource) Read(ctx context.Context, req datasource.ReadReq
 		data.To = types.SetNull(types.StringType)
 	}
 
-	if cluster.PartnerAddresses != nil {
+	if autosupport.PartnerAddresses != nil {
 		elements := []attr.Value{}
-		for _, address := range cluster.PartnerAddresses {
+		for _, address := range autosupport.PartnerAddresses {
 			elements = append(elements, types.StringValue(address))
 		}
 		setVal, diags := types.SetValue(types.StringType, elements)
@@ -200,9 +211,9 @@ func (d *AutoSupportDataSource) Read(ctx context.Context, req datasource.ReadReq
 		data.PartnerAddresses = types.SetNull(types.StringType)
 	}
 
-	if cluster.MailHosts != nil {
+	if autosupport.MailHosts != nil {
 		elements := []attr.Value{}
-		for _, host := range cluster.MailHosts {
+		for _, host := range autosupport.MailHosts {
 			elements = append(elements, types.StringValue(host))
 		}
 		setVal, diags := types.SetValue(types.StringType, elements)

@@ -24,8 +24,6 @@ func TestAccAutoSupportResource(t *testing.T) {
 					resource.TestCheckResourceAttr("netapp-ontap_autosupport.example", "from", "ontap@example.com"),
 					resource.TestCheckResourceAttr("netapp-ontap_autosupport.example", "contact_support", "true"),
 					resource.TestCheckResourceAttr("netapp-ontap_autosupport.example", "is_minimal", "false"),
-					resource.TestCheckResourceAttr("netapp-ontap_autosupport.example", "ondemand_enabled", "true"),
-					resource.TestCheckResourceAttr("netapp-ontap_autosupport.example", "smtp_encryption", "none"),
 				),
 			},
 		},
@@ -62,8 +60,6 @@ resource "netapp-ontap_autosupport" "example" {
 	contact_support = true
 	mail_hosts = ["mail.example.com"]
 	is_minimal = false
-	ondemand_enabled = true
-	smtp_encryption = "none"
 	proxy_url = "proxy.example.com"
 	partner_addresses = ["partner@example.com"]
 }`, profileName, host, admin, password, profileName)

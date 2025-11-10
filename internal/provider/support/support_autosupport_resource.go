@@ -3,6 +3,7 @@ package support
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
@@ -63,7 +64,7 @@ func (r *AutoSupportResource) Metadata(ctx context.Context, req resource.Metadat
 func (r *AutoSupportResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		// This description is used by the documentation generator and the language server.
-		MarkdownDescription: "AutoSupport resource",
+		MarkdownDescription: "AutoSupport resource. Manages the AutoSupport configuration that always exists on ONTAP clusters. The 'create' operation configures the existing AutoSupport service.",
 
 		Attributes: map[string]schema.Attribute{
 			"cx_profile_name": schema.StringAttribute{
@@ -136,7 +137,7 @@ func (r *AutoSupportResource) Schema(ctx context.Context, req resource.SchemaReq
 				Computed:            true,
 			},
 			"force": schema.BoolAttribute{
-				MarkdownDescription: "Force the configuration update even if it might disrupt AutoSupport operations",
+				MarkdownDescription: "Force the configuration update even if it might disrupt AutoSupport operations. Requires ONTAP 9.16.0 or higher.",
 				Optional:            true,
 				Computed:            false,
 			},
@@ -179,7 +180,17 @@ func (r *AutoSupportResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
-	restInfo, err := interfaces.GetAutoSupport(errorHandler, *client)
+	cluster, err := interfaces.GetCluster(errorHandler, *client)
+	if err != nil {
+		// error reporting done inside GetCluster
+		return
+	}
+	if cluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", "cluster not found")
+		return
+	}
+
+	restInfo, err := interfaces.GetAutoSupport(errorHandler, *client, cluster.Version)
 	if err != nil {
 		// error reporting done inside GetAutoSupport
 		return
@@ -251,6 +262,9 @@ func (r *AutoSupportResource) Read(ctx context.Context, req resource.ReadRequest
 
 // Create a resource and retrieve UUID
 func (r *AutoSupportResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	// Note: AutoSupport configuration always exists on ONTAP clusters.
+	// "Create" operation actually configures the existing AutoSupport service.
+	
 	var data *AutoSupportResourceModel
 
 	// Read Terraform plan data into the model
@@ -260,41 +274,60 @@ func (r *AutoSupportResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	var body interfaces.AutoSupportResourceBodyDataModelONTAP
+	var bodyMap = make(map[string]interface{})
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 
-	// Convert Terraform plan data to API body
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
+	if err != nil {
+		return
+	}
+	cluster, err := interfaces.GetCluster(errorHandler, *client)
+	if err != nil {
+		// error reporting done inside GetCluster
+		return
+	}
+	if cluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", "cluster not found")
+		return
+	}
+	var errors []string
+
+	// Convert Terraform plan data to API body map - only include configured fields
 	if !data.Enabled.IsNull() && !data.Enabled.IsUnknown() {
-		enabled := data.Enabled.ValueBool()
-		body.Enabled = &enabled
+		bodyMap["enabled"] = data.Enabled.ValueBool()
 	}
 	if !data.Transport.IsNull() && !data.Transport.IsUnknown() {
-		transport := data.Transport.ValueString()
-		body.Transport = &transport
+		bodyMap["transport"] = data.Transport.ValueString()
 	}
 	if !data.From.IsNull() && !data.From.IsUnknown() {
-		from := data.From.ValueString()
-		body.From = &from
+		bodyMap["from"] = data.From.ValueString()
 	}
 	if !data.ContactSupport.IsNull() && !data.ContactSupport.IsUnknown() {
-		contactSupport := data.ContactSupport.ValueBool()
-		body.ContactSupport = &contactSupport
+		bodyMap["contact_support"] = data.ContactSupport.ValueBool()
 	}
 	if !data.ProxyURL.IsNull() && !data.ProxyURL.IsUnknown() {
-		proxyURL := data.ProxyURL.ValueString()
-		body.ProxyURL = &proxyURL
+		bodyMap["proxy_url"] = data.ProxyURL.ValueString()
 	}
 	if !data.IsMinimal.IsNull() && !data.IsMinimal.IsUnknown() {
-		isMinimal := data.IsMinimal.ValueBool()
-		body.IsMinimal = &isMinimal
+		bodyMap["is_minimal"] = data.IsMinimal.ValueBool()
 	}
 	if !data.OndemandEnabled.IsNull() && !data.OndemandEnabled.IsUnknown() {
 		ondemandEnabled := data.OndemandEnabled.ValueBool()
-		body.OndemandEnabled = &ondemandEnabled
+		// ondemand_enabled is only supported in ONTAP 9.16.1 or higher
+		if cluster.Version.Generation == 9 && (cluster.Version.Major > 16 || (cluster.Version.Major == 16 && cluster.Version.Minor >= 1)) {
+			bodyMap["ondemand_enabled"] = ondemandEnabled
+		} else {
+			errors = append(errors, "ondemand_enabled")
+		}
 	}
 	if !data.SmtpEncryption.IsNull() && !data.SmtpEncryption.IsUnknown() {
 		smtpEncryption := data.SmtpEncryption.ValueString()
-		body.SmtpEncryption = &smtpEncryption
+		// smtp_encryption is only supported in ONTAP 9.15.0 or higher
+		if cluster.Version.Generation == 9 && cluster.Version.Major >= 15 {
+			bodyMap["smtp_encryption"] = smtpEncryption
+		} else {
+			errors = append(errors, "smtp_encryption")
+		}
 	}
 
 	// Handle sets
@@ -305,7 +338,7 @@ func (r *AutoSupportResource) Create(ctx context.Context, req resource.CreateReq
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		body.To = toAddresses
+		bodyMap["to"] = toAddresses
 	}
 	if !data.PartnerAddresses.IsNull() && !data.PartnerAddresses.IsUnknown() {
 		var partnerAddresses []string
@@ -314,7 +347,7 @@ func (r *AutoSupportResource) Create(ctx context.Context, req resource.CreateReq
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		body.PartnerAddresses = partnerAddresses
+		bodyMap["partner_addresses"] = partnerAddresses
 	}
 	if !data.MailHosts.IsNull() && !data.MailHosts.IsUnknown() {
 		var mailHosts []string
@@ -323,23 +356,50 @@ func (r *AutoSupportResource) Create(ctx context.Context, req resource.CreateReq
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		body.MailHosts = mailHosts
+		bodyMap["mail_hosts"] = mailHosts
 	}
 
-	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
-	if err != nil {
-		// error reporting done inside NewClient
+	force := false
+	if !data.Force.IsNull() && !data.Force.IsUnknown() {
+		// force parameter is only supported in ONTAP 9.16.0 or higher
+		if cluster.Version.Generation == 9 && cluster.Version.Major >= 16 {
+			force = data.Force.ValueBool()
+		} else {
+			errors = append(errors, "force")
+		}
+	}
+
+	// Check for version restriction errors before making the API call
+	if len(errors) > 0 {
+		errorMessage := "The following fields are not supported in this ONTAP version: " + strings.Join(errors, ", ")
+		tflog.Error(ctx, fmt.Sprintf("AutoSupport configuration validation failed: %v", errorMessage))
+		resp.Diagnostics.AddError(
+			"AutoSupport configuration validation failed",
+			errorMessage,
+		)
 		return
 	}
 
-	err = interfaces.UpdateAutoSupport(errorHandler, *client, body)
+	err = interfaces.UpdateAutoSupport(errorHandler, *client, force, bodyMap)
 	if err != nil {
 		return
 	}
 
 	// Read back the updated configuration
-	restInfo, err := interfaces.GetAutoSupport(errorHandler, *client)
+	// Get cluster version for reading updated configuration
+	readCluster, err := interfaces.GetCluster(errorHandler, *client)
 	if err != nil {
+		// error reporting done inside GetCluster
+		return
+	}
+	if readCluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", "cluster not found")
+		return
+	}
+
+	restInfo, err := interfaces.GetAutoSupport(errorHandler, *client, readCluster.Version)
+	if err != nil {
+		// error reporting done inside GetAutoSupport
 		return
 	}
 
@@ -417,45 +477,65 @@ func (r *AutoSupportResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	var body interfaces.AutoSupportResourceBodyDataModelONTAP
+	var bodyMap = make(map[string]interface{})
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 
-	// Convert Terraform plan data to API body
+	// we need to defer setting the client until we can read the connection profile name
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
+	if err != nil {
+		// error reporting done inside NewClient
+		return
+	}
+
+	// Get cluster version for version restrictions
+	cluster, err := interfaces.GetCluster(errorHandler, *client)
+	if err != nil {
+		// error reporting done inside GetCluster
+		return
+	}
+	if cluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", "cluster not found")
+		return
+	}
+
+	var errors []string
+
+	// Convert Terraform plan data to API body map - only include configured fields
 	if !data.Enabled.IsNull() && !data.Enabled.IsUnknown() {
-		enabled := data.Enabled.ValueBool()
-		body.Enabled = &enabled
+		bodyMap["enabled"] = data.Enabled.ValueBool()
 	}
 	if !data.Transport.IsNull() && !data.Transport.IsUnknown() {
-		transport := data.Transport.ValueString()
-		body.Transport = &transport
+		bodyMap["transport"] = data.Transport.ValueString()
 	}
 	if !data.From.IsNull() && !data.From.IsUnknown() {
-		from := data.From.ValueString()
-		body.From = &from
+		bodyMap["from"] = data.From.ValueString()
 	}
 	if !data.ContactSupport.IsNull() && !data.ContactSupport.IsUnknown() {
-		contactSupport := data.ContactSupport.ValueBool()
-		body.ContactSupport = &contactSupport
+		bodyMap["contact_support"] = data.ContactSupport.ValueBool()
 	}
 	if !data.ProxyURL.IsNull() && !data.ProxyURL.IsUnknown() {
-		proxyURL := data.ProxyURL.ValueString()
-		body.ProxyURL = &proxyURL
+		bodyMap["proxy_url"] = data.ProxyURL.ValueString()
 	}
 	if !data.IsMinimal.IsNull() && !data.IsMinimal.IsUnknown() {
-		isMinimal := data.IsMinimal.ValueBool()
-		body.IsMinimal = &isMinimal
+		bodyMap["is_minimal"] = data.IsMinimal.ValueBool()
 	}
 	if !data.OndemandEnabled.IsNull() && !data.OndemandEnabled.IsUnknown() {
 		ondemandEnabled := data.OndemandEnabled.ValueBool()
-		body.OndemandEnabled = &ondemandEnabled
+		// ondemand_enabled is only supported in ONTAP 9.16.1 or higher
+		if cluster.Version.Generation == 9 && (cluster.Version.Major > 16 || (cluster.Version.Major == 16 && cluster.Version.Minor >= 1)) {
+			bodyMap["ondemand_enabled"] = ondemandEnabled
+		} else {
+			errors = append(errors, "ondemand_enabled")
+		}
 	}
 	if !data.SmtpEncryption.IsNull() && !data.SmtpEncryption.IsUnknown() {
 		smtpEncryption := data.SmtpEncryption.ValueString()
-		body.SmtpEncryption = &smtpEncryption
-	}
-	if !data.Force.IsNull() && !data.Force.IsUnknown() {
-		force := data.Force.ValueBool()
-		body.Force = &force
+		// smtp_encryption is only supported in ONTAP 9.15.0 or higher
+		if cluster.Version.Generation == 9 && cluster.Version.Major >= 15 {
+			bodyMap["smtp_encryption"] = smtpEncryption
+		} else {
+			errors = append(errors, "smtp_encryption")
+		}
 	}
 
 	// Handle sets
@@ -466,7 +546,7 @@ func (r *AutoSupportResource) Update(ctx context.Context, req resource.UpdateReq
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		body.To = toAddresses
+		bodyMap["to"] = toAddresses
 	}
 	if !data.PartnerAddresses.IsNull() && !data.PartnerAddresses.IsUnknown() {
 		var partnerAddresses []string
@@ -475,7 +555,7 @@ func (r *AutoSupportResource) Update(ctx context.Context, req resource.UpdateReq
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		body.PartnerAddresses = partnerAddresses
+		bodyMap["partner_addresses"] = partnerAddresses
 	}
 	if !data.MailHosts.IsNull() && !data.MailHosts.IsUnknown() {
 		var mailHosts []string
@@ -484,22 +564,65 @@ func (r *AutoSupportResource) Update(ctx context.Context, req resource.UpdateReq
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		body.MailHosts = mailHosts
+		bodyMap["mail_hosts"] = mailHosts
 	}
 
-	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
-	if err != nil {
-		// error reporting done inside NewClient
+	// Check for version restriction errors before making the API call
+	if len(errors) > 0 {
+		errorMessage := "The following fields are not supported in this ONTAP version: " + strings.Join(errors, ", ")
+		tflog.Error(ctx, fmt.Sprintf("AutoSupport configuration validation failed: %v", errorMessage))
+		resp.Diagnostics.AddError(
+			"AutoSupport configuration validation failed",
+			errorMessage,
+		)
 		return
 	}
 
-	err = interfaces.UpdateAutoSupport(errorHandler, *client, body)
+	// Extract force parameter separately and check version compatibility
+	force := false
+	if !data.Force.IsNull() && !data.Force.IsUnknown() {
+		// force parameter is only supported in ONTAP 9.16.0 or higher
+		if cluster.Version.Generation == 9 && cluster.Version.Major >= 16 {
+			force = data.Force.ValueBool()
+		} else {
+			errors = append(errors, "force")
+		}
+	}
+
+	// Check for version restriction errors before making the API call
+	if len(errors) > 0 {
+		errorMessage := "The following fields are not supported in this ONTAP version: " + strings.Join(errors, ", ")
+		tflog.Error(ctx, fmt.Sprintf("AutoSupport configuration validation failed: %v", errorMessage))
+		resp.Diagnostics.AddError(
+			"AutoSupport configuration validation failed",
+			errorMessage,
+		)
+		return
+	}
+
+	err = interfaces.UpdateAutoSupport(errorHandler, *client, force, bodyMap)
 	if err != nil {
 		return
 	}
 
-	// Read back the updated configuration
-	restInfo, err := interfaces.GetAutoSupport(errorHandler, *client)
+	// Get cluster version for reading updated configuration
+	readCluster, err := interfaces.GetCluster(errorHandler, *client)
+	if err != nil {
+		// error reporting done inside GetCluster
+		return
+	}
+	if readCluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", "cluster not found")
+		return
+	}
+
+	restInfo, err := interfaces.GetAutoSupport(errorHandler, *client, readCluster.Version)
+	if err != nil {
+		// error reporting done inside GetAutoSupport
+		return
+	}
+
+	// Update data with current state
 	if err != nil {
 		return
 	}

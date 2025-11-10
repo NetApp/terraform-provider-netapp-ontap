@@ -34,16 +34,16 @@ func removeDefaultPortFromMailHosts(mailHosts []string) []string {
 
 // AutoSupportGetDataModelONTAP describes the GET data model using go types for mapping.
 type AutoSupportGetDataModelONTAP struct {
-	Enabled                       bool               `mapstructure:"enabled,omitempty"`
+	Enabled                       bool               `mapstructure:"enabled"`
 	Transport                     string             `mapstructure:"transport,omitempty"`
 	To                            []string           `mapstructure:"to,omitempty"`
 	From                          string             `mapstructure:"from,omitempty"`
-	ContactSupport                bool               `mapstructure:"contact_support,omitempty"`
+	ContactSupport                bool               `mapstructure:"contact_support"`
 	PartnerAddresses              []string           `mapstructure:"partner_addresses,omitempty"`
 	ProxyURL                      string             `mapstructure:"proxy_url,omitempty"`
 	MailHosts                     []string           `mapstructure:"mail_hosts,omitempty"`
-	IsMinimal                     bool               `mapstructure:"is_minimal,omitempty"`
-	OndemandEnabled               bool               `mapstructure:"ondemand_enabled,omitempty"`
+	IsMinimal                     bool               `mapstructure:"is_minimal"`
+	OndemandEnabled               bool               `mapstructure:"ondemand_enabled"`
 	SmtpEncryption                string             `mapstructure:"smtp_encryption,omitempty"`
 }
 
@@ -64,11 +64,38 @@ type AutoSupportDataSourceModel struct {
 	SmtpEncryption                types.String `tfsdk:"smtp_encryption"`
 }
 
+// AutoSupportResourceBodyDataModelONTAP describes the body data model for requests using go types for mapping.
+type AutoSupportResourceBodyDataModelONTAP struct {
+	Enabled                       bool     `mapstructure:"enabled"`
+	Transport                     string   `mapstructure:"transport,omitempty"`
+	To                            []string `mapstructure:"to,omitempty"`
+	From                          string   `mapstructure:"from,omitempty"`
+	ContactSupport                bool     `mapstructure:"contact_support"`
+	PartnerAddresses              []string `mapstructure:"partner_addresses,omitempty"`
+	ProxyURL                      string   `mapstructure:"proxy_url,omitempty"`
+	MailHosts                     []string `mapstructure:"mail_hosts,omitempty"`
+	IsMinimal                     bool     `mapstructure:"is_minimal"`
+	OndemandEnabled               bool     `mapstructure:"ondemand_enabled"`
+	SmtpEncryption                string   `mapstructure:"smtp_encryption,omitempty"`
+}
+
 // GetAutoSupport to get AutoSupport info
-func GetAutoSupport(errorHandler *utils.ErrorHandler, r restclient.RestClient) (*AutoSupportGetDataModelONTAP, error) {
+func GetAutoSupport(errorHandler *utils.ErrorHandler, r restclient.RestClient, version versionModelONTAP) (*AutoSupportGetDataModelONTAP, error) {
 	query := r.NewQuery()
-	query.Fields([]string{"enabled", "transport", "to", "from", "contact_support", "partner_addresses", 
-		"proxy_url", "mail_hosts", "is_minimal", "ondemand_enabled", "smtp_encryption"})
+	fields := []string{"enabled", "transport", "to", "from", "contact_support", "partner_addresses", 
+		"proxy_url", "mail_hosts", "is_minimal"}
+
+	// Add smtp_encryption field for ONTAP 9.15.0 or higher
+	if version.Generation == 9 && version.Major >= 15 {
+		fields = append(fields, "smtp_encryption")
+	}
+
+	// Add ondemand_enabled field for ONTAP 9.16.1 or higher
+	if version.Generation == 9 && (version.Major > 16 || (version.Major == 16 && version.Minor >= 1)) {
+		fields = append(fields, "ondemand_enabled")
+	}
+
+	query.Fields(fields)
 
 	statusCode, response, err := r.GetNilOrOneRecord("support/autosupport", query, nil)
 	if err != nil {
@@ -82,46 +109,29 @@ func GetAutoSupport(errorHandler *utils.ErrorHandler, r restclient.RestClient) (
 			fmt.Sprintf("AutoSupport configuration is not found, statusCode %d", statusCode))
 	}
 
-var dataONTAP AutoSupportGetDataModelONTAP
-if err := mapstructure.Decode(response, &dataONTAP); err != nil {
-return nil, errorHandler.MakeAndReportError("error decoding AutoSupport info",
-fmt.Sprintf("statusCode %d, response %#v", statusCode, response))
-}
+	var dataONTAP AutoSupportGetDataModelONTAP
+	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
+		return nil, errorHandler.MakeAndReportError("error decoding AutoSupport info",
+			fmt.Sprintf("statusCode %d, response %#v", statusCode, response))
+	}
 
-// Normalize mail hosts to remove default port :25 for state consistency
-dataONTAP.MailHosts = removeDefaultPortFromMailHosts(dataONTAP.MailHosts)
+	// Normalize mail hosts to remove default port :25 for state consistency
+	dataONTAP.MailHosts = removeDefaultPortFromMailHosts(dataONTAP.MailHosts)
 
-tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read AutoSupport data source: %#v", dataONTAP))
-return &dataONTAP, nil
-}
-
-
-
-// AutoSupportResourceBodyDataModelONTAP describes the body data model for requests using go types for mapping.
-type AutoSupportResourceBodyDataModelONTAP struct {
-	Enabled                       *bool     `mapstructure:"enabled,omitempty"`
-	Transport                     *string   `mapstructure:"transport,omitempty"`
-	To                            []string  `mapstructure:"to,omitempty"`
-	From                          *string   `mapstructure:"from,omitempty"`
-	ContactSupport                *bool     `mapstructure:"contact_support,omitempty"`
-	PartnerAddresses              []string  `mapstructure:"partner_addresses,omitempty"`
-	ProxyURL                      *string   `mapstructure:"proxy_url,omitempty"`
-	MailHosts                     []string  `mapstructure:"mail_hosts,omitempty"`
-	IsMinimal                     *bool     `mapstructure:"is_minimal,omitempty"`
-	OndemandEnabled               *bool     `mapstructure:"ondemand_enabled,omitempty"`
-	SmtpEncryption                *string   `mapstructure:"smtp_encryption,omitempty"`
-	Force                         *bool     `mapstructure:"force,omitempty"`
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read AutoSupport data source: %#v", dataONTAP))
+	return &dataONTAP, nil
 }
 
 // UpdateAutoSupport to update AutoSupport configuration using PATCH
-func UpdateAutoSupport(errorHandler *utils.ErrorHandler, r restclient.RestClient, body AutoSupportResourceBodyDataModelONTAP) error {
-	var bodyMap map[string]interface{}
-	if err := mapstructure.Decode(body, &bodyMap); err != nil {
-		return errorHandler.MakeAndReportError("error encoding AutoSupport body", 
-			fmt.Sprintf("error on encoding support/autosupport body: %s, body: %#v", err, body))
+func UpdateAutoSupport(errorHandler *utils.ErrorHandler, r restclient.RestClient, force bool, bodyMap map[string]interface{}) error {
+	query := r.NewQuery()
+	
+	// Note: force parameter requires ONTAP 9.16.0 or higher
+	if force {
+		query.Add("force", "true")
 	}
 
-	statusCode, _, err := r.CallUpdateMethod("support/autosupport", nil, bodyMap)
+	statusCode, _, err := r.CallUpdateMethod("support/autosupport", query, bodyMap)
 	if err != nil {
 		return errorHandler.MakeAndReportError("error updating AutoSupport", 
 			fmt.Sprintf("error on PATCH support/autosupport: %s, statusCode: %d", err, statusCode))
