@@ -6,14 +6,14 @@ description: |-
   ProtocolsS3Policy data source
 ---
 
-# netapp-ontap_protocols_s3_policy (Data Source)
+# netapp-ontap_s3_policy (Data Source)
 
 ProtocolsS3Policy data source
 
 ## Example Usage
 
 ```terraform
-data "netapp-ontap_protocols_s3_policy" "protocols_s3_policy" {
+data "netapp-ontap_s3_policy" "protocols_s3_policy" {
   # required to know which system to interface with
   cx_profile_name = "mycluster"
   name = "test_policy"

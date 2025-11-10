@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -95,12 +95,17 @@ func (r *ProtocolsS3PolicyResource) Schema(ctx context.Context, req resource.Sch
 			},
 			"read_only": schema.BoolAttribute{
 				MarkdownDescription: "Indicates if the policy is read-only",
-				Optional:            true,
 				Computed:            true,
-				Default:             booldefault.StaticBool(false),
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"id": schema.StringAttribute{
-				Computed: true,
+				MarkdownDescription: "The UUID of the S3 policy.",
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"statements": schema.ListNestedAttribute{
 				MarkdownDescription: "S3 policy statements",
@@ -151,7 +156,7 @@ func statementsSliceToList(ctx context.Context, statementsSliceIn []interfaces.P
 		diags.Append(resourcesDiags...)
 
 		statement := ProtocolsS3PolicyStatement{
-			SID:        types.StringValue(stmt.SID),
+			SID:        types.StringValue(interfaces.ConvertSIDToString(stmt.SID)),
 			Effect:     types.StringValue(stmt.Effect),
 			Actions:    actionsSet,
 			Resources:  resourcesSet,
@@ -247,6 +252,9 @@ func (r *ProtocolsS3PolicyResource) Create(ctx context.Context, req resource.Cre
 	} else if !data.Comment.IsNull() {
 		data.Comment = types.StringValue(restInfo.Comment)
 	}
+
+	// Set read_only from API response
+	data.ReadOnly = types.BoolValue(restInfo.ReadOnly)
 
 	// Update statements with indices from API response - use nil for empty to preserve user intention
 	if len(restInfo.Statements) == 0 {
@@ -386,8 +394,8 @@ func (r *ProtocolsS3PolicyResource) Update(ctx context.Context, req resource.Upd
 		data.Comment = types.StringValue(restInfo.Comment)
 	}
 	
-	// Set read_only to false as default if not provided by API
-	data.ReadOnly = types.BoolValue(false)
+	// Set read_only from API response
+	data.ReadOnly = types.BoolValue(restInfo.ReadOnly)
 
 	// Update statements - use API response for consistency
 	if len(restInfo.Statements) == 0 {

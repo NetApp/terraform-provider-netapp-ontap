@@ -41,13 +41,15 @@ type ProtocolsS3PoliciesDataSourceModel struct {
 
 // ProtocolsS3PoliciesFilterModel describes the filter data model.
 type ProtocolsS3PoliciesFilterModel struct {
-    Name types.String `tfsdk:"name"`
+    Name    types.String `tfsdk:"name"`
+    SVMName types.String `tfsdk:"svm_name"`
 }
 
 // ProtocolsS3PolicyDataModel describes individual policy data model.
 type ProtocolsS3PolicyDataModel struct {
     Name       types.String                          `tfsdk:"name"`
     Comment    types.String                          `tfsdk:"comment"`
+    ReadOnly   types.Bool                            `tfsdk:"read_only"`
     SVM        *ProtocolsS3PolicySVMModel            `tfsdk:"svm"`
     Statements []ProtocolsS3PolicyStatementModel    `tfsdk:"statements"`
 }
@@ -83,6 +85,10 @@ func (d *ProtocolsS3PoliciesDataSource) Schema(_ context.Context, _ datasource.S
                         MarkdownDescription: "Filter by policy name",
                         Optional:            true,
                     },
+                    "svm_name": schema.StringAttribute{
+                        MarkdownDescription: "Filter by SVM name",
+                        Optional:            true,
+                    },
                 },
             },
             "protocols_s3_policies": schema.ListNestedAttribute{
@@ -98,16 +104,16 @@ func (d *ProtocolsS3PoliciesDataSource) Schema(_ context.Context, _ datasource.S
                             MarkdownDescription: "Optional comment for the S3 policy",
                             Computed:            true,
                         },
+                        "read_only": schema.BoolAttribute{
+                            MarkdownDescription: "Indicates if the policy is read-only",
+                            Computed:            true,
+                        },
                         "svm": schema.SingleNestedAttribute{
                             Computed:            true,
                             MarkdownDescription: "SVM details",
                             Attributes: map[string]schema.Attribute{
                                 "name": schema.StringAttribute{
                                     MarkdownDescription: "SVM name",
-                                    Computed:            true,
-                                },
-                                "uuid": schema.StringAttribute{
-                                    MarkdownDescription: "SVM UUID",
                                     Computed:            true,
                                 },
                             },
@@ -164,11 +170,20 @@ func (d *ProtocolsS3PoliciesDataSource) Read(ctx context.Context, req datasource
         return
     }
 
-    // Prepare filter
     var filter interfaces.ProtocolsS3PolicyDataSourceFilterModel
-    filter.SVMName = data.SVMName
+    
+    // Use filter svm_name if provided, otherwise use top-level svm_name
+    if data.Filter != nil && !data.Filter.SVMName.IsNull() {
+        filter.SVMName = data.Filter.SVMName.ValueString()
+    } else if !data.SVMName.IsNull() {
+        filter.SVMName = data.SVMName.ValueString()
+    } else {
+        resp.Diagnostics.AddError("Missing required parameter", "Either svm_name or filter.svm_name must be provided")
+        return
+    }
+    
     if data.Filter != nil && !data.Filter.Name.IsNull() {
-        filter.Name = data.Filter.Name
+        filter.Name = data.Filter.Name.ValueString()
     }
 
     // Make API call to get S3 policies
@@ -196,10 +211,10 @@ func (d *ProtocolsS3PoliciesDataSource) Read(ctx context.Context, req datasource
             }
 
             statements[j] = ProtocolsS3PolicyStatementModel{
-                SID:        types.StringValue(stmt.SID),
-                Effect:     types.StringValue(stmt.Effect),
-                Actions:    actions,
-                Resources:  resources,
+                Effect:      types.StringValue(stmt.Effect),
+                Actions:     actions,
+                Resources:   resources,
+                SID:        types.StringValue(interfaces.ConvertSIDToString(stmt.SID)),
             }
         }
 
@@ -208,25 +223,23 @@ func (d *ProtocolsS3PoliciesDataSource) Read(ctx context.Context, req datasource
         if restInfo.Comment == "" {
             comment = types.StringNull()
         }
-        
-        svmUUID := types.StringValue(restInfo.SVM.UUID)
-        if restInfo.SVM.UUID == "" {
-            svmUUID = types.StringNull()
-        }
 
         policies[i] = ProtocolsS3PolicyDataModel{
-            Name:    types.StringValue(restInfo.Name),
-            Comment: comment,
+            Name:     types.StringValue(restInfo.Name),
+            Comment:  comment,
+            ReadOnly: types.BoolValue(restInfo.ReadOnly),
             SVM: &ProtocolsS3PolicySVMModel{
                 Name: types.StringValue(restInfo.SVM.Name),
-                UUID: svmUUID,
             },
             Statements: statements,
         }
     }
 
     data.Policies = policies
-    data.ID = types.StringValue(fmt.Sprintf("svm_%s", data.SVMName.ValueString()))
+    
+    // Generate ID using the SVM name
+    svmNameForID := filter.SVMName
+    data.ID = types.StringValue(fmt.Sprintf("svm_%s", svmNameForID))
 
     // Log data
     tflog.Debug(ctx, fmt.Sprintf("read S3 policies data source: %#v", data))
