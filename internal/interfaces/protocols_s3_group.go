@@ -21,10 +21,10 @@ type ProtocolsS3GroupGetDataModelONTAP struct {
 
 // ProtocolsS3GroupResourceBodyDataModel describes the resource body data model
 type ProtocolsS3GroupResourceBodyDataModel struct {
-	Name     string                   `mapstructure:"name"`
-	Comment  string                   `mapstructure:"comment,omitempty"`
-	Users    []map[string]interface{} `mapstructure:"users"`
-	Policies []map[string]interface{} `mapstructure:"policies,omitempty"`
+	Name     string                    `mapstructure:"name"`
+	Comment  *string                   `mapstructure:"comment,omitempty"`
+	Users    []map[string]interface{}  `mapstructure:"users"`
+	Policies *[]map[string]interface{} `mapstructure:"policies,omitempty"`
 }
 
 // UserGetDataModel describes the GET record data model using go types for mapping
@@ -125,15 +125,15 @@ func GetProtocolsS3Groups(errorHandler *utils.ErrorHandler, r restclient.RestCli
 }
 
 // CreateProtocolS3Group to create a S3 group
-func CreateProtocolS3Group(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmUUID string, body ProtocolsS3GroupResourceBodyDataModel) (*ProtocolsS3GroupGetDataModelONTAP, error) {
+func CreateProtocolS3Group(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmUUID string, request ProtocolsS3GroupResourceBodyDataModel) (*ProtocolsS3GroupGetDataModelONTAP, error) {
 	api := fmt.Sprintf("protocols/s3/services/%s/groups", svmUUID)
-	var bodyMap map[string]interface{}
-	if err := mapstructure.Decode(body, &bodyMap); err != nil {
+	var body map[string]interface{}
+	if err := mapstructure.Decode(request, &body); err != nil {
 		return nil, errorHandler.MakeAndReportError("error encoding protocols/s3/services/{svm.uuid}/groups body", fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body))
 	}
 	query := r.NewQuery()
 	query.Add("return_records", "true")
-	statusCode, response, err := r.CallCreateMethod(api, query, bodyMap)
+	statusCode, response, err := r.CallCreateMethod(api, query, body)
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError("error creating S3 group", fmt.Sprintf("error on POST %s: %s, statusCode %d", api, err, statusCode))
 	}
@@ -172,27 +172,4 @@ func UpdateProtocolsS3Group(errorHandler *utils.ErrorHandler, r restclient.RestC
 		return errorHandler.MakeAndReportError("error modifying S3 group", fmt.Sprintf("error on PATCH %s: %s, statusCode %d", api, err, statusCode))
 	}
 	return nil
-}
-
-// GetSVMUUID to get SVM uuid given its name
-func GetSVMUUID(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmName string) (string, error) {
-	query := r.NewQuery()
-	query.Add("name", svmName)
-	statusCode, response, err := r.GetNilOrOneRecord("svm/svms", query, nil)
-	if err != nil {
-		return "", errorHandler.MakeAndReportError("error reading svm info", fmt.Sprintf("error on GET svm/svms: %s, statusCode %d", err, statusCode))
-	}
-
-	if response == nil {
-		tflog.Debug(errorHandler.Ctx, fmt.Sprintf("svm %s not found", svmName))
-		return "", errorHandler.MakeAndReportError("error reading svm info",
-			fmt.Sprintf("svm %s not found", svmName))
-	}
-
-	var dataONTAP *SvmGetDataModelONTAP
-	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
-		return "", errorHandler.MakeAndReportError("failed to decode response from GET SVM UUID by name", fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
-	}
-	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read svm info: %#v", dataONTAP))
-	return dataONTAP.UUID, nil
 }
