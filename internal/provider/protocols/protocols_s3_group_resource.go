@@ -122,7 +122,7 @@ func (r *ProtocolsS3GroupResource) Configure(ctx context.Context, req resource.C
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected Config, got: %T. Please resport this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected Config, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 	}
 	r.config.ProviderConfig = config
