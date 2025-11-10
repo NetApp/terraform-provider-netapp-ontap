@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -20,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
@@ -40,27 +41,6 @@ func NewProtocolsS3GroupResource() resource.Resource {
 // ProtocolsS3GroupResource defines the resource implementation.
 type ProtocolsS3GroupResource struct {
 	config connection.ResourceOrDataSourceConfig
-}
-
-// Helper method to get SVM UUID with context-based caching
-func (r *ProtocolsS3GroupResource) getSVMInfo(ctx context.Context, errorHandler *utils.ErrorHandler, client restclient.RestClient, svmName string) (string, error) {
-	// Check if we already have the SVM UUID cached in the context
-	if cachedSvmUUID := ctx.Value("svmUUID"); cachedSvmUUID != nil {
-		if svmUUID, ok := cachedSvmUUID.(string); ok {
-			return svmUUID, nil
-		}
-	}
-	
-	// If not cached, get the SVM UUID
-	svmUUID, err := interfaces.GetSVMUUID(errorHandler, client, svmName)
-	if err != nil {
-		// error reporting done inside GetSVMUUID
-		return "", err
-	}
-	if svmUUID == "" {
-		return "", errorHandler.MakeAndReportError("No SVM found", "SVM not found")
-	}
-	return svmUUID, nil
 }
 
 // ProtocolsS3GroupResourceModel describes the resource data model.
@@ -109,6 +89,9 @@ func (r *ProtocolsS3GroupResource) Schema(ctx context.Context, req resource.Sche
 				MarkdownDescription: "List of users in the S3 group",
 				Required:            true,
 				ElementType:         types.StringType,
+				Validators: []validator.Set{
+					setvalidator.SizeAtLeast(1),
+				},
 			},
 			"policies": schema.SetAttribute{
 				MarkdownDescription: "List of policies in the S3 group",
@@ -174,18 +157,20 @@ func (r *ProtocolsS3GroupResource) Read(ctx context.Context, req resource.ReadRe
 		return
 	}
 
-	svmUUID, err := r.getSVMInfo(ctx, errorHandler, *client, data.SVMName.ValueString())
+	// Get SVM info
+	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.SVMName.ValueString())
 	if err != nil {
-		// error reporting done inside GetSVMUUID
+		// error reporting done inside GetSvmByName
+		errorHandler.MakeAndReportError("No SVM found", "SVM not found")
 		return
 	}
 
 	var restInfo *interfaces.ProtocolsS3GroupGetDataModelONTAP
 	// var err error
 	if data.ID.ValueInt64() != 0 {
-		restInfo, err = interfaces.GetProtocolsS3GroupbyID(errorHandler, *client, svmUUID, data.ID.ValueInt64(), cluster.Version)
+		restInfo, err = interfaces.GetProtocolsS3GroupbyID(errorHandler, *client, svm.UUID, data.ID.ValueInt64(), cluster.Version)
 	} else {
-		restInfo, err = interfaces.GetProtocolsS3Group(errorHandler, *client, data.Name.ValueString(), svmUUID, cluster.Version)
+		restInfo, err = interfaces.GetProtocolsS3Group(errorHandler, *client, data.Name.ValueString(), svm.UUID, cluster.Version)
 	}
 	if err != nil {
 		// error reporting done inside GetProtocolsS3GroupbyID, GetProtocolsS3Group
@@ -255,32 +240,32 @@ func (r *ProtocolsS3GroupResource) Create(ctx context.Context, req resource.Crea
 
 	body.Name = data.Name.ValueString()
 	if !data.Comment.IsNull() {
-		body.Comment = data.Comment.ValueString()
+		commentValue := data.Comment.ValueString()
+		body.Comment = &commentValue
 	}
-	if data.Users.IsNull() {
-		body.Users = nil
-	} else {
-		users := []interfaces.UserGetDataModel{}
-		userElements := make([]types.String, 0, len(data.Users.Elements()))
-		diags := data.Users.ElementsAs(ctx, &userElements, false)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		for _, userName := range userElements {
-			var aUser interfaces.UserGetDataModel
-			aUser.Name = userName.ValueString()
-			users = append(users, aUser)
-		}
-		err := mapstructure.Decode(users, &body.Users)
-		if err != nil {
-			errorHandler.MakeAndReportError("error creating S3 group", fmt.Sprintf("error on encoding users info: %s, users %#v", err, users))
-			return
-		}
+	// users
+	users := []interfaces.UserGetDataModel{}
+	userItems := make([]types.String, 0, len(data.Users.Elements()))
+	diags := data.Users.ElementsAs(ctx, &userItems, false)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
+	for _, userName := range userItems {
+		var aUser interfaces.UserGetDataModel
+		aUser.Name = userName.ValueString()
+		users = append(users, aUser)
+	}
+	err := mapstructure.Decode(users, &body.Users)
+	if err != nil {
+		errorHandler.MakeAndReportError("error creating S3 group", fmt.Sprintf("error on encoding users info: %s, users %#v", err, users))
+		return
+	}
+
+	// policies
 	if data.Policies.IsNull() || data.Policies.IsUnknown() {
 		body.Policies = nil
-	} else {
+	} else if len(data.Policies.Elements()) > 0 {
 		policies := []interfaces.PolicyGetDataModel{}
 		policyElements := make([]types.String, 0, len(data.Policies.Elements()))
 		diags := data.Policies.ElementsAs(ctx, &policyElements, false)
@@ -293,11 +278,17 @@ func (r *ProtocolsS3GroupResource) Create(ctx context.Context, req resource.Crea
 			aPolicy.Name = policyName.ValueString()
 			policies = append(policies, aPolicy)
 		}
-		err := mapstructure.Decode(policies, &body.Policies)
+		var mappedPolicies []map[string]interface{}
+		err := mapstructure.Decode(policies, &mappedPolicies)
 		if err != nil {
 			errorHandler.MakeAndReportError("error creating S3 group", fmt.Sprintf("error on encoding policies info: %s, policies %#v", err, policies))
 			return
 		}
+		body.Policies = &mappedPolicies
+	} else {
+		// Explicitly set empty policies
+		emptyPolicies := []map[string]interface{}{}
+		body.Policies = &emptyPolicies
 	}
 
 	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
@@ -316,19 +307,21 @@ func (r *ProtocolsS3GroupResource) Create(ctx context.Context, req resource.Crea
 		return
 	}
 
-	svmUUID, err := r.getSVMInfo(ctx, errorHandler, *client, data.SVMName.ValueString())
+	// Get SVM info
+	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.SVMName.ValueString())
 	if err != nil {
-		// error reporting done inside GetSVMUUID
+		// error reporting done inside GetSvmByName
+		errorHandler.MakeAndReportError("No SVM found", "SVM not found")
 		return
 	}
 
-	resource, err := interfaces.CreateProtocolS3Group(errorHandler, *client, svmUUID, body)
+	resource, err := interfaces.CreateProtocolS3Group(errorHandler, *client, svm.UUID, body)
 	if err != nil {
 		return
 	}
 
 	data.ID = types.Int64Value(resource.ID)
-	restInfo, err := interfaces.GetProtocolsS3GroupbyID(errorHandler, *client, svmUUID, data.ID.ValueInt64(), cluster.Version)
+	restInfo, err := interfaces.GetProtocolsS3GroupbyID(errorHandler, *client, svm.UUID, data.ID.ValueInt64(), cluster.Version)
 	if err != nil {
 		// error reporting done inside GetProtocolsS3GroupbyID
 		return
@@ -409,9 +402,11 @@ func (r *ProtocolsS3GroupResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	svmUUID, err := r.getSVMInfo(ctx, errorHandler, *client, state.SVMName.ValueString())
+	// Get SVM info
+	svm, err := interfaces.GetSvmByName(errorHandler, *client, state.SVMName.ValueString())
 	if err != nil {
-		// error reporting done inside GetSVMUUID
+		// error reporting done inside GetSvmByName
+		errorHandler.MakeAndReportError("No SVM found", "SVM not found")
 		return
 	}
 
@@ -419,13 +414,9 @@ func (r *ProtocolsS3GroupResource) Update(ctx context.Context, req resource.Upda
 	var body interfaces.ProtocolsS3GroupResourceBodyDataModel
 
 	body.Name = plan.Name.ValueString()
-	// name update
-	if !plan.Name.Equal(state.Name) {
-		body.Name = plan.Name.ValueString()
-	}
-	// comment update
 	if !plan.Comment.Equal(state.Comment) {
-		body.Comment = plan.Comment.ValueString()
+		commentValue := plan.Comment.ValueString()
+		body.Comment = &commentValue
 	}
 	//users update
 	if plan.Users.IsNull() {
@@ -449,9 +440,9 @@ func (r *ProtocolsS3GroupResource) Update(ctx context.Context, req resource.Upda
 			return
 		}
 	}
+
 	//policies update
-	// Only update policies if they are explicitly specified in the configuration
-	if !plan.Policies.IsNull() && !plan.Policies.IsUnknown() {
+	if !plan.Policies.IsNull() && !plan.Policies.IsUnknown() && len(plan.Policies.Elements()) > 0 {
 		policies := []interfaces.PolicyGetDataModel{}
 		policyElements := make([]types.String, 0, len(plan.Policies.Elements()))
 		diags := plan.Policies.ElementsAs(ctx, &policyElements, false)
@@ -464,19 +455,25 @@ func (r *ProtocolsS3GroupResource) Update(ctx context.Context, req resource.Upda
 			aPolicy.Name = policyName.ValueString()
 			policies = append(policies, aPolicy)
 		}
-		err := mapstructure.Decode(policies, &body.Policies)
+		var mappedPolicies []map[string]interface{}
+		err := mapstructure.Decode(policies, &mappedPolicies)
 		if err != nil {
 			errorHandler.MakeAndReportError("error updating S3 group", fmt.Sprintf("error on encoding policies info: %s, policies %#v", err, policies))
 			return
 		}
+		body.Policies = &mappedPolicies
+	} else if !plan.Policies.IsNull() && !plan.Policies.IsUnknown() {
+		// Explicitly set empty policies when user specifies empty array
+		emptyPolicies := []map[string]interface{}{}
+		body.Policies = &emptyPolicies
 	}
 
-	err = interfaces.UpdateProtocolsS3Group(errorHandler, *client, body, plan.ID.ValueInt64(), svmUUID)
+	err = interfaces.UpdateProtocolsS3Group(errorHandler, *client, body, plan.ID.ValueInt64(), svm.UUID)
 	if err != nil {
 		return
 	}
 
-	restInfo, err := interfaces.GetProtocolsS3GroupbyID(errorHandler, *client, svmUUID, plan.ID.ValueInt64(), cluster.Version)
+	restInfo, err := interfaces.GetProtocolsS3GroupbyID(errorHandler, *client, svm.UUID, plan.ID.ValueInt64(), cluster.Version)
 	if err != nil {
 		return
 	}
@@ -486,7 +483,8 @@ func (r *ProtocolsS3GroupResource) Update(ctx context.Context, req resource.Upda
 	plan.Comment = types.StringValue(restInfo.Comment)
 	plan.SVMName = types.StringValue(restInfo.SVM.Name)
 	
-	// Users - convert to types.Set
+	// users
+	// convert to types.Set
 	var userElements []attr.Value
 	for _, user := range restInfo.Users {
 		userElements = append(userElements, types.StringValue(user.Name))
@@ -498,11 +496,9 @@ func (r *ProtocolsS3GroupResource) Update(ctx context.Context, req resource.Upda
 	}
 	plan.Users = usersSet
 	
-	// Policies - only update if they were explicitly specified in the plan
-	// The UseStateForUnknown() plan modifier will handle preserving state when policies
-	// are not specified in the configuration
+	// policies
+	// only update if they were explicitly specified in the plan
 	if !plan.Policies.IsNull() {
-		// Policies were specified in config, so update with current API values
 		if len(restInfo.Policies) == 0 || restInfo.Policies == nil {
 			emptySet, diags := types.SetValue(types.StringType, []attr.Value{})
 			resp.Diagnostics.Append(diags...)
@@ -523,7 +519,6 @@ func (r *ProtocolsS3GroupResource) Update(ctx context.Context, req resource.Upda
 			plan.Policies = policiesSet
 		}
 	}
-	// If plan.Policies is null, leave it as null - the framework will use the state value
 
 	tflog.Debug(ctx, fmt.Sprintf("updated S3 group resource: ID=%s", plan.ID))
 
@@ -553,9 +548,11 @@ func (r *ProtocolsS3GroupResource) Delete(ctx context.Context, req resource.Dele
 		return
 	}
 
-	svmUUID, err := r.getSVMInfo(ctx, errorHandler, *client, data.SVMName.ValueString())
+	// Get SVM info
+	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.SVMName.ValueString())
 	if err != nil {
-		// error reporting done inside GetSVMUUID
+		// error reporting done inside GetSvmByName
+		errorHandler.MakeAndReportError("No SVM found", "SVM not found")
 		return
 	}
 
@@ -564,7 +561,7 @@ func (r *ProtocolsS3GroupResource) Delete(ctx context.Context, req resource.Dele
 		return
 	}
 
-	err = interfaces.DeleteProtocolsS3Group(errorHandler, *client, data.ID.ValueInt64(), svmUUID)
+	err = interfaces.DeleteProtocolsS3Group(errorHandler, *client, data.ID.ValueInt64(), svm.UUID)
 	if err != nil {
 		return
 	}
