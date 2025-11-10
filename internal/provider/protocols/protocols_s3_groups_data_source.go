@@ -82,12 +82,12 @@ func (d *ProtocolsS3GroupsDataSource) Schema(ctx context.Context, req datasource
 							MarkdownDescription: "Additional information about the group",
 							Computed:            true,
 						},
-						"users": schema.ListAttribute{
+						"users": schema.SetAttribute{
 							Computed:            true,
 							MarkdownDescription: "The list of users who belong to the group",
 							ElementType:         types.StringType,
 						},
-						"policies": schema.ListAttribute{
+						"policies": schema.SetAttribute{
 							Computed:            true,
 							MarkdownDescription: "The list of policies that are attached to the group",
 							ElementType:         types.StringType,
@@ -154,17 +154,16 @@ func (d *ProtocolsS3GroupsDataSource) Read(ctx context.Context, req datasource.R
 		errorHandler.MakeAndReportError("No SVM specified", "either svm_name or filter must be specified")
 		return
 	}
-	svmUUID, err := interfaces.GetSVMUUID(errorHandler, *client, data.Filter.SVMName.ValueString())
+
+	// Get SVM info
+	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.Filter.SVMName.ValueString())
 	if err != nil {
-		// error reporting done inside GetSVMUUID
-		return
-	}
-	if svmUUID == "" {
+		// error reporting done inside GetSvmByName
 		errorHandler.MakeAndReportError("No SVM found", "SVM not found")
 		return
 	}
 
-	restInfo, err := interfaces.GetProtocolsS3Groups(errorHandler, *client, svmUUID, cluster.Version)
+	restInfo, err := interfaces.GetProtocolsS3Groups(errorHandler, *client, svm.UUID, cluster.Version)
 	if err != nil {
 		// error reporting done inside GetProtocolsS3Groups
 		return
@@ -172,26 +171,36 @@ func (d *ProtocolsS3GroupsDataSource) Read(ctx context.Context, req datasource.R
 
 	data.S3Groups = make([]ProtocolsS3GroupDataSourceModel, len(restInfo))
 	for index, record := range restInfo {
-		// Users - map to simple string list
+		// users - map to set
 		var users = make([]string, len(record.Users))
 		for i, user := range record.Users {
 			users[i] = user.Name
 		}
-		
-		// Policies - map to simple string list
+		usersSet, diags := types.SetValueFrom(ctx, types.StringType, users)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		// policies - map to set
 		var policies = make([]string, len(record.Policies))
 		for i, policy := range record.Policies {
 			policies[i] = policy.Name
 		}
+		policiesSet, diags := types.SetValueFrom(ctx, types.StringType, policies)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 
 		data.S3Groups[index] = ProtocolsS3GroupDataSourceModel{
-			CxProfileName:             types.String(data.CxProfileName),
-			Name:                      types.StringValue(record.Name),
-			Comment:                   types.StringValue(record.Comment),
-			SVMName:                   types.StringValue(record.SVM.Name),
-			Users:                     users,
-			Policies:                  policies,
-			ID:                        types.Int64Value(record.ID),
+			CxProfileName: types.String(data.CxProfileName),
+			Name:          types.StringValue(record.Name),
+			Comment:       types.StringValue(record.Comment),
+			SVMName:       types.StringValue(record.SVM.Name),
+			Users:         usersSet,
+			Policies:      policiesSet,
+			ID:            types.Int64Value(record.ID),
 		}
 	}
 

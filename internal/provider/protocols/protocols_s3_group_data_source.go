@@ -36,8 +36,8 @@ type ProtocolsS3GroupDataSourceModel struct {
 	CxProfileName types.String `tfsdk:"cx_profile_name"`
 	Name          types.String `tfsdk:"name"`
 	Comment       types.String `tfsdk:"comment"`
-	Users         []string     `tfsdk:"users"`
-	Policies      []string     `tfsdk:"policies"`
+	Users         types.Set    `tfsdk:"users"`
+	Policies      types.Set    `tfsdk:"policies"`
 	SVMName       types.String `tfsdk:"svm_name"`
 	ID            types.Int64  `tfsdk:"id"`
 }
@@ -85,12 +85,12 @@ func (d *ProtocolsS3GroupDataSource) Schema(ctx context.Context, req datasource.
 				MarkdownDescription: "Additional information about the group",
 				Computed:            true,
 			},
-			"users": schema.ListAttribute{
+			"users": schema.SetAttribute{
 				Computed:            true,
 				MarkdownDescription: "The list of users who belong to the group",
 				ElementType:         types.StringType,
 			},
-			"policies": schema.ListAttribute{
+			"policies": schema.SetAttribute{
 				Computed:            true,
 				MarkdownDescription: "The list of policies that are attached to the group",
 				ElementType:         types.StringType,
@@ -147,17 +147,15 @@ func (d *ProtocolsS3GroupDataSource) Read(ctx context.Context, req datasource.Re
 		return
 	}
 
-	svmUUID, err := interfaces.GetSVMUUID(errorHandler, *client, data.SVMName.ValueString())
+	// Get SVM info
+	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.SVMName.ValueString())
 	if err != nil {
-		// error reporting done inside GetSVMUUID
-		return
-	}
-	if svmUUID == "" {
+		// error reporting done inside GetSvmByName
 		errorHandler.MakeAndReportError("No SVM found", "SVM not found")
 		return
 	}
 
-	restInfo, err := interfaces.GetProtocolsS3Group(errorHandler, *client, data.Name.ValueString(), svmUUID, cluster.Version)
+	restInfo, err := interfaces.GetProtocolsS3Group(errorHandler, *client, data.Name.ValueString(), svm.UUID, cluster.Version)
 	if err != nil {
 		// error reporting done inside GetProtocolsS3Group
 		return
@@ -170,19 +168,29 @@ func (d *ProtocolsS3GroupDataSource) Read(ctx context.Context, req datasource.Re
 	data.Comment = types.StringValue(restInfo.Comment)
 	data.SVMName = types.StringValue(restInfo.SVM.Name)
 	
-	// Users - map to simple string list
+	// users - map to set
 	var users = make([]string, len(restInfo.Users))
 	for i, user := range restInfo.Users {
 		users[i] = user.Name
 	}
-	data.Users = users
+	usersSet, diags := types.SetValueFrom(ctx, types.StringType, users)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	data.Users = usersSet
 	
-	// Policies - map to simple string list
+	// policies - map to set
 	var policies = make([]string, len(restInfo.Policies))
 	for i, policy := range restInfo.Policies {
 		policies[i] = policy.Name
 	}
-	data.Policies = policies
+	policiesSet, diags := types.SetValueFrom(ctx, types.StringType, policies)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	data.Policies = policiesSet
 	data.ID = types.Int64Value(restInfo.ID)
 
 	// Write logs using the tflog package
