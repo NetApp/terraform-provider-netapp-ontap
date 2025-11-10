@@ -73,7 +73,7 @@ terraform import netapp-ontap_autosupport.autosupport cluster4
 - `is_minimal` (Boolean) Specifies whether the system information is collected in compliant form to remove private data or in complete form to enhance diagnostics
 - `ondemand_enabled` (Boolean) Specifies whether the AutoSupport OnDemand Download feature is enabled. Requires ONTAP 9.16.1 or higher
 - `smtp_encryption` (String) SMTP encryption type for AutoSupport messages. Valid values: none, start_tls. Requires ONTAP 9.15 or higher
-- `force` (Boolean) Force the configuration update even if it might disrupt AutoSupport operations. Only used for modify operations, ignored during resource creation
+- `force` (Boolean) Force the configuration update even if it might disrupt AutoSupport operations. Only used for modify operations, ignored during resource creation. Requires ONTAP 9.16.1 or higher
 
 ### Read-Only
 
