@@ -80,7 +80,7 @@ func (r *Request) BuildURL(c *HTTPClient, baseURL string, uuid string) (string, 
 		return "", err
 	}
 	u := &url.URL{
-		Scheme: "https",
+		Scheme: c.cxProfile.Scheme,
 		Host:   c.cxProfile.Hostname,
 		Path:   c.cxProfile.APIRoot,
 	}

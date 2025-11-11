@@ -24,6 +24,7 @@ type HTTPClient struct {
 
 // HTTPProfile defines the connection attributes to build the base URL and authentication header
 type HTTPProfile struct {
+	Scheme        string
 	APIRoot       string
 	Hostname      string
 	Username      string

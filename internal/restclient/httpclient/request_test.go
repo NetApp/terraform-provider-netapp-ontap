@@ -8,6 +8,7 @@ import (
 
 func TestRequest_BuildURL(t *testing.T) {
 	cxProfile := HTTPProfile{
+		Scheme: "https",
 		Hostname: "host",
 		APIRoot:  "api",
 	}
@@ -62,6 +63,7 @@ func TestRequest_BuildURL(t *testing.T) {
 
 func TestRequest_BuildHTTPReq(t *testing.T) {
 	cxProfile := HTTPProfile{
+		Scheme: "https",
 		Hostname: "host",
 		APIRoot:  "api",
 	}
