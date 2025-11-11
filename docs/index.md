@@ -92,6 +92,7 @@ Optional:
 
 - `aws_lambda` (Attributes) AWS configuration for Lambda (see [below for nested schema](#nestedatt--connection_profiles--aws_lambda))
 - `validate_certs` (Boolean) Whether to enforce SSL certificate validation, defaults to true. Not applicable for AWS Lambda
+- `scheme` (String) URL Scheme to be used to build the ONTAP management interface URL, defaults to https.
 
 <a id="nestedatt--connection_profiles--aws_lambda"></a>
 
