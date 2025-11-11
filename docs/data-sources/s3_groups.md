@@ -59,6 +59,7 @@ data "netapp-ontap_s3_groups" "s3_groups_example2" {
 
 Optional:
 
+- `name` (String) The name of the S3 group
 - `svm_name` (String) The name of the SVM
 
 
