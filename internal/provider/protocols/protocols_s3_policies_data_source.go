@@ -41,7 +41,6 @@ type ProtocolsS3PoliciesDataSourceModel struct {
 
 // ProtocolsS3PoliciesFilterModel describes the filter data model.
 type ProtocolsS3PoliciesFilterModel struct {
-    Name    types.String `tfsdk:"name"`
     SVMName types.String `tfsdk:"svm_name"`
 }
 
@@ -71,7 +70,7 @@ func (d *ProtocolsS3PoliciesDataSource) Schema(_ context.Context, _ datasource.S
             },
             "svm_name": schema.StringAttribute{
                 MarkdownDescription: "Name of the SVM",
-                Required:            true,
+                Computed:            true,
             },
             "id": schema.StringAttribute{
                 MarkdownDescription: "Identifier",
@@ -81,10 +80,6 @@ func (d *ProtocolsS3PoliciesDataSource) Schema(_ context.Context, _ datasource.S
                 MarkdownDescription: "Filter for S3 policies",
                 Optional:            true,
                 Attributes: map[string]schema.Attribute{
-                    "name": schema.StringAttribute{
-                        MarkdownDescription: "Filter by policy name",
-                        Optional:            true,
-                    },
                     "svm_name": schema.StringAttribute{
                         MarkdownDescription: "Filter by SVM name",
                         Optional:            true,
@@ -167,28 +162,29 @@ func (d *ProtocolsS3PoliciesDataSource) Read(ctx context.Context, req datasource
     // Get REST client
     client, err := connection.GetRestClient(errorHandler, d.config, data.CxProfileName)
     if err != nil {
+        // error reporting done inside GetRestClient
         return
     }
 
-    var filter interfaces.ProtocolsS3PolicyDataSourceFilterModel
-    
-    // Use filter svm_name if provided, otherwise use top-level svm_name
-    if data.Filter != nil && !data.Filter.SVMName.IsNull() {
-        filter.SVMName = data.Filter.SVMName.ValueString()
-    } else if !data.SVMName.IsNull() {
-        filter.SVMName = data.SVMName.ValueString()
-    } else {
-        resp.Diagnostics.AddError("Missing required parameter", "Either svm_name or filter.svm_name must be provided")
-        return
-    }
-    
-    if data.Filter != nil && !data.Filter.Name.IsNull() {
-        filter.Name = data.Filter.Name.ValueString()
-    }
+    cluster, err := interfaces.GetCluster(errorHandler, *client)
+	if err != nil {
+		// error reporting done inside GetCluster
+		return
+	}
+	if cluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", "cluster not found")
+		return
+	}
 
-    // Make API call to get S3 policies
-    restInfos, err := interfaces.GetProtocolsS3Policies(errorHandler, *client, &filter)
+    var filter *interfaces.ProtocolsS3PolicyDataSourceFilterModel = nil
+    if data.Filter != nil {
+        filter = &interfaces.ProtocolsS3PolicyDataSourceFilterModel{
+            SVMName: data.Filter.SVMName.ValueString(),
+        }
+    }
+    restInfos, err := interfaces.GetProtocolsS3Policies(errorHandler, *client, filter, cluster.Version)
     if err != nil {
+        // error reporting done inside GetProtocolsS3PoliciesList
         return
     }
 

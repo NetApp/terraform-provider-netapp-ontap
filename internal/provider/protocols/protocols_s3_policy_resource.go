@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -92,6 +93,11 @@ func (r *ProtocolsS3PolicyResource) Schema(ctx context.Context, req resource.Sch
 			"comment": schema.StringAttribute{
 				MarkdownDescription: "Optional comment for the S3 policy",
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"read_only": schema.BoolAttribute{
 				MarkdownDescription: "Indicates if the policy is read-only",
@@ -202,6 +208,16 @@ func (r *ProtocolsS3PolicyResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
+	cluster, err := interfaces.GetCluster(errorHandler, *client)
+	if err != nil {
+		// error reporting done inside GetCluster
+		return
+	}
+	if cluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", "cluster not found")
+		return
+	}
+
 	var request interfaces.ProtocolsS3PolicyResourceBodyDataModelONTAP
 	request.Name = data.Name.ValueString()
 	
@@ -241,16 +257,9 @@ func (r *ProtocolsS3PolicyResource) Create(ctx context.Context, req resource.Cre
 	data.ID = types.StringValue(fmt.Sprintf("%s/%s", data.SVMName.ValueString(), data.Name.ValueString()))
 	
 	// Read the resource back to get complete data
-	restInfo, err := interfaces.GetProtocolsS3Policy(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString())
+	restInfo, err := interfaces.GetProtocolsS3Policy(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString(), cluster.Version)
 	if err != nil {
 		return
-	}
-
-	// Handle empty comment as null for idempotency (only if not explicitly set)
-	if data.Comment.IsNull() && restInfo.Comment == "" {
-		data.Comment = types.StringNull()
-	} else if !data.Comment.IsNull() {
-		data.Comment = types.StringValue(restInfo.Comment)
 	}
 
 	// Set read_only from API response
@@ -285,7 +294,17 @@ func (r *ProtocolsS3PolicyResource) Read(ctx context.Context, req resource.ReadR
 		return
 	}
 
-	restInfo, err := interfaces.GetProtocolsS3Policy(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString())
+	cluster, err := interfaces.GetCluster(errorHandler, *client)
+	if err != nil {
+		// error reporting done inside GetCluster
+		return
+	}
+	if cluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", "cluster not found")
+		return
+	}
+
+	restInfo, err := interfaces.GetProtocolsS3Policy(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString(), cluster.Version)
 	if err != nil {
 		tflog.Debug(ctx, fmt.Sprintf("Error reading S3 policy %s from SVM %s: %v", data.Name.ValueString(), data.SVMName.ValueString(), err))
 		return
@@ -298,11 +317,7 @@ func (r *ProtocolsS3PolicyResource) Read(ctx context.Context, req resource.ReadR
 
 	// Map API response to model
 	data.Name = types.StringValue(restInfo.Name)
-	
-	// Handle empty comment as null for idempotency
-	if restInfo.Comment == "" {
-		data.Comment = types.StringNull()
-	} else {
+	if len(restInfo.Comment) != 0 {
 		data.Comment = types.StringValue(restInfo.Comment)
 	}
 	
@@ -323,31 +338,63 @@ func (r *ProtocolsS3PolicyResource) Read(ctx context.Context, req resource.ReadR
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *ProtocolsS3PolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *ProtocolsS3PolicyResourceModel
+	var plan *ProtocolsS3PolicyResourceModel
+	var state *ProtocolsS3PolicyResourceModel
 
 	// Read Terraform plan data into the model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Read Terraform prior state data into the model
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, plan.CxProfileName)
 	if err != nil {
+		return
+	}
+
+	cluster, err := interfaces.GetCluster(errorHandler, *client)
+	if err != nil {
+		// error reporting done inside GetCluster
+		return
+	}
+	if cluster == nil {
+		errorHandler.MakeAndReportError("No cluster found", "cluster not found")
 		return
 	}
 
 	// Create update request body as map for proper API field naming
 	updateRequest := make(map[string]interface{})
 	
-	if !data.Comment.IsNull() {
-		updateRequest["comment"] = data.Comment.ValueString()
+	if !plan.Comment.Equal(state.Comment) {
+		updateRequest["comment"] = plan.Comment.ValueString()
 	}
 
-	// Convert statements (if provided)
-	if len(data.Statements) > 0 {
-		statements := make([]map[string]interface{}, 0, len(data.Statements))
-		for _, stmt := range data.Statements {
+	// Convert statements only if they have changed
+	// Since statements is a slice, we need to compare lengths and content
+	statementsChanged := len(plan.Statements) != len(state.Statements)
+	if !statementsChanged {
+		// If lengths are equal, check if content has changed by comparing each statement
+		for i := range plan.Statements {
+			if !plan.Statements[i].SID.Equal(state.Statements[i].SID) ||
+				!plan.Statements[i].Effect.Equal(state.Statements[i].Effect) ||
+				!plan.Statements[i].Actions.Equal(state.Statements[i].Actions) ||
+				!plan.Statements[i].Resources.Equal(state.Statements[i].Resources) {
+				statementsChanged = true
+				break
+			}
+		}
+	}
+	
+	if statementsChanged {
+		statements := make([]map[string]interface{}, 0, len(plan.Statements))
+		for _, stmt := range plan.Statements {
 			stmtMap := make(map[string]interface{})
 			stmtMap["sid"] = stmt.SID.ValueString()
 			stmtMap["effect"] = stmt.Effect.ValueString()
@@ -373,39 +420,32 @@ func (r *ProtocolsS3PolicyResource) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
-	err = interfaces.UpdateProtocolsS3Policy(errorHandler, *client, data.SVMName.ValueString(), data.Name.ValueString(), updateRequest)
+	err = interfaces.UpdateProtocolsS3Policy(errorHandler, *client, plan.SVMName.ValueString(), plan.Name.ValueString(), updateRequest)
 	if err != nil {
 		return
 	}
 
-	// Read back the updated configuration to ensure consistency
-	restInfo, err := interfaces.GetProtocolsS3Policy(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString())
+	// Read back the updated configuration to ensure consistency and get computed fields like index
+	restInfo, err := interfaces.GetProtocolsS3Policy(errorHandler, *client, plan.Name.ValueString(), plan.SVMName.ValueString(), cluster.Version)
 	if err != nil {
 		return
 	}
 
-	// Update data with current state from API
-	data.ID = types.StringValue(fmt.Sprintf("%s/%s", data.SVMName.ValueString(), data.Name.ValueString()))
-	
-	// Handle empty comment as null for idempotency
-	if restInfo.Comment == "" {
-		data.Comment = types.StringNull()
-	} else {
-		data.Comment = types.StringValue(restInfo.Comment)
-	}
+	// Update plan with current state from API
+	plan.ID = types.StringValue(fmt.Sprintf("%s/%s", plan.SVMName.ValueString(), plan.Name.ValueString()))
 	
 	// Set read_only from API response
-	data.ReadOnly = types.BoolValue(restInfo.ReadOnly)
+	plan.ReadOnly = types.BoolValue(restInfo.ReadOnly)
 
-	// Update statements - use API response for consistency
+	// Update statements with indices from API response - use nil for empty to preserve user intention
 	if len(restInfo.Statements) == 0 {
-		data.Statements = nil
+		plan.Statements = nil
 	} else {
-		data.Statements = statementsSliceToList(ctx, restInfo.Statements, &resp.Diagnostics)
+		plan.Statements = statementsSliceToList(ctx, restInfo.Statements, &resp.Diagnostics)
 	}
 
 	// Save updated data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.

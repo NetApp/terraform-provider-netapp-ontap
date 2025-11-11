@@ -4,7 +4,6 @@ import (
     "fmt"
     "strings"
 
-    "github.com/hashicorp/terraform-plugin-log/tflog"
     "github.com/mitchellh/mapstructure"
     "github.com/netapp/terraform-provider-netapp-ontap/internal/restclient"
     "github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
@@ -49,7 +48,10 @@ type ProtocolsS3PolicyDataSourceFilterModel struct {
 }
 
 // GetProtocolsS3Policy to get protocols_s3_policy info
-func GetProtocolsS3Policy(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, svmName string) (*ProtocolsS3PolicyGetDataModelONTAP, error) {
+func GetProtocolsS3Policy(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, svmName string, version versionModelONTAP) (*ProtocolsS3PolicyGetDataModelONTAP, error) {
+	if version.Generation == 9 && version.Major < 8 {
+		return nil, errorHandler.MakeAndReportError("error reading S3 policy info", "protocols/s3/services/{svm.uuid}/policies/{name} API supported on ONTAP version 9.8 or later")
+    }
     // Get SVM info using existing function
     svmInfo, err := GetSvmByName(errorHandler, r, svmName)
     if err != nil {
@@ -77,95 +79,11 @@ func GetProtocolsS3Policy(errorHandler *utils.ErrorHandler, r restclient.RestCli
     return &dataONTAP, nil
 }
 
-// GetProtocolsS3PolicyByFilter to get protocols_s3_policy info by filter
-func GetProtocolsS3PolicyByFilter(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *ProtocolsS3PolicyDataSourceFilterModel) (*ProtocolsS3PolicyGetDataModelONTAP, error) {
-    // Get SVM info using existing function
-    svmInfo, err := GetSvmByName(errorHandler, r, filter.SVMName)
-    if err != nil {
-        return nil, err
-    }
-    
-    api := fmt.Sprintf("protocols/s3/services/%s/policies", svmInfo.UUID)
-    query := r.NewQuery()
-    query.Fields([]string{"name", "comment", "read_only", "statements", "svm.name"})
-
-    if filter != nil {
-        var filterMap map[string]interface{}
-        if err := mapstructure.Decode(filter, &filterMap); err != nil {
-            return nil, errorHandler.MakeAndReportError("error encoding protocols_s3_policy filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
-        }
-        // Remove svm.name from filter since we use it for SVM lookup
-        delete(filterMap, "svm.name")
-        query.SetValues(filterMap)
-    }
-
-    statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
-    if err == nil && response == nil {
-        err = fmt.Errorf("protocols_s3_policy not found")
-    }
-    if err != nil {
-        return nil, errorHandler.MakeAndReportError("error reading protocols_s3_policy info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
-    }
-
-    var dataONTAP ProtocolsS3PolicyGetDataModelONTAP
-    if err := mapstructure.Decode(response, &dataONTAP); err != nil {
-        return nil, errorHandler.MakeAndReportError("error decoding protocols_s3_policy info", fmt.Sprintf("error on decode protocols_s3_policy info: %s, statusCode %d, response %#v", err, statusCode, response))
-    }
-
-    return &dataONTAP, nil
-}
-
 // GetProtocolsS3Policies to get protocols_s3_policy info for all resources matching a filter
-func GetProtocolsS3Policies(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *ProtocolsS3PolicyDataSourceFilterModel) ([]ProtocolsS3PolicyGetDataModelONTAP, error) {
-    // If SVM name contains wildcards or we want to search across SVMs
-    if filter != nil && filter.SVMName != "" && !containsWildcard(filter.SVMName) {
-        return GetProtocolsS3PoliciesFromSVM(errorHandler, r, filter)
+func GetProtocolsS3Policies(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *ProtocolsS3PolicyDataSourceFilterModel, version versionModelONTAP) ([]ProtocolsS3PolicyGetDataModelONTAP, error) {
+	if version.Generation == 9 && version.Major < 8 {
+		return nil, errorHandler.MakeAndReportError("error reading S3 policies info", "protocols/s3/services/{svm.uuid}/policies API supported on ONTAP version 9.8 or later")
     }
-    
-    // For wildcard SVM names or cross-SVM queries, we need to get matching SVMs first
-    svmFilter := &SvmDataSourceFilterModel{}
-    if filter != nil && filter.SVMName != "" {
-        svmFilter.Name = filter.SVMName
-    }
-    
-    // Get matching SVMs
-    svms, err := GetSvmsByName(errorHandler, r, svmFilter, versionModelONTAP{Generation: 9, Major: 13, Minor: 0}) // Use compatible version
-    if err != nil {
-        return nil, err
-    }
-    
-    var allPolicies []ProtocolsS3PolicyGetDataModelONTAP
-    
-    // Query each matching SVM for S3 policies
-    for _, svm := range svms {
-        svmFilter := &ProtocolsS3PolicyDataSourceFilterModel{
-            SVMName: svm.Name,
-            Name:    "",
-        }
-        if filter != nil {
-            svmFilter.Name = filter.Name
-        }
-        
-        policies, err := GetProtocolsS3PoliciesFromSVM(errorHandler, r, svmFilter)
-        if err != nil {
-            // Log error but continue with other SVMs - SVM might not have S3 service enabled
-            tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Could not get S3 policies from SVM %s: %s", svm.Name, err.Error()))
-            continue
-        }
-        
-        allPolicies = append(allPolicies, policies...)
-    }
-    
-    return allPolicies, nil
-}
-
-// containsWildcard checks if a string contains wildcard characters
-func containsWildcard(s string) bool {
-    return strings.Contains(s, "*") || strings.Contains(s, "?")
-}
-
-// GetProtocolsS3PoliciesFromSVM to get protocols_s3_policy info from a specific SVM
-func GetProtocolsS3PoliciesFromSVM(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *ProtocolsS3PolicyDataSourceFilterModel) ([]ProtocolsS3PolicyGetDataModelONTAP, error) {
     // Get SVM info using existing function
     svmInfo, err := GetSvmByName(errorHandler, r, filter.SVMName)
     if err != nil {
@@ -176,14 +94,13 @@ func GetProtocolsS3PoliciesFromSVM(errorHandler *utils.ErrorHandler, r restclien
     query := r.NewQuery()
     query.Fields([]string{"name", "comment", "read_only", "statements", "svm.name"})
 
-    if filter != nil {
-        var filterMap map[string]interface{}
-        if err := mapstructure.Decode(filter, &filterMap); err != nil {
-            return nil, errorHandler.MakeAndReportError("error encoding protocols_s3_policy filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
-        }
-        delete(filterMap, "svm.name")
-        query.SetValues(filterMap)
-    }
+	if filter != nil {
+		var filterMap map[string]interface{}
+		if err := mapstructure.Decode(filter, &filterMap); err != nil {
+			return nil, errorHandler.MakeAndReportError("error encoding protocols_nfs_service filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
+		}
+		query.SetValues(filterMap)
+	}
 
     statusCode, response, err := r.GetZeroOrMoreRecords(api, query, nil)
     if err != nil {
