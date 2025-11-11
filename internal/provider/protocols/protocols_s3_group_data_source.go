@@ -55,6 +55,7 @@ type PolicyGetDataModel struct {
 // ProtocolsS3GroupDataSourceFilterModel describes the data source data model for queries.
 type ProtocolsS3GroupDataSourceFilterModel struct {
 	SVMName types.String `tfsdk:"svm_name"`
+	Name    types.String `tfsdk:"name"`
 }
 
 // Metadata returns the data source type name.

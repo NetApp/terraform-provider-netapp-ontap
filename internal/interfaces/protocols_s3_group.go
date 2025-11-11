@@ -40,6 +40,7 @@ type PolicyGetDataModel struct {
 // S3GroupsFilterModel describes the filter model for S3 groups
 type S3GroupsFilterModel struct {
 	SVMName string `mapstructure:"svm.name"`
+	Name    string `mapstructure:"name"`
 }
 
 // GetProtocolsS3GroupbyID to get S3 group info given its ID
@@ -93,13 +94,16 @@ func GetProtocolsS3Group(errorHandler *utils.ErrorHandler, r restclient.RestClie
 }
 
 // GetProtocolsS3Groups to get list of S3 groups info for given SVM
-func GetProtocolsS3Groups(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmUUID string, version versionModelONTAP) ([]ProtocolsS3GroupGetDataModelONTAP, error) {
+func GetProtocolsS3Groups(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmUUID string, version versionModelONTAP, groupName string) ([]ProtocolsS3GroupGetDataModelONTAP, error) {
 	if version.Generation == 9 && version.Major < 8 {
 		return nil, errorHandler.MakeAndReportError("error reading S3 groups info", "protocols/s3/services/{svm.uuid}/groups API supported on ONTAP version 9.8 or later")
 	}
 	
 	api := fmt.Sprintf("protocols/s3/services/%s/groups", svmUUID)
 	query := r.NewQuery()
+	if groupName != "" {
+		query.Set("name", groupName)
+	}
 	var fields = []string{"svm", "name", "id", "comment", "users.name", "policies.name"}
 	query.Fields(fields)
 	

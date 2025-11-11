@@ -60,6 +60,10 @@ func (d *ProtocolsS3GroupsDataSource) Schema(ctx context.Context, req datasource
 						MarkdownDescription: "The name of the SVM",
 						Optional:            true,
 					},
+					"name": schema.StringAttribute{
+						MarkdownDescription: "The name of the S3 group",
+						Optional:            true,
+					},
 				},
 				Optional: true,
 			},
@@ -150,8 +154,8 @@ func (d *ProtocolsS3GroupsDataSource) Read(ctx context.Context, req datasource.R
 		return
 	}
 
-	if data.Filter == nil {
-		errorHandler.MakeAndReportError("No SVM specified", "either svm_name or filter must be specified")
+	if data.Filter == nil || data.Filter.SVMName.IsNull() {
+		errorHandler.MakeAndReportError("No SVM specified", "svm_name must be specified in filter")
 		return
 	}
 
@@ -163,7 +167,7 @@ func (d *ProtocolsS3GroupsDataSource) Read(ctx context.Context, req datasource.R
 		return
 	}
 
-	restInfo, err := interfaces.GetProtocolsS3Groups(errorHandler, *client, svm.UUID, cluster.Version)
+	restInfo, err := interfaces.GetProtocolsS3Groups(errorHandler, *client, svm.UUID, cluster.Version, data.Filter.Name.ValueString())
 	if err != nil {
 		// error reporting done inside GetProtocolsS3Groups
 		return
