@@ -295,7 +295,7 @@ func (d *ProtocolsCIFSShareDataSource) Read(ctx context.Context, req datasource.
 	data.Path = types.StringValue(restInfo.Path)
 	data.ShowSnapshot = types.BoolValue(restInfo.ShowSnapshot)
 	data.UnixSymlink = types.StringValue(restInfo.UnixSymlink)
-	data.AccessBasedEnumeration = types.BoolValue(*restInfo.AccessBasedEnumeration)
+	data.AccessBasedEnumeration = types.BoolValue(restInfo.AccessBasedEnumeration)
 
 	// Acls
 	setElements := []attr.Value{}

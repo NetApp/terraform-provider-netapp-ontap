@@ -321,7 +321,7 @@ func (d *ProtocolsCIFSSharesDataSource) Read(ctx context.Context, req datasource
 		data.ProtocolsCIFSShares[index].ShowSnapshot = types.BoolValue(record.ShowSnapshot)
 		data.ProtocolsCIFSShares[index].UnixSymlink = types.StringValue(record.UnixSymlink)
 		data.ProtocolsCIFSShares[index].VscanProfile = types.StringValue(record.VscanProfile)
-		data.ProtocolsCIFSShares[index].AccessBasedEnumeration = types.BoolValue(*record.AccessBasedEnumeration)
+		data.ProtocolsCIFSShares[index].AccessBasedEnumeration = types.BoolValue(record.AccessBasedEnumeration)
 
 		if len(record.Acls) == 0 {
 			setValue, diags := types.SetValue(types.ObjectType{

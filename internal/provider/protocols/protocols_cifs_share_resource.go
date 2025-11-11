@@ -387,9 +387,7 @@ func (r *ProtocolsCIFSShareResource) Read(ctx context.Context, req resource.Read
 	data.ShowSnapshot = types.BoolValue(restInfo.ShowSnapshot)
 	data.UnixSymlink = types.StringValue(restInfo.UnixSymlink)
 	data.VscanProfile = types.StringValue(restInfo.VscanProfile)
-	if restInfo.AccessBasedEnumeration != nil {
-		data.AccessBasedEnumeration = types.BoolValue(*restInfo.AccessBasedEnumeration)
-	}
+	data.AccessBasedEnumeration = types.BoolValue(restInfo.AccessBasedEnumeration)
 
 	// Acls
 	setElements := []attr.Value{}
@@ -501,8 +499,7 @@ func (r *ProtocolsCIFSShareResource) Create(ctx context.Context, req resource.Cr
 		body.Encryption = data.Encryption.ValueBool()
 	}
 	if !data.AccessBasedEnumeration.IsUnknown() {
-		val := data.AccessBasedEnumeration.ValueBool()
-		body.AccessBasedEnumeration = &val
+		body.AccessBasedEnumeration = data.AccessBasedEnumeration.ValueBool()
 	}
 	if !data.FileUmask.IsUnknown() {
 		body.FileUmask = data.FileUmask.ValueInt64()
@@ -566,9 +563,7 @@ func (r *ProtocolsCIFSShareResource) Create(ctx context.Context, req resource.Cr
 	data.ShowSnapshot = types.BoolValue(restInfo.ShowSnapshot)
 	data.UnixSymlink = types.StringValue(restInfo.UnixSymlink)
 	data.VscanProfile = types.StringValue(restInfo.VscanProfile)
-	if restInfo.AccessBasedEnumeration != nil {
-		data.AccessBasedEnumeration = types.BoolValue(*restInfo.AccessBasedEnumeration)
-	}
+	data.AccessBasedEnumeration = types.BoolValue(restInfo.AccessBasedEnumeration)
 	// Acls
 	setElements := []attr.Value{}
 	if restInfo.Acls == nil {
@@ -686,8 +681,7 @@ func (r *ProtocolsCIFSShareResource) Update(ctx context.Context, req resource.Up
 	}
 	if !plan.AccessBasedEnumeration.IsUnknown() {
 		if plan.AccessBasedEnumeration != state.AccessBasedEnumeration {
-			val := plan.AccessBasedEnumeration.ValueBool()
-			body.AccessBasedEnumeration = &val
+			body.AccessBasedEnumeration = plan.AccessBasedEnumeration.ValueBool()
 		}
 	}
 	if !plan.FileUmask.IsUnknown() {

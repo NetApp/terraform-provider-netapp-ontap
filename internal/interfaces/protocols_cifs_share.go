@@ -31,7 +31,7 @@ type ProtocolsCIFSShareGetDataModelONTAP struct {
 	ShowSnapshot          bool      `mapstructure:"show_snapshot"`
 	UnixSymlink           string    `mapstructure:"unix_symlink"`
 	VscanProfile          string    `mapstructure:"vscan_profile"`
-	AccessBasedEnumeration *bool	`mapstructure:"access_based_enumeration"`
+	AccessBasedEnumeration bool     `mapstructure:"access_based_enumeration"`
 }
 
 // Acls describes the acls data model using go types for mapping in ProtocolsCIFSShareResourceBodyDataModelONTAP.
@@ -69,7 +69,7 @@ type ProtocolsCIFSShareResourceBodyDataModelONTAP struct {
 	ShowSnapshot          bool   `mapstructure:"show_snapshot,omitempty"`
 	UnixSymlink           string `mapstructure:"unix_symlink,omitempty"`  // API complains if this is not omit empty
 	VscanProfile          string `mapstructure:"vscan_profile,omitempty"` // API complains if this is not omit empty
-	AccessBasedEnumeration *bool `mapstructure:"access_based_enumeration,omitempty"`
+	AccessBasedEnumeration bool  `mapstructure:"access_based_enumeration"`
 }
 
 // ProtocolsCIFSShareDataSourceFilterModel describes the data source data model for queries.
