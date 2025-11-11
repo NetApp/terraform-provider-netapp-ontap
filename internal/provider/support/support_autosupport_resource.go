@@ -274,7 +274,7 @@ func (r *AutoSupportResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	var bodyMap = make(map[string]interface{})
+	var body = make(map[string]interface{})
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 
 	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
@@ -294,28 +294,28 @@ func (r *AutoSupportResource) Create(ctx context.Context, req resource.CreateReq
 
 	// Convert Terraform plan data to API body map - only include configured fields
 	if !data.Enabled.IsNull() && !data.Enabled.IsUnknown() {
-		bodyMap["enabled"] = data.Enabled.ValueBool()
+		body["enabled"] = data.Enabled.ValueBool()
 	}
 	if !data.Transport.IsNull() && !data.Transport.IsUnknown() {
-		bodyMap["transport"] = data.Transport.ValueString()
+		body["transport"] = data.Transport.ValueString()
 	}
 	if !data.From.IsNull() && !data.From.IsUnknown() {
-		bodyMap["from"] = data.From.ValueString()
+		body["from"] = data.From.ValueString()
 	}
 	if !data.ContactSupport.IsNull() && !data.ContactSupport.IsUnknown() {
-		bodyMap["contact_support"] = data.ContactSupport.ValueBool()
+		body["contact_support"] = data.ContactSupport.ValueBool()
 	}
 	if !data.ProxyURL.IsNull() && !data.ProxyURL.IsUnknown() {
-		bodyMap["proxy_url"] = data.ProxyURL.ValueString()
+		body["proxy_url"] = data.ProxyURL.ValueString()
 	}
 	if !data.IsMinimal.IsNull() && !data.IsMinimal.IsUnknown() {
-		bodyMap["is_minimal"] = data.IsMinimal.ValueBool()
+		body["is_minimal"] = data.IsMinimal.ValueBool()
 	}
 	if !data.OndemandEnabled.IsNull() && !data.OndemandEnabled.IsUnknown() {
 		ondemandEnabled := data.OndemandEnabled.ValueBool()
 		// ondemand_enabled is only supported in ONTAP 9.16.1 or higher
 		if cluster.Version.Generation == 9 && (cluster.Version.Major > 16 || (cluster.Version.Major == 16 && cluster.Version.Minor >= 1)) {
-			bodyMap["ondemand_enabled"] = ondemandEnabled
+			body["ondemand_enabled"] = ondemandEnabled
 		} else {
 			errors = append(errors, "ondemand_enabled")
 		}
@@ -324,7 +324,7 @@ func (r *AutoSupportResource) Create(ctx context.Context, req resource.CreateReq
 		smtpEncryption := data.SmtpEncryption.ValueString()
 		// smtp_encryption is only supported in ONTAP 9.15.0 or higher
 		if cluster.Version.Generation == 9 && cluster.Version.Major >= 15 {
-			bodyMap["smtp_encryption"] = smtpEncryption
+			body["smtp_encryption"] = smtpEncryption
 		} else {
 			errors = append(errors, "smtp_encryption")
 		}
@@ -338,7 +338,7 @@ func (r *AutoSupportResource) Create(ctx context.Context, req resource.CreateReq
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		bodyMap["to"] = toAddresses
+		body["to"] = toAddresses
 	}
 	if !data.PartnerAddresses.IsNull() && !data.PartnerAddresses.IsUnknown() {
 		var partnerAddresses []string
@@ -347,7 +347,7 @@ func (r *AutoSupportResource) Create(ctx context.Context, req resource.CreateReq
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		bodyMap["partner_addresses"] = partnerAddresses
+		body["partner_addresses"] = partnerAddresses
 	}
 	if !data.MailHosts.IsNull() && !data.MailHosts.IsUnknown() {
 		var mailHosts []string
@@ -356,7 +356,7 @@ func (r *AutoSupportResource) Create(ctx context.Context, req resource.CreateReq
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		bodyMap["mail_hosts"] = mailHosts
+		body["mail_hosts"] = mailHosts
 	}
 
 	force := false
@@ -380,7 +380,7 @@ func (r *AutoSupportResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	err = interfaces.UpdateAutoSupport(errorHandler, *client, force, bodyMap)
+	err = interfaces.UpdateAutoSupport(errorHandler, *client, force, body)
 	if err != nil {
 		return
 	}
@@ -468,20 +468,26 @@ func (r *AutoSupportResource) Create(ctx context.Context, req resource.CreateReq
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *AutoSupportResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *AutoSupportResourceModel
+	var plan *AutoSupportResourceModel
+	var state *AutoSupportResourceModel
 
 	// Read Terraform plan data into the model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	var bodyMap = make(map[string]interface{})
+	// Read Terraform prior state data into the model
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	var body = make(map[string]interface{})
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 
 	// we need to defer setting the client until we can read the connection profile name
-	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
+	client, err := connection.GetRestClient(errorHandler, r.config, plan.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
@@ -500,71 +506,71 @@ func (r *AutoSupportResource) Update(ctx context.Context, req resource.UpdateReq
 
 	var errors []string
 
-	// Convert Terraform plan data to API body map - only include configured fields
-	if !data.Enabled.IsNull() && !data.Enabled.IsUnknown() {
-		bodyMap["enabled"] = data.Enabled.ValueBool()
+	// Convert Terraform plan data to API body map - only include configured fields  
+	if !plan.Enabled.IsNull() && !plan.Enabled.IsUnknown() {
+		body["enabled"] = plan.Enabled.ValueBool()
 	}
-	if !data.Transport.IsNull() && !data.Transport.IsUnknown() {
-		bodyMap["transport"] = data.Transport.ValueString()
+	if !plan.Transport.IsNull() && !plan.Transport.IsUnknown() {
+		body["transport"] = plan.Transport.ValueString()
 	}
-	if !data.From.IsNull() && !data.From.IsUnknown() {
-		bodyMap["from"] = data.From.ValueString()
+	if !plan.From.IsNull() && !plan.From.IsUnknown() {
+		body["from"] = plan.From.ValueString()
 	}
-	if !data.ContactSupport.IsNull() && !data.ContactSupport.IsUnknown() {
-		bodyMap["contact_support"] = data.ContactSupport.ValueBool()
+	if !plan.ContactSupport.IsNull() && !plan.ContactSupport.IsUnknown() {
+		body["contact_support"] = plan.ContactSupport.ValueBool()
 	}
-	if !data.ProxyURL.IsNull() && !data.ProxyURL.IsUnknown() {
-		bodyMap["proxy_url"] = data.ProxyURL.ValueString()
+	if !plan.ProxyURL.IsNull() && !plan.ProxyURL.IsUnknown() {
+		body["proxy_url"] = plan.ProxyURL.ValueString()
 	}
-	if !data.IsMinimal.IsNull() && !data.IsMinimal.IsUnknown() {
-		bodyMap["is_minimal"] = data.IsMinimal.ValueBool()
+	if !plan.IsMinimal.IsNull() && !plan.IsMinimal.IsUnknown() {
+		body["is_minimal"] = plan.IsMinimal.ValueBool()
 	}
-	if !data.OndemandEnabled.IsNull() && !data.OndemandEnabled.IsUnknown() {
-		ondemandEnabled := data.OndemandEnabled.ValueBool()
+	if !plan.OndemandEnabled.IsNull() && !plan.OndemandEnabled.IsUnknown() {
+		ondemandEnabled := plan.OndemandEnabled.ValueBool()
 		// ondemand_enabled is only supported in ONTAP 9.16.1 or higher
 		if cluster.Version.Generation == 9 && (cluster.Version.Major > 16 || (cluster.Version.Major == 16 && cluster.Version.Minor >= 1)) {
-			bodyMap["ondemand_enabled"] = ondemandEnabled
+			body["ondemand_enabled"] = ondemandEnabled
 		} else {
 			errors = append(errors, "ondemand_enabled")
 		}
 	}
-	if !data.SmtpEncryption.IsNull() && !data.SmtpEncryption.IsUnknown() {
-		smtpEncryption := data.SmtpEncryption.ValueString()
+	if !plan.SmtpEncryption.IsNull() && !plan.SmtpEncryption.IsUnknown() {
+		smtpEncryption := plan.SmtpEncryption.ValueString()
 		// smtp_encryption is only supported in ONTAP 9.15.0 or higher
 		if cluster.Version.Generation == 9 && cluster.Version.Major >= 15 {
-			bodyMap["smtp_encryption"] = smtpEncryption
+			body["smtp_encryption"] = smtpEncryption
 		} else {
 			errors = append(errors, "smtp_encryption")
 		}
 	}
 
 	// Handle sets
-	if !data.To.IsNull() && !data.To.IsUnknown() {
+	if !plan.To.IsNull() && !plan.To.IsUnknown() {
 		var toAddresses []string
-		diags := data.To.ElementsAs(ctx, &toAddresses, false)
+		diags := plan.To.ElementsAs(ctx, &toAddresses, false)
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		bodyMap["to"] = toAddresses
+		body["to"] = toAddresses
 	}
-	if !data.PartnerAddresses.IsNull() && !data.PartnerAddresses.IsUnknown() {
+	if !plan.PartnerAddresses.IsNull() && !plan.PartnerAddresses.IsUnknown() {
 		var partnerAddresses []string
-		diags := data.PartnerAddresses.ElementsAs(ctx, &partnerAddresses, false)
+		diags := plan.PartnerAddresses.ElementsAs(ctx, &partnerAddresses, false)
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		bodyMap["partner_addresses"] = partnerAddresses
+		body["partner_addresses"] = partnerAddresses
 	}
-	if !data.MailHosts.IsNull() && !data.MailHosts.IsUnknown() {
+	if !plan.MailHosts.IsNull() && !plan.MailHosts.IsUnknown() {
 		var mailHosts []string
-		diags := data.MailHosts.ElementsAs(ctx, &mailHosts, false)
+		diags := plan.MailHosts.ElementsAs(ctx, &mailHosts, false)
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		bodyMap["mail_hosts"] = mailHosts
+		body["mail_hosts"] = mailHosts
 	}
 
 	// Check for version restriction errors before making the API call
@@ -580,10 +586,10 @@ func (r *AutoSupportResource) Update(ctx context.Context, req resource.UpdateReq
 
 	// Extract force parameter separately and check version compatibility
 	force := false
-	if !data.Force.IsNull() && !data.Force.IsUnknown() {
+	if !plan.Force.IsNull() && !plan.Force.IsUnknown() {
 		// force parameter is only supported in ONTAP 9.16.0 or higher
 		if cluster.Version.Generation == 9 && cluster.Version.Major >= 16 {
-			force = data.Force.ValueBool()
+			force = plan.Force.ValueBool()
 		} else {
 			errors = append(errors, "force")
 		}
@@ -600,7 +606,7 @@ func (r *AutoSupportResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	err = interfaces.UpdateAutoSupport(errorHandler, *client, force, bodyMap)
+	err = interfaces.UpdateAutoSupport(errorHandler, *client, force, body)
 	if err != nil {
 		return
 	}
@@ -622,21 +628,16 @@ func (r *AutoSupportResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	// Update data with current state
-	if err != nil {
-		return
-	}
-
-	// Update data with current state
-	data.ID = data.CxProfileName // For singleton resources, use cx_profile_name as ID
-	data.Enabled = types.BoolValue(restInfo.Enabled)
-	data.Transport = types.StringValue(restInfo.Transport)
-	data.From = types.StringValue(restInfo.From)
-	data.ContactSupport = types.BoolValue(restInfo.ContactSupport)
-	data.ProxyURL = types.StringValue(restInfo.ProxyURL)
-	data.IsMinimal = types.BoolValue(restInfo.IsMinimal)
-	data.OndemandEnabled = types.BoolValue(restInfo.OndemandEnabled)
-	data.SmtpEncryption = types.StringValue(restInfo.SmtpEncryption)
+	// Update plan with current state
+	plan.ID = plan.CxProfileName // For singleton resources, use cx_profile_name as ID
+	plan.Enabled = types.BoolValue(restInfo.Enabled)
+	plan.Transport = types.StringValue(restInfo.Transport)
+	plan.From = types.StringValue(restInfo.From)
+	plan.ContactSupport = types.BoolValue(restInfo.ContactSupport)
+	plan.ProxyURL = types.StringValue(restInfo.ProxyURL)
+	plan.IsMinimal = types.BoolValue(restInfo.IsMinimal)
+	plan.OndemandEnabled = types.BoolValue(restInfo.OndemandEnabled)
+	plan.SmtpEncryption = types.StringValue(restInfo.SmtpEncryption)
 
 	// Handle string slices for sets
 	if restInfo.To != nil {
@@ -649,9 +650,9 @@ func (r *AutoSupportResource) Update(ctx context.Context, req resource.UpdateReq
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		data.To = setVal
+		plan.To = setVal
 	} else {
-		data.To = types.SetNull(types.StringType)
+		plan.To = types.SetNull(types.StringType)
 	}
 
 	if restInfo.PartnerAddresses != nil {
@@ -664,9 +665,9 @@ func (r *AutoSupportResource) Update(ctx context.Context, req resource.UpdateReq
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		data.PartnerAddresses = setVal
+		plan.PartnerAddresses = setVal
 	} else {
-		data.PartnerAddresses = types.SetNull(types.StringType)
+		plan.PartnerAddresses = types.SetNull(types.StringType)
 	}
 
 	if restInfo.MailHosts != nil {
@@ -679,13 +680,13 @@ func (r *AutoSupportResource) Update(ctx context.Context, req resource.UpdateReq
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		data.MailHosts = setVal
+		plan.MailHosts = setVal
 	} else {
-		data.MailHosts = types.SetNull(types.StringType)
+		plan.MailHosts = types.SetNull(types.StringType)
 	}
 
 	// Save updated data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
