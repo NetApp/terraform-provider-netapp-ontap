@@ -10,14 +10,25 @@ description: |-
 
 ProtocolsS3Policy data source
 
+## Related ONTAP commands
+
+```commandline
+* vserver object-store-server policy show
+```
+
+## Supported Platforms
+
+* On-prem ONTAP system 9.8 or higher
+* Amazon FSx for NetApp ONTAP
+
 ## Example Usage
 
 ```terraform
 data "netapp-ontap_s3_policy" "protocols_s3_policy" {
   # required to know which system to interface with
-  cx_profile_name = "mycluster"
+  cx_profile_name = "cluster5"
   name = "test_policy"
-  svm_name = "inter_svm"
+  svm_name = "tf_acc_svm"
 }
 ```
 
@@ -35,7 +46,6 @@ data "netapp-ontap_s3_policy" "protocols_s3_policy" {
 - `comment` (String) Optional comment for the S3 policy
 - `id` (String) Identifier
 - `statements` (Attributes List) Policy statements (see [below for nested schema](#nestedatt--statements))
-- `svm` (Attributes) SVM details (see [below for nested schema](#nestedatt--svm))
 
 <a id="nestedatt--statements"></a>
 ### Nested Schema for `statements`
@@ -46,12 +56,3 @@ Read-Only:
 - `effect` (String) Statement effect (Allow or Deny)
 - `resources` (List of String) List of S3 resources
 - `sid` (String) Statement ID
-
-
-<a id="nestedatt--svm"></a>
-### Nested Schema for `svm`
-
-Read-Only:
-
-- `name` (String) SVM name
-- `uuid` (String) SVM UUID

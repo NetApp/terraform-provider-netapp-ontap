@@ -10,16 +10,32 @@ description: |-
 
 ProtocolsS3Policies data source
 
+## Related ONTAP commands
+
+```commandline
+* vserver object-store-server policy show
+```
+
 ## Example Usage
 
 ```terraform
-# Example Terraform configuration for multiple S3 Policies data source
+# retrieving S3 policies for a SVM matching the name filter
 
-data "netapp-ontap_s3_policies" "example" {
+data "netapp-ontap_s3_policies" "example1" {
   # required to know which system to interface with
-  cx_profile_name = "mycluster"
+  cx_profile_name = "cluster5"
   filter = {
-    svm_name = "svm1"
+    svm_name = "tf_acc_svm"
+    name = "test_policy*"
+  }
+}
+
+# retrieving S3 policies for a SVM
+data "netapp-ontap_s3_policies" "example2" {
+  # required to know which system to interface with
+  cx_profile_name = "cluster5"
+  filter = {
+    svm_name = "tf_acc_svm"
   }
 }
 ```
@@ -30,7 +46,6 @@ data "netapp-ontap_s3_policies" "example" {
 ### Required
 
 - `cx_profile_name` (String) Connection profile name
-- `svm_name` (String) Name of the SVM
 
 ### Optional
 
@@ -47,7 +62,7 @@ data "netapp-ontap_s3_policies" "example" {
 Optional:
 
 - `name` (String) Filter by policy name
-
+- `svm_name` (String) The name of the SVM
 
 <a id="nestedatt--protocols_s3_policies"></a>
 ### Nested Schema for `protocols_s3_policies`
@@ -57,7 +72,6 @@ Read-Only:
 - `comment` (String) Optional comment for the S3 policy
 - `name` (String) Name of the S3 policy
 - `statements` (Attributes List) Policy statements (see [below for nested schema](#nestedatt--protocols_s3_policies--statements))
-- `svm` (Attributes) SVM details (see [below for nested schema](#nestedatt--protocols_s3_policies--svm))
 
 <a id="nestedatt--protocols_s3_policies--statements"></a>
 ### Nested Schema for `protocols_s3_policies.statements`
@@ -68,12 +82,3 @@ Read-Only:
 - `effect` (String) Statement effect (Allow or Deny)
 - `resources` (List of String) List of S3 resources
 - `sid` (String) Statement ID
-
-
-<a id="nestedatt--protocols_s3_policies--svm"></a>
-### Nested Schema for `protocols_s3_policies.svm`
-
-Read-Only:
-
-- `name` (String) SVM name
-- `uuid` (String) SVM UUID

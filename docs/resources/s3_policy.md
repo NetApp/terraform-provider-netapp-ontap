@@ -10,14 +10,30 @@ description: |-
 
 Protocols S3 Policy resource
 
+## Related ONTAP commands
+
+```commandline
+* vserver object-store-server policy create
+* vserver object-store-server policy add-statement
+* vserver object-store-server policy modify
+* vserver object-store-server policy modify-statement
+* vserver object-store-server policy delete
+* vserver object-store-server policy delete-statement
+```
+
+## Supported Platforms
+
+* On-prem ONTAP system 9.8 or higher
+* Amazon FSx for NetApp ONTAP
+
 ## Example Usage
 
 ```terraform
 # Example with statements
 resource "netapp-ontap_s3_policy" "protocols_s3_policy" {
-  cx_profile_name = "mycluster"
+  cx_profile_name = "cluster5"
   name = "test_policy1"
-  svm_name = "inter_svm"
+  svm_name = "tf_acc_svm"
   statements = [
     {
       sid       = "AllowFullAccessToBucket1"

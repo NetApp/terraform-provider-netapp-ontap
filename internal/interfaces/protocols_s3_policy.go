@@ -42,26 +42,21 @@ type ProtocolsS3PolicyResourceBodyDataModelONTAP struct {
 }
 
 // ProtocolsS3PolicyDataSourceFilterModel describes the data source data model for queries.
-type ProtocolsS3PolicyDataSourceFilterModel struct {
+type ProtocolsS3PolicyFilterModel struct {
     Name    string `mapstructure:"name"`
     SVMName string `mapstructure:"svm.name"`
 }
 
 // GetProtocolsS3Policy to get protocols_s3_policy info
-func GetProtocolsS3Policy(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, svmName string, version versionModelONTAP) (*ProtocolsS3PolicyGetDataModelONTAP, error) {
+func GetProtocolsS3Policy(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string, svmUUID string, version versionModelONTAP) (*ProtocolsS3PolicyGetDataModelONTAP, error) {
 	if version.Generation == 9 && version.Major < 8 {
 		return nil, errorHandler.MakeAndReportError("error reading S3 policy info", "protocols/s3/services/{svm.uuid}/policies/{name} API supported on ONTAP version 9.8 or later")
     }
-    // Get SVM info using existing function
-    svmInfo, err := GetSvmByName(errorHandler, r, svmName)
-    if err != nil {
-        return nil, err
-    }
     
-    api := fmt.Sprintf("protocols/s3/services/%s/policies", svmInfo.UUID)
+    api := fmt.Sprintf("protocols/s3/services/%s/policies", svmUUID)
     query := r.NewQuery()
     query.Set("name", name)
-    query.Fields([]string{"name", "comment", "read_only", "statements", "svm.name"})
+    query.Fields([]string{"name", "comment", "read_only", "statements", "svm"})
 
     statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
     if err == nil && response == nil {
@@ -80,27 +75,17 @@ func GetProtocolsS3Policy(errorHandler *utils.ErrorHandler, r restclient.RestCli
 }
 
 // GetProtocolsS3Policies to get protocols_s3_policy info for all resources matching a filter
-func GetProtocolsS3Policies(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *ProtocolsS3PolicyDataSourceFilterModel, version versionModelONTAP) ([]ProtocolsS3PolicyGetDataModelONTAP, error) {
+func GetProtocolsS3Policies(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmUUID string, version versionModelONTAP, policyName string) ([]ProtocolsS3PolicyGetDataModelONTAP, error) {
 	if version.Generation == 9 && version.Major < 8 {
 		return nil, errorHandler.MakeAndReportError("error reading S3 policies info", "protocols/s3/services/{svm.uuid}/policies API supported on ONTAP version 9.8 or later")
     }
-    // Get SVM info using existing function
-    svmInfo, err := GetSvmByName(errorHandler, r, filter.SVMName)
-    if err != nil {
-        return nil, err
-    }
     
-    api := fmt.Sprintf("protocols/s3/services/%s/policies", svmInfo.UUID)
+    api := fmt.Sprintf("protocols/s3/services/%s/policies", svmUUID)
     query := r.NewQuery()
-    query.Fields([]string{"name", "comment", "read_only", "statements", "svm.name"})
-
-	if filter != nil {
-		var filterMap map[string]interface{}
-		if err := mapstructure.Decode(filter, &filterMap); err != nil {
-			return nil, errorHandler.MakeAndReportError("error encoding protocols_nfs_service filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
-		}
-		query.SetValues(filterMap)
+	if policyName != "" {
+		query.Set("name", policyName)
 	}
+    query.Fields([]string{"name", "comment", "read_only", "statements", "svm"})
 
     statusCode, response, err := r.GetZeroOrMoreRecords(api, query, nil)
     if err != nil {
@@ -120,14 +105,9 @@ func GetProtocolsS3Policies(errorHandler *utils.ErrorHandler, r restclient.RestC
 }
 
 // CreateProtocolsS3Policy to create protocols_s3_policy
-func CreateProtocolsS3Policy(errorHandler *utils.ErrorHandler, r restclient.RestClient, body ProtocolsS3PolicyResourceBodyDataModelONTAP, svmName string) (*ProtocolsS3PolicyGetDataModelONTAP, error) {
-    // Get SVM info using existing function
-    svmInfo, err := GetSvmByName(errorHandler, r, svmName)
-    if err != nil {
-        return nil, err
-    }
-    
-    api := fmt.Sprintf("protocols/s3/services/%s/policies", svmInfo.UUID)
+func CreateProtocolsS3Policy(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmUUID string, body ProtocolsS3PolicyResourceBodyDataModelONTAP) (*ProtocolsS3PolicyGetDataModelONTAP, error) {
+
+    api := fmt.Sprintf("protocols/s3/services/%s/policies", svmUUID)
     
     // Manually create the body map with correct lowercase field names
     bodyMap := map[string]interface{}{
@@ -170,14 +150,9 @@ func CreateProtocolsS3Policy(errorHandler *utils.ErrorHandler, r restclient.Rest
 }
 
 // UpdateProtocolsS3Policy to update protocols_s3_policy
-func UpdateProtocolsS3Policy(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmName string, policyName string, body interface{}) error {
-    // Get SVM info using existing function
-    svmInfo, err := GetSvmByName(errorHandler, r, svmName)
-    if err != nil {
-        return err
-    }
-    
-    api := fmt.Sprintf("protocols/s3/services/%s/policies/%s", svmInfo.UUID, policyName)
+func UpdateProtocolsS3Policy(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmUUID string, policyName string, body interface{}) error {
+
+    api := fmt.Sprintf("protocols/s3/services/%s/policies/%s", svmUUID, policyName)
     
     bodyMap, ok := body.(map[string]interface{})
     if !ok {
@@ -209,14 +184,9 @@ func UpdateProtocolsS3Policy(errorHandler *utils.ErrorHandler, r restclient.Rest
 }
 
 // DeleteProtocolsS3Policy to delete protocols_s3_policy
-func DeleteProtocolsS3Policy(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmName string, policyName string) error {
-    // Get SVM info using existing function
-    svmInfo, err := GetSvmByName(errorHandler, r, svmName)
-    if err != nil {
-        return err
-    }
-    
-    api := fmt.Sprintf("protocols/s3/services/%s/policies/%s", svmInfo.UUID, policyName)
+func DeleteProtocolsS3Policy(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmUUID string, policyName string) error {
+
+    api := fmt.Sprintf("protocols/s3/services/%s/policies/%s", svmUUID, policyName)
 
     statusCode, _, err := r.CallDeleteMethod(api, nil, nil)
     if err != nil {

@@ -218,6 +218,14 @@ func (r *ProtocolsS3PolicyResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
+	// Get SVM info
+	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.SVMName.ValueString())
+	if err != nil {
+		// error reporting done inside GetSvmByName
+		errorHandler.MakeAndReportError("No SVM found", "SVM not found")
+		return
+	}
+
 	var request interfaces.ProtocolsS3PolicyResourceBodyDataModelONTAP
 	request.Name = data.Name.ValueString()
 	
@@ -248,7 +256,7 @@ func (r *ProtocolsS3PolicyResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
-	_, err = interfaces.CreateProtocolsS3Policy(errorHandler, *client, request, data.SVMName.ValueString())
+	_, err = interfaces.CreateProtocolsS3Policy(errorHandler, *client, svm.UUID, request)
 	if err != nil {
 		return
 	}
@@ -257,7 +265,7 @@ func (r *ProtocolsS3PolicyResource) Create(ctx context.Context, req resource.Cre
 	data.ID = types.StringValue(fmt.Sprintf("%s/%s", data.SVMName.ValueString(), data.Name.ValueString()))
 	
 	// Read the resource back to get complete data
-	restInfo, err := interfaces.GetProtocolsS3Policy(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString(), cluster.Version)
+	restInfo, err := interfaces.GetProtocolsS3Policy(errorHandler, *client, data.Name.ValueString(), svm.UUID, cluster.Version)
 	if err != nil {
 		return
 	}
@@ -304,7 +312,15 @@ func (r *ProtocolsS3PolicyResource) Read(ctx context.Context, req resource.ReadR
 		return
 	}
 
-	restInfo, err := interfaces.GetProtocolsS3Policy(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString(), cluster.Version)
+	// Get SVM info
+	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.SVMName.ValueString())
+	if err != nil {
+		// error reporting done inside GetSvmByName
+		errorHandler.MakeAndReportError("No SVM found", "SVM not found")
+		return
+	}
+
+	restInfo, err := interfaces.GetProtocolsS3Policy(errorHandler, *client, data.Name.ValueString(), svm.UUID, cluster.Version)
 	if err != nil {
 		tflog.Debug(ctx, fmt.Sprintf("Error reading S3 policy %s from SVM %s: %v", data.Name.ValueString(), data.SVMName.ValueString(), err))
 		return
@@ -338,8 +354,7 @@ func (r *ProtocolsS3PolicyResource) Read(ctx context.Context, req resource.ReadR
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *ProtocolsS3PolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan *ProtocolsS3PolicyResourceModel
-	var state *ProtocolsS3PolicyResourceModel
+	var plan, state *ProtocolsS3PolicyResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -366,6 +381,14 @@ func (r *ProtocolsS3PolicyResource) Update(ctx context.Context, req resource.Upd
 	}
 	if cluster == nil {
 		errorHandler.MakeAndReportError("No cluster found", "cluster not found")
+		return
+	}
+
+	// Get SVM info
+	svm, err := interfaces.GetSvmByName(errorHandler, *client, state.SVMName.ValueString())
+	if err != nil {
+		// error reporting done inside GetSvmByName
+		errorHandler.MakeAndReportError("No SVM found", "SVM not found")
 		return
 	}
 
@@ -420,13 +443,13 @@ func (r *ProtocolsS3PolicyResource) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
-	err = interfaces.UpdateProtocolsS3Policy(errorHandler, *client, plan.SVMName.ValueString(), plan.Name.ValueString(), updateRequest)
+	err = interfaces.UpdateProtocolsS3Policy(errorHandler, *client, svm.UUID, plan.Name.ValueString(), updateRequest)
 	if err != nil {
 		return
 	}
 
 	// Read back the updated configuration to ensure consistency and get computed fields like index
-	restInfo, err := interfaces.GetProtocolsS3Policy(errorHandler, *client, plan.Name.ValueString(), plan.SVMName.ValueString(), cluster.Version)
+	restInfo, err := interfaces.GetProtocolsS3Policy(errorHandler, *client, plan.Name.ValueString(), svm.UUID, cluster.Version)
 	if err != nil {
 		return
 	}
@@ -464,7 +487,15 @@ func (r *ProtocolsS3PolicyResource) Delete(ctx context.Context, req resource.Del
 		return
 	}
 
-	err = interfaces.DeleteProtocolsS3Policy(errorHandler, *client, data.SVMName.ValueString(), data.Name.ValueString())
+	// Get SVM info
+	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.SVMName.ValueString())
+	if err != nil {
+		// error reporting done inside GetSvmByName
+		errorHandler.MakeAndReportError("No SVM found", "SVM not found")
+		return
+	}
+
+	err = interfaces.DeleteProtocolsS3Policy(errorHandler, *client, svm.UUID, data.Name.ValueString())
 	if err != nil {
 		return
 	}

@@ -38,13 +38,7 @@ type ProtocolsS3PolicyDataSourceModel struct {
     Comment      types.String                    `tfsdk:"comment"`
     ReadOnly     types.Bool                      `tfsdk:"read_only"`
     SVMName      types.String                    `tfsdk:"svm_name"`
-    SVM          *ProtocolsS3PolicySVMModel      `tfsdk:"svm"`
     Statements   []ProtocolsS3PolicyStatementModel `tfsdk:"statements"`
-}
-
-// ProtocolsS3PolicySVMModel describes the SVM data model.
-type ProtocolsS3PolicySVMModel struct {
-    Name types.String `tfsdk:"name"`
 }
 
 // ProtocolsS3PolicyStatementModel describes the statement data model.
@@ -53,6 +47,12 @@ type ProtocolsS3PolicyStatementModel struct {
     Effect     types.String   `tfsdk:"effect"`
     Actions    []types.String `tfsdk:"actions"`
     Resources  []types.String `tfsdk:"resources"`
+}
+
+// ProtocolsS3PolicyDataSourceFilterModel describes the data source data model for queries.
+type ProtocolsS3PolicyDataSourceFilterModel struct {
+	SVMName types.String `tfsdk:"svm_name"`
+	Name    types.String `tfsdk:"name"`
 }
 
 // Metadata returns the data source type name.
@@ -89,16 +89,6 @@ func (d *ProtocolsS3PolicyDataSource) Schema(_ context.Context, _ datasource.Sch
             "read_only": schema.BoolAttribute{
                 MarkdownDescription: "Indicates if the policy is read-only",
                 Computed:            true,
-            },
-            "svm": schema.SingleNestedAttribute{
-                Computed:            true,
-                MarkdownDescription: "SVM details",
-                Attributes: map[string]schema.Attribute{
-                    "name": schema.StringAttribute{
-                        MarkdownDescription: "SVM name",
-                        Computed:            true,
-                    },
-                },
             },
             "statements": schema.ListNestedAttribute{
                 Computed:            true,
@@ -158,21 +148,29 @@ func (d *ProtocolsS3PolicyDataSource) Read(ctx context.Context, req datasource.R
 		return
 	}
 
-    restInfo, err := interfaces.GetProtocolsS3Policy(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString(), cluster.Version)
+	// Get SVM info
+	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.SVMName.ValueString())
+	if err != nil {
+		// error reporting done inside GetSvmByName
+		errorHandler.MakeAndReportError("No SVM found", "SVM not found")
+		return
+	}
+
+    restInfo, err := interfaces.GetProtocolsS3Policy(errorHandler, *client, data.Name.ValueString(), svm.UUID, cluster.Version)
     if err != nil {
         return
     }
+
+	if restInfo == nil {
+		errorHandler.MakeAndReportError("No S3 policy found", "S3 policy not found")
+		return
+	}
 
     // Map response to model
     data.Name = types.StringValue(restInfo.Name)
     data.Comment = types.StringValue(restInfo.Comment)
     data.ReadOnly = types.BoolValue(restInfo.ReadOnly)
     data.SVMName = types.StringValue(restInfo.SVM.Name)
-    
-    // Set SVM details
-    data.SVM = &ProtocolsS3PolicySVMModel{
-        Name: types.StringValue(restInfo.SVM.Name),
-    }
 
     // Convert statements
     statements := make([]ProtocolsS3PolicyStatementModel, len(restInfo.Statements))

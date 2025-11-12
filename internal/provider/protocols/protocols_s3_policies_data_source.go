@@ -34,22 +34,17 @@ func NewProtocolsS3PoliciesDataSource() datasource.DataSource {
 type ProtocolsS3PoliciesDataSourceModel struct {
     CxProfileName types.String                       `tfsdk:"cx_profile_name"`
     SVMName       types.String                       `tfsdk:"svm_name"`
-    Filter        *ProtocolsS3PoliciesFilterModel    `tfsdk:"filter"`
+    Filter        *ProtocolsS3PolicyDataSourceFilterModel    `tfsdk:"filter"`
     Policies      []ProtocolsS3PolicyDataModel       `tfsdk:"protocols_s3_policies"`
     ID            types.String                       `tfsdk:"id"`
 }
 
-// ProtocolsS3PoliciesFilterModel describes the filter data model.
-type ProtocolsS3PoliciesFilterModel struct {
-    SVMName types.String `tfsdk:"svm_name"`
-}
-
 // ProtocolsS3PolicyDataModel describes individual policy data model.
 type ProtocolsS3PolicyDataModel struct {
+    SVMName    types.String                          `tfsdk:"svm_name"`
     Name       types.String                          `tfsdk:"name"`
     Comment    types.String                          `tfsdk:"comment"`
     ReadOnly   types.Bool                            `tfsdk:"read_only"`
-    SVM        *ProtocolsS3PolicySVMModel            `tfsdk:"svm"`
     Statements []ProtocolsS3PolicyStatementModel    `tfsdk:"statements"`
 }
 
@@ -80,10 +75,14 @@ func (d *ProtocolsS3PoliciesDataSource) Schema(_ context.Context, _ datasource.S
                 MarkdownDescription: "Filter for S3 policies",
                 Optional:            true,
                 Attributes: map[string]schema.Attribute{
-                    "svm_name": schema.StringAttribute{
-                        MarkdownDescription: "Filter by SVM name",
-                        Optional:            true,
-                    },
+					"svm_name": schema.StringAttribute{
+						MarkdownDescription: "The name of the SVM",
+						Optional:            true,
+					},
+					"name": schema.StringAttribute{
+						MarkdownDescription: "The name of the S3 policy",
+						Optional:            true,
+					},
                 },
             },
             "protocols_s3_policies": schema.ListNestedAttribute{
@@ -91,9 +90,13 @@ func (d *ProtocolsS3PoliciesDataSource) Schema(_ context.Context, _ datasource.S
                 MarkdownDescription: "List of S3 policies",
                 NestedObject: schema.NestedAttributeObject{
                     Attributes: map[string]schema.Attribute{
+						"svm_name": schema.StringAttribute{
+							MarkdownDescription: "The name of the SVM",
+							Required:            true,
+						},
                         "name": schema.StringAttribute{
                             MarkdownDescription: "Name of the S3 policy",
-                            Computed:            true,
+                            Required:            true,
                         },
                         "comment": schema.StringAttribute{
                             MarkdownDescription: "Optional comment for the S3 policy",
@@ -102,16 +105,6 @@ func (d *ProtocolsS3PoliciesDataSource) Schema(_ context.Context, _ datasource.S
                         "read_only": schema.BoolAttribute{
                             MarkdownDescription: "Indicates if the policy is read-only",
                             Computed:            true,
-                        },
-                        "svm": schema.SingleNestedAttribute{
-                            Computed:            true,
-                            MarkdownDescription: "SVM details",
-                            Attributes: map[string]schema.Attribute{
-                                "name": schema.StringAttribute{
-                                    MarkdownDescription: "SVM name",
-                                    Computed:            true,
-                                },
-                            },
                         },
                         "statements": schema.ListNestedAttribute{
                             Computed:            true,
@@ -176,15 +169,22 @@ func (d *ProtocolsS3PoliciesDataSource) Read(ctx context.Context, req datasource
 		return
 	}
 
-    var filter *interfaces.ProtocolsS3PolicyDataSourceFilterModel = nil
-    if data.Filter != nil {
-        filter = &interfaces.ProtocolsS3PolicyDataSourceFilterModel{
-            SVMName: data.Filter.SVMName.ValueString(),
-        }
-    }
-    restInfos, err := interfaces.GetProtocolsS3Policies(errorHandler, *client, filter, cluster.Version)
+	if data.Filter == nil || data.Filter.SVMName.IsNull() {
+		errorHandler.MakeAndReportError("No SVM specified", "svm_name must be specified in filter")
+		return
+	}
+
+    	// Get SVM info
+	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.Filter.SVMName.ValueString())
+	if err != nil {
+		// error reporting done inside GetSvmByName
+		errorHandler.MakeAndReportError("No SVM found", "SVM not found")
+		return
+	}
+
+    restInfos, err := interfaces.GetProtocolsS3Policies(errorHandler, *client, svm.UUID, cluster.Version, data.Filter.Name.ValueString())
     if err != nil {
-        // error reporting done inside GetProtocolsS3PoliciesList
+        // error reporting done inside GetProtocolsS3Policies
         return
     }
 
@@ -221,12 +221,10 @@ func (d *ProtocolsS3PoliciesDataSource) Read(ctx context.Context, req datasource
         }
 
         policies[i] = ProtocolsS3PolicyDataModel{
+            SVMName:  types.StringValue(data.Filter.SVMName.ValueString()),
             Name:     types.StringValue(restInfo.Name),
             Comment:  comment,
             ReadOnly: types.BoolValue(restInfo.ReadOnly),
-            SVM: &ProtocolsS3PolicySVMModel{
-                Name: types.StringValue(restInfo.SVM.Name),
-            },
             Statements: statements,
         }
     }
@@ -234,7 +232,7 @@ func (d *ProtocolsS3PoliciesDataSource) Read(ctx context.Context, req datasource
     data.Policies = policies
     
     // Generate ID using the SVM name
-    svmNameForID := filter.SVMName
+    svmNameForID := data.Filter.SVMName.ValueString()
     data.ID = types.StringValue(fmt.Sprintf("svm_%s", svmNameForID))
 
     // Log data
