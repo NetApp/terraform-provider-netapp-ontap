@@ -7,6 +7,7 @@ import (
 
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -273,9 +274,19 @@ func (r *ProtocolsS3PolicyResource) Create(ctx context.Context, req resource.Cre
 	// Set read_only from API response
 	data.ReadOnly = types.BoolValue(restInfo.ReadOnly)
 
-	// Update statements with indices from API response - use nil for empty to preserve user intention
+	// Update statements with indices from API response
 	if len(restInfo.Statements) == 0 {
-		data.Statements = nil
+		// Check if statements was specified in config
+		var configStatements attr.Value
+		resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("statements"), &configStatements)...)
+		
+		// If statements was specified (even as empty), preserve it as empty list
+		// If statements was not specified (null), keep it as null
+		if !configStatements.IsNull() {
+			data.Statements = []ProtocolsS3PolicyStatement{}
+		} else {
+			data.Statements = nil
+		}
 	} else {
 		data.Statements = statementsSliceToList(ctx, restInfo.Statements, &resp.Diagnostics)
 	}
@@ -339,9 +350,17 @@ func (r *ProtocolsS3PolicyResource) Read(ctx context.Context, req resource.ReadR
 	
 	data.SVMName = types.StringValue(restInfo.SVM.Name)
 
-	// Convert statements - handle empty array as nil for consistency
+	// Convert statements - preserve null vs empty distinction from current state
 	if len(restInfo.Statements) == 0 {
-		data.Statements = nil
+		// Preserve existing state: if was empty list, keep empty; if was null, keep null
+		if data.Statements != nil && len(data.Statements) == 0 {
+			data.Statements = []ProtocolsS3PolicyStatement{}
+		} else if data.Statements == nil {
+			data.Statements = nil
+		} else {
+			// Default case - if unclear, use empty for consistency
+			data.Statements = []ProtocolsS3PolicyStatement{}
+		}
 	} else {
 		data.Statements = statementsSliceToList(ctx, restInfo.Statements, &resp.Diagnostics)
 	}
@@ -460,9 +479,19 @@ func (r *ProtocolsS3PolicyResource) Update(ctx context.Context, req resource.Upd
 	// Set read_only from API response
 	plan.ReadOnly = types.BoolValue(restInfo.ReadOnly)
 
-	// Update statements with indices from API response - use nil for empty to preserve user intention
+	// Update statements with indices from API response
 	if len(restInfo.Statements) == 0 {
-		plan.Statements = nil
+		// Check if statements was specified in config/plan
+		var planStatements attr.Value
+		resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("statements"), &planStatements)...)
+		
+		// If statements was specified (even as empty), preserve it as empty list
+		// If statements was not specified (null), keep it as null
+		if !planStatements.IsNull() {
+			plan.Statements = []ProtocolsS3PolicyStatement{}
+		} else {
+			plan.Statements = nil
+		}
 	} else {
 		plan.Statements = statementsSliceToList(ctx, restInfo.Statements, &resp.Diagnostics)
 	}

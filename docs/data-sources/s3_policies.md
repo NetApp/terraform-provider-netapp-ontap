@@ -67,6 +67,12 @@ Optional:
 <a id="nestedatt--protocols_s3_policies"></a>
 ### Nested Schema for `protocols_s3_policies`
 
+Required:
+
+- `cx_profile_name` (String) Connection profile name
+- `name` (String) The name of the S3 policy
+- `svm_name` (String) The name of the SVM
+
 Read-Only:
 
 - `comment` (String) Optional comment for the S3 policy
