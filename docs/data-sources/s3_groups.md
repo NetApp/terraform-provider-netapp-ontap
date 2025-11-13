@@ -45,9 +45,6 @@ data "netapp-ontap_s3_groups" "s3_groups_example2" {
 ### Required
 
 - `cx_profile_name` (String) Connection profile name
-
-### Optional
-
 - `filter` (Attributes) (see [below for nested schema](#nestedatt--filter))
 
 ### Read-Only
@@ -57,10 +54,13 @@ data "netapp-ontap_s3_groups" "s3_groups_example2" {
 <a id="nestedatt--filter"></a>
 ### Nested Schema for `filter`
 
+Required:
+
+- `svm_name` (String) The name of the SVM
+
 Optional:
 
 - `name` (String) The name of the S3 group
-- `svm_name` (String) The name of the SVM
 
 
 <a id="nestedatt--s3_groups"></a>
@@ -76,5 +76,5 @@ Read-Only:
 
 - `comment` (String) Additional information about the group
 - `id` (Number) S3 Group id
-- `policies` (List of String) The list of policies that are attached to the group
-- `users` (List of String) The list of users who belong to the group
+- `policies` (Set of String) The list of policies that are attached to the group
+- `users` (Set of String) The list of users who belong to the group
