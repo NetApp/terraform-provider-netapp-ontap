@@ -63,21 +63,17 @@ func (d *ProtocolsS3PoliciesDataSource) Schema(_ context.Context, _ datasource.S
                 MarkdownDescription: "Connection profile name",
                 Required:            true,
             },
-            "svm_name": schema.StringAttribute{
-                MarkdownDescription: "Name of the SVM",
-                Computed:            true,
-            },
             "id": schema.StringAttribute{
                 MarkdownDescription: "Identifier",
                 Computed:            true,
             },
             "filter": schema.SingleNestedAttribute{
                 MarkdownDescription: "Filter for S3 policies",
-                Optional:            true,
+                Required:            true,
                 Attributes: map[string]schema.Attribute{
 					"svm_name": schema.StringAttribute{
 						MarkdownDescription: "The name of the SVM",
-						Optional:            true,
+						Required:            true,
 					},
 					"name": schema.StringAttribute{
 						MarkdownDescription: "The name of the S3 policy",

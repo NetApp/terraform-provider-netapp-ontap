@@ -59,10 +59,13 @@ data "netapp-ontap_s3_policies" "example2" {
 <a id="nestedatt--filter"></a>
 ### Nested Schema for `filter`
 
+Required:
+
+- `svm_name` (String) The name of the SVM
+
 Optional:
 
 - `name` (String) Filter by policy name
-- `svm_name` (String) The name of the SVM
 
 <a id="nestedatt--protocols_s3_policies"></a>
 ### Nested Schema for `protocols_s3_policies`
