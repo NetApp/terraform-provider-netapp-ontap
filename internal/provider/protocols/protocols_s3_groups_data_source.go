@@ -58,14 +58,14 @@ func (d *ProtocolsS3GroupsDataSource) Schema(ctx context.Context, req datasource
 				Attributes: map[string]schema.Attribute{
 					"svm_name": schema.StringAttribute{
 						MarkdownDescription: "The name of the SVM",
-						Optional:            true,
+						Required:            true,
 					},
 					"name": schema.StringAttribute{
 						MarkdownDescription: "The name of the S3 group",
 						Optional:            true,
 					},
 				},
-				Optional: true,
+				Required: true,
 			},
 			"s3_groups": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
