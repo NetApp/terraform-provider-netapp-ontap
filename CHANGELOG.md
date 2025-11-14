@@ -2,6 +2,8 @@
 
 FEATURES:
 
+- **New Data Source:** `netapp-ontap_s3_policy` and `netapp-ontap_s3_policies`([#593](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/593))
+- **New Resource:** `netapp-ontap_s3_policy` ([#594](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/594))
 - **New Data Source:** `netapp-ontap_s3_group` ([#591](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/591))
 - **New Data Source:** `netapp-ontap_s3_groups` ([#591](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/591))
 - **New Resource:** `netapp-ontap_s3_group` ([#592](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/592))

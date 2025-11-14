@@ -13,7 +13,6 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/snapmirror"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/storage"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/svm"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -237,6 +236,7 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		protocols.NewProtocolsNfsServiceResource,
 		protocols.NewProtocolsSanIgroupResource,
 		protocols.NewProtocolsSanLunMapResource,
+		protocols.NewProtocolsS3PolicyResource,
 		protocols.NewProtocolsS3GroupResource,
 		security.NewSecurityAccountResource,
 		security.NewSecurityCertificateResource,
@@ -338,6 +338,8 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		protocols.NewProtocolsSanIgroupsDataSource,
 		protocols.NewProtocolsSanLunMapDataSource,
 		protocols.NewProtocolsSanLunMapsDataSource,
+		protocols.NewProtocolsS3PolicyDataSource,
+		protocols.NewProtocolsS3PoliciesDataSource,
 		protocols.NewProtocolsS3GroupDataSource,
 		protocols.NewProtocolsS3GroupsDataSource,
 		security.NewSecurityAccountDataSource,
