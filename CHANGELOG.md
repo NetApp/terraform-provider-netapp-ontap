@@ -4,6 +4,14 @@ ENHANCEMENTS:
 
 - **netapp-ontap_cifs_share**, **netapp-ontap_cifs_shares**: added `access_based_enumeration` option to data sources and resource. ([#259](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/259))
 
+FEATURES:
+
+- **New Data Source:** `netapp-ontap_s3_policy` and `netapp-ontap_s3_policies`([#593](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/593))
+- **New Resource:** `netapp-ontap_s3_policy` ([#594](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/594))
+- **New Data Source:** `netapp-ontap_s3_group` ([#591](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/591))
+- **New Data Source:** `netapp-ontap_s3_groups` ([#591](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/591))
+- **New Resource:** `netapp-ontap_s3_group` ([#592](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/592))
+
 # 2.3.0 (2025-07-22)
 
 DOCUMENTATION:
