@@ -43,7 +43,6 @@ data "netapp-ontap_volumes" "storage_volumes" {
 - `storage_volumes` (Attributes List) (see [below for nested schema](#nestedatt--storage_volumes))
 
 <a id="nestedatt--filter"></a>
-
 ### Nested Schema for `filter`
 
 Optional:
@@ -51,8 +50,8 @@ Optional:
 - `name` (String) StorageVolume name
 - `svm_name` (String) StorageVolume svm name
 
-<a id="nestedatt--storage_volumes"></a>
 
+<a id="nestedatt--storage_volumes"></a>
 ### Nested Schema for `storage_volumes`
 
 Required:
@@ -63,7 +62,7 @@ Required:
 
 Read-Only:
 
-- `aggregates` (Attributes List) Aggregates the volume is on (see [below for nested schema](#nestedatt--aggregates))
+- `aggregates` (Attributes List) List of aggregates that the volume is on (see [below for nested schema](#nestedatt--storage_volumes--aggregates))
 - `analytics` (Attributes) (see [below for nested schema](#nestedatt--storage_volumes--analytics))
 - `autosize` (Attributes) (see [below for nested schema](#nestedatt--storage_volumes--autosize))
 - `comment` (String) Sets a comment associated with the volume
@@ -74,6 +73,7 @@ Read-Only:
 - `nas` (Attributes) (see [below for nested schema](#nestedatt--storage_volumes--nas))
 - `qos_policy_group` (String) Specifies a QoS policy group to be set on volume
 - `snaplock` (Attributes) (see [below for nested schema](#nestedatt--storage_volumes--snaplock))
+- `snapshot_locking_enabled` (Boolean) Whether or not snapshot copy locking is enabled on the volume.
 - `snapshot_policy` (String) The name of the snapshot policy
 - `space` (Attributes) (see [below for nested schema](#nestedatt--storage_volumes--space))
 - `space_guarantee` (String) Space guarantee style for the volume
@@ -82,23 +82,22 @@ Read-Only:
 - `type` (String) The volume type, either read-write (RW) or data-protection (DP)
 
 <a id="nestedatt--storage_volumes--aggregates"></a>
-
 ### Nested Schema for `storage_volumes.aggregates`
 
 Read-Only:
 
-- `name` (String) Name of the Aggregate
+- `name` (String) Name of the aggregate
+
 
 <a id="nestedatt--storage_volumes--analytics"></a>
-
 ### Nested Schema for `storage_volumes.analytics`
 
 Read-Only:
 
 - `state` (String) Set file system analytics state of the volume
 
-<a id="nestedatt--storage_volumes--autosize"></a>
 
+<a id="nestedatt--storage_volumes--autosize"></a>
 ### Nested Schema for `storage_volumes.autosize`
 
 Read-Only:
@@ -107,23 +106,25 @@ Read-Only:
 - `maximum` (Number) Maximum size up to which a volume grows automatically. This size cannot be less than the current volume size, or less than or equal to the minimum size of volume.
 - `minimum` (Number) Minimum size up to which the volume shrinks automatically. This size cannot be greater than or equal to the maximum size of volume.
 - `mode` (String) Autosize mode for the volume.
-									grow - Volume automatically grows when the amount of used space is above the 'grow_threshold' value.
-									grow_shrink - Volume grows or shrinks in response to the amount of space used.
-									off - Autosizing of the volume is disabled.
+														grow - Volume automatically grows when the amount of used space is above the 'grow_threshold' value.
+														grow_shrink - Volume grows or shrinks in response to the amount of space used.
+														off - Autosizing of the volume is disabled.
 - `shrink_threshold` (Number) Used space threshold size, in percentage, for the automatic shrinkage of the volume.
 - `size_unit` (String) The unit used to interpret the minimum or maximum size parameters.
 
-<a id="nestedatt--storage_volumes--efficiency"></a>
 
+<a id="nestedatt--storage_volumes--efficiency"></a>
 ### Nested Schema for `storage_volumes.efficiency`
 
 Read-Only:
 
+- `compaction` (String) The system can be enabled/disabled compaction
 - `compression` (String) Whether to enable compression for the volume (HDD and Flash Pool aggregates)
+- `dedupe` (String) The system can be enabled/disabled dedupe
 - `policy_name` (String) Allows a storage efficiency policy to be set on volume creation
 
-<a id="nestedatt--storage_volumes--nas"></a>
 
+<a id="nestedatt--storage_volumes--nas"></a>
 ### Nested Schema for `storage_volumes.nas`
 
 Read-Only:
@@ -135,16 +136,16 @@ Read-Only:
 - `unix_permissions` (Number) Unix permission bits in octal or symbolic format. For example, 0 is equivalent to ------------, 777 is equivalent to ---rwxrwxrwx,both formats are accepted
 - `user_id` (Number) The UNIX user ID for the volume
 
-<a id="nestedatt--storage_volumes--snaplock"></a>
 
+<a id="nestedatt--storage_volumes--snaplock"></a>
 ### Nested Schema for `storage_volumes.snaplock`
 
 Read-Only:
 
 - `type` (String) The SnapLock type of the volume
 
-<a id="nestedatt--storage_volumes--space"></a>
 
+<a id="nestedatt--storage_volumes--space"></a>
 ### Nested Schema for `storage_volumes.space`
 
 Read-Only:
@@ -155,18 +156,16 @@ Read-Only:
 - `size_unit` (String) The unit used to interpret the size parameter
 
 <a id="nestedatt--storage_volumes--space--logical_space"></a>
-
 ### Nested Schema for `storage_volumes.space.logical_space`
 
 Read-Only:
 
 - `enforcement` (Boolean) Whether to perform logical space accounting on the volume
 - `reporting` (Boolean) Whether to report space logically
-- `dedupe` (String) The system can be enabled/disabled dedupe
-- `compaction` (String) The system can be enabled/disabled compression
+
+
 
 <a id="nestedatt--storage_volumes--tiering"></a>
-
 ### Nested Schema for `storage_volumes.tiering`
 
 Read-Only:
