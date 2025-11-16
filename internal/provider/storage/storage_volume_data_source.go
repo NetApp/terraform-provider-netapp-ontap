@@ -61,7 +61,7 @@ type StorageVolumeDataSourceModel struct {
 	Analytics              *StorageVolumeDataSourceAnalytics   `tfsdk:"analytics"`
 	Autosize               *StorageVolumeDataSourceAutosize    `tfsdk:"autosize"`
 	SnapshotLockingEnabled types.Bool                          `tfsdk:"snapshot_locking_enabled"`
-	Tags                   types.List                          `tfsdk:"tags"`
+	Tags                   types.Set                           `tfsdk:"tags"`
 }
 
 // StorageVolumeDataSourceAggregates describes the analytics model.
@@ -91,7 +91,7 @@ type StorageVolumeDataSourceEfficiency struct {
 type StorageVolumeDataSourceTiering struct {
 	Policy             types.String `tfsdk:"policy_name"`
 	MinimumCoolingDays types.Int64  `tfsdk:"minimum_cooling_days"`
-	ObjectTags         types.List   `tfsdk:"object_tags"`
+	ObjectTags         types.Set    `tfsdk:"object_tags"`
 }
 
 // StorageVolumeDataSourceNas describes the Nas model.
@@ -358,7 +358,7 @@ func (d *StorageVolumeDataSource) Schema(ctx context.Context, req datasource.Sch
 			},
 			"tags": schema.SetAttribute{
 				ElementType:         types.StringType,
-				MarkdownDescription: "List of tags associated with the volume",
+				MarkdownDescription: "Set of tags associated with the volume",
 				Computed:            true,
 			},
 		},
@@ -428,7 +428,7 @@ func (d *StorageVolumeDataSource) Read(ctx context.Context, req datasource.ReadR
 		SecurityStyle:   types.StringValue(volume.NAS.SecurityStyle),
 		UnixPermissions: types.Int64Value(int64(volume.NAS.UnixPermissions)),
 	}
-	objectTagsList, diags := stringSliceToList(ctx, volume.TieringPolicy.ObjectTags)
+	objectTagsSet, diags := stringSliceToSet(ctx, volume.TieringPolicy.ObjectTags)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -436,7 +436,7 @@ func (d *StorageVolumeDataSource) Read(ctx context.Context, req datasource.ReadR
 	data.Tiering = &StorageVolumeDataSourceTiering{
 		Policy:             types.StringValue(volume.TieringPolicy.Policy),
 		MinimumCoolingDays: types.Int64Value(int64(volume.TieringPolicy.MinCoolingDays)),
-		ObjectTags:         objectTagsList,
+		ObjectTags:         objectTagsSet,
 	}
 	data.Efficiency = &StorageVolumeDataSourceEfficiency{
 		Policy:      types.StringValue(volume.Efficiency.Policy.Name),
@@ -463,12 +463,12 @@ func (d *StorageVolumeDataSource) Read(ctx context.Context, req datasource.ReadR
 		Mode:            types.StringValue(volume.Autosize.Mode),
 	}
 	tflog.Debug(ctx, fmt.Sprintf("autosize info compiled: %#v", data.Autosize))
-	tagsList, diags := stringSliceToList(ctx, volume.Tags)
+	tagsSet, diags := stringSliceToSet(ctx, volume.Tags)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	data.Tags = tagsList
+	data.Tags = tagsSet
 	data.ID = types.StringValue(volume.UUID)
 
 	// Write logs using the tflog package

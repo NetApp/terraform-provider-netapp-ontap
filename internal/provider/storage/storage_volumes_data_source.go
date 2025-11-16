@@ -380,13 +380,13 @@ func (d *StorageVolumesDataSource) Read(ctx context.Context, req datasource.Read
 			aggregates[i].Name = types.StringValue(v.Name)
 		}
 
-		objectTagsList, diags := stringSliceToList(ctx, record.TieringPolicy.ObjectTags)
+		objectTagsSet, diags := stringSliceToSet(ctx, record.TieringPolicy.ObjectTags)
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
 		}
 
-		tagsList, diags := stringSliceToList(ctx, record.Tags)
+		tagsSet, diags := stringSliceToSet(ctx, record.Tags)
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
@@ -425,7 +425,7 @@ func (d *StorageVolumesDataSource) Read(ctx context.Context, req datasource.Read
 			Tiering: &StorageVolumeDataSourceTiering{
 				Policy:             types.StringValue(record.TieringPolicy.Policy),
 				MinimumCoolingDays: types.Int64Value(int64(record.TieringPolicy.MinCoolingDays)),
-				ObjectTags:         objectTagsList,
+				ObjectTags:         objectTagsSet,
 			},
 			Efficiency: &StorageVolumeDataSourceEfficiency{
 				Policy:      types.StringValue(record.Efficiency.Policy.Name),
@@ -448,7 +448,7 @@ func (d *StorageVolumesDataSource) Read(ctx context.Context, req datasource.Read
 				Mode:            types.StringValue(record.Autosize.Mode),
 			},
 			ID:   types.StringValue(record.UUID),
-			Tags: tagsList,
+			Tags: tagsSet,
 		}
 	}
 

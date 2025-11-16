@@ -55,8 +55,8 @@ func NewStorageVolumeResourceAlias() resource.Resource {
 	}
 }
 
-// stringSliceToList is a help function to convert a slice of strings to a types.List
-func stringSliceToList(ctx context.Context, strings []string) (types.List, diag.Diagnostics) {
+// stringSliceToSet converts a slice of strings to a types.Set
+func stringSliceToSet(ctx context.Context, strings []string) (types.Set, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	if len(strings) > 0 {
@@ -64,22 +64,22 @@ func stringSliceToList(ctx context.Context, strings []string) (types.List, diag.
 		for i, s := range strings {
 			stringValues[i] = types.StringValue(s)
 		}
-		stringsList, listDiags := types.ListValue(types.StringType, stringValues)
-		diags.Append(listDiags...)
-		return stringsList, diags
+		stringsSet, setDiags := types.SetValue(types.StringType, stringValues)
+		diags.Append(setDiags...)
+		return stringsSet, diags
 	}
 
-	return types.ListNull(types.StringType), diags
+	return types.SetNull(types.StringType), diags
 }
 
-// listToStringSlice converts a types.List to a slice of strings
-func listToStringSlice(ctx context.Context, list types.List) ([]string, diag.Diagnostics) {
+// setToStringSlice converts a types.Set to a slice of strings
+func setToStringSlice(ctx context.Context, set types.Set) ([]string, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var stringSlice []string
 
-	if !list.IsUnknown() && !list.IsNull() {
-		listDiags := list.ElementsAs(ctx, &stringSlice, false)
-		diags.Append(listDiags...)
+	if !set.IsUnknown() && !set.IsNull() {
+		setDiags := set.ElementsAs(ctx, &stringSlice, false)
+		diags.Append(setDiags...)
 	}
 
 	return stringSlice, diags
@@ -113,7 +113,7 @@ type StorageVolumeResourceModel struct {
 	Analytics              types.Object                      `tfsdk:"analytics"`
 	Autosize               types.Object                      `tfsdk:"autosize"`
 	SnapshotLockingEnabled types.Bool                        `tfsdk:"snapshot_locking_enabled"`
-	Tags                   types.List                        `tfsdk:"tags"`
+	Tags                   types.Set                         `tfsdk:"tags"`
 }
 
 // StorageVolumeResourceAggregates describes the analytics model.
@@ -143,7 +143,7 @@ type StorageVolumeResourceEfficiency struct {
 type StorageVolumeResourceTiering struct {
 	Policy             types.String `tfsdk:"policy_name"`
 	MinimumCoolingDays types.Int64  `tfsdk:"minimum_cooling_days"`
-	ObjectTags         types.List   `tfsdk:"object_tags"`
+	ObjectTags         types.Set    `tfsdk:"object_tags"`
 }
 
 // StorageVolumeResourceNas describes the Nas model.
@@ -784,16 +784,16 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 	elementTypes = map[string]attr.Type{
 		"minimum_cooling_days": types.Int64Type,
 		"policy_name":          types.StringType,
-		"object_tags":          types.ListType{ElemType: types.StringType},
+		"object_tags":          types.SetType{ElemType: types.StringType},
 	}
-	objectTagsList, diags := stringSliceToList(ctx, response.TieringPolicy.ObjectTags)
+	objectTagsSet, diags := stringSliceToSet(ctx, response.TieringPolicy.ObjectTags)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 	}
 	elements = map[string]attr.Value{
 		"minimum_cooling_days": types.Int64Value(int64(response.TieringPolicy.MinCoolingDays)),
 		"policy_name":          types.StringValue(response.TieringPolicy.Policy),
-		"object_tags":          objectTagsList,
+		"object_tags":          objectTagsSet,
 	}
 	objectValue, diags = types.ObjectValue(elementTypes, elements)
 	if diags.HasError() {
@@ -890,12 +890,12 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 	data.Autosize = objectValue
 
 	// Tags
-	tagsList, diags := stringSliceToList(ctx, response.Tags)
+	tagsSet, diags := stringSliceToSet(ctx, response.Tags)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	data.Tags = tagsList
+	data.Tags = tagsSet
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -1057,7 +1057,7 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 		if !tiering.MinimumCoolingDays.IsUnknown() {
 			request.TieringPolicy.MinCoolingDays = int(tiering.MinimumCoolingDays.ValueInt64())
 		}
-		objectTags, diags := listToStringSlice(ctx, tiering.ObjectTags)
+		objectTags, diags := setToStringSlice(ctx, tiering.ObjectTags)
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
@@ -1112,7 +1112,7 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	}
 
 	if !data.Tags.IsUnknown() && !data.Tags.IsNull() {
-		tags, diags := listToStringSlice(ctx, data.Tags)
+		tags, diags := setToStringSlice(ctx, data.Tags)
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
@@ -1219,16 +1219,16 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	elementTypes = map[string]attr.Type{
 		"minimum_cooling_days": types.Int64Type,
 		"policy_name":          types.StringType,
-		"object_tags":          types.ListType{ElemType: types.StringType},
+		"object_tags":          types.SetType{ElemType: types.StringType},
 	}
-	objectTagsList, diags := stringSliceToList(ctx, response.TieringPolicy.ObjectTags)
+	objectTagsSet, diags := stringSliceToSet(ctx, response.TieringPolicy.ObjectTags)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 	}
 	elements = map[string]attr.Value{
 		"minimum_cooling_days": types.Int64Value(int64(response.TieringPolicy.MinCoolingDays)),
 		"policy_name":          types.StringValue(response.TieringPolicy.Policy),
-		"object_tags":          objectTagsList,
+		"object_tags":          objectTagsSet,
 	}
 	objectValue, diags = types.ObjectValue(elementTypes, elements)
 	if diags.HasError() {
@@ -1457,7 +1457,7 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 		}
 		request.TieringPolicy.Policy = tiering.Policy.ValueString()
 		request.TieringPolicy.MinCoolingDays = int(tiering.MinimumCoolingDays.ValueInt64())
-		objectTags, diags := listToStringSlice(ctx, tiering.ObjectTags)
+		objectTags, diags := setToStringSlice(ctx, tiering.ObjectTags)
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
@@ -1501,7 +1501,7 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 	}
 
 	if !plan.Tags.Equal(state.Tags) {
-		tags, diags := listToStringSlice(ctx, plan.Tags)
+		tags, diags := setToStringSlice(ctx, plan.Tags)
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
@@ -1705,17 +1705,17 @@ func readVolume(ctx context.Context, client *restclient.RestClient, data *Storag
 	elementTypes = map[string]attr.Type{
 		"minimum_cooling_days": types.Int64Type,
 		"policy_name":          types.StringType,
-		"object_tags":          types.ListType{ElemType: types.StringType},
+		"object_tags":          types.SetType{ElemType: types.StringType},
 	}
 	// Convert object tags to types.List
-	objectTagsList, diags := stringSliceToList(ctx, response.TieringPolicy.ObjectTags)
+	objectTagsSet, diags := stringSliceToSet(ctx, response.TieringPolicy.ObjectTags)
 	if diags.HasError() {
 		allDiags.Append(diags...)
 	}
 	elements = map[string]attr.Value{
 		"minimum_cooling_days": types.Int64Value(int64(response.TieringPolicy.MinCoolingDays)),
 		"policy_name":          types.StringValue(response.TieringPolicy.Policy),
-		"object_tags":          objectTagsList,
+		"object_tags":          objectTagsSet,
 	}
 	objectValue, diags = types.ObjectValue(elementTypes, elements)
 	if diags.HasError() {
@@ -1793,12 +1793,12 @@ func readVolume(ctx context.Context, client *restclient.RestClient, data *Storag
 	}
 	data.Autosize = objectValue
 
-	tagsList, diags := stringSliceToList(ctx, response.Tags)
+	tagsSet, diags := stringSliceToSet(ctx, response.Tags)
 	if diags.HasError() {
 		allDiags.Append(diags...)
 		return allDiags
 	}
-	data.Tags = tagsList
+	data.Tags = tagsSet
 
 	return allDiags
 }
