@@ -1,7 +1,9 @@
-# 2.4.0 (2025-**-**)
+# 2.4.0
 
 FEATURES:
 
+- **New Data Source:** `netapp-ontap_autosupport` ([#555](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/555))
+- **New Resource:** `netapp-ontap_autosupport` ([#555](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/555))
 - **New Data Source:** `netapp-ontap_s3_policy` and `netapp-ontap_s3_policies`([#593](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/593))
 - **New Resource:** `netapp-ontap_s3_policy` ([#594](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/594))
 - **New Data Source:** `netapp-ontap_s3_group` ([#591](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/591))
