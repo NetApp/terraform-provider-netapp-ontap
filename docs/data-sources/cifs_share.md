@@ -74,6 +74,7 @@ data "netapp-ontap_cifs_share" "protocols_cifs_share" {
   * standard - Virus scans can be triggered by open, close, and rename operations.
   * strict - Virus scans can be triggered by open, read, close, and rename operations.
   * writes_only - Virus scans can be triggered only when a file that has been modified is closed.
+- `access_based_enumeration` (Boolean) If enabled, all folders inside this share are visible to a user based on that individual user access right; prevents the display of folders or other shared resources that the user does not have access to.
 
 <a id="nestedatt--acls"></a>
 
