@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/support"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/cluster"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/name_services"
@@ -255,6 +256,7 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		storage.NewStorageVolumeResource,
 		storage.NewStorageVolumeSnapshotResource,
 		storage.NewVolumeFileResource,
+		support.NewAutoSupportResource,
 		svm.NewSVMPeerResource,
 		svm.NewSvmResource,
 		svm.NewSvmQosPolicyActivationResource,
@@ -375,6 +377,7 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		storage.NewStorageVolumesFilesDataSource,
 		storage.NewVolumeEfficiencyPoliciesDataSource,
 		storage.NewVolumeEfficiencyPolicyDataSource,
+		support.NewAutoSupportDataSource,
 		svm.NewSVMPeerDataSource,
 		svm.NewSVMPeersDataSource,
 		svm.NewSvmDataSource,
