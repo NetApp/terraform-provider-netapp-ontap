@@ -243,7 +243,11 @@ func (r *SnapmirrorResource) Read(ctx context.Context, req resource.ReadRequest,
 		data.ID = types.StringValue(restInfo.UUID)
 		data.Healthy = types.BoolValue(restInfo.Healthy)
 		data.State = types.StringValue(restInfo.State)
-		data.Policy.TransferSchedule.Name = types.StringValue(restInfo.Policy.TransferSchedule.Name)
+		if restInfo.Policy != nil && restInfo.Policy.TransferSchedule != nil {
+		    data.Policy.TransferSchedule.Name = types.StringValue(restInfo.Policy.TransferSchedule.Name)
+		} else {
+		    data.Policy.TransferSchedule.Name = types.StringNull()
+		}
 	} else {
 		restInfoImport, err := interfaces.GetSnapmirrorByDestinationPath(errorHandler, *client, data.DestinationEndPoint.Path.ValueString(), nil)
 		if err != nil {
@@ -254,7 +258,11 @@ func (r *SnapmirrorResource) Read(ctx context.Context, req resource.ReadRequest,
 		data.Healthy = types.BoolValue(restInfoImport.Healthy)
 		data.State = types.StringValue(restInfoImport.State)
 		data.DestinationEndPoint.Path = types.StringValue(restInfoImport.Destination.Path)
-		data.Policy.TransferSchedule.Name = types.StringValue(restInfoImport.Policy.TransferSchedule.Name)
+		if restInfo.Policy != nil && restInfo.Policy.TransferSchedule != nil {
+		    data.Policy.TransferSchedule.Name = types.StringValue(restInfoImport.Policy.TransferSchedule.Name)
+		} else {
+		    data.Policy.TransferSchedule.Name = types.StringNull()
+		}
 	}
 
 	// Write logs using the tflog package
