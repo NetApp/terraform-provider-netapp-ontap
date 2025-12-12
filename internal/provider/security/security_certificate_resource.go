@@ -7,16 +7,16 @@ import (
 
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
@@ -42,23 +42,23 @@ type SecurityCertificateResource struct {
 
 // SecurityCertificateResourceModel describes the resource data model.
 type SecurityCertificateResourceModel struct {
-	CxProfileName      types.String `tfsdk:"cx_profile_name"`
-	Name               types.String `tfsdk:"name"`
-	CommonName         types.String `tfsdk:"common_name"`
-	Type               types.String `tfsdk:"type"`
-	SVMName            types.String `tfsdk:"svm_name"`
-	Scope              types.String `tfsdk:"scope"`
-	SerialNumber       types.String `tfsdk:"serial_number"`
-	CA                 types.String `tfsdk:"ca"`
-	PublicCertificate  types.String `tfsdk:"public_certificate"`
-	SignedCertificate  types.String `tfsdk:"signed_certificate"`
-	PrivateKey         types.String `tfsdk:"private_key"`
-	SigningRequest     types.String `tfsdk:"signing_request"`
-	HashFunction       types.String `tfsdk:"hash_function"`
-	KeySize            types.Int64  `tfsdk:"key_size"`
-	ExpiryTime         types.String `tfsdk:"expiry_time"`
-	ID                 types.String `tfsdk:"id"`
-	IntermediateCertificates types.List `tfsdk:"intermediate_certificates"`
+	CxProfileName            types.String `tfsdk:"cx_profile_name"`
+	Name                     types.String `tfsdk:"name"`
+	CommonName               types.String `tfsdk:"common_name"`
+	Type                     types.String `tfsdk:"type"`
+	SVMName                  types.String `tfsdk:"svm_name"`
+	Scope                    types.String `tfsdk:"scope"`
+	SerialNumber             types.String `tfsdk:"serial_number"`
+	CA                       types.String `tfsdk:"ca"`
+	PublicCertificate        types.String `tfsdk:"public_certificate"`
+	SignedCertificate        types.String `tfsdk:"signed_certificate"`
+	PrivateKey               types.String `tfsdk:"private_key"`
+	SigningRequest           types.String `tfsdk:"signing_request"`
+	HashFunction             types.String `tfsdk:"hash_function"`
+	KeySize                  types.Int64  `tfsdk:"key_size"`
+	ExpiryTime               types.String `tfsdk:"expiry_time"`
+	ID                       types.String `tfsdk:"id"`
+	IntermediateCertificates types.List   `tfsdk:"intermediate_certificates"`
 }
 
 // Metadata returns the resource type name.
@@ -150,7 +150,7 @@ func (r *SecurityCertificateResource) Schema(ctx context.Context, req resource.S
 			"intermediate_certificates": schema.ListAttribute{
 				MarkdownDescription: "Chain of intermediate Certificates in PEM format. Only valid in POST when installing a certificate.",
 				Optional:            true,
-				ElementType: types.StringType,
+				ElementType:         types.StringType,
 			},
 			"hash_function": schema.StringAttribute{
 				MarkdownDescription: "Hashing function.",
@@ -294,7 +294,7 @@ func (r *SecurityCertificateResource) Create(ctx context.Context, req resource.C
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	
+
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
@@ -311,7 +311,7 @@ func (r *SecurityCertificateResource) Create(ctx context.Context, req resource.C
 		// error reporting done inside GetCluster
 		return
 	}
-	
+
 	name_supported := false
 	if !data.Name.IsNull() && data.Name.ValueString() != "" {
 		if cluster.Version.Generation == 9 && cluster.Version.Major < 8 {
@@ -355,7 +355,7 @@ func (r *SecurityCertificateResource) Create(ctx context.Context, req resource.C
 		if !data.ExpiryTime.IsUnknown() {
 			body.ExpiryTime = data.ExpiryTime.ValueString()
 		}
-		
+
 		resource, err := interfaces.SignSecurityCertificate(errorHandler, *client, restInfo.UUID, body)
 		if err != nil {
 			// error reporting done inside SignSecurityCertificate
@@ -364,13 +364,13 @@ func (r *SecurityCertificateResource) Create(ctx context.Context, req resource.C
 
 		// Save public_certificate returned while signing certificate into Terraform state
 		data.SignedCertificate = types.StringValue(resource.SignedCertificate)
-		
+
 		tflog.Trace(ctx, "signed a resource")
 	} else {
 		// This else block is for creating or installing security certificate
 		var body interfaces.SecurityCertificateResourceCreateBodyDataModelONTAP
 
-		if !data.Name.IsNull() &&  data.Name.ValueString() != "" {
+		if !data.Name.IsNull() && data.Name.ValueString() != "" {
 			if name_supported {
 				body.Name = data.Name.ValueString()
 			}
@@ -502,6 +502,16 @@ func (r *SecurityCertificateResource) ImportState(ctx context.Context, req resou
 	// Parse the ID
 	idParts := strings.Split(req.ID, ",")
 
+	// import name, common_name, type, cx_profile, and svm_name (for SVM-specific certificates with duplicate names)
+	if len(idParts) == 5 {
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[0])...)
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("common_name"), idParts[1])...)
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("type"), idParts[2])...)
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[3])...)
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("svm_name"), idParts[4])...)
+		return
+	}
+
 	// import name, common_name, type and cx_profile
 	if len(idParts) == 4 {
 		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[0])...)
@@ -521,6 +531,6 @@ func (r *SecurityCertificateResource) ImportState(ctx context.Context, req resou
 
 	resp.Diagnostics.AddError(
 		"Unexpected Import Identifier",
-		fmt.Sprintf("Expected import identifier with format: name,common_name,type,cx_profile_name or common_name,type,cx_profile_name. Got: %q", req.ID),
+		fmt.Sprintf("Expected import identifier with format: name,common_name,type,cx_profile_name,svm_name or name,common_name,type,cx_profile_name or common_name,type,cx_profile_name. Got: %q", req.ID),
 	)
 }

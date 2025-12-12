@@ -1,5 +1,9 @@
 # 2.5.0 (2026-**-**)
 
+ENHANCEMENTS:
+
+- **netapp-ontap_security_certificate**: added extra parameter to import to support for avoiding duplicate cert names across svms ([#614](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/614))
+
 # 2.4.0 (2025-11-20)
 
 ENHANCEMENTS:
