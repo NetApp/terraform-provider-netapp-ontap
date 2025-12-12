@@ -1,5 +1,9 @@
 # 2.5.0 (2026-**-**)
 
+ENHANCEMENTS:
+
+Fixed import documentation on resources which are supporting import. ([#613](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/613))
+
 # 2.4.0 (2025-11-20)
 
 ENHANCEMENTS:
