@@ -1,4 +1,8 @@
-# 2.5.0 (2026-**-**)
+# 2.4.1 (2026-**-**)
+
+BUG FIXES:
+
+- **netapp-ontap_volumes**: fixed issue with data source ([#578](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/578))
 
 # 2.4.0 (2025-11-20)
 
