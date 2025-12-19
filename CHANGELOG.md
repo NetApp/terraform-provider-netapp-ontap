@@ -1,5 +1,9 @@
 # 2.5.0 (2026-**-**)
 
+FEATURES:
+
+- **New Data Source:** `netapp-ontap_fpolicy_event` ([#624](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/624))
+
 # 2.4.0 (2025-11-20)
 
 ENHANCEMENTS:
