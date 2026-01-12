@@ -1,4 +1,8 @@
-# 2.5.0 (2026-**-**)
+# 2.4.1 (2026-**-**)
+
+BUG FIXES:
+
+- **netapp-ontap_svms_data_source**: Fixed `storage_limit` value conversion error. ([#574](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/574))
 
 # 2.4.0 (2025-11-20)
 
