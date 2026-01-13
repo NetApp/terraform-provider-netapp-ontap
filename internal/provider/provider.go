@@ -4,7 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/support"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/cluster"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/name_services"
@@ -13,14 +19,8 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/security"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/snapmirror"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/storage"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/support"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/svm"
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
-	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Ensure ONTAPProvider satisfies various provider interfaces.
@@ -233,6 +233,7 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		protocols.NewExportPolicyResource,
 		protocols.NewExportPolicyRuleResource,
 		protocols.NewProtocolsCIFSShareResource,
+		protocols.NewProtocolsFpolicyPolicyResource,
 		protocols.NewProtocolsIscsiServiceResource,
 		protocols.NewProtocolsNfsServiceResource,
 		protocols.NewProtocolsSanIgroupResource,

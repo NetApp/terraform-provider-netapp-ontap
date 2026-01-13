@@ -1,5 +1,9 @@
 # 2.5.0 (2026-**-**)
 
+FEATURES:
+
+- **New Resource:** `netapp-ontap_fpolicy_policy` ([#623](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/623))
+
 # 2.4.0 (2025-11-20)
 
 ENHANCEMENTS:
