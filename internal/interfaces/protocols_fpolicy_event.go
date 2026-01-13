@@ -70,7 +70,7 @@ type ProtocolsFpolicyEventResourceBodyDataModelONTAP struct {
 	Protocol         string                     `mapstructure:"protocol,omitempty"`
 	FileOperations   FpolicyEventFileOperations `mapstructure:"file_operations,omitempty"`
 	Filters          FpolicyEventFilters        `mapstructure:"filters,omitempty"`
-	VolumeMonitoring bool                       `mapstructure:"volume_monitoring,omitempty"`
+	VolumeMonitoring bool                       `mapstructure:"volume_monitoring"`
 }
 
 // ProtocolsFpolicyEventResourceUpdateBodyDataModelONTAP describes the update body data model (for PATCH - without name field)
@@ -78,7 +78,7 @@ type ProtocolsFpolicyEventResourceUpdateBodyDataModelONTAP struct {
 	Protocol         string                     `mapstructure:"protocol,omitempty"`
 	FileOperations   FpolicyEventFileOperations `mapstructure:"file_operations,omitempty"`
 	Filters          FpolicyEventFilters        `mapstructure:"filters,omitempty"`
-	VolumeMonitoring *bool                      `mapstructure:"volume_monitoring,omitempty"`
+	VolumeMonitoring *bool                      `mapstructure:"volume_monitoring"`
 }
 
 // ProtocolsFpolicyEventDataSourceFilterModel describes filter model

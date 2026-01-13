@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -100,6 +101,7 @@ func (r *ProtocolsFpolicyEventResource) Schema(ctx context.Context, req resource
 				MarkdownDescription: "Specifies whether volume operation monitoring is required",
 				Optional:            true,
 				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 			},
 			"id": schema.StringAttribute{
 				MarkdownDescription: "FPolicy event identifier",
@@ -166,9 +168,7 @@ func (r *ProtocolsFpolicyEventResource) Create(ctx context.Context, req resource
 		request.Filters = convertFiltersToStruct(plan.Filters)
 	}
 
-	if !plan.VolumeMonitoring.IsUnknown() {
-		request.VolumeMonitoring = plan.VolumeMonitoring.ValueBool()
-	}
+	request.VolumeMonitoring = plan.VolumeMonitoring.ValueBool()
 
 	resource, err := interfaces.CreateProtocolsFpolicyEvent(errorHandler, *client, request, svm.UUID)
 	if err != nil {
@@ -184,10 +184,8 @@ func (r *ProtocolsFpolicyEventResource) Create(ctx context.Context, req resource
 		return
 	}
 
-	// Update computed values
-	if !plan.VolumeMonitoring.IsNull() {
-		plan.VolumeMonitoring = types.BoolValue(readResource.VolumeMonitoring)
-	}
+	// Always read back computed values from API
+	plan.VolumeMonitoring = types.BoolValue(readResource.VolumeMonitoring)
 
 	// Suppress the unused variable warning
 	_ = resource
@@ -276,10 +274,8 @@ func (r *ProtocolsFpolicyEventResource) Update(ctx context.Context, req resource
 	request.FileOperations = convertFileOperationsToStruct(plan.FileOperations)
 	request.Filters = convertFiltersToStruct(plan.Filters)
 
-	if !plan.VolumeMonitoring.IsNull() {
-		val := plan.VolumeMonitoring.ValueBool()
-		request.VolumeMonitoring = &val
-	}
+	val := plan.VolumeMonitoring.ValueBool()
+	request.VolumeMonitoring = &val
 
 	err = interfaces.UpdateProtocolsFpolicyEvent(errorHandler, *client, request, svm.UUID, plan.Name.ValueString())
 	if err != nil {

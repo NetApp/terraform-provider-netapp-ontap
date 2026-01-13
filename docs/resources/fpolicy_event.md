@@ -39,7 +39,7 @@ The following arguments are supported:
 - `protocol` - (String) Protocol for which the FPolicy event is applicable. Valid values are `cifs`, `nfsv3`, or `nfsv4`.
 - `file_operations` - (Set of String) File operations to be monitored. Examples: `create`, `write`, `read`, `close`, `rename`, `delete`, `open`, `getattr`, `setattr`.
 - `filters` - (Set of String) Filters to be applied for the specified file operations. Examples: `monitor_ads`, `close_with_modification`, `close_without_modification`, `first_read`, `first_write`, `offline_bit`, `open_with_delete_intent`, `open_with_write_intent`, `write_with_size_change`.
-- `volume_monitoring` - (Bool) Specifies whether volume operation monitoring is required.
+- `volume_monitoring` - (Bool) Specifies whether volume operation monitoring is required. Default: `false`.
 
 ### Read-Only
 
