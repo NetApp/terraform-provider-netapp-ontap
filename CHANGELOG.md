@@ -2,7 +2,7 @@
 
 FEATURES:
 
-- **New Data Source:** `netapp-ontap_fpolicy_event` ([#624](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/624))
+- **New Resource:** `netapp-ontap_fpolicy_event` ([#624](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/624))
 
 BUG FIXES:
 
