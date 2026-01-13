@@ -4,6 +4,10 @@ FEATURES:
 
 - **New Resource:** `netapp-ontap_fpolicy_policy` ([#623](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/623))
 
+BUG FIXES:
+
+- **netapp-ontap_name_services_ldap_resource**: Fixed duplicate Set Element Error with `preferred_ad_servers` ([#615](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/615))
+
 # 2.4.0 (2025-11-20)
 
 ENHANCEMENTS:
