@@ -112,6 +112,10 @@ func (d *SvmsDataSource) Schema(ctx context.Context, req datasource.SchemaReques
 							MarkdownDescription: "Maximum number of volumes that can be created on the svm. Expects an integer or unlimited",
 							Computed:            true,
 						},
+						"storage_limit": schema.Int64Attribute{
+							MarkdownDescription: "Maximum storage permitted on svm, in bytes",
+							Computed:            true,
+						},
 						"id": schema.StringAttribute{
 							Computed: true,
 						},
