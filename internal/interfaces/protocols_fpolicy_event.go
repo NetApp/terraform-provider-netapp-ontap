@@ -60,7 +60,7 @@ type ProtocolsFpolicyEventGetDataModelONTAP struct {
 	Protocol         string                     `mapstructure:"protocol"`
 	FileOperations   FpolicyEventFileOperations `mapstructure:"file_operations"`
 	Filters          FpolicyEventFilters        `mapstructure:"filters"`
-	VolumeMonitoring bool                       `mapstructure:"volume_monitoring"`
+	VolumeMonitoring *bool                      `mapstructure:"volume_monitoring"`
 	SVM              SvmDataModelONTAP          `mapstructure:"svm"`
 }
 

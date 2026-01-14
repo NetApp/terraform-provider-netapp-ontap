@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -40,14 +40,14 @@ type ProtocolsFpolicyEventResource struct {
 
 // ProtocolsFpolicyEventResourceModel describes the resource data model.
 type ProtocolsFpolicyEventResourceModel struct {
-	CxProfileName    types.String   `tfsdk:"cx_profile_name"`
-	Name             types.String   `tfsdk:"name"`
-	SVMName          types.String   `tfsdk:"svm_name"`
-	Protocol         types.String   `tfsdk:"protocol"`
-	FileOperations   []types.String `tfsdk:"file_operations"`
-	Filters          []types.String `tfsdk:"filters"`
-	VolumeMonitoring types.Bool     `tfsdk:"volume_monitoring"`
-	ID               types.String   `tfsdk:"id"`
+	CxProfileName    types.String `tfsdk:"cx_profile_name"`
+	Name             types.String `tfsdk:"name"`
+	SVMName          types.String `tfsdk:"svm_name"`
+	Protocol         types.String `tfsdk:"protocol"`
+	FileOperations   types.Set    `tfsdk:"file_operations"`
+	Filters          types.Set    `tfsdk:"filters"`
+	VolumeMonitoring types.Bool   `tfsdk:"volume_monitoring"`
+	ID               types.String `tfsdk:"id"`
 }
 
 // Metadata returns the resource type name.
@@ -101,7 +101,9 @@ func (r *ProtocolsFpolicyEventResource) Schema(ctx context.Context, req resource
 				MarkdownDescription: "Specifies whether volume operation monitoring is required",
 				Optional:            true,
 				Computed:            true,
-				Default:             booldefault.StaticBool(false),
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"id": schema.StringAttribute{
 				MarkdownDescription: "FPolicy event identifier",
@@ -161,16 +163,18 @@ func (r *ProtocolsFpolicyEventResource) Create(ctx context.Context, req resource
 	}
 
 	// Convert file operations and filters using helper functions
-	if len(plan.FileOperations) > 0 {
-		request.FileOperations = convertFileOperationsToStruct(plan.FileOperations)
+	if !plan.FileOperations.IsNull() && !plan.FileOperations.IsUnknown() {
+		request.FileOperations = convertFileOperationsToStruct(ctx, plan.FileOperations)
 	}
-	if len(plan.Filters) > 0 {
-		request.Filters = convertFiltersToStruct(plan.Filters)
+	if !plan.Filters.IsNull() && !plan.Filters.IsUnknown() {
+		request.Filters = convertFiltersToStruct(ctx, plan.Filters)
 	}
 
-	request.VolumeMonitoring = plan.VolumeMonitoring.ValueBool()
+	if !plan.VolumeMonitoring.IsUnknown() {
+		request.VolumeMonitoring = plan.VolumeMonitoring.ValueBool()
+	}
 
-	resource, err := interfaces.CreateProtocolsFpolicyEvent(errorHandler, *client, request, svm.UUID)
+	_, err = interfaces.CreateProtocolsFpolicyEvent(errorHandler, *client, request, svm.UUID)
 	if err != nil {
 		return
 	}
@@ -184,11 +188,7 @@ func (r *ProtocolsFpolicyEventResource) Create(ctx context.Context, req resource
 		return
 	}
 
-	// Always read back computed values from API
-	plan.VolumeMonitoring = types.BoolValue(readResource.VolumeMonitoring)
-
-	// Suppress the unused variable warning
-	_ = resource
+	plan.VolumeMonitoring = types.BoolValue(*readResource.VolumeMonitoring)
 
 	tflog.Trace(ctx, "created a protocols_fpolicy_event resource")
 
@@ -224,14 +224,8 @@ func (r *ProtocolsFpolicyEventResource) Read(ctx context.Context, req resource.R
 		return
 	}
 
-	// Update state with read values
 	state.Name = types.StringValue(restInfo.Name)
-	state.Protocol = types.StringValue(restInfo.Protocol)
-	state.VolumeMonitoring = types.BoolValue(restInfo.VolumeMonitoring)
-
-	// Convert file operations and filters using helper functions
-	state.FileOperations = convertFileOperationsFromStruct(restInfo.FileOperations)
-	state.Filters = convertFiltersFromStruct(restInfo.Filters)
+	state.VolumeMonitoring = types.BoolValue(*restInfo.VolumeMonitoring)
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
@@ -239,10 +233,11 @@ func (r *ProtocolsFpolicyEventResource) Read(ctx context.Context, req resource.R
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *ProtocolsFpolicyEventResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan *ProtocolsFpolicyEventResourceModel
+	var plan, state *ProtocolsFpolicyEventResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -271,8 +266,8 @@ func (r *ProtocolsFpolicyEventResource) Update(ctx context.Context, req resource
 	}
 
 	// Always convert file operations and filters (even if empty) to ensure proper updates
-	request.FileOperations = convertFileOperationsToStruct(plan.FileOperations)
-	request.Filters = convertFiltersToStruct(plan.Filters)
+	request.FileOperations = convertFileOperationsToStruct(ctx, plan.FileOperations)
+	request.Filters = convertFiltersToStruct(ctx, plan.Filters)
 
 	val := plan.VolumeMonitoring.ValueBool()
 	request.VolumeMonitoring = &val
@@ -341,11 +336,12 @@ func (r *ProtocolsFpolicyEventResource) ImportState(ctx context.Context, req res
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), fmt.Sprintf("%s/%s", idParts[1], idParts[0]))...)
 }
 
-// convertFileOperationsToStruct converts a slice of types.String to FpolicyEventFileOperations struct
-func convertFileOperationsToStruct(operations []types.String) interfaces.FpolicyEventFileOperations {
+// convertFileOperationsToStruct converts a types.Set to FpolicyEventFileOperations struct
+func convertFileOperationsToStruct(ctx context.Context, operations types.Set) interfaces.FpolicyEventFileOperations {
 	ops := interfaces.FpolicyEventFileOperations{}
-	for _, op := range operations {
-		opStr := op.ValueString()
+	var opsList []string
+	operations.ElementsAs(ctx, &opsList, false)
+	for _, opStr := range opsList {
 		switch opStr {
 		case "access":
 			ops.Access = true
@@ -384,11 +380,12 @@ func convertFileOperationsToStruct(operations []types.String) interfaces.Fpolicy
 	return ops
 }
 
-// convertFiltersToStruct converts a slice of types.String to FpolicyEventFilters struct
-func convertFiltersToStruct(filters []types.String) interfaces.FpolicyEventFilters {
+// convertFiltersToStruct converts a types.Set to FpolicyEventFilters struct
+func convertFiltersToStruct(ctx context.Context, filters types.Set) interfaces.FpolicyEventFilters {
 	f := interfaces.FpolicyEventFilters{}
-	for _, filter := range filters {
-		filterStr := filter.ValueString()
+	var filtersList []string
+	filters.ElementsAs(ctx, &filtersList, false)
+	for _, filterStr := range filtersList {
 		switch filterStr {
 		case "close_with_modification":
 			f.CloseWithModification = true
@@ -437,125 +434,127 @@ func convertFiltersToStruct(filters []types.String) interfaces.FpolicyEventFilte
 	return f
 }
 
-// convertFileOperationsFromStruct converts FpolicyEventFileOperations struct to a slice of types.String
-func convertFileOperationsFromStruct(ops interfaces.FpolicyEventFileOperations) []types.String {
-	var operations []types.String
-	if ops.Access {
-		operations = append(operations, types.StringValue("access"))
-	}
-	if ops.Close {
-		operations = append(operations, types.StringValue("close"))
-	}
-	if ops.Create {
-		operations = append(operations, types.StringValue("create"))
-	}
-	if ops.CreateDir {
-		operations = append(operations, types.StringValue("create_dir"))
-	}
-	if ops.Delete {
-		operations = append(operations, types.StringValue("delete"))
-	}
-	if ops.DeleteDir {
-		operations = append(operations, types.StringValue("delete_dir"))
-	}
-	if ops.GetAttr {
-		operations = append(operations, types.StringValue("getattr"))
-	}
-	if ops.Link {
-		operations = append(operations, types.StringValue("link"))
-	}
-	if ops.Lookup {
-		operations = append(operations, types.StringValue("lookup"))
-	}
-	if ops.Open {
-		operations = append(operations, types.StringValue("open"))
-	}
-	if ops.Read {
-		operations = append(operations, types.StringValue("read"))
-	}
-	if ops.Rename {
-		operations = append(operations, types.StringValue("rename"))
-	}
-	if ops.RenameDir {
-		operations = append(operations, types.StringValue("rename_dir"))
-	}
-	if ops.SetAttr {
-		operations = append(operations, types.StringValue("setattr"))
-	}
-	if ops.Symlink {
-		operations = append(operations, types.StringValue("symlink"))
-	}
-	if ops.Write {
-		operations = append(operations, types.StringValue("write"))
-	}
-	return operations
-}
+// // convertFileOperationsFromStruct converts FpolicyEventFileOperations struct to types.Set
+// func convertFileOperationsFromStruct(ctx context.Context, ops interfaces.FpolicyEventFileOperations) types.Set {
+// 	var operations []string
+// 	if ops.Access {
+// 		operations = append(operations, "access")
+// 	}
+// 	if ops.Close {
+// 		operations = append(operations, "close")
+// 	}
+// 	if ops.Create {
+// 		operations = append(operations, "create")
+// 	}
+// 	if ops.CreateDir {
+// 		operations = append(operations, "create_dir")
+// 	}
+// 	if ops.Delete {
+// 		operations = append(operations, "delete")
+// 	}
+// 	if ops.DeleteDir {
+// 		operations = append(operations, "delete_dir")
+// 	}
+// 	if ops.GetAttr {
+// 		operations = append(operations, "getattr")
+// 	}
+// 	if ops.Link {
+// 		operations = append(operations, "link")
+// 	}
+// 	if ops.Lookup {
+// 		operations = append(operations, "lookup")
+// 	}
+// 	if ops.Open {
+// 		operations = append(operations, "open")
+// 	}
+// 	if ops.Read {
+// 		operations = append(operations, "read")
+// 	}
+// 	if ops.Rename {
+// 		operations = append(operations, "rename")
+// 	}
+// 	if ops.RenameDir {
+// 		operations = append(operations, "rename_dir")
+// 	}
+// 	if ops.SetAttr {
+// 		operations = append(operations, "setattr")
+// 	}
+// 	if ops.Symlink {
+// 		operations = append(operations, "symlink")
+// 	}
+// 	if ops.Write {
+// 		operations = append(operations, "write")
+// 	}
+// 	setValue, _ := types.SetValueFrom(ctx, types.StringType, operations)
+// 	return setValue
+// }
 
-// convertFiltersFromStruct converts FpolicyEventFilters struct to a slice of types.String
-func convertFiltersFromStruct(f interfaces.FpolicyEventFilters) []types.String {
-	var filters []types.String
-	if f.CloseWithModification {
-		filters = append(filters, types.StringValue("close_with_modification"))
-	}
-	if f.CloseWithRead {
-		filters = append(filters, types.StringValue("close_with_read"))
-	}
-	if f.CloseWithoutModification {
-		filters = append(filters, types.StringValue("close_without_modification"))
-	}
-	if f.ExcludeDirectory {
-		filters = append(filters, types.StringValue("exclude_directory"))
-	}
-	if f.FirstRead {
-		filters = append(filters, types.StringValue("first_read"))
-	}
-	if f.FirstWrite {
-		filters = append(filters, types.StringValue("first_write"))
-	}
-	if f.MonitorAds {
-		filters = append(filters, types.StringValue("monitor_ads"))
-	}
-	if f.OfflineBit {
-		filters = append(filters, types.StringValue("offline_bit"))
-	}
-	if f.OpenWithDeleteIntent {
-		filters = append(filters, types.StringValue("open_with_delete_intent"))
-	}
-	if f.OpenWithWriteIntent {
-		filters = append(filters, types.StringValue("open_with_write_intent"))
-	}
-	if f.SetAttrWithAccessTimeChange {
-		filters = append(filters, types.StringValue("setattr_with_access_time_change"))
-	}
-	if f.SetAttrWithAllocationSizeChange {
-		filters = append(filters, types.StringValue("setattr_with_allocation_size_change"))
-	}
-	if f.SetAttrWithCreationTimeChange {
-		filters = append(filters, types.StringValue("setattr_with_creation_time_change"))
-	}
-	if f.SetAttrWithDaclChange {
-		filters = append(filters, types.StringValue("setattr_with_dacl_change"))
-	}
-	if f.SetAttrWithGroupChange {
-		filters = append(filters, types.StringValue("setattr_with_group_change"))
-	}
-	if f.SetAttrWithModeChange {
-		filters = append(filters, types.StringValue("setattr_with_mode_change"))
-	}
-	if f.SetAttrWithModifyTimeChange {
-		filters = append(filters, types.StringValue("setattr_with_modify_time_change"))
-	}
-	if f.SetAttrWithOwnerChange {
-		filters = append(filters, types.StringValue("setattr_with_owner_change"))
-	}
-	if f.SetAttrWithSaclChange {
-		filters = append(filters, types.StringValue("setattr_with_sacl_change"))
-	}
-	if f.SetAttrWithSizeChange {
-		filters = append(filters, types.StringValue("setattr_with_size_change"))
-	}
-	if f.WriteWithSizeChange {
-		filters = append(filters, types.StringValue("write_with_size_change"))
-	}
-	return filters
-}
+// // convertFiltersFromStruct converts FpolicyEventFilters struct to types.Set
+// func convertFiltersFromStruct(ctx context.Context, f interfaces.FpolicyEventFilters) types.Set {
+// 	var filters []string
+// 	if f.CloseWithModification {
+// 		filters = append(filters, "close_with_modification")
+// 	}
+// 	if f.CloseWithRead {
+// 		filters = append(filters, "close_with_read")
+// 	}
+// 	if f.CloseWithoutModification {
+// 		filters = append(filters, "close_without_modification")
+// 	}
+// 	if f.ExcludeDirectory {
+// 		filters = append(filters, "exclude_directory")
+// 	}
+// 	if f.FirstRead {
+// 		filters = append(filters, "first_read")
+// 	}
+// 	if f.FirstWrite {
+// 		filters = append(filters, "first_write")
+// 	}
+// 	if f.MonitorAds {
+// 		filters = append(filters, "monitor_ads")
+// 	}
+// 	if f.OfflineBit {
+// 		filters = append(filters, "offline_bit")
+// 	}
+// 	if f.OpenWithDeleteIntent {
+// 		filters = append(filters, "open_with_delete_intent")
+// 	}
+// 	if f.OpenWithWriteIntent {
+// 		filters = append(filters, "open_with_write_intent")
+// 	}
+// 	if f.SetAttrWithAccessTimeChange {
+// 		filters = append(filters, "setattr_with_access_time_change")
+// 	}
+// 	if f.SetAttrWithAllocationSizeChange {
+// 		filters = append(filters, "setattr_with_allocation_size_change")
+// 	}
+// 	if f.SetAttrWithCreationTimeChange {
+// 		filters = append(filters, "setattr_with_creation_time_change")
+// 	}
+// 	if f.SetAttrWithDaclChange {
+// 		filters = append(filters, "setattr_with_dacl_change")
+// 	}
+// 	if f.SetAttrWithGroupChange {
+// 		filters = append(filters, "setattr_with_group_change")
+// 	}
+// 	if f.SetAttrWithModeChange {
+// 		filters = append(filters, "setattr_with_mode_change")
+// 	}
+// 	if f.SetAttrWithModifyTimeChange {
+// 		filters = append(filters, "setattr_with_modify_time_change")
+// 	}
+// 	if f.SetAttrWithOwnerChange {
+// 		filters = append(filters, "setattr_with_owner_change")
+// 	}
+// 	if f.SetAttrWithSaclChange {
+// 		filters = append(filters, "setattr_with_sacl_change")
+// 	}
+// 	if f.SetAttrWithSizeChange {
+// 		filters = append(filters, "setattr_with_size_change")
+// 	}
+// 	if f.WriteWithSizeChange {
+// 		filters = append(filters, "write_with_size_change")
+// 	}
+// 	setValue, _ := types.SetValueFrom(ctx, types.StringType, filters)
+// 	return setValue
+// }

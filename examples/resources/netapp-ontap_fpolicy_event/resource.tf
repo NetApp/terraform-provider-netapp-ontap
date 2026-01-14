@@ -16,6 +16,6 @@ resource "netapp-ontap_fpolicy_event" "protocols_fpolicy_event_nfs" {
   svm_name        = "tf_acc_svm"
   protocol        = "nfsv4"
   file_operations = ["create", "write", "read", "open", "close"]
-  filters         = ["first_read", "first_write", "write_with_size_change"]
-  volume_monitoring = true
+  # filters         = ["first_read", "first_write", "write_with_size_change"]
+  # volume_monitoring = false
 }
