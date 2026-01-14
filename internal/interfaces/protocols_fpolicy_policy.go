@@ -51,7 +51,7 @@ type ProtocolsFpolicyPolicyGetDataModelONTAP struct {
 // ProtocolsFpolicyPolicyResourceBodyDataModelONTAP describes the body data model using go types for mapping.
 type ProtocolsFpolicyPolicyResourceBodyDataModelONTAP struct {
 	Name                  string               `mapstructure:"name"`
-	Engine                *FpolicyPolicyEngine `mapstructure:"engine"`
+	Engine                *FpolicyPolicyEngine `mapstructure:"engine,omitempty"`
 	Events                []string             `mapstructure:"events"`
 	Priority              int64                `mapstructure:"priority"`
 	Mandatory             bool                 `mapstructure:"mandatory"`

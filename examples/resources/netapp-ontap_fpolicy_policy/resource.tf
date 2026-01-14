@@ -2,9 +2,9 @@ resource "netapp-ontap_fpolicy_policy" "example_basic" {
   # required to know which system to interface with
   cx_profile_name = "cluster1"
   svm_name        = "scooby"
-  name            = "compliance-policy"
+  name            = "test"
   
-  events = ["scooby2"]
+  events = ["test"]
   
   scope = {
     # include_shares = ["share1", "share2"]
@@ -13,8 +13,9 @@ resource "netapp-ontap_fpolicy_policy" "example_basic" {
     check_extensions_on_directories     = true
     object_monitoring_with_no_extension = true
   }
-    mandatory        = false
-    priority = 2
+    mandatory        = true
+    # passthrough_read = true
+    priority = 3
 }
 
 # resource "netapp-ontap_fpolicy_policy" "example_with_scope" {

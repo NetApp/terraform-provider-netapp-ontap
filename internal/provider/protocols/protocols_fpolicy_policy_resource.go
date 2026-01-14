@@ -8,9 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -101,7 +100,9 @@ func (r *ProtocolsFpolicyPolicyResource) Schema(ctx context.Context, req resourc
 				MarkdownDescription: "Name of the engine to use with this policy",
 				Optional:            true,
 				Computed:            true,
-				Default:             stringdefault.StaticString("native"),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"events": schema.SetAttribute{
 				ElementType:         types.StringType,
@@ -116,7 +117,9 @@ func (r *ProtocolsFpolicyPolicyResource) Schema(ctx context.Context, req resourc
 				MarkdownDescription: "Specifies whether file access is blocked if the policy engine is unavailable. If set to true, file access events will be blocked when the policy engine is unavailable",
 				Optional:            true,
 				Computed:            true,
-				Default:             booldefault.StaticBool(true),
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"allow_privileged_access": schema.BoolAttribute{
 				MarkdownDescription: "Specifies whether privileged access is allowed. Note: This attribute can only be set during resource updates, not during initial creation",
@@ -130,7 +133,9 @@ func (r *ProtocolsFpolicyPolicyResource) Schema(ctx context.Context, req resourc
 				MarkdownDescription: "Specifies whether passthrough-read should be allowed for FPolicy servers registered for the policy",
 				Optional:            true,
 				Computed:            true,
-				Default:             booldefault.StaticBool(false),
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"scope": schema.SingleNestedAttribute{
 				MarkdownDescription: "Scope of the policy. Applies to the FPolicy policy to specific volumes, shares, export policies, or file extensions",
@@ -180,13 +185,17 @@ func (r *ProtocolsFpolicyPolicyResource) Schema(ctx context.Context, req resourc
 						MarkdownDescription: "Specifies whether the file extension check also applies to directory objects",
 						Optional:            true,
 						Computed:            true,
-						Default:             booldefault.StaticBool(true),
+						PlanModifiers: []planmodifier.Bool{
+							boolplanmodifier.UseStateForUnknown(),
+						},
 					},
 					"object_monitoring_with_no_extension": schema.BoolAttribute{
 						MarkdownDescription: "Specifies whether to monitor files that have no extension",
 						Optional:            true,
 						Computed:            true,
-						Default:             booldefault.StaticBool(false),
+						PlanModifiers: []planmodifier.Bool{
+							boolplanmodifier.UseStateForUnknown(),
+						},
 					},
 				},
 			},
@@ -253,7 +262,9 @@ func (r *ProtocolsFpolicyPolicyResource) Create(ctx context.Context, req resourc
 
 	request.Name = plan.Name.ValueString()
 
-	request.Engine = &interfaces.FpolicyPolicyEngine{Name: plan.Engine.ValueString()}
+	if !plan.Engine.IsNull() && !plan.Engine.IsUnknown() {
+		request.Engine = &interfaces.FpolicyPolicyEngine{Name: plan.Engine.ValueString()}
+	}
 	// Convert events to string array
 	var events []string
 	for _, event := range plan.Events {
@@ -263,13 +274,17 @@ func (r *ProtocolsFpolicyPolicyResource) Create(ctx context.Context, req resourc
 
 	request.Priority = plan.Priority.ValueInt64()
 
-	request.Mandatory = plan.Mandatory.ValueBool()
+	if !plan.Mandatory.IsNull() && !plan.Mandatory.IsUnknown() {
+		request.Mandatory = plan.Mandatory.ValueBool()
+	}
 
 	if !plan.PrivilegedUser.IsNull() && !plan.PrivilegedUser.IsUnknown() {
 		request.PrivilegedUser = plan.PrivilegedUser.ValueString()
 	}
 
-	request.PassthroughRead = plan.PassthroughRead.ValueBool()
+	if !plan.PassthroughRead.IsNull() && !plan.PassthroughRead.IsUnknown() {
+		request.PassthroughRead = plan.PassthroughRead.ValueBool()
+	}
 
 	// Scope is required by the API, always provide it
 	scope := interfaces.FpolicyPolicyScope{}
@@ -321,9 +336,13 @@ func (r *ProtocolsFpolicyPolicyResource) Create(ctx context.Context, req resourc
 		}
 	}
 
-	scope.CheckExtensionsOnDirectories = plan.Scope.CheckExtensionsOnDirectories.ValueBool()
+	if !plan.Scope.CheckExtensionsOnDirectories.IsNull() && !plan.Scope.CheckExtensionsOnDirectories.IsUnknown() {
+		scope.CheckExtensionsOnDirectories = plan.Scope.CheckExtensionsOnDirectories.ValueBool()
+	}
 
-	scope.ObjectMonitoringWithNoExtension = plan.Scope.ObjectMonitoringWithNoExtension.ValueBool()
+	if !plan.Scope.ObjectMonitoringWithNoExtension.IsNull() && !plan.Scope.ObjectMonitoringWithNoExtension.IsUnknown() {
+		scope.ObjectMonitoringWithNoExtension = plan.Scope.ObjectMonitoringWithNoExtension.ValueBool()
+	}
 
 	request.Scope = &scope
 
@@ -336,10 +355,16 @@ func (r *ProtocolsFpolicyPolicyResource) Create(ctx context.Context, req resourc
 	plan.ID = types.StringValue(fmt.Sprintf("%s/%s", plan.SVMName.ValueString(), plan.Name.ValueString()))
 
 	// Read back the resource to get computed values
-	_, err = interfaces.GetProtocolsFpolicyPolicyByName(errorHandler, *client, plan.Name.ValueString(), svm.UUID)
+	restInfo, err := interfaces.GetProtocolsFpolicyPolicyByName(errorHandler, *client, plan.Name.ValueString(), svm.UUID)
 	if err != nil {
 		return
 	}
+
+	plan.Engine = types.StringValue(restInfo.Engine.Name)
+	plan.Mandatory = types.BoolValue(restInfo.Mandatory)
+	plan.PassthroughRead = types.BoolValue(restInfo.PassthroughRead)
+	plan.Scope.CheckExtensionsOnDirectories = types.BoolValue(restInfo.Scope.CheckExtensionsOnDirectories)
+	plan.Scope.ObjectMonitoringWithNoExtension = types.BoolValue(restInfo.Scope.ObjectMonitoringWithNoExtension)
 
 	tflog.Trace(ctx, "created a protocols_fpolicy_policy resource")
 
@@ -377,6 +402,7 @@ func (r *ProtocolsFpolicyPolicyResource) Read(ctx context.Context, req resource.
 
 	// Update state with read values
 	state.Name = types.StringValue(restInfo.Name)
+
 	state.Engine = types.StringValue(restInfo.Engine.Name)
 
 	// Convert events from FpolicyPolicyEvent array to string array
@@ -474,9 +500,11 @@ func (r *ProtocolsFpolicyPolicyResource) Update(ctx context.Context, req resourc
 	// Create the request body (without name field for PATCH)
 	request := interfaces.ProtocolsFpolicyPolicyResourceUpdateBodyDataModelONTAP{}
 
-	// Engine
-	engine := interfaces.FpolicyPolicyEngine{Name: plan.Engine.ValueString()}
-	request.Engine = &engine
+	// Engine: only set if not null/empty
+	if !plan.Engine.IsNull() && !plan.Engine.IsUnknown() {
+		engine := interfaces.FpolicyPolicyEngine{Name: plan.Engine.ValueString()}
+		request.Engine = &engine
+	}
 
 	// Convert events to string array
 	var events []string

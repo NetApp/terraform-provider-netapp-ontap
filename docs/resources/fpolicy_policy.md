@@ -56,9 +56,9 @@ The following arguments are supported:
 
 ### Optional
 
-- `engine` - (String) Name of the engine to use with this policy. Default: `native`.
-- `mandatory` - (Bool) Specifies whether file access is blocked if the policy engine is unavailable. If set to true, file access events will be blocked when the policy engine is unavailable. Default: `true`.
-- `passthrough_read` - (Bool) Specifies whether passthrough-read should be allowed for FPolicy servers registered for the policy. Default: `false`.
+- `engine` - (String) Name of the engine to use with this policy.
+- `mandatory` - (Bool) Specifies whether file access is blocked if the policy engine is unavailable. If set to true, file access events will be blocked when the policy engine is unavailable.
+- `passthrough_read` - (Bool) Specifies whether passthrough-read should be allowed for FPolicy servers registered for the policy.
 - `privileged_user` - (String) Specifies the privileged user name.
 - `allow_privileged_access` - (Bool) Specifies whether privileged access is allowed. This field can only be set during updates, not during creation.
 
@@ -80,8 +80,8 @@ Optional:
 - `exclude_shares` - (Set of String) List of shares to exclude from the FPolicy policy scope.
 - `include_export_policies` - (Set of String) List of export policies to include in the FPolicy policy scope.
 - `exclude_export_policies` - (Set of String) List of export policies to exclude from the FPolicy policy scope.
-- `check_extensions_on_directories` - (Bool) Specifies whether the file extension check also applies to directory objects. Default: `true`.
-- `object_monitoring_with_no_extension` - (Bool) Specifies whether to monitor files that have no extension. Default: `false`.
+- `check_extensions_on_directories` - (Bool) Specifies whether the file extension check also applies to directory objects.
+- `object_monitoring_with_no_extension` - (Bool) Specifies whether to monitor files that have no extension.
 
 ## Import
 
