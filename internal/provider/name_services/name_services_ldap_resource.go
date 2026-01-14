@@ -298,8 +298,9 @@ func (r *NameServicesLDAPResource) Read(ctx context.Context, req resource.ReadRe
 		}
 	}
 	if restInfo.PreferredADServers != nil {
-		for _, adserver := range restInfo.PreferredADServers {
-			data.PreferredADServers = append(data.PreferredADServers, types.StringValue(adserver))
+		data.PreferredADServers = make([]types.String, len(restInfo.PreferredADServers))
+		for index, adserver := range restInfo.PreferredADServers {
+			data.PreferredADServers[index] = types.StringValue(adserver)
 		}
 	}
 	// update computed fields
