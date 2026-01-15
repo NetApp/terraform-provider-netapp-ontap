@@ -6,6 +6,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+- Fixed import documentation on resources which are supporting import. ([#613](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/613))
 - **netapp-ontap_name_services_ldap_resource**: Fixed duplicate Set Element Error with `preferred_ad_servers` ([#615](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/615))
 
 # 2.4.0 (2025-11-20)
