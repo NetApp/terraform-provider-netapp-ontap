@@ -16,7 +16,7 @@ data "netapp-ontap_network_ip_service_policies" "example2" {
   }
 }
 
-# retrieving a specific service policy
+# retrieving service policies with matching name pattern
 data "netapp-ontap_network_ip_service_policies" "example3" {
   # required to know which system to interface with
   cx_profile_name = "hw-cluster"
