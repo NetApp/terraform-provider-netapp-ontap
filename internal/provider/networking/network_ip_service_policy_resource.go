@@ -76,7 +76,8 @@ func (r *IPServicePolicyResource) Schema(ctx context.Context, req resource.Schem
 			},
 			"svm_name": schema.StringAttribute{
 				MarkdownDescription: "The name of the SVM",
-				Required:            true,
+				Optional:            true,
+				Computed:            true,
 			},
 			"scope": schema.StringAttribute{
 				MarkdownDescription: "Set to \"svm\" for service policies owned by an SVM. Otherwise, set to \"cluster\".",
@@ -212,9 +213,7 @@ func (r *IPServicePolicyResource) Read(ctx context.Context, req resource.ReadReq
 
 	// services - map list to set
 	var services = make([]string, len(restInfo.Services))
-	for i, service := range restInfo.Services {
-		services[i] = service
-	}
+	copy(services, restInfo.Services)
 	servicesSet, diags := types.SetValueFrom(ctx, types.StringType, services)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -318,9 +317,7 @@ func (r *IPServicePolicyResource) Create(ctx context.Context, req resource.Creat
 
 	// services - map list to set
 	var services = make([]string, len(restInfo.Services))
-	for i, service := range restInfo.Services {
-		services[i] = service
-	}
+	copy(services, restInfo.Services)
 	servicesSet, diags := types.SetValueFrom(ctx, types.StringType, services)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -416,9 +413,7 @@ func (r *IPServicePolicyResource) Update(ctx context.Context, req resource.Updat
 
 	// services - map list to set
 	var services = make([]string, len(restInfo.Services))
-	for i, service := range restInfo.Services {
-		services[i] = service
-	}
+	copy(services, restInfo.Services)
 	servicesSet, diags := types.SetValueFrom(ctx, types.StringType, services)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {

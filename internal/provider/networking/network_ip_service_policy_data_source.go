@@ -161,9 +161,7 @@ func (d *IPServicePolicyDataSource) Read(ctx context.Context, req datasource.Rea
 
 	// services - map list to set
 	var services = make([]string, len(restInfo.Services))
-	for i, service := range restInfo.Services {
-		services[i] = service
-	}
+	copy(services, restInfo.Services)
 	servicesSet, diags := types.SetValueFrom(ctx, types.StringType, services)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
