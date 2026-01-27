@@ -2,10 +2,11 @@
 
 ENHANCEMENTS:
 
-Fixed import documentation on resources which are supporting import. ([#613](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/613))
+- **netapp-ontap_security_certificate**: added extra parameter to import to support for avoiding duplicate cert names across svms ([#614](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/614))
 
 BUG FIXES:
 
+- Fixed import documentation on resources which are supporting import. ([#613](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/613))
 - **netapp-ontap_name_services_ldap_resource**: Fixed duplicate Set Element Error with `preferred_ad_servers` ([#615](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/615))
 
 # 2.4.0 (2025-11-20)
