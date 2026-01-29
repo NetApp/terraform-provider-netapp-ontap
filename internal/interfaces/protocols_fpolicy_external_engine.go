@@ -12,7 +12,7 @@ import (
 // ProtocolsFpolicyExternalEngineGetDataModelONTAP describes the GET record data model using go types for mapping.
 type ProtocolsFpolicyExternalEngineGetDataModelONTAP struct {
 	Name                      string                                `mapstructure:"name"`
-	SVM                       svm                                   `mapstructure:"svm"`
+	SVM                       SvmDataModelONTAP                     `mapstructure:"svm"`
 	KeepAliveInterval         string                                `mapstructure:"keep_alive_interval,omitempty"`
 	RequestCancelTimeout      string                                `mapstructure:"request_cancel_timeout,omitempty"`
 	Certificate               ProtocolsFpolicyExternalEngineCertificate `mapstructure:"certificate,omitempty"`
@@ -106,6 +106,9 @@ func GetProtocolsFpolicyExternalEngineByName(errorHandler *utils.ErrorHandler, r
 
 // GetProtocolsFpolicyExternalEngines to get protocols_fpolicy_external_engine info for all resources matching a filter
 func GetProtocolsFpolicyExternalEngines(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *ProtocolsFpolicyExternalEngineDataSourceFilterModel) ([]ProtocolsFpolicyExternalEngineGetDataModelONTAP, error) {
+	if filter == nil {
+		return nil, errorHandler.MakeAndReportError("error reading protocols_fpolicy_external_engines info", "filter cannot be nil, SVMUUID is required")
+	}
 	api := fmt.Sprintf("protocols/fpolicy/%s/engines", filter.SVMUUID)
 	query := r.NewQuery()
 	query.Fields([]string{"name", "svm", "keep_alive_interval", "request_cancel_timeout", "certificate", "session_timeout", "request_abort_timeout", "status_request_interval", "ssl_option", "primary_servers", "buffer_size", "secondary_servers", "port", "server_progress_timeout", "format", "type", "resiliency", "max_server_requests", "max_connection_retries"})
