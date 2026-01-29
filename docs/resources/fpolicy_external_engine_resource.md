@@ -6,7 +6,7 @@ description: |-
   FpolicyExternalEngine resource
 ---
 
-# Data Source fpolicy_external_engine
+# Resource fpolicy_external_engine
 
 Create/Update/Delete FPolicy engine configuration resources
 
@@ -29,7 +29,7 @@ Create/Update/Delete FPolicy engine configuration resources
 ## Example Usage
 
 ```terraform
-data "netapp-ontap_protocols_fpolicy_external_engine" "protocols_fpolicy_external_engine" {
+resource "netapp-ontap_protocols_fpolicy_external_engine" "protocols_fpolicy_external_engine" {
   # required to know which system to interface with
   cx_profile_name = "cluster1"
   name           = "test_engine"
