@@ -1,4 +1,4 @@
-# 2.5.0 (2026-**-**)
+# 2.5.0
 
 ENHANCEMENTS:
 
@@ -7,6 +7,11 @@ Fixed import documentation on resources which are supporting import. ([#613](htt
 BUG FIXES:
 
 - **netapp-ontap_name_services_ldap_resource**: Fixed duplicate Set Element Error with `preferred_ad_servers` ([#615](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/615))
+
+FEATURES:
+
+- **New Data Source:** `netapp-ontap_protocols_fpolicy_external_engine` and `netapp-ontap_protocols_fpolicy_external_engines` ([#625](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/625))
+- **New Resource:** `netapp-ontap_protocols_fpolicy_external_engine` ([#625](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/625))
 
 # 2.4.0 (2025-11-20)
 
