@@ -112,13 +112,11 @@ func GetProtocolsFpolicyExternalEngines(errorHandler *utils.ErrorHandler, r rest
 	api := fmt.Sprintf("protocols/fpolicy/%s/engines", filter.SVMUUID)
 	query := r.NewQuery()
 	query.Fields([]string{"name", "svm", "keep_alive_interval", "request_cancel_timeout", "certificate", "session_timeout", "request_abort_timeout", "status_request_interval", "ssl_option", "primary_servers", "buffer_size", "secondary_servers", "port", "server_progress_timeout", "format", "type", "resiliency", "max_server_requests", "max_connection_retries"})
-	if filter != nil {
-		var filterMap map[string]interface{}
-		if err := mapstructure.Decode(filter, &filterMap); err != nil {
-			return nil, errorHandler.MakeAndReportError("error encoding protocols_fpolicy_external_engines filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
-		}
-		query.SetValues(filterMap)
+	var filterMap map[string]interface{}
+	if err := mapstructure.Decode(filter, &filterMap); err != nil {
+		return nil, errorHandler.MakeAndReportError("error encoding protocols_fpolicy_external_engines filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
 	}
+	query.SetValues(filterMap)
 	statusCode, response, err := r.GetZeroOrMoreRecords(api, query, nil)
 	if err == nil && response == nil {
 		err = fmt.Errorf("no response for GET %s", api)
