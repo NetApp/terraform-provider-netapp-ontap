@@ -1,7 +1,13 @@
 # 2.5.0 (2026-**-**)
 
+FEATURES:
+
+- **New Data Source:** `netapp-ontap_network_ip_service_policy` and `netapp-ontap_network_ip_service_policies`([#621](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/621))
+- **New Resource:** `netapp-ontap_network_ip_service_policy` ([#621](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/621))
+
 ENHANCEMENTS:
 
+- Fixed import documentation on resources which are supporting import. ([#613](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/613))
 - **netapp-ontap_security_certificate**: added extra parameter to import to support for avoiding duplicate cert names across svms ([#614](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/614))
 
 BUG FIXES:
