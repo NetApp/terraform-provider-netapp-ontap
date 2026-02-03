@@ -235,6 +235,7 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		protocols.NewExportPolicyRuleResource,
 		protocols.NewProtocolsCIFSShareResource,
 		protocols.NewProtocolsFpolicyPolicyResource,
+		protocols.NewProtocolsFpolicyEventResource,
 		protocols.NewProtocolsIscsiServiceResource,
 		protocols.NewProtocolsNfsServiceResource,
 		protocols.NewProtocolsSanIgroupResource,
