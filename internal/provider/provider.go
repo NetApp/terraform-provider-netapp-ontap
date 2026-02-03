@@ -187,15 +187,33 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 		} else {
 			validateCerts = connectionProfile.ValidateCerts.ValueBool()
 		}
+
+		var username, password, certFilepath, keyFilepath, caCertFile string
+		if !connectionProfile.Username.IsNull() {
+			username = connectionProfile.Username.ValueString()
+		}
+		if !connectionProfile.Password.IsNull() {
+			password = connectionProfile.Password.ValueString()
+		}
+		if !connectionProfile.CertFilepath.IsNull() {
+			certFilepath = connectionProfile.CertFilepath.ValueString()
+		}
+		if !connectionProfile.KeyFilepath.IsNull() {
+			keyFilepath = connectionProfile.KeyFilepath.ValueString()
+		}
+		if !connectionProfile.CACertFile.IsNull() {
+			caCertFile = connectionProfile.CACertFile.ValueString()
+		}
+
 		connectionProfiles[connectionProfile.Name.ValueString()] = connection.Profile{
 			Hostname:              connectionProfile.Hostname.ValueString(),
-			Username:              connectionProfile.Username.ValueString(),
-			Password:              connectionProfile.Password.ValueString(),
+			Username:              username,
+			Password:              password,
 			ValidateCerts:         validateCerts,
 			MaxConcurrentRequests: 0,
-			CertFilepath:          connectionProfile.CertFilepath.ValueString(),
-			KeyFilepath:           connectionProfile.KeyFilepath.ValueString(),
-			CACertFile:            connectionProfile.CACertFile.ValueString(),
+			CertFilepath:          certFilepath,
+			KeyFilepath:           keyFilepath,
+			CACertFile:            caCertFile,
 		}
 		if !connectionProfile.ONTAPProviderAWSModel.IsNull() {
 			var lambdaConfig ONTAPProviderAWSLambdaModel

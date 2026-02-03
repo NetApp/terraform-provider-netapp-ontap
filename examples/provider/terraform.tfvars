@@ -1,11 +1,7 @@
-# Basic username password authentication
+# Example configuration for basic username/password authentication
 
-username = "tfuser"
-password = "netapp1!"
-validate_certs = false
+username = "admin"
+password = "xxxxxxxxx"
+validate_certs = true
 
-# cert based authentication
-
-# cert_filepath = "/root/cert/terraform_client.crt"
-# key_filepath = "/root/cert/terraform_client.key"
-# ca_cert_file = "/root/cert/rootCA.crt"
+# Alternative: For certificate-based auth, see docs/guides/ssl_certificate_authentication.md
