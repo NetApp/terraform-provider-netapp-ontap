@@ -31,6 +31,7 @@ type ProtocolsCIFSShareGetDataModelONTAP struct {
 	ShowSnapshot          bool      `mapstructure:"show_snapshot"`
 	UnixSymlink           string    `mapstructure:"unix_symlink"`
 	VscanProfile          string    `mapstructure:"vscan_profile"`
+	AccessBasedEnumeration bool     `mapstructure:"access_based_enumeration"`
 }
 
 // Acls describes the acls data model using go types for mapping in ProtocolsCIFSShareResourceBodyDataModelONTAP.
@@ -68,6 +69,7 @@ type ProtocolsCIFSShareResourceBodyDataModelONTAP struct {
 	ShowSnapshot          bool   `mapstructure:"show_snapshot,omitempty"`
 	UnixSymlink           string `mapstructure:"unix_symlink,omitempty"`  // API complains if this is not omit empty
 	VscanProfile          string `mapstructure:"vscan_profile,omitempty"` // API complains if this is not omit empty
+	AccessBasedEnumeration bool  `mapstructure:"access_based_enumeration"`
 }
 
 // ProtocolsCIFSShareDataSourceFilterModel describes the data source data model for queries.
@@ -83,7 +85,7 @@ func GetProtocolsCIFSShareByName(errorHandler *utils.ErrorHandler, r restclient.
 	query := r.NewQuery()
 	query.Add("name", name)
 	query.Add("svm.name", svmName)
-	query.Fields([]string{"name", "svm.name", "unix_symlink", "dir_umask", "file_umask", "acls", "home_directory", "force_group_for_create", "no_strict_security", "oplocks", "volume", "change_notify", "path", "encryption", "vscan_profile", "offline_files", "comment", "show_snapshot", "continuously_available", "namespace_caching"})
+	query.Fields([]string{"name", "svm.name", "unix_symlink", "dir_umask", "file_umask", "acls", "home_directory", "force_group_for_create", "no_strict_security", "oplocks", "volume", "change_notify", "path", "encryption", "vscan_profile", "offline_files", "comment", "show_snapshot", "continuously_available", "namespace_caching", "access_based_enumeration"})
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
 		err = fmt.Errorf("no response for GET %s", api)
@@ -105,7 +107,7 @@ func GetProtocolsCIFSShareByName(errorHandler *utils.ErrorHandler, r restclient.
 func GetProtocolsCIFSShares(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *ProtocolsCIFSShareDataSourceFilterModel) ([]ProtocolsCIFSShareGetDataModelONTAP, error) {
 	api := "protocols/cifs/shares"
 	query := r.NewQuery()
-	query.Fields([]string{"name", "svm.name", "unix_symlink", "dir_umask", "file_umask", "acls", "home_directory", "force_group_for_create", "no_strict_security", "oplocks", "volume", "change_notify", "path", "encryption", "vscan_profile", "offline_files", "comment", "show_snapshot", "continuously_available", "namespace_caching"})
+	query.Fields([]string{"name", "svm.name", "unix_symlink", "dir_umask", "file_umask", "acls", "home_directory", "force_group_for_create", "no_strict_security", "oplocks", "volume", "change_notify", "path", "encryption", "vscan_profile", "offline_files", "comment", "show_snapshot", "continuously_available", "namespace_caching", "access_based_enumeration"})
 	if filter != nil {
 		var filterMap map[string]interface{}
 		if err := mapstructure.Decode(filter, &filterMap); err != nil {

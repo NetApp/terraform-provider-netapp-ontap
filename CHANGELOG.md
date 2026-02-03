@@ -1,6 +1,37 @@
-# 2.4.0
+# 2.5.0 (2026-**-**)
 
+FEATURES:
+
+- **New Resource:** `netapp-ontap_fpolicy_event` ([#624](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/624))
+- **New Data Source:** `netapp-ontap_network_ip_service_policy` and `netapp-ontap_network_ip_service_policies`([#621](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/621))
+- **New Resource:** `netapp-ontap_network_ip_service_policy` ([#621](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/621))
 - Configured SSL certificate based authentication in addition to basic username and password authentication in provider config.
+
+ENHANCEMENTS:
+
+- Fixed import documentation on resources which are supporting import. ([#613](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/613))
+- **netapp-ontap_security_certificate**: added extra parameter to import to support for avoiding duplicate cert names across svms ([#614](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/614))
+
+BUG FIXES:
+
+- Fixed import documentation on resources which are supporting import. ([#613](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/613))
+- **netapp-ontap_name_services_ldap_resource**: Fixed duplicate Set Element Error with `preferred_ad_servers` ([#615](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/615))
+
+# 2.4.0 (2025-11-20)
+
+ENHANCEMENTS:
+
+- **netapp-ontap_cifs_share**, **netapp-ontap_cifs_shares**: added `access_based_enumeration` option to data sources and resource. ([#259](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/259))
+
+FEATURES:
+
+- **New Data Source:** `netapp-ontap_autosupport` ([#555](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/555))
+- **New Resource:** `netapp-ontap_autosupport` ([#555](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/555))
+- **New Data Source:** `netapp-ontap_s3_policy` and `netapp-ontap_s3_policies`([#593](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/593))
+- **New Resource:** `netapp-ontap_s3_policy` ([#594](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/594))
+- **New Data Source:** `netapp-ontap_s3_group` ([#591](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/591))
+- **New Data Source:** `netapp-ontap_s3_groups` ([#591](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/591))
+- **New Resource:** `netapp-ontap_s3_group` ([#592](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/592))
 
 # 2.3.0 (2025-07-22)
 

@@ -66,6 +66,7 @@ type ProtocolsCIFSShareDataSourceModel struct {
 	ShowSnapshot          types.Bool   `tfsdk:"show_snapshot"`
 	UnixSymlink           types.String `tfsdk:"unix_symlink"`
 	VscanProfile          types.String `tfsdk:"vscan_profile"`
+	AccessBasedEnumeration	types.Bool `tfsdk:"access_based_enumeration"`
 }
 
 // Metadata returns the data source type name.
@@ -228,6 +229,11 @@ func (d *ProtocolsCIFSShareDataSource) Schema(ctx context.Context, req datasourc
 					stringvalidator.OneOf("no_scan", "standard", "strict", "writes_only"),
 				},
 			},
+			"access_based_enumeration": schema.BoolAttribute{
+				MarkdownDescription: `If enabled, all folders inside this share are visible to a user based on that individual user access right; prevents
+				the display of folders or other shared resources that the user does not have access to.`,
+				Computed:            true,
+			},
 		},
 	}
 }
@@ -290,6 +296,7 @@ func (d *ProtocolsCIFSShareDataSource) Read(ctx context.Context, req datasource.
 	data.ShowSnapshot = types.BoolValue(restInfo.ShowSnapshot)
 	data.UnixSymlink = types.StringValue(restInfo.UnixSymlink)
 	data.VscanProfile = types.StringValue(restInfo.VscanProfile)
+	data.AccessBasedEnumeration = types.BoolValue(restInfo.AccessBasedEnumeration)
 
 	// Acls
 	setElements := []attr.Value{}

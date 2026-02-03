@@ -40,6 +40,7 @@ resource "netapp-ontap_cifs_share" "protocols_cifs_share" {
               }
             ]
   comment = "abedf"
+  access_based_enumeration = false
 }
 ```
 
@@ -82,6 +83,7 @@ resource "netapp-ontap_cifs_share" "protocols_cifs_share" {
   * standard - Virus scans can be triggered by open, close, and rename operations.
   * strict - Virus scans can be triggered by open, read, close, and rename operations.
   * writes_only - Virus scans can be triggered only when a file that has been modified is closed.
+- `access_based_enumeration` (Boolean) If enabled, all folders inside this share are visible to a user based on that individual user access right; prevents the display of folders or other shared resources that the user does not have access to.
 
 ### Read-Only
 
@@ -96,3 +98,54 @@ Optional:
 - `permission` (String) Specifies the access rights that a user or group has on the defined CIFS Share.
 - `type` (String) string Specifies the type of the user or group to add to the access control list of a CIFS share.
 - `user_or_group` (String) Specifies the user or group name to add to the access control list of a CIFS share.
+
+## Import
+
+This resource supports import, which allows you to import existing CIFS share into the state of this resource.
+Import require a unique ID composed of the share name, SVM name, and connection profile, separated by commas.
+
+id = `name`,`svm_name`,`cx_profile_name`
+
+### Terraform Import
+
+For example
+
+```shell
+ terraform import netapp-ontap_cifs_share.example share1,svm1,cluster4
+```
+
+!> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
+
+### Terraform Import Block
+
+This requires Terraform 1.5 or higher, and will auto create the configuration for you
+
+First create the block
+
+```terraform
+import {
+  to = netapp-ontap_cifs_share.share_import
+  id = "share1,svm1,cluster4"
+}
+```
+
+Next run, this will auto create the configuration for you
+
+```shell
+terraform plan -generate-config-out=generated.tf
+```
+
+This will generate a file called generated.tf, which will contain the configuration for the imported resource
+
+```terraform
+# __generated__ by Terraform
+# Please review these resources and move them into your main configuration files.
+# __generated__ by Terraform from "share1,svm1,cluster4"
+resource "netapp-ontap_cifs_share" "share_import" {
+  cx_profile_name = "cluster4"
+  name            = "share1"
+  svm_name        = "svm1"
+  path            = "/vol1"
+  ...
+}
+```

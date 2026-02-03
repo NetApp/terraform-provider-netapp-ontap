@@ -4,6 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/cluster"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/name_services"
@@ -12,15 +19,8 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/security"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/snapmirror"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/storage"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/support"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/svm"
-
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
-	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Ensure ONTAPProvider satisfies various provider interfaces.
@@ -260,6 +260,7 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		networking.NewEthernetPortResource,
 		networking.NewIPInterfaceResource,
 		networking.NewIPRouteResource,
+		networking.NewIPServicePolicyResource,
 		NewExampleResource,
 		protocols.NewCifsLocalGroupMembersResource,
 		protocols.NewCifsLocalGroupResource,
@@ -269,10 +270,13 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		protocols.NewExportPolicyResource,
 		protocols.NewExportPolicyRuleResource,
 		protocols.NewProtocolsCIFSShareResource,
+		protocols.NewProtocolsFpolicyEventResource,
 		protocols.NewProtocolsIscsiServiceResource,
 		protocols.NewProtocolsNfsServiceResource,
 		protocols.NewProtocolsSanIgroupResource,
 		protocols.NewProtocolsSanLunMapResource,
+		protocols.NewProtocolsS3PolicyResource,
+		protocols.NewProtocolsS3GroupResource,
 		security.NewSecurityAccountResource,
 		security.NewSecurityCertificateResource,
 		security.NewSecurityLoginMessageResource,
@@ -290,6 +294,7 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 		storage.NewStorageVolumeResource,
 		storage.NewStorageVolumeSnapshotResource,
 		storage.NewVolumeFileResource,
+		support.NewAutoSupportResource,
 		svm.NewSVMPeerResource,
 		svm.NewSvmResource,
 		svm.NewSvmQosPolicyActivationResource,
@@ -348,6 +353,8 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		networking.NewIPInterfacesDataSource,
 		networking.NewIPRouteDataSource,
 		networking.NewIPRoutesDataSource,
+		networking.NewIPServicePolicyDataSource,
+		networking.NewIPServicePoliciesDataSource,
 		NewExampleDataSource,
 		protocols.NewCifsLocalGroupDataSource,
 		protocols.NewCifsLocalGroupMemberDataSource,
@@ -373,6 +380,10 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		protocols.NewProtocolsSanIgroupsDataSource,
 		protocols.NewProtocolsSanLunMapDataSource,
 		protocols.NewProtocolsSanLunMapsDataSource,
+		protocols.NewProtocolsS3PolicyDataSource,
+		protocols.NewProtocolsS3PoliciesDataSource,
+		protocols.NewProtocolsS3GroupDataSource,
+		protocols.NewProtocolsS3GroupsDataSource,
 		security.NewSecurityAccountDataSource,
 		security.NewSecurityAccountsDataSource,
 		security.NewSecurityCertificateDataSource,
@@ -406,6 +417,7 @@ func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		storage.NewStorageVolumesFilesDataSource,
 		storage.NewVolumeEfficiencyPoliciesDataSource,
 		storage.NewVolumeEfficiencyPolicyDataSource,
+		support.NewAutoSupportDataSource,
 		svm.NewSVMPeerDataSource,
 		svm.NewSVMPeersDataSource,
 		svm.NewSvmDataSource,

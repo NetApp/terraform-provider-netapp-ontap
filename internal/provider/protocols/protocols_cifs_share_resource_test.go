@@ -98,6 +98,7 @@ resource "netapp-ontap_cifs_share" "example" {
 		}
 	]
  	comment = "this is a comment"
+	access_based_enumeration = true
 }`, host, admin, password, shareName, svm)
 }
 
@@ -137,6 +138,7 @@ resource "netapp-ontap_cifs_share" "example" {
   ]
   comment = "update comment"
   continuously_available = true
+  access_based_enumeration = false
 }`, host, admin, password, volName, svm)
 }
 

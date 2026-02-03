@@ -62,9 +62,16 @@ CATEGORIES = {
         "network_ip_interface_resource.md",
         "network_ip_route_data_source.md",
         "network_ip_routes_data_source.md",
-        "network_ip_route_resource.md"],
+        "network_ip_route_resource.md",
+        "network_ip_service_policy_data_source.md",
+        "network_ip_service_policies_data_source.md",
+        "network_ip_service_policy_resource.md"],
     'nvme': [],
-    'object-store': [],
+    'object-store': [
+        "protocols_s3_group_data_source.md",
+        "protocols_s3_groups_data_source.md", 
+        "protocols_s3_group_resource.md",
+    ],
     'san': [
         "protocols_san_igroup_data_source.md",
         "protocols_san_igroups_data_source.md",
