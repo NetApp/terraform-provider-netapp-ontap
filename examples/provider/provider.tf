@@ -53,6 +53,13 @@ provider "netapp-ontap" {
       username = var.username
       password = var.password
       validate_certs = var.validate_certs
+    },
+    {
+      name = "hw-cluster"
+      hostname = "********50"
+      username = var.username
+      password = var.password
+      validate_certs = var.validate_certs
     }
   ]
 }
