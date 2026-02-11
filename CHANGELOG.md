@@ -1,7 +1,13 @@
-# 2.5.0
+# 2.4.1 (2026-**-**)
+
+BUG FIXES:
+
+- **netapp-ontap_volumes**: fixed issue with data source ([#578](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/578))
+- **netapp-ontap_svms_data_source**: Fixed `storage_limit` value conversion error. ([#574](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/574))
 
 FEATURES:
 
+- **New Resource:** `netapp-ontap_fpolicy_policy` ([#623](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/623))
 - **New Resource:** `netapp-ontap_fpolicy_event` ([#624](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/624))
 - **New Data Source:** `netapp-ontap_network_ip_service_policy` and `netapp-ontap_network_ip_service_policies`([#621](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/621))
 - **New Resource:** `netapp-ontap_network_ip_service_policy` ([#621](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/621))
