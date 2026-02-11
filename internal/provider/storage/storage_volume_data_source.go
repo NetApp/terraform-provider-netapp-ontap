@@ -342,13 +342,13 @@ func (d *StorageVolumeDataSource) Schema(ctx context.Context, req datasource.Sch
 					},
 				},
 			},
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Volume identifier",
-			},
 			"snapshot_locking_enabled": schema.BoolAttribute{
 				MarkdownDescription: "Whether or not snapshot copy locking is enabled on the volume.",
 				Computed:            true,
+			},
+			"id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Volume identifier",
 			},
 		},
 	}
