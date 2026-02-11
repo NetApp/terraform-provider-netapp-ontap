@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -111,11 +112,17 @@ func (r *ProtocolsFpolicyExternalEngineResource) Schema(ctx context.Context, req
 				MarkdownDescription: "Specifies the ISO-8601 interval time for a storage appliance to send Keep Alive message to an FPolicy server",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"request_cancel_timeout": schema.StringAttribute{
 				MarkdownDescription: "Specifies the ISO-8601 timeout duration for a screen request to be processed by an FPolicy server",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"certificate": schema.SingleNestedAttribute{
 				MarkdownDescription: "Provides details about certificate used to authenticate the FPolicy server",
@@ -143,21 +150,33 @@ func (r *ProtocolsFpolicyExternalEngineResource) Schema(ctx context.Context, req
 				MarkdownDescription: "Specifies the interval after which a new session ID is sent to the FPolicy server during reconnection attempts",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"request_abort_timeout": schema.StringAttribute{
 				MarkdownDescription: "Specifies the ISO-8601 timeout duration for a screen request to be aborted by a storage appliance",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"status_request_interval": schema.StringAttribute{
 				MarkdownDescription: "Specifies the ISO-8601 interval time for a storage appliance to query a status request from an FPolicy server",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"ssl_option": schema.StringAttribute{
 				MarkdownDescription: "The SSL option for external communication with the FPolicy server",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"primary_servers": schema.ListAttribute{
 				MarkdownDescription: "The primary FPolicy servers to which the node sends",
@@ -177,8 +196,9 @@ func (r *ProtocolsFpolicyExternalEngineResource) Schema(ctx context.Context, req
 					"recv_buffer": schema.Int64Attribute{
 						MarkdownDescription: "Receive buffer size",
 						Optional:            true,
-						Computed:            true,
-					},
+						Computed:            true,						PlanModifiers: []planmodifier.Int64{
+							int64planmodifier.UseStateForUnknown(),
+						},					},
 				},
 			},
 			"secondary_servers": schema.ListAttribute{
@@ -194,16 +214,25 @@ func (r *ProtocolsFpolicyExternalEngineResource) Schema(ctx context.Context, req
 				MarkdownDescription: "Specifies the ISO-8601 timeout duration in which a throttled FPolicy server must complete at least one screen request",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"format": schema.StringAttribute{
 				MarkdownDescription: "The format for the notification messages sent to the FPolicy servers",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"type": schema.StringAttribute{
 				MarkdownDescription: "Determines what ONTAP does after sending notifications to FPolicy servers",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"resiliency": schema.SingleNestedAttribute{
 				MarkdownDescription: "When primary and secondary servers are down or unresponsive, file access events are stored in the storage controller under the specified resiliency-directory-path",
@@ -214,11 +243,17 @@ func (r *ProtocolsFpolicyExternalEngineResource) Schema(ctx context.Context, req
 						MarkdownDescription: "Directory path",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
 					},
 					"retention_duration": schema.StringAttribute{
 						MarkdownDescription: "Retention duration",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
 					},
 					"enabled": schema.BoolAttribute{
 						MarkdownDescription: "Enable resiliency feature",
@@ -231,11 +266,17 @@ func (r *ProtocolsFpolicyExternalEngineResource) Schema(ctx context.Context, req
 				MarkdownDescription: "The maximum number of outstanding requests for the FPolicy server",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+				},
 			},
 			"max_connection_retries": schema.Int64Attribute{
 				MarkdownDescription: "The maximum number of attempts to reconnect to the FPolicy server",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+				},
 			},
 			"id": schema.StringAttribute{
 				MarkdownDescription: "FPolicy external engine ID",

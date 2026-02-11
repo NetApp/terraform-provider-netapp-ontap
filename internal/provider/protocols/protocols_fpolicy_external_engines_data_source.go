@@ -125,7 +125,7 @@ func (d *ProtocolsFpolicyExternalEnginesDataSource) Schema(ctx context.Context, 
 							MarkdownDescription: "The SSL option for external communication with the FPolicy server",
 							Computed:            true,
 						},
-						"primary_servers": schema.ListAttribute{
+					"primary_servers": schema.SetAttribute{
 							MarkdownDescription: "The primary FPolicy servers to which the node sends",
 							Computed:            true,
 							ElementType:         types.StringType,
@@ -144,7 +144,7 @@ func (d *ProtocolsFpolicyExternalEnginesDataSource) Schema(ctx context.Context, 
 								},
 							},
 						},
-						"secondary_servers": schema.ListAttribute{
+					"secondary_servers": schema.SetAttribute{
 							MarkdownDescription: "Send file access events for a given FPolicy policy",
 							Computed:            true,
 							ElementType:         types.StringType,
@@ -356,7 +356,14 @@ func (d *ProtocolsFpolicyExternalEnginesDataSource) Read(ctx context.Context, re
 			for i, server := range record.PrimaryServers {
 				primaryServersList[i] = types.StringValue(server)
 			}
-			data.ProtocolsFpolicyExternalEngines[index].PrimaryServers, _ = types.ListValueFrom(ctx, types.StringType, primaryServersList)
+			primaryServersSet, diags := types.SetValueFrom(ctx, types.StringType, primaryServersList)
+			resp.Diagnostics.Append(diags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			data.ProtocolsFpolicyExternalEngines[index].PrimaryServers = primaryServersSet
+		} else {
+			data.ProtocolsFpolicyExternalEngines[index].PrimaryServers, _ = types.SetValue(types.StringType, []attr.Value{})
 		}
 
 		// Set secondary servers
@@ -365,7 +372,14 @@ func (d *ProtocolsFpolicyExternalEnginesDataSource) Read(ctx context.Context, re
 			for i, server := range record.SecondaryServers {
 				secondaryServersList[i] = types.StringValue(server)
 			}
-			data.ProtocolsFpolicyExternalEngines[index].SecondaryServers, _ = types.ListValueFrom(ctx, types.StringType, secondaryServersList)
+			secondaryServersSet, diags := types.SetValueFrom(ctx, types.StringType, secondaryServersList)
+			resp.Diagnostics.Append(diags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			data.ProtocolsFpolicyExternalEngines[index].SecondaryServers = secondaryServersSet
+		} else {
+			data.ProtocolsFpolicyExternalEngines[index].SecondaryServers, _ = types.SetValue(types.StringType, []attr.Value{})
 		}
 	}
 

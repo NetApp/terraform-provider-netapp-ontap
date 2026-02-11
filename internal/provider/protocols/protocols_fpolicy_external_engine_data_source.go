@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -45,9 +46,9 @@ type ProtocolsFpolicyExternalEngineDataSourceModel struct {
 	RequestAbortTimeout   types.String `tfsdk:"request_abort_timeout"`
 	StatusRequestInterval types.String `tfsdk:"status_request_interval"`
 	SSLOption             types.String `tfsdk:"ssl_option"`
-	PrimaryServers        types.List   `tfsdk:"primary_servers"`
+	PrimaryServers        types.Set    `tfsdk:"primary_servers"`
 	BufferSize            types.Object `tfsdk:"buffer_size"`
-	SecondaryServers      types.List   `tfsdk:"secondary_servers"`
+	SecondaryServers      types.Set    `tfsdk:"secondary_servers"`
 	Port                  types.Int64  `tfsdk:"port"`
 	ServerProgressTimeout types.String `tfsdk:"server_progress_timeout"`
 	Format                types.String `tfsdk:"format"`
@@ -149,7 +150,7 @@ func (d *ProtocolsFpolicyExternalEngineDataSource) Schema(ctx context.Context, r
 				MarkdownDescription: "The SSL option for external communication with the FPolicy server",
 				Computed:            true,
 			},
-			"primary_servers": schema.ListAttribute{
+			"primary_servers": schema.SetAttribute{
 				MarkdownDescription: "The primary FPolicy servers to which the node sends",
 				Computed:            true,
 				ElementType:         types.StringType,
@@ -169,7 +170,7 @@ func (d *ProtocolsFpolicyExternalEngineDataSource) Schema(ctx context.Context, r
 					},
 				},
 			},
-			"secondary_servers": schema.ListAttribute{
+			"secondary_servers": schema.SetAttribute{
 				MarkdownDescription: "Send file access events for a given FPolicy policy",
 				Computed:            true,
 				ElementType:         types.StringType,
@@ -359,8 +360,13 @@ func (d *ProtocolsFpolicyExternalEngineDataSource) Read(ctx context.Context, req
 		for i, server := range restInfo.PrimaryServers {
 			primaryServersList[i] = types.StringValue(server)
 		}
-		data.PrimaryServers, _ = types.ListValue(types.StringType, basetypes.ListValue{}.Elements())
-		data.PrimaryServers, _ = types.ListValueFrom(ctx, types.StringType, primaryServersList)
+		data.PrimaryServers, _ = types.SetValue(types.StringType, basetypes.ListValue{}.Elements())
+		var diagsTemp diag.Diagnostics
+		data.PrimaryServers, diagsTemp = types.SetValueFrom(ctx, types.StringType, primaryServersList)
+		if diagsTemp.HasError() {
+			resp.Diagnostics.Append(diagsTemp...)
+			return
+		}
 	}
 
 	// Set secondary servers
@@ -369,8 +375,13 @@ func (d *ProtocolsFpolicyExternalEngineDataSource) Read(ctx context.Context, req
 		for i, server := range restInfo.SecondaryServers {
 			secondaryServersList[i] = types.StringValue(server)
 		}
-		data.SecondaryServers, _ = types.ListValue(types.StringType, basetypes.ListValue{}.Elements())
-		data.SecondaryServers, _ = types.ListValueFrom(ctx, types.StringType, secondaryServersList)
+		data.SecondaryServers, _ = types.SetValue(types.StringType, basetypes.ListValue{}.Elements())
+		secondaryServersSet, diags := types.SetValueFrom(ctx, types.StringType, secondaryServersList)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		data.SecondaryServers = secondaryServersSet
 	}
 
 	// Write logs using the tflog package
