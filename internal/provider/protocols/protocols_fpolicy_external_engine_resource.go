@@ -436,8 +436,8 @@ func (r *ProtocolsFpolicyExternalEngineResource) Read(ctx context.Context, req r
 			return
 		}
 		data.SecondaryServers = secondarySet
-	} else {
-		// Set to empty set when no servers exist
+	} else if !data.SecondaryServers.IsNull() {
+		// Only set to empty set if secondary_servers was explicitly provided in config
 		emptySet, diags := types.SetValue(types.StringType, []attr.Value{})
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
@@ -445,6 +445,7 @@ func (r *ProtocolsFpolicyExternalEngineResource) Read(ctx context.Context, req r
 		}
 		data.SecondaryServers = emptySet
 	}
+	// If data.SecondaryServers.IsNull(), leave it as null (not provided in config)
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
@@ -693,8 +694,8 @@ func (r *ProtocolsFpolicyExternalEngineResource) Create(ctx context.Context, req
 			return
 		}
 		data.SecondaryServers = secondarySet
-	} else {
-		// Set to empty set when no servers exist
+	} else if !data.SecondaryServers.IsNull() {
+		// Only set to empty set if secondary_servers was explicitly provided in config
 		emptySet, diagsSecondary := types.SetValue(types.StringType, []attr.Value{})
 		if diagsSecondary.HasError() {
 			resp.Diagnostics.Append(diagsSecondary...)
@@ -702,6 +703,7 @@ func (r *ProtocolsFpolicyExternalEngineResource) Create(ctx context.Context, req
 		}
 		data.SecondaryServers = emptySet
 	}
+	// If data.SecondaryServers.IsNull(), leave it as null (not provided in config)
 
 	tflog.Trace(ctx, "created a resource")
 
@@ -947,8 +949,8 @@ func (r *ProtocolsFpolicyExternalEngineResource) Update(ctx context.Context, req
 			return
 		}
 		data.SecondaryServers = secondarySet
-	} else {
-		// Set to empty set when no servers exist
+	} else if !data.SecondaryServers.IsNull() {
+		// Only set to empty set if secondary_servers was explicitly provided in config
 		emptySet, diagsSecondary := types.SetValue(types.StringType, []attr.Value{})
 		if diagsSecondary.HasError() {
 			resp.Diagnostics.Append(diagsSecondary...)
@@ -956,6 +958,7 @@ func (r *ProtocolsFpolicyExternalEngineResource) Update(ctx context.Context, req
 		}
 		data.SecondaryServers = emptySet
 	}
+	// If data.SecondaryServers.IsNull(), leave it as null (not provided in config)
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
