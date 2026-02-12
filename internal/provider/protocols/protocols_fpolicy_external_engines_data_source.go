@@ -125,7 +125,7 @@ func (d *ProtocolsFpolicyExternalEnginesDataSource) Schema(ctx context.Context, 
 							MarkdownDescription: "The SSL option for external communication with the FPolicy server",
 							Computed:            true,
 						},
-					"primary_servers": schema.SetAttribute{
+						"primary_servers": schema.SetAttribute{
 							MarkdownDescription: "The primary FPolicy servers to which the node sends",
 							Computed:            true,
 							ElementType:         types.StringType,
@@ -144,7 +144,7 @@ func (d *ProtocolsFpolicyExternalEnginesDataSource) Schema(ctx context.Context, 
 								},
 							},
 						},
-					"secondary_servers": schema.SetAttribute{
+						"secondary_servers": schema.SetAttribute{
 							MarkdownDescription: "Send file access events for a given FPolicy policy",
 							Computed:            true,
 							ElementType:         types.StringType,

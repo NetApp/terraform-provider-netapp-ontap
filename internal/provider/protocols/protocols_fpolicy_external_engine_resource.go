@@ -51,9 +51,9 @@ type ProtocolsFpolicyExternalEngineResourceModel struct {
 	RequestAbortTimeout   types.String `tfsdk:"request_abort_timeout"`
 	StatusRequestInterval types.String `tfsdk:"status_request_interval"`
 	SSLOption             types.String `tfsdk:"ssl_option"`
-	PrimaryServers        types.List   `tfsdk:"primary_servers"`
+	PrimaryServers        types.Set   `tfsdk:"primary_servers"`
 	BufferSize            types.Object `tfsdk:"buffer_size"`
-	SecondaryServers      types.List   `tfsdk:"secondary_servers"`
+	SecondaryServers      types.Set   `tfsdk:"secondary_servers"`
 	Port                  types.Int64    `tfsdk:"port"`
 	ServerProgressTimeout types.String   `tfsdk:"server_progress_timeout"`
 	Format                types.String   `tfsdk:"format"`
@@ -178,7 +178,7 @@ func (r *ProtocolsFpolicyExternalEngineResource) Schema(ctx context.Context, req
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"primary_servers": schema.ListAttribute{
+			"primary_servers": schema.SetAttribute{
 				MarkdownDescription: "The primary FPolicy servers to which the node sends",
 				Required:            true,
 				ElementType:         types.StringType,
@@ -192,16 +192,21 @@ func (r *ProtocolsFpolicyExternalEngineResource) Schema(ctx context.Context, req
 						MarkdownDescription: "Send buffer size",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.Int64{
+							int64planmodifier.UseStateForUnknown(),
+						},
 					},
 					"recv_buffer": schema.Int64Attribute{
 						MarkdownDescription: "Receive buffer size",
 						Optional:            true,
-						Computed:            true,						PlanModifiers: []planmodifier.Int64{
+						Computed:            true,
+						PlanModifiers: []planmodifier.Int64{
 							int64planmodifier.UseStateForUnknown(),
-						},					},
+						},
+					},
 				},
 			},
-			"secondary_servers": schema.ListAttribute{
+			"secondary_servers": schema.SetAttribute{
 				MarkdownDescription: "Send file access events for a given FPolicy policy",
 				Optional:            true,
 				ElementType:         types.StringType,
@@ -407,12 +412,38 @@ func (r *ProtocolsFpolicyExternalEngineResource) Read(ctx context.Context, req r
 
 	// Set primary servers
 	if len(restInfo.PrimaryServers) > 0 {
-		data.PrimaryServers, _ = types.ListValueFrom(ctx, types.StringType, restInfo.PrimaryServers)
+		var primaryElements []attr.Value
+		for _, server := range restInfo.PrimaryServers {
+			primaryElements = append(primaryElements, types.StringValue(server))
+		}
+		primarySet, diags := types.SetValue(types.StringType, primaryElements)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		data.PrimaryServers = primarySet
 	}
 
 	// Set secondary servers
 	if len(restInfo.SecondaryServers) > 0 {
-		data.SecondaryServers, _ = types.ListValueFrom(ctx, types.StringType, restInfo.SecondaryServers)
+		var secondaryElements []attr.Value
+		for _, server := range restInfo.SecondaryServers {
+			secondaryElements = append(secondaryElements, types.StringValue(server))
+		}
+		secondarySet, diags := types.SetValue(types.StringType, secondaryElements)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		data.SecondaryServers = secondarySet
+	} else {
+		// Set to empty set when no servers exist
+		emptySet, diags := types.SetValue(types.StringType, []attr.Value{})
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		data.SecondaryServers = emptySet
 	}
 
 	// Write logs using the tflog package
@@ -638,24 +669,38 @@ func (r *ProtocolsFpolicyExternalEngineResource) Create(ctx context.Context, req
 
 	// Set primary servers
 	if restInfo.PrimaryServers != nil {
-		primaryServersList, diagsPrimary := types.ListValueFrom(ctx, types.StringType, restInfo.PrimaryServers)
+		var primaryElements []attr.Value
+		for _, server := range restInfo.PrimaryServers {
+			primaryElements = append(primaryElements, types.StringValue(server))
+		}
+		primarySet, diagsPrimary := types.SetValue(types.StringType, primaryElements)
 		if diagsPrimary.HasError() {
 			resp.Diagnostics.Append(diagsPrimary...)
 			return
 		}
-		data.PrimaryServers = primaryServersList
+		data.PrimaryServers = primarySet
 	}
 
 	// Set secondary servers
 	if restInfo.SecondaryServers != nil {
-		secondaryServersList, diagsSecondary := types.ListValueFrom(ctx, types.StringType, restInfo.SecondaryServers)
+		var secondaryElements []attr.Value
+		for _, server := range restInfo.SecondaryServers {
+			secondaryElements = append(secondaryElements, types.StringValue(server))
+		}
+		secondarySet, diagsSecondary := types.SetValue(types.StringType, secondaryElements)
 		if diagsSecondary.HasError() {
 			resp.Diagnostics.Append(diagsSecondary...)
 			return
 		}
-		data.SecondaryServers = secondaryServersList
+		data.SecondaryServers = secondarySet
 	} else {
-		data.SecondaryServers = types.ListNull(types.StringType)
+		// Set to empty set when no servers exist
+		emptySet, diagsSecondary := types.SetValue(types.StringType, []attr.Value{})
+		if diagsSecondary.HasError() {
+			resp.Diagnostics.Append(diagsSecondary...)
+			return
+		}
+		data.SecondaryServers = emptySet
 	}
 
 	tflog.Trace(ctx, "created a resource")
@@ -878,24 +923,38 @@ func (r *ProtocolsFpolicyExternalEngineResource) Update(ctx context.Context, req
 
 	// Set primary servers
 	if restInfo.PrimaryServers != nil {
-		primaryServersList, diagsPrimary := types.ListValueFrom(ctx, types.StringType, restInfo.PrimaryServers)
+		var primaryElements []attr.Value
+		for _, server := range restInfo.PrimaryServers {
+			primaryElements = append(primaryElements, types.StringValue(server))
+		}
+		primarySet, diagsPrimary := types.SetValue(types.StringType, primaryElements)
 		if diagsPrimary.HasError() {
 			resp.Diagnostics.Append(diagsPrimary...)
 			return
 		}
-		data.PrimaryServers = primaryServersList
+		data.PrimaryServers = primarySet
 	}
 
 	// Set secondary servers
 	if restInfo.SecondaryServers != nil {
-		secondaryServersList, diagsSecondary := types.ListValueFrom(ctx, types.StringType, restInfo.SecondaryServers)
+		var secondaryElements []attr.Value
+		for _, server := range restInfo.SecondaryServers {
+			secondaryElements = append(secondaryElements, types.StringValue(server))
+		}
+		secondarySet, diagsSecondary := types.SetValue(types.StringType, secondaryElements)
 		if diagsSecondary.HasError() {
 			resp.Diagnostics.Append(diagsSecondary...)
 			return
 		}
-		data.SecondaryServers = secondaryServersList
+		data.SecondaryServers = secondarySet
 	} else {
-		data.SecondaryServers = types.ListNull(types.StringType)
+		// Set to empty set when no servers exist
+		emptySet, diagsSecondary := types.SetValue(types.StringType, []attr.Value{})
+		if diagsSecondary.HasError() {
+			resp.Diagnostics.Append(diagsSecondary...)
+			return
+		}
+		data.SecondaryServers = emptySet
 	}
 
 	// Save updated data into Terraform state
