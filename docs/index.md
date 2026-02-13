@@ -19,6 +19,7 @@ To learn the basics of Terraform using this provider, follow the hands-on [get s
 
 * On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
+* Google Cloud NetApp Volumes (GCNV)
 
 ## Example Usage
 
@@ -60,6 +61,15 @@ provider "netapp-ontap" {
         region = "aws_region"
         shared_config_profile = "fsx_profile"
       }
+    },
+    {
+      name = "gcnv"
+      gcnv = {
+        project_id = "my-gcp-project-id"
+        location = "us-central1-a"
+        storage_pool = "my-storage-pool"
+        service_account_key_path = "/path/to/gcp_creds.json"
+      }
     }
   ]
 }
@@ -83,15 +93,16 @@ provider "netapp-ontap" {
 
 Required:
 
-- `hostname` (String) ONTAP management interface IP address or name. For AWS Lambda, the management endpoints for the FSxN system.
 - `name` (String) Profile name
-- `password` (String, Sensitive) ONTAP management password for username
-- `username` (String) ONTAP management user name (cluster or svm)
 
 Optional:
 
+- `hostname` (String) ONTAP management interface IP address or name. For AWS Lambda, the management endpoints for the FSxN system. Not required when using Google Cloud NetApp Volumes (gcnv).
+- `username` (String) ONTAP management user name (cluster or svm). Not required when using Google Cloud NetApp Volumes (gcnv).
+- `password` (String, Sensitive) ONTAP management password for username. Not required when using Google Cloud NetApp Volumes (gcnv).
 - `aws_lambda` (Attributes) AWS configuration for Lambda (see [below for nested schema](#nestedatt--connection_profiles--aws_lambda))
-- `validate_certs` (Boolean) Whether to enforce SSL certificate validation, defaults to true. Not applicable for AWS Lambda
+- `gcnv` (Attributes) Google Cloud NetApp Volumes configuration (see [below for nested schema](#nestedatt--connection_profiles--gcnv))
+- `validate_certs` (Boolean) Whether to enforce SSL certificate validation, defaults to true. Not applicable for AWS Lambda or Google Cloud NetApp Volumes
 
 <a id="nestedatt--connection_profiles--aws_lambda"></a>
 
@@ -105,3 +116,14 @@ Required:
 Optional:
 
 - `region` (String) AWS region.
+
+<a id="nestedatt--connection_profiles--gcnv"></a>
+
+### Nested Schema for `connection_profiles.gcnv`
+
+Required:
+
+- `project_id` (String) Google Cloud project ID
+- `location` (String) Google Cloud location (e.g., us-central1-a)
+- `storage_pool` (String) Storage pool name
+- `service_account_key_path` (String) Path to the Google Cloud service account key file (JSON). Required for authentication.

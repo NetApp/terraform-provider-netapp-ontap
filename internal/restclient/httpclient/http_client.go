@@ -42,7 +42,7 @@ func (c *HTTPClient) Do(baseURL string, req *Request) (int, []byte, error) {
 	if err != nil {
 		return statusCode, nil, err
 	}
-	tflog.Debug(c.ctx, fmt.Sprintf("sending: %s %s", httpReq.Method, httpReq.URL.String()), map[string]any{"body": req.Body})
+	tflog.Debug(c.ctx, fmt.Sprintf("sending: %s %s", httpReq.Method, httpReq.URL.String()), map[string]any{"body": req.Body, "headers": httpReq.Header})
 	httpRes, err := c.httpClient.Do(httpReq)
 	if httpRes != nil {
 		statusCode = httpRes.StatusCode

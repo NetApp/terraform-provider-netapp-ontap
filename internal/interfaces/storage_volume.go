@@ -14,49 +14,49 @@ import (
 
 // StorageVolumeGetDataModelONTAP describes the GET record data model using go types for mapping.
 type StorageVolumeGetDataModelONTAP struct {
-	Name           string
-	SVM            svm
-	Space          Space
-	State          string
-	Type           string
-	Comment        string
-	SpaceGuarantee Guarantee `mapstructure:"guarantee"`
-	NAS            NAS
-	QOS            QOS
-	Encryption     Encryption
-	Efficiency     Efficiency
-	SnapshotPolicy SnapshotPolicy `mapstructure:"snapshot_policy,omitempty"`
-	TieringPolicy  TieringPolicy  `mapstructure:"tiering,omitempty"`
-	Snaplock       Snaplock
-	Analytics      Analytics
-	Language       string
-	Aggregates     []Aggregate
-	Autosize       Autosize `mapstructure:"autosize,omitempty"`
-	UUID           string
-	SnapshotLockingEnabled *bool	  `mapstructure:"snapshot_locking_enabled,omitempty"`
+	Name                   string
+	SVM                    svm
+	Space                  Space
+	State                  string
+	Type                   string
+	Comment                string
+	SpaceGuarantee         Guarantee `mapstructure:"guarantee"`
+	NAS                    NAS
+	QOS                    QOS
+	Encryption             Encryption
+	Efficiency             Efficiency
+	SnapshotPolicy         SnapshotPolicy `mapstructure:"snapshot_policy,omitempty"`
+	TieringPolicy          TieringPolicy  `mapstructure:"tiering,omitempty"`
+	Snaplock               Snaplock
+	Analytics              Analytics
+	Language               string
+	Aggregates             []Aggregate
+	Autosize               Autosize `mapstructure:"autosize,omitempty"`
+	UUID                   string
+	SnapshotLockingEnabled *bool `mapstructure:"snapshot_locking_enabled,omitempty"`
 }
 
 // StorageVolumeResourceModel describes the resource data model.
 type StorageVolumeResourceModel struct {
-	Name           string                   `mapstructure:"name,omitempty"`
-	SVM            svm                      `mapstructure:"svm,omitempty"`
-	Space          Space                    `mapstructure:"space,omitempty"`
-	State          string                   `mapstructure:"state,omitempty"`
-	Type           string                   `mapstructure:"type,omitempty"`
-	Comment        string                   `mapstructure:"comment,omitempty"`
-	SpaceGuarantee Guarantee                `mapstructure:"guarantee,omitempty"`
-	NAS            NAS                      `mapstructure:"nas,omitempty"`
-	QOS            QOS                      `mapstructure:"qos,omitempty"`
-	Encryption     Encryption               `mapstructure:"encryption,omitempty"`
-	Efficiency     Efficiency               `mapstructure:"efficiency,omitempty"`
-	SnapshotPolicy SnapshotPolicy           `mapstructure:"snapshot_policy,omitempty"`
-	TieringPolicy  TieringPolicy            `mapstructure:"tiering,omitempty"`
-	Snaplock       Snaplock                 `mapstructure:"snaplock,omitempty"`
-	Analytics      Analytics                `mapstructure:"analytics,omitempty"`
-	Language       string                   `mapstructure:"language,omitempty"`
-	Aggregates     []map[string]interface{} `mapstructure:"aggregates,omitempty"`
-	Autosize       Autosize                 `mapstructure:"autosize,omitempty"`
-	SnapshotLockingEnabled       *bool		`mapstructure:"snapshot_locking_enabled,omitempty"`
+	Name                   string                   `mapstructure:"name,omitempty"`
+	SVM                    svm                      `mapstructure:"svm,omitempty"`
+	Space                  Space                    `mapstructure:"space,omitempty"`
+	State                  string                   `mapstructure:"state,omitempty"`
+	Type                   string                   `mapstructure:"type,omitempty"`
+	Comment                string                   `mapstructure:"comment,omitempty"`
+	SpaceGuarantee         Guarantee                `mapstructure:"guarantee,omitempty"`
+	NAS                    NAS                      `mapstructure:"nas,omitempty"`
+	QOS                    QOS                      `mapstructure:"qos,omitempty"`
+	Encryption             Encryption               `mapstructure:"encryption,omitempty"`
+	Efficiency             Efficiency               `mapstructure:"efficiency,omitempty"`
+	SnapshotPolicy         SnapshotPolicy           `mapstructure:"snapshot_policy,omitempty"`
+	TieringPolicy          TieringPolicy            `mapstructure:"tiering,omitempty"`
+	Snaplock               Snaplock                 `mapstructure:"snaplock,omitempty"`
+	Analytics              Analytics                `mapstructure:"analytics,omitempty"`
+	Language               string                   `mapstructure:"language,omitempty"`
+	Aggregates             []map[string]interface{} `mapstructure:"aggregates,omitempty"`
+	Autosize               Autosize                 `mapstructure:"autosize,omitempty"`
+	SnapshotLockingEnabled *bool                    `mapstructure:"snapshot_locking_enabled,omitempty"`
 }
 
 // Aggregate describes the resource data model.
@@ -318,6 +318,7 @@ func CreateStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClie
 	if err := mapstructure.Decode(data, &body); err != nil {
 		return nil, errorHandler.MakeAndReportError("error encoding volume body", fmt.Sprintf("error on encoding storage/volumes body: %s, body: %#v", err, data))
 	}
+
 	query := r.NewQuery()
 	query.Add("return_records", "true")
 	statusCode, response, err := r.CallCreateMethod("storage/volumes", query, body)

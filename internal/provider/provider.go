@@ -4,7 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/support"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/cluster"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/name_services"
@@ -13,14 +19,8 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/security"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/snapmirror"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/storage"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/support"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/svm"
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
-	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Ensure ONTAPProvider satisfies various provider interfaces.
@@ -39,12 +39,13 @@ type ONTAPProvider struct {
 // ConnectionProfileModel associate a connection profile with a name
 // TODO: augment address with hostname, ...
 type ConnectionProfileModel struct {
-	Name                  types.String `tfsdk:"name"`
-	Hostname              types.String `tfsdk:"hostname"`
-	Username              types.String `tfsdk:"username"`
-	Password              types.String `tfsdk:"password"`
-	ValidateCerts         types.Bool   `tfsdk:"validate_certs"`
-	ONTAPProviderAWSModel types.Object `tfsdk:"aws_lambda"`
+	Name                   types.String `tfsdk:"name"`
+	Hostname               types.String `tfsdk:"hostname"`
+	Username               types.String `tfsdk:"username"`
+	Password               types.String `tfsdk:"password"`
+	ValidateCerts          types.Bool   `tfsdk:"validate_certs"`
+	ONTAPProviderAWSModel  types.Object `tfsdk:"aws_lambda"`
+	ONTAPProviderGCNVModel types.Object `tfsdk:"gcnv"`
 }
 
 // ONTAPProviderModel describes the provider data model.
@@ -58,6 +59,13 @@ type ONTAPProviderAWSLambdaModel struct {
 	Region              types.String `tfsdk:"region"`
 	SharedConfigProfile types.String `tfsdk:"shared_config_profile"`
 	FunctionName        types.String `tfsdk:"function_name"`
+}
+
+type ONTAPProviderGCNVDataModel struct {
+	ProjectID             types.String `tfsdk:"project_id"`
+	Location              types.String `tfsdk:"location"`
+	StoragePool           types.String `tfsdk:"storage_pool"`
+	ServiceAccountKeyPath types.String `tfsdk:"service_account_key_path"`
 }
 
 // Metadata defines the provider type name for inclusion in each data source and resource type name
@@ -89,16 +97,16 @@ func (p *ONTAPProvider) Schema(ctx context.Context, req provider.SchemaRequest, 
 							Required:            true,
 						},
 						"hostname": schema.StringAttribute{
-							MarkdownDescription: "ONTAP management interface IP address or name. For AWS Lambda, the management endpoints for the FSxN system.",
-							Required:            true,
+							MarkdownDescription: "ONTAP management interface IP address or name. For AWS Lambda, the management endpoints for the FSxN system. Not required when using Google Cloud NetApp Volumes (gcnv).",
+							Optional:            true,
 						},
 						"username": schema.StringAttribute{
-							MarkdownDescription: "ONTAP management user name (cluster or svm)",
-							Required:            true,
+							MarkdownDescription: "ONTAP management user name (cluster or svm). Not required when using Google Cloud NetApp Volumes (gcnv).",
+							Optional:            true,
 						},
 						"password": schema.StringAttribute{
-							MarkdownDescription: "ONTAP management password for username",
-							Required:            true,
+							MarkdownDescription: "ONTAP management password for username. Not required when using Google Cloud NetApp Volumes (gcnv).",
+							Optional:            true,
 							Sensitive:           true,
 						},
 						"validate_certs": schema.BoolAttribute{
@@ -120,6 +128,29 @@ func (p *ONTAPProvider) Schema(ctx context.Context, req provider.SchemaRequest, 
 								"shared_config_profile": schema.StringAttribute{
 									MarkdownDescription: "AWS shared config profile. Region set in the profile will be ignored it it's different from the region set in Terraform. aws_access_key_id and aws_secret_access_key are required to be set in credentials",
 									Required:            true,
+								},
+							},
+						},
+						"gcnv": schema.SingleNestedAttribute{
+							MarkdownDescription: "Google Cloud NetApp Volumes configuration",
+							Optional:            true,
+							Attributes: map[string]schema.Attribute{
+								"project_id": schema.StringAttribute{
+									MarkdownDescription: "Google Cloud project ID",
+									Required:            true,
+								},
+								"location": schema.StringAttribute{
+									MarkdownDescription: "Google Cloud location",
+									Required:            true,
+								},
+								"storage_pool": schema.StringAttribute{
+									MarkdownDescription: "Storage pool name",
+									Required:            true,
+								},
+								"service_account_key_path": schema.StringAttribute{
+									MarkdownDescription: "Path to the Google Cloud service account key file (JSON). Required for authentication.",
+									Required:            true,
+									Sensitive:           false,
 								},
 							},
 						},
@@ -166,16 +197,57 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 			resp.Diagnostics.Append(diags...)
 			return
 		}
+
+		// Validate that hostname, username, password are provided when gcnv is not used
+		if connectionProfile.ONTAPProviderGCNVModel.IsNull() {
+			if connectionProfile.Hostname.IsNull() || connectionProfile.Hostname.ValueString() == "" {
+				resp.Diagnostics.AddError(
+					"Missing required attribute",
+					fmt.Sprintf("hostname is required for connection profile '%s' when gcnv is not configured", connectionProfile.Name.ValueString()),
+				)
+				return
+			}
+			if connectionProfile.Username.IsNull() || connectionProfile.Username.ValueString() == "" {
+				resp.Diagnostics.AddError(
+					"Missing required attribute",
+					fmt.Sprintf("username is required for connection profile '%s' when gcnv is not configured", connectionProfile.Name.ValueString()),
+				)
+				return
+			}
+			if connectionProfile.Password.IsNull() || connectionProfile.Password.ValueString() == "" {
+				resp.Diagnostics.AddError(
+					"Missing required attribute",
+					fmt.Sprintf("password is required for connection profile '%s' when gcnv is not configured", connectionProfile.Name.ValueString()),
+				)
+				return
+			}
+		}
+
 		var validateCerts bool
 		if connectionProfile.ValidateCerts.IsNull() {
 			validateCerts = true
 		} else {
 			validateCerts = connectionProfile.ValidateCerts.ValueBool()
 		}
+
+		// Use empty string for hostname, username, password when gcnv is used and they're not provided
+		hostname := ""
+		username := ""
+		password := ""
+		if !connectionProfile.Hostname.IsNull() {
+			hostname = connectionProfile.Hostname.ValueString()
+		}
+		if !connectionProfile.Username.IsNull() {
+			username = connectionProfile.Username.ValueString()
+		}
+		if !connectionProfile.Password.IsNull() {
+			password = connectionProfile.Password.ValueString()
+		}
+
 		connectionProfiles[connectionProfile.Name.ValueString()] = connection.Profile{
-			Hostname:              connectionProfile.Hostname.ValueString(),
-			Username:              connectionProfile.Username.ValueString(),
-			Password:              connectionProfile.Password.ValueString(),
+			Hostname:              hostname,
+			Username:              username,
+			Password:              password,
 			ValidateCerts:         validateCerts,
 			MaxConcurrentRequests: 0,
 		}
@@ -192,6 +264,24 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 				Region:              lambdaConfig.Region.ValueString(),
 				SharedConfigProfile: lambdaConfig.SharedConfigProfile.ValueString(),
 				FunctionName:        lambdaConfig.FunctionName.ValueString(),
+			}
+			connectionProfiles[connectionProfile.Name.ValueString()] = currentProfile
+
+		}
+		if !connectionProfile.ONTAPProviderGCNVModel.IsNull() {
+			var gcnvConfig ONTAPProviderGCNVDataModel
+			diags := connectionProfile.ONTAPProviderGCNVModel.As(ctx, &gcnvConfig, basetypes.ObjectAsOptions{})
+			if diags.HasError() {
+				resp.Diagnostics.Append(diags...)
+				return
+			}
+			currentProfile := connectionProfiles[connectionProfile.Name.ValueString()]
+			currentProfile.UseGCNV = true
+			currentProfile.GCNV = connection.GCNVConfig{
+				ProjectID:             gcnvConfig.ProjectID.ValueString(),
+				Location:              gcnvConfig.Location.ValueString(),
+				StoragePool:           gcnvConfig.StoragePool.ValueString(),
+				ServiceAccountKeyPath: gcnvConfig.ServiceAccountKeyPath.ValueString(),
 			}
 			connectionProfiles[connectionProfile.Name.ValueString()] = currentProfile
 
