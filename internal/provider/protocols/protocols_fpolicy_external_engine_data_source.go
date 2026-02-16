@@ -360,7 +360,6 @@ func (d *ProtocolsFpolicyExternalEngineDataSource) Read(ctx context.Context, req
 		for i, server := range restInfo.PrimaryServers {
 			primaryServersList[i] = types.StringValue(server)
 		}
-		data.PrimaryServers, _ = types.SetValue(types.StringType, basetypes.ListValue{}.Elements())
 		var diagsTemp diag.Diagnostics
 		data.PrimaryServers, diagsTemp = types.SetValueFrom(ctx, types.StringType, primaryServersList)
 		if diagsTemp.HasError() {

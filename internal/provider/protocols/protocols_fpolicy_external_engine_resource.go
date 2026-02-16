@@ -358,23 +358,32 @@ func (r *ProtocolsFpolicyExternalEngineResource) Read(ctx context.Context, req r
 	data.MaxConnectionRetries = types.Int64Value(restInfo.MaxConnectionRetries)
 	data.ID = types.StringValue(fmt.Sprintf("%s/%s", svm.UUID, restInfo.Name))
 
-	// Set certificate using ObjectValue
-	certificateElementTypes := map[string]attr.Type{
-		"serial_number": types.StringType,
-		"name":          types.StringType,
-		"ca":            types.StringType,
+	// Set certificate only if ONTAP returns meaningful values
+	if restInfo.Certificate.Name != "" || restInfo.Certificate.SerialNumber != "" || restInfo.Certificate.Ca != "" {
+		certificateElementTypes := map[string]attr.Type{
+			"serial_number": types.StringType,
+			"name":          types.StringType,
+			"ca":            types.StringType,
+		}
+		certificateElements := map[string]attr.Value{
+			"serial_number": types.StringValue(restInfo.Certificate.SerialNumber),
+			"name":          types.StringValue(restInfo.Certificate.Name),
+			"ca":            types.StringValue(restInfo.Certificate.Ca),
+		}
+		certificateObjectValue, diags := types.ObjectValue(certificateElementTypes, certificateElements)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		data.Certificate = certificateObjectValue
+	} else {
+		// No meaningful certificate values, set as null
+		data.Certificate = types.ObjectNull(map[string]attr.Type{
+			"serial_number": types.StringType,
+			"name":          types.StringType,
+			"ca":            types.StringType,
+		})
 	}
-	certificateElements := map[string]attr.Value{
-		"serial_number": types.StringValue(restInfo.Certificate.SerialNumber),
-		"name":          types.StringValue(restInfo.Certificate.Name),
-		"ca":            types.StringValue(restInfo.Certificate.Ca),
-	}
-	certificateObjectValue, diags := types.ObjectValue(certificateElementTypes, certificateElements)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
-	data.Certificate = certificateObjectValue
 
 	// Set buffer size using ObjectValue
 	bufferElementTypes := map[string]attr.Type{
@@ -392,23 +401,32 @@ func (r *ProtocolsFpolicyExternalEngineResource) Read(ctx context.Context, req r
 	}
 	data.BufferSize = bufferObjectValue
 
-	// Set resiliency using ObjectValue
-	resiliencyElementTypes := map[string]attr.Type{
-		"directory_path":     types.StringType,
-		"retention_duration": types.StringType,
-		"enabled":            types.BoolType,
+	// Set resiliency only if ONTAP returns meaningful values
+	if restInfo.Resiliency.Enabled || restInfo.Resiliency.DirectoryPath != "" {
+		resiliencyElementTypes := map[string]attr.Type{
+			"directory_path":     types.StringType,
+			"retention_duration": types.StringType,
+			"enabled":            types.BoolType,
+		}
+		resiliencyElements := map[string]attr.Value{
+			"directory_path":     types.StringValue(restInfo.Resiliency.DirectoryPath),
+			"retention_duration": types.StringValue(restInfo.Resiliency.RetentionDuration),
+			"enabled":            types.BoolValue(restInfo.Resiliency.Enabled),
+		}
+		resiliencyObjectValue, diags := types.ObjectValue(resiliencyElementTypes, resiliencyElements)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		data.Resiliency = resiliencyObjectValue
+	} else {
+		// No meaningful resiliency values, set as null
+		data.Resiliency = types.ObjectNull(map[string]attr.Type{
+			"directory_path":     types.StringType,
+			"retention_duration": types.StringType,
+			"enabled":            types.BoolType,
+		})
 	}
-	resiliencyElements := map[string]attr.Value{
-		"directory_path":     types.StringValue(restInfo.Resiliency.DirectoryPath),
-		"retention_duration": types.StringValue(restInfo.Resiliency.RetentionDuration),
-		"enabled":            types.BoolValue(restInfo.Resiliency.Enabled),
-	}
-	resiliencyObjectValue, diags := types.ObjectValue(resiliencyElementTypes, resiliencyElements)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
-	data.Resiliency = resiliencyObjectValue
 
 	// Set primary servers
 	if len(restInfo.PrimaryServers) > 0 {
@@ -616,23 +634,32 @@ func (r *ProtocolsFpolicyExternalEngineResource) Create(ctx context.Context, req
 	data.MaxConnectionRetries = types.Int64Value(restInfo.MaxConnectionRetries)
 	data.ID = types.StringValue(fmt.Sprintf("%s/%s", svm.UUID, restInfo.Name))
 
-	// Set certificate using ObjectValue
-	certificateElementTypes := map[string]attr.Type{
-		"serial_number": types.StringType,
-		"name":          types.StringType,
-		"ca":            types.StringType,
+	// Set certificate only if ONTAP returns meaningful values
+	if restInfo.Certificate.Name != "" || restInfo.Certificate.SerialNumber != "" || restInfo.Certificate.Ca != "" {
+		certificateElementTypes := map[string]attr.Type{
+			"serial_number": types.StringType,
+			"name":          types.StringType,
+			"ca":            types.StringType,
+		}
+		certificateElements := map[string]attr.Value{
+			"serial_number": types.StringValue(restInfo.Certificate.SerialNumber),
+			"name":          types.StringValue(restInfo.Certificate.Name),
+			"ca":            types.StringValue(restInfo.Certificate.Ca),
+		}
+		certificateObjectValue, diags := types.ObjectValue(certificateElementTypes, certificateElements)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		data.Certificate = certificateObjectValue
+	} else {
+		// No meaningful certificate values, set as null
+		data.Certificate = types.ObjectNull(map[string]attr.Type{
+			"serial_number": types.StringType,
+			"name":          types.StringType,
+			"ca":            types.StringType,
+		})
 	}
-	certificateElements := map[string]attr.Value{
-		"serial_number": types.StringValue(restInfo.Certificate.SerialNumber),
-		"name":          types.StringValue(restInfo.Certificate.Name),
-		"ca":            types.StringValue(restInfo.Certificate.Ca),
-	}
-	certificateObjectValue, diags := types.ObjectValue(certificateElementTypes, certificateElements)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
-	data.Certificate = certificateObjectValue
 
 	// Set buffer size using ObjectValue
 	bufferElementTypes := map[string]attr.Type{
@@ -871,23 +898,32 @@ func (r *ProtocolsFpolicyExternalEngineResource) Update(ctx context.Context, req
 	data.MaxConnectionRetries = types.Int64Value(restInfo.MaxConnectionRetries)
 	data.ID = types.StringValue(fmt.Sprintf("%s/%s", svm.UUID, restInfo.Name))
 
-	// Set certificate using ObjectValue
-	certificateElementTypes := map[string]attr.Type{
-		"serial_number": types.StringType,
-		"name":          types.StringType,
-		"ca":            types.StringType,
+	// Set certificate only if ONTAP returns meaningful values
+	if restInfo.Certificate.Name != "" || restInfo.Certificate.SerialNumber != "" || restInfo.Certificate.Ca != "" {
+		certificateElementTypes := map[string]attr.Type{
+			"serial_number": types.StringType,
+			"name":          types.StringType,
+			"ca":            types.StringType,
+		}
+		certificateElements := map[string]attr.Value{
+			"serial_number": types.StringValue(restInfo.Certificate.SerialNumber),
+			"name":          types.StringValue(restInfo.Certificate.Name),
+			"ca":            types.StringValue(restInfo.Certificate.Ca),
+		}
+		certificateObjectValue, diags := types.ObjectValue(certificateElementTypes, certificateElements)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		data.Certificate = certificateObjectValue
+	} else {
+		// No meaningful certificate values, set as null
+		data.Certificate = types.ObjectNull(map[string]attr.Type{
+			"serial_number": types.StringType,
+			"name":          types.StringType,
+			"ca":            types.StringType,
+		})
 	}
-	certificateElements := map[string]attr.Value{
-		"serial_number": types.StringValue(restInfo.Certificate.SerialNumber),
-		"name":          types.StringValue(restInfo.Certificate.Name),
-		"ca":            types.StringValue(restInfo.Certificate.Ca),
-	}
-	certificateObjectValue, diags := types.ObjectValue(certificateElementTypes, certificateElements)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
-	data.Certificate = certificateObjectValue
 
 	// Set buffer size using ObjectValue
 	bufferElementTypes := map[string]attr.Type{
