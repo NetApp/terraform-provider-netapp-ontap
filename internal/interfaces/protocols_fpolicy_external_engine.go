@@ -41,8 +41,8 @@ type ProtocolsFpolicyExternalEngineCertificate struct {
 
 // ProtocolsFpolicyExternalEngineBufferSize describes the buffer size data model
 type ProtocolsFpolicyExternalEngineBufferSize struct {
-	SendBuffer int `mapstructure:"send_buffer,omitempty"`
-	RecvBuffer int `mapstructure:"recv_buffer,omitempty"`
+	SendBuffer int64 `mapstructure:"send_buffer,omitempty"`
+	RecvBuffer int64 `mapstructure:"recv_buffer,omitempty"`
 }
 
 // ProtocolsFpolicyExternalEngineResiliency describes the resiliency data model

@@ -9,9 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
@@ -24,7 +22,7 @@ var _ datasource.DataSource = &ProtocolsFpolicyExternalEngineDataSource{}
 func NewProtocolsFpolicyExternalEngineDataSource() datasource.DataSource {
 	return &ProtocolsFpolicyExternalEngineDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "protocols_fpolicy_external_engine",
+			Name: "fpolicy_external_engine",
 		},
 	}
 }
@@ -157,7 +155,6 @@ func (d *ProtocolsFpolicyExternalEngineDataSource) Schema(ctx context.Context, r
 			},
 			"buffer_size": schema.SingleNestedAttribute{
 				MarkdownDescription: "Specifies the send and receive buffer size of the connected socket for the FPolicy server",
-				Optional:            true,
 				Computed:            true,
 				Attributes: map[string]schema.Attribute{
 					"send_buffer": schema.Int64Attribute{
@@ -356,31 +353,28 @@ func (d *ProtocolsFpolicyExternalEngineDataSource) Read(ctx context.Context, req
 
 	// Set primary servers
 	if len(restInfo.PrimaryServers) > 0 {
-		primaryServersList := make([]types.String, len(restInfo.PrimaryServers))
-		for i, server := range restInfo.PrimaryServers {
-			primaryServersList[i] = types.StringValue(server)
-		}
-		var diagsTemp diag.Diagnostics
-		data.PrimaryServers, diagsTemp = types.SetValueFrom(ctx, types.StringType, primaryServersList)
-		if diagsTemp.HasError() {
-			resp.Diagnostics.Append(diagsTemp...)
+		primaryServersSet, diags := types.SetValueFrom(ctx, types.StringType, restInfo.PrimaryServers)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
 			return
 		}
+		data.PrimaryServers = primaryServersSet
+	} else {
+		// No primary servers, set as empty set
+		data.PrimaryServers = types.SetValueMust(types.StringType, []attr.Value{})
 	}
 
 	// Set secondary servers
 	if len(restInfo.SecondaryServers) > 0 {
-		secondaryServersList := make([]types.String, len(restInfo.SecondaryServers))
-		for i, server := range restInfo.SecondaryServers {
-			secondaryServersList[i] = types.StringValue(server)
-		}
-		data.SecondaryServers, _ = types.SetValue(types.StringType, basetypes.ListValue{}.Elements())
-		secondaryServersSet, diags := types.SetValueFrom(ctx, types.StringType, secondaryServersList)
+		secondaryServersSet, diags := types.SetValueFrom(ctx, types.StringType, restInfo.SecondaryServers)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
 		data.SecondaryServers = secondaryServersSet
+	} else {
+		// No secondary servers, set as empty set
+		data.SecondaryServers = types.SetValueMust(types.StringType, []attr.Value{})
 	}
 
 	// Write logs using the tflog package

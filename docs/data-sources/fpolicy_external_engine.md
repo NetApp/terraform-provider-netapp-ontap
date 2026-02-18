@@ -16,16 +16,16 @@ fpolicy policy external-engine show
 
 ## Supported Platforms
 
-- On-perm ONTAP system 9.6 or higher
+- On-prem ONTAP system 9.6 or higher
 - Amazon FSx for NetApp ONTAP
-- The parameters `max_server_requests`, `resiliency`, `format`, `server_progress_timeout`, `buffer_size`, `ssl_option`, `status_request_interval`, `status_request_interval`, `certificate` and `request_cancel_timeout` can only be used in ONTAP 9.11 or higher
+- The parameters `max_server_requests`, `resiliency`, `format`, `server_progress_timeout`, `buffer_size`, `ssl_option`, `status_request_interval`, `certificate` and `request_cancel_timeout` can only be used in ONTAP 9.11 or higher
 - The parameter `keep_alive_interval` can only be used in ONTAP 9.13 or higher
 - The parameters `session_timeout` and `max_connection_retries` can only be used in ONTAP 9.17 or higher
 
 ## Example Usage
 
 ```terraform
-data "netapp-ontap_protocols_fpolicy_external_engine" "protocols_fpolicy_external_engine" {
+data "netapp-ontap_fpolicy_external_engine" "protocols_fpolicy_external_engine" {
   # required to know which system to interface with
   cx_profile_name = "cluster1"
   name = "test_engine*"

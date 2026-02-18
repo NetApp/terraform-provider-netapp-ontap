@@ -25,32 +25,37 @@ func TestAccProtocolsFpolicyExternalEngineResource(t *testing.T) {
 			{
 				Config: testAccProtocolsFpolicyExternalEngineResourceConfig("tf_acc_svm", "test_engine", 9001),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_fpolicy_external_engine.example", "svm_name", "tf_acc_svm"),
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_fpolicy_external_engine.example", "name", "test_engine"),
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_fpolicy_external_engine.example", "port", "9001"),
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_fpolicy_external_engine.example", "primary_servers.0", "10.10.10.20"),
+					resource.TestCheckResourceAttr("netapp-ontap_fpolicy_external_engine.example", "svm_name", "tf_acc_svm"),
+					resource.TestCheckResourceAttr("netapp-ontap_fpolicy_external_engine.example", "name", "test_engine"),
+					resource.TestCheckResourceAttr("netapp-ontap_fpolicy_external_engine.example", "port", "9001"),
+					resource.TestCheckResourceAttr("netapp-ontap_fpolicy_external_engine.example", "primary_servers.#", "1"),
+					resource.TestCheckTypeSetElemAttr("netapp-ontap_fpolicy_external_engine.example", "primary_servers.*", "10.10.10.20"),
 				),
 			},
 			// Update and read
 			{
 				Config: testAccProtocolsFpolicyExternalEngineResourceConfigAdvanced("tf_acc_svm", "test_engine", 9002),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_fpolicy_external_engine.example", "svm_name", "tf_acc_svm"),
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_fpolicy_external_engine.example", "name", "test_engine"),
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_fpolicy_external_engine.example", "port", "9002"),
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_fpolicy_external_engine.example", "type", "asynchronous"),
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_fpolicy_external_engine.example", "format", "protobuf"),
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_fpolicy_external_engine.example", "max_server_requests", "500"),
+					resource.TestCheckResourceAttr("netapp-ontap_fpolicy_external_engine.example", "svm_name", "tf_acc_svm"),
+					resource.TestCheckResourceAttr("netapp-ontap_fpolicy_external_engine.example", "name", "test_engine"),
+					resource.TestCheckResourceAttr("netapp-ontap_fpolicy_external_engine.example", "port", "9002"),
+					resource.TestCheckResourceAttr("netapp-ontap_fpolicy_external_engine.example", "type", "asynchronous"),
+					resource.TestCheckResourceAttr("netapp-ontap_fpolicy_external_engine.example", "format", "protobuf"),
+					resource.TestCheckResourceAttr("netapp-ontap_fpolicy_external_engine.example", "max_server_requests", "500"),
+					resource.TestCheckResourceAttr("netapp-ontap_fpolicy_external_engine.example", "primary_servers.#", "1"),
+					resource.TestCheckTypeSetElemAttr("netapp-ontap_fpolicy_external_engine.example", "primary_servers.*", "10.10.10.20"),
+					resource.TestCheckResourceAttr("netapp-ontap_fpolicy_external_engine.example", "secondary_servers.#", "1"),
+					resource.TestCheckTypeSetElemAttr("netapp-ontap_fpolicy_external_engine.example", "secondary_servers.*", "10.10.10.21"),
 				),
 			},
 			// Import and read
 			{
-				ResourceName:  "netapp-ontap_protocols_fpolicy_external_engine.example",
+				ResourceName:  "netapp-ontap_fpolicy_external_engine.example",
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s", "test_engine", "tf_acc_svm", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_fpolicy_external_engine.example", "name", "test_engine"),
-					resource.TestCheckResourceAttr("netapp-ontap_protocols_fpolicy_external_engine.example", "svm_name", "tf_acc_svm"),
+					resource.TestCheckResourceAttr("netapp-ontap_fpolicy_external_engine.example", "name", "test_engine"),
+					resource.TestCheckResourceAttr("netapp-ontap_fpolicy_external_engine.example", "svm_name", "tf_acc_svm"),
 				),
 			},
 		},
@@ -78,7 +83,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_protocols_fpolicy_external_engine" "example" {
+resource "netapp-ontap_fpolicy_external_engine" "example" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   svm_name = "%s"
@@ -109,7 +114,7 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_protocols_fpolicy_external_engine" "example" {
+resource "netapp-ontap_fpolicy_external_engine" "example" {
   # required to know which system to interface with
   cx_profile_name = "cluster4"
   svm_name = "%s"

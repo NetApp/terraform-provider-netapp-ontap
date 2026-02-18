@@ -22,7 +22,7 @@ var _ datasource.DataSource = &ProtocolsFpolicyExternalEnginesDataSource{}
 func NewProtocolsFpolicyExternalEnginesDataSource() datasource.DataSource {
 	return &ProtocolsFpolicyExternalEnginesDataSource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "protocols_fpolicy_external_engines",
+			Name: "fpolicy_external_engines",
 		},
 	}
 }

@@ -1,8 +1,8 @@
-resource "netapp-ontap_protocols_fpolicy_external_engine" "protocols_fpolicy_external_engine" {
+resource "netapp-ontap_fpolicy_external_engine" "protocols_fpolicy_external_engine" {
   # Required fields
   cx_profile_name = "cluster4"
-  name           = "test_engine"
-  svm_name       = "svm1"
+  name           = "test"
+  svm_name       = "tf_acc_svm"
   port           = 9002
   primary_servers = [
     "10.132.145.20",

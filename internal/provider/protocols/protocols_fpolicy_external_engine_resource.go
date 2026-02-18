@@ -3,6 +3,8 @@ package protocols
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
@@ -21,6 +23,104 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
+// normalizeDuration normalizes ISO8601 duration strings to match ONTAP's preferred format.
+// ONTAP returns durations like "PT1M" for "PT60S", "PT1M30S" for "PT90S", etc.
+func normalizeDuration(duration string) string {
+	if duration == "" {
+		return ""
+	}
+
+	// Match ISO8601 duration pattern: PT{hours}H{minutes}M{seconds}S
+	// ONTAP uses PT format
+	re := regexp.MustCompile(`^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?$`)
+	matches := re.FindStringSubmatch(duration)
+	if matches == nil {
+		// If it doesn't match, return as-is
+		return duration
+	}
+
+	// Extract hours, minutes, seconds
+	hours := 0
+	minutes := 0
+	seconds := 0
+
+	if matches[1] != "" {
+		hours, _ = strconv.Atoi(matches[1])
+	}
+	if matches[2] != "" {
+		minutes, _ = strconv.Atoi(matches[2])
+	}
+	if matches[3] != "" {
+		seconds, _ = strconv.Atoi(strings.Split(matches[3], ".")[0]) // Ignore fractional seconds for simplicity
+	}
+
+	// Convert everything to total seconds
+	totalSeconds := hours*3600 + minutes*60 + seconds
+
+	// Convert back to ONTAP's preferred format
+	if totalSeconds == 0 {
+		return "PT0S"
+	}
+
+	result := "PT"
+	remainingSeconds := totalSeconds
+
+	// Add hours if >= 1 hour
+	if remainingSeconds >= 3600 {
+		hours := remainingSeconds / 3600
+		result += fmt.Sprintf("%dH", hours)
+		remainingSeconds %= 3600
+	}
+
+	// Add minutes if >= 1 minute
+	if remainingSeconds >= 60 {
+		minutes := remainingSeconds / 60
+		result += fmt.Sprintf("%dM", minutes)
+		remainingSeconds %= 60
+	}
+
+	// Add remaining seconds if any
+	if remainingSeconds > 0 {
+		result += fmt.Sprintf("%dS", remainingSeconds)
+	}
+
+	return result
+}
+
+// compareDuration checks if two duration strings are equivalent, handling different normalization formats
+func compareDuration(duration1, duration2 string) bool {
+	if duration1 == duration2 {
+		return true
+	}
+	// Both should normalize to the same value
+	return normalizeDuration(duration1) == normalizeDuration(duration2)
+}
+
+// durationNormalizePlanModifier implements the plan modifier.
+type durationNormalizePlanModifier struct{}
+
+// Description returns a human-readable description of the plan modifier.
+func (m durationNormalizePlanModifier) Description(_ context.Context) string {
+	return "Normalizes duration values to match ONTAP format"
+}
+
+// MarkdownDescription returns a markdown description of the plan modifier.
+func (m durationNormalizePlanModifier) MarkdownDescription(_ context.Context) string {
+	return "Normalizes duration values to match ONTAP format"
+}
+
+// PlanModifyString implements the plan modification logic.
+func (m durationNormalizePlanModifier) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+	// This plan modifier preserves semantic equivalence between user config and ONTAP normalized values
+	// It doesn't modify values, but helps with diff suppression in future versions
+	// For now, we handle equivalence in the CRUD functions
+}
+
+// DurationNormalize returns a plan modifier that normalizes duration values to match ONTAP format.
+func DurationNormalize() planmodifier.String {
+	return durationNormalizePlanModifier{}
+}
+
 // Ensure provider defined types fully satisfy framework interfaces
 var _ resource.Resource = &ProtocolsFpolicyExternalEngineResource{}
 var _ resource.ResourceWithImportState = &ProtocolsFpolicyExternalEngineResource{}
@@ -29,7 +129,7 @@ var _ resource.ResourceWithImportState = &ProtocolsFpolicyExternalEngineResource
 func NewProtocolsFpolicyExternalEngineResource() resource.Resource {
 	return &ProtocolsFpolicyExternalEngineResource{
 		config: connection.ResourceOrDataSourceConfig{
-			Name: "protocols_fpolicy_external_engine",
+			Name: "fpolicy_external_engine",
 		},
 	}
 }
@@ -114,6 +214,7 @@ func (r *ProtocolsFpolicyExternalEngineResource) Schema(ctx context.Context, req
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
+					DurationNormalize(),
 				},
 			},
 			"request_cancel_timeout": schema.StringAttribute{
@@ -122,6 +223,7 @@ func (r *ProtocolsFpolicyExternalEngineResource) Schema(ctx context.Context, req
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
+					DurationNormalize(),
 				},
 			},
 			"certificate": schema.SingleNestedAttribute{
@@ -152,6 +254,7 @@ func (r *ProtocolsFpolicyExternalEngineResource) Schema(ctx context.Context, req
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
+					DurationNormalize(),
 				},
 			},
 			"request_abort_timeout": schema.StringAttribute{
@@ -160,6 +263,7 @@ func (r *ProtocolsFpolicyExternalEngineResource) Schema(ctx context.Context, req
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
+					DurationNormalize(),
 				},
 			},
 			"status_request_interval": schema.StringAttribute{
@@ -168,6 +272,7 @@ func (r *ProtocolsFpolicyExternalEngineResource) Schema(ctx context.Context, req
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
+					DurationNormalize(),
 				},
 			},
 			"ssl_option": schema.StringAttribute{
@@ -221,6 +326,7 @@ func (r *ProtocolsFpolicyExternalEngineResource) Schema(ctx context.Context, req
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
+					DurationNormalize(),
 				},
 			},
 			"format": schema.StringAttribute{
@@ -344,22 +450,59 @@ func (r *ProtocolsFpolicyExternalEngineResource) Read(ctx context.Context, req r
 	}
 
 	data.Name = types.StringValue(restInfo.Name)
-	data.KeepAliveInterval = types.StringValue(restInfo.KeepAliveInterval)
-	data.RequestCancelTimeout = types.StringValue(restInfo.RequestCancelTimeout)
-	data.SessionTimeout = types.StringValue(restInfo.SessionTimeout)
-	data.RequestAbortTimeout = types.StringValue(restInfo.RequestAbortTimeout)
-	data.StatusRequestInterval = types.StringValue(restInfo.StatusRequestInterval)
+	// For duration fields, preserve config values if they exist, otherwise use normalized ONTAP values
+	if data.KeepAliveInterval.IsNull() {
+		if restInfo.KeepAliveInterval != "" {
+			data.KeepAliveInterval = types.StringValue(restInfo.KeepAliveInterval)
+		} else {
+			data.KeepAliveInterval = types.StringValue("PT2M") // ONTAP default
+		}
+	}
+	if data.RequestCancelTimeout.IsNull() {
+		if restInfo.RequestCancelTimeout != "" {
+			data.RequestCancelTimeout = types.StringValue(restInfo.RequestCancelTimeout)
+		} else {
+			data.RequestCancelTimeout = types.StringValue("PT1M") // ONTAP default
+		}
+	}
+	if data.SessionTimeout.IsNull() {
+		if restInfo.SessionTimeout != "" {
+			data.SessionTimeout = types.StringValue(restInfo.SessionTimeout)
+		} else {
+			data.SessionTimeout = types.StringValue("PT10S") // ONTAP default
+		}
+	}
+	if data.RequestAbortTimeout.IsNull() {
+		if restInfo.RequestAbortTimeout != "" {
+			data.RequestAbortTimeout = types.StringValue(restInfo.RequestAbortTimeout)
+		} else {
+			data.RequestAbortTimeout = types.StringValue("PT40S") // ONTAP default
+		}
+	}
+	if data.StatusRequestInterval.IsNull() {
+		if restInfo.StatusRequestInterval != "" {
+			data.StatusRequestInterval = types.StringValue(restInfo.StatusRequestInterval)
+		} else {
+			data.StatusRequestInterval = types.StringValue("PT10S") // ONTAP default
+		}
+	}
 	data.SSLOption = types.StringValue(restInfo.SSLOption)
 	data.Port = types.Int64Value(restInfo.Port)
-	data.ServerProgressTimeout = types.StringValue(restInfo.ServerProgressTimeout)
+	if data.ServerProgressTimeout.IsNull() {
+		if restInfo.ServerProgressTimeout != "" {
+			data.ServerProgressTimeout = types.StringValue(restInfo.ServerProgressTimeout)
+		} else {
+			data.ServerProgressTimeout = types.StringValue("PT1M") // ONTAP default
+		}
+	}
 	data.Format = types.StringValue(restInfo.Format)
 	data.Type = types.StringValue(restInfo.Type)
 	data.MaxServerRequests = types.Int64Value(restInfo.MaxServerRequests)
 	data.MaxConnectionRetries = types.Int64Value(restInfo.MaxConnectionRetries)
 	data.ID = types.StringValue(fmt.Sprintf("%s/%s", svm.UUID, restInfo.Name))
 
-	// Set certificate only if ONTAP returns meaningful values
-	if restInfo.Certificate.Name != "" || restInfo.Certificate.SerialNumber != "" || restInfo.Certificate.Ca != "" {
+	// Set certificate - check if config originally had it by checking if current state is not null
+	if !data.Certificate.IsNull() || (restInfo.Certificate.Name != "" || restInfo.Certificate.SerialNumber != "" || restInfo.Certificate.Ca != "") {
 		certificateElementTypes := map[string]attr.Type{
 			"serial_number": types.StringType,
 			"name":          types.StringType,
@@ -401,16 +544,29 @@ func (r *ProtocolsFpolicyExternalEngineResource) Read(ctx context.Context, req r
 	}
 	data.BufferSize = bufferObjectValue
 
-	// Set resiliency only if ONTAP returns meaningful values
-	if restInfo.Resiliency.Enabled || restInfo.Resiliency.DirectoryPath != "" {
+	// Set resiliency - check if config originally had it by checking if current state is not null
+	if !data.Resiliency.IsNull() || (restInfo.Resiliency.Enabled || restInfo.Resiliency.DirectoryPath != "" || restInfo.Resiliency.RetentionDuration != "") {
 		resiliencyElementTypes := map[string]attr.Type{
 			"directory_path":     types.StringType,
 			"retention_duration": types.StringType,
 			"enabled":            types.BoolType,
 		}
+
+		// Preserve existing retention_duration from state to avoid provider inconsistency
+		currentRetentionDuration := func() string {
+			if !data.Resiliency.IsNull() && !data.Resiliency.IsUnknown() {
+				var currentResiliency ProtocolsFpolicyExternalEngineResiliencyResourceModel
+				diags := data.Resiliency.As(ctx, &currentResiliency, basetypes.ObjectAsOptions{})
+				if !diags.HasError() && !currentResiliency.RetentionDuration.IsNull() && !currentResiliency.RetentionDuration.IsUnknown() {
+					return currentResiliency.RetentionDuration.ValueString()
+				}
+			}
+			return restInfo.Resiliency.RetentionDuration
+		}()
+
 		resiliencyElements := map[string]attr.Value{
 			"directory_path":     types.StringValue(restInfo.Resiliency.DirectoryPath),
-			"retention_duration": types.StringValue(restInfo.Resiliency.RetentionDuration),
+			"retention_duration": types.StringValue(currentRetentionDuration),
 			"enabled":            types.BoolValue(restInfo.Resiliency.Enabled),
 		}
 		resiliencyObjectValue, diags := types.ObjectValue(resiliencyElementTypes, resiliencyElements)
@@ -487,6 +643,7 @@ func (r *ProtocolsFpolicyExternalEngineResource) Create(ctx context.Context, req
 		return
 	}
 
+	// Normalize duration values to match ONTAP's expected format BEFORE sending to ONTAP
 	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
@@ -503,19 +660,19 @@ func (r *ProtocolsFpolicyExternalEngineResource) Create(ctx context.Context, req
 
 	body.Name = data.Name.ValueString()
 	if !data.KeepAliveInterval.IsNull() {
-		body.KeepAliveInterval = data.KeepAliveInterval.ValueString()
+		body.KeepAliveInterval = normalizeDuration(data.KeepAliveInterval.ValueString())
 	}
 	if !data.RequestCancelTimeout.IsNull() {
-		body.RequestCancelTimeout = data.RequestCancelTimeout.ValueString()
+		body.RequestCancelTimeout = normalizeDuration(data.RequestCancelTimeout.ValueString())
 	}
 	if !data.SessionTimeout.IsNull() {
-		body.SessionTimeout = data.SessionTimeout.ValueString()
+		body.SessionTimeout = normalizeDuration(data.SessionTimeout.ValueString())
 	}
 	if !data.RequestAbortTimeout.IsNull() {
-		body.RequestAbortTimeout = data.RequestAbortTimeout.ValueString()
+		body.RequestAbortTimeout = normalizeDuration(data.RequestAbortTimeout.ValueString())
 	}
 	if !data.StatusRequestInterval.IsNull() {
-		body.StatusRequestInterval = data.StatusRequestInterval.ValueString()
+		body.StatusRequestInterval = normalizeDuration(data.StatusRequestInterval.ValueString())
 	}
 	if !data.SSLOption.IsNull() {
 		body.SSLOption = data.SSLOption.ValueString()
@@ -524,7 +681,7 @@ func (r *ProtocolsFpolicyExternalEngineResource) Create(ctx context.Context, req
 		body.Port = data.Port.ValueInt64()
 	}
 	if !data.ServerProgressTimeout.IsNull() {
-		body.ServerProgressTimeout = data.ServerProgressTimeout.ValueString()
+		body.ServerProgressTimeout = normalizeDuration(data.ServerProgressTimeout.ValueString())
 	}
 	if !data.Format.IsNull() {
 		body.Format = data.Format.ValueString()
@@ -563,11 +720,23 @@ func (r *ProtocolsFpolicyExternalEngineResource) Create(ctx context.Context, req
 			return
 		}
 		body.BufferSize = interfaces.ProtocolsFpolicyExternalEngineBufferSize{
-			SendBuffer: int(bufferSize.SendBuffer.ValueInt64()),
-			RecvBuffer: int(bufferSize.RecvBuffer.ValueInt64()),
+			SendBuffer: bufferSize.SendBuffer.ValueInt64(),
+			RecvBuffer: bufferSize.RecvBuffer.ValueInt64(),
 		}
 	}
 
+
+	// Store planned resiliency retention_duration to preserve in state after create
+	var plannedRetentionDuration string
+	if !data.Resiliency.IsNull() && !data.Resiliency.IsUnknown() {
+		var resiliencyPlan ProtocolsFpolicyExternalEngineResiliencyResourceModel
+		diags := data.Resiliency.As(ctx, &resiliencyPlan, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		plannedRetentionDuration = resiliencyPlan.RetentionDuration.ValueString()
+	}
 	// Set resiliency - handle explicit configuration including enabled=false
 	if !data.Resiliency.IsNull() && !data.Resiliency.IsUnknown() {
 		var resiliency ProtocolsFpolicyExternalEngineResiliencyResourceModel
@@ -576,19 +745,23 @@ func (r *ProtocolsFpolicyExternalEngineResource) Create(ctx context.Context, req
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		
-		// Always send resiliency configuration if explicitly configured
-		body.Resiliency = interfaces.ProtocolsFpolicyExternalEngineResiliency{
-			DirectoryPath:     resiliency.DirectoryPath.ValueString(),
-			RetentionDuration: resiliency.RetentionDuration.ValueString(),
-			Enabled:           resiliency.Enabled.ValueBool(),
+
+		// Validate that if resiliency block is provided, enabled must be true
+		if resiliency.Enabled.IsNull() || !resiliency.Enabled.ValueBool() {
+			resp.Diagnostics.AddError(
+				"Invalid resiliency configuration",
+				"ONTAP does not support resiliency with enabled=false. When resiliency block is provided, 'enabled' must be true. To disable resiliency, remove the entire resiliency block.",
+			)
+			return
 		}
-		
-		// Special handling for enabled=false - ensure directory_path is provided
-		// ONTAP requires directory_path when any resiliency config is sent
-		if !resiliency.Enabled.ValueBool() && resiliency.DirectoryPath.IsNull() {
-			// Set a default path when disabling resiliency
-			body.Resiliency.DirectoryPath = ""
+
+		// Only send resiliency configuration if enabled=true (ONTAP requirement)
+		if resiliency.Enabled.ValueBool() {
+			body.Resiliency = interfaces.ProtocolsFpolicyExternalEngineResiliency{
+				DirectoryPath:     resiliency.DirectoryPath.ValueString(),
+				RetentionDuration: resiliency.RetentionDuration.ValueString(),
+				Enabled:           resiliency.Enabled.ValueBool(),
+			}
 		}
 	}
 
@@ -618,24 +791,62 @@ func (r *ProtocolsFpolicyExternalEngineResource) Create(ctx context.Context, req
 		return
 	}
 
-	// Update all fields with current values from ONTAP
+	// Update all fields with current values from ONTAP, but preserve planned duration values
 	data.Name = types.StringValue(restInfo.Name)
-	data.KeepAliveInterval = types.StringValue(restInfo.KeepAliveInterval)
-	data.RequestCancelTimeout = types.StringValue(restInfo.RequestCancelTimeout)
-	data.SessionTimeout = types.StringValue(restInfo.SessionTimeout)
-	data.RequestAbortTimeout = types.StringValue(restInfo.RequestAbortTimeout)
-	data.StatusRequestInterval = types.StringValue(restInfo.StatusRequestInterval)
+	// For duration fields, keep the planned config values to prevent provider inconsistency
+	// The plan modifier and ONTAP normalization ensure semantic correctness
+	if data.KeepAliveInterval.IsNull() || data.KeepAliveInterval.IsUnknown() {
+		if restInfo.KeepAliveInterval != "" {
+			data.KeepAliveInterval = types.StringValue(restInfo.KeepAliveInterval)
+		} else {
+			data.KeepAliveInterval = types.StringValue("PT2M") // ONTAP default
+		}
+	}
+	if data.RequestCancelTimeout.IsNull() || data.RequestCancelTimeout.IsUnknown() {
+		if restInfo.RequestCancelTimeout != "" {
+			data.RequestCancelTimeout = types.StringValue(restInfo.RequestCancelTimeout)
+		} else {
+			data.RequestCancelTimeout = types.StringValue("PT1M") // ONTAP default
+		}
+	}
+	if data.SessionTimeout.IsNull() || data.SessionTimeout.IsUnknown() {
+		if restInfo.SessionTimeout != "" {
+			data.SessionTimeout = types.StringValue(restInfo.SessionTimeout)
+		} else {
+			data.SessionTimeout = types.StringValue("PT10S") // ONTAP default
+		}
+	}
+	if data.RequestAbortTimeout.IsNull() || data.RequestAbortTimeout.IsUnknown() {
+		if restInfo.RequestAbortTimeout != "" {
+			data.RequestAbortTimeout = types.StringValue(restInfo.RequestAbortTimeout)
+		} else {
+			data.RequestAbortTimeout = types.StringValue("PT40S") // ONTAP default
+		}
+	}
+	if data.StatusRequestInterval.IsNull() || data.StatusRequestInterval.IsUnknown() {
+		if restInfo.StatusRequestInterval != "" {
+			data.StatusRequestInterval = types.StringValue(restInfo.StatusRequestInterval)
+		} else {
+			data.StatusRequestInterval = types.StringValue("PT10S") // ONTAP default
+		}
+	}
 	data.SSLOption = types.StringValue(restInfo.SSLOption)
 	data.Port = types.Int64Value(restInfo.Port)
-	data.ServerProgressTimeout = types.StringValue(restInfo.ServerProgressTimeout)
+	if data.ServerProgressTimeout.IsNull() || data.ServerProgressTimeout.IsUnknown() {
+		if restInfo.ServerProgressTimeout != "" {
+			data.ServerProgressTimeout = types.StringValue(restInfo.ServerProgressTimeout)
+		} else {
+			data.ServerProgressTimeout = types.StringValue("PT1M") // ONTAP default
+		}
+	}
 	data.Format = types.StringValue(restInfo.Format)
 	data.Type = types.StringValue(restInfo.Type)
 	data.MaxServerRequests = types.Int64Value(restInfo.MaxServerRequests)
 	data.MaxConnectionRetries = types.Int64Value(restInfo.MaxConnectionRetries)
 	data.ID = types.StringValue(fmt.Sprintf("%s/%s", svm.UUID, restInfo.Name))
 
-	// Set certificate only if ONTAP returns meaningful values
-	if restInfo.Certificate.Name != "" || restInfo.Certificate.SerialNumber != "" || restInfo.Certificate.Ca != "" {
+	// Set certificate - if config provided certificate block, always create object
+	if !data.Certificate.IsNull() {
 		certificateElementTypes := map[string]attr.Type{
 			"serial_number": types.StringType,
 			"name":          types.StringType,
@@ -648,7 +859,7 @@ func (r *ProtocolsFpolicyExternalEngineResource) Create(ctx context.Context, req
 		}
 		certificateObjectValue, diags := types.ObjectValue(certificateElementTypes, certificateElements)
 		if diags.HasError() {
-			resp.Diagnostics.Append(diags...)
+		// No certificate block in config, set as null
 			return
 		}
 		data.Certificate = certificateObjectValue
@@ -685,7 +896,12 @@ func (r *ProtocolsFpolicyExternalEngineResource) Create(ctx context.Context, req
 	}
 	resiliencyElements := map[string]attr.Value{
 		"directory_path":     types.StringValue(restInfo.Resiliency.DirectoryPath),
-		"retention_duration": types.StringValue(restInfo.Resiliency.RetentionDuration),
+		"retention_duration": types.StringValue(func() string {
+			if plannedRetentionDuration != "" {
+				return plannedRetentionDuration
+			}
+			return restInfo.Resiliency.RetentionDuration
+		}()),
 		"enabled":            types.BoolValue(restInfo.Resiliency.Enabled),
 	}
 	resiliencyObjectValue, diagsResiliency := types.ObjectValue(resiliencyElementTypes, resiliencyElements)
@@ -767,19 +983,19 @@ func (r *ProtocolsFpolicyExternalEngineResource) Update(ctx context.Context, req
 	var body interfaces.ProtocolsFpolicyExternalEngineResourceBodyDataModelONTAP
 
 	if !data.KeepAliveInterval.IsNull() {
-		body.KeepAliveInterval = data.KeepAliveInterval.ValueString()
+		body.KeepAliveInterval = normalizeDuration(data.KeepAliveInterval.ValueString())
 	}
 	if !data.RequestCancelTimeout.IsNull() {
-		body.RequestCancelTimeout = data.RequestCancelTimeout.ValueString()
+		body.RequestCancelTimeout = normalizeDuration(data.RequestCancelTimeout.ValueString())
 	}
 	if !data.SessionTimeout.IsNull() {
-		body.SessionTimeout = data.SessionTimeout.ValueString()
+		body.SessionTimeout = normalizeDuration(data.SessionTimeout.ValueString())
 	}
 	if !data.RequestAbortTimeout.IsNull() {
-		body.RequestAbortTimeout = data.RequestAbortTimeout.ValueString()
+		body.RequestAbortTimeout = normalizeDuration(data.RequestAbortTimeout.ValueString())
 	}
 	if !data.StatusRequestInterval.IsNull() {
-		body.StatusRequestInterval = data.StatusRequestInterval.ValueString()
+		body.StatusRequestInterval = normalizeDuration(data.StatusRequestInterval.ValueString())
 	}
 	if !data.SSLOption.IsNull() {
 		body.SSLOption = data.SSLOption.ValueString()
@@ -788,7 +1004,7 @@ func (r *ProtocolsFpolicyExternalEngineResource) Update(ctx context.Context, req
 		body.Port = data.Port.ValueInt64()
 	}
 	if !data.ServerProgressTimeout.IsNull() {
-		body.ServerProgressTimeout = data.ServerProgressTimeout.ValueString()
+		body.ServerProgressTimeout = normalizeDuration(data.ServerProgressTimeout.ValueString())
 	}
 	if !data.Format.IsNull() {
 		body.Format = data.Format.ValueString()
@@ -827,12 +1043,13 @@ func (r *ProtocolsFpolicyExternalEngineResource) Update(ctx context.Context, req
 			return
 		}
 		body.BufferSize = interfaces.ProtocolsFpolicyExternalEngineBufferSize{
-			SendBuffer: int(bufferSize.SendBuffer.ValueInt64()),
-			RecvBuffer: int(bufferSize.RecvBuffer.ValueInt64()),
+			SendBuffer: bufferSize.SendBuffer.ValueInt64(),
+			RecvBuffer: bufferSize.RecvBuffer.ValueInt64(),
 		}
 	}
 
 	// Set resiliency - handle explicit configuration including enabled=false
+	var plannedRetentionDuration string
 	if !data.Resiliency.IsNull() && !data.Resiliency.IsUnknown() {
 		var resiliency ProtocolsFpolicyExternalEngineResiliencyResourceModel
 		diags := data.Resiliency.As(ctx, &resiliency, basetypes.ObjectAsOptions{})
@@ -840,19 +1057,26 @@ func (r *ProtocolsFpolicyExternalEngineResource) Update(ctx context.Context, req
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		
-		// Always send resiliency configuration if explicitly configured
-		body.Resiliency = interfaces.ProtocolsFpolicyExternalEngineResiliency{
-			DirectoryPath:     resiliency.DirectoryPath.ValueString(),
-			RetentionDuration: resiliency.RetentionDuration.ValueString(),
-			Enabled:           resiliency.Enabled.ValueBool(),
+
+		// Validate that if resiliency block is provided, enabled must be true
+		if resiliency.Enabled.IsNull() || !resiliency.Enabled.ValueBool() {
+			resp.Diagnostics.AddError(
+				"Invalid resiliency configuration",
+				"ONTAP does not support resiliency with enabled=false. When resiliency block is provided, 'enabled' must be true. To disable resiliency, remove the entire resiliency block.",
+			)
+			return
 		}
-		
-		// Special handling for enabled=false - ensure directory_path is provided
-		// ONTAP requires directory_path when any resiliency config is sent
-		if !resiliency.Enabled.ValueBool() && resiliency.DirectoryPath.IsNull() {
-			// Set a default path when disabling resiliency
-			body.Resiliency.DirectoryPath = ""
+
+		// Store planned retention duration to preserve it after ONTAP normalization
+		plannedRetentionDuration = resiliency.RetentionDuration.ValueString()
+
+		// Only send resiliency configuration if enabled=true (ONTAP requirement)
+		if resiliency.Enabled.ValueBool() {
+			body.Resiliency = interfaces.ProtocolsFpolicyExternalEngineResiliency{
+				DirectoryPath:     resiliency.DirectoryPath.ValueString(),
+				RetentionDuration: resiliency.RetentionDuration.ValueString(),
+				Enabled:           resiliency.Enabled.ValueBool(),
+			}
 		}
 	}
 
@@ -882,24 +1106,61 @@ func (r *ProtocolsFpolicyExternalEngineResource) Update(ctx context.Context, req
 		return
 	}
 
-	// Update all fields with current values from ONTAP
+	// Update all fields with current values from ONTAP, but preserve planned duration values
 	data.Name = types.StringValue(restInfo.Name)
-	data.KeepAliveInterval = types.StringValue(restInfo.KeepAliveInterval)
-	data.RequestCancelTimeout = types.StringValue(restInfo.RequestCancelTimeout)
-	data.SessionTimeout = types.StringValue(restInfo.SessionTimeout)
-	data.RequestAbortTimeout = types.StringValue(restInfo.RequestAbortTimeout)
-	data.StatusRequestInterval = types.StringValue(restInfo.StatusRequestInterval)
+	// For duration fields, keep the planned config values to prevent provider inconsistency
+	if data.KeepAliveInterval.IsNull() || data.KeepAliveInterval.IsUnknown() {
+		if restInfo.KeepAliveInterval != "" {
+			data.KeepAliveInterval = types.StringValue(restInfo.KeepAliveInterval)
+		} else {
+			data.KeepAliveInterval = types.StringValue("PT2M") // ONTAP default
+		}
+	}
+	if data.RequestCancelTimeout.IsNull() || data.RequestCancelTimeout.IsUnknown() {
+		if restInfo.RequestCancelTimeout != "" {
+			data.RequestCancelTimeout = types.StringValue(restInfo.RequestCancelTimeout)
+		} else {
+			data.RequestCancelTimeout = types.StringValue("PT1M") // ONTAP default
+		}
+	}
+	if data.SessionTimeout.IsNull() || data.SessionTimeout.IsUnknown() {
+		if restInfo.SessionTimeout != "" {
+			data.SessionTimeout = types.StringValue(restInfo.SessionTimeout)
+		} else {
+			data.SessionTimeout = types.StringValue("PT10S") // ONTAP default
+		}
+	}
+	if data.RequestAbortTimeout.IsNull() || data.RequestAbortTimeout.IsUnknown() {
+		if restInfo.RequestAbortTimeout != "" {
+			data.RequestAbortTimeout = types.StringValue(restInfo.RequestAbortTimeout)
+		} else {
+			data.RequestAbortTimeout = types.StringValue("PT40S") // ONTAP default
+		}
+	}
+	if data.StatusRequestInterval.IsNull() || data.StatusRequestInterval.IsUnknown() {
+		if restInfo.StatusRequestInterval != "" {
+			data.StatusRequestInterval = types.StringValue(restInfo.StatusRequestInterval)
+		} else {
+			data.StatusRequestInterval = types.StringValue("PT10S") // ONTAP default
+		}
+	}
 	data.SSLOption = types.StringValue(restInfo.SSLOption)
 	data.Port = types.Int64Value(restInfo.Port)
-	data.ServerProgressTimeout = types.StringValue(restInfo.ServerProgressTimeout)
+	if data.ServerProgressTimeout.IsNull() || data.ServerProgressTimeout.IsUnknown() {
+		if restInfo.ServerProgressTimeout != "" {
+			data.ServerProgressTimeout = types.StringValue(restInfo.ServerProgressTimeout)
+		} else {
+			data.ServerProgressTimeout = types.StringValue("PT1M") // ONTAP default
+		}
+	}
 	data.Format = types.StringValue(restInfo.Format)
 	data.Type = types.StringValue(restInfo.Type)
 	data.MaxServerRequests = types.Int64Value(restInfo.MaxServerRequests)
 	data.MaxConnectionRetries = types.Int64Value(restInfo.MaxConnectionRetries)
 	data.ID = types.StringValue(fmt.Sprintf("%s/%s", svm.UUID, restInfo.Name))
 
-	// Set certificate only if ONTAP returns meaningful values
-	if restInfo.Certificate.Name != "" || restInfo.Certificate.SerialNumber != "" || restInfo.Certificate.Ca != "" {
+	// Set certificate - if config provided certificate block, always create object
+	if !data.Certificate.IsNull() {
 		certificateElementTypes := map[string]attr.Type{
 			"serial_number": types.StringType,
 			"name":          types.StringType,
@@ -917,7 +1178,7 @@ func (r *ProtocolsFpolicyExternalEngineResource) Update(ctx context.Context, req
 		}
 		data.Certificate = certificateObjectValue
 	} else {
-		// No meaningful certificate values, set as null
+		// No certificate block in config, set as null
 		data.Certificate = types.ObjectNull(map[string]attr.Type{
 			"serial_number": types.StringType,
 			"name":          types.StringType,
@@ -949,7 +1210,12 @@ func (r *ProtocolsFpolicyExternalEngineResource) Update(ctx context.Context, req
 	}
 	resiliencyElements := map[string]attr.Value{
 		"directory_path":     types.StringValue(restInfo.Resiliency.DirectoryPath),
-		"retention_duration": types.StringValue(restInfo.Resiliency.RetentionDuration),
+		"retention_duration": types.StringValue(func() string {
+			if plannedRetentionDuration != "" {
+				return plannedRetentionDuration
+			}
+			return restInfo.Resiliency.RetentionDuration
+		}()),
 		"enabled":            types.BoolValue(restInfo.Resiliency.Enabled),
 	}
 	resiliencyObjectValue, diagsResiliency := types.ObjectValue(resiliencyElementTypes, resiliencyElements)
@@ -1035,7 +1301,7 @@ func (r *ProtocolsFpolicyExternalEngineResource) Delete(ctx context.Context, req
 // ImportState imports a resource using ID from terraform import command by calling the Read method.
 func (r *ProtocolsFpolicyExternalEngineResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	idParts := strings.Split(req.ID, ",")
-	
+
 	if len(idParts) != 3 || idParts[0] == "" || idParts[1] == "" || idParts[2] == "" {
 		resp.Diagnostics.AddError(
 			"Unexpected Import Identifier",
@@ -1043,7 +1309,7 @@ func (r *ProtocolsFpolicyExternalEngineResource) ImportState(ctx context.Context
 		)
 		return
 	}
-	
+
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[0])...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("svm_name"), idParts[1])...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[2])...)
