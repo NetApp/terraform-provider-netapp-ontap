@@ -87,15 +87,6 @@ func normalizeDuration(duration string) string {
 	return result
 }
 
-// compareDuration checks if two duration strings are equivalent, handling different normalization formats
-func compareDuration(duration1, duration2 string) bool {
-	if duration1 == duration2 {
-		return true
-	}
-	// Both should normalize to the same value
-	return normalizeDuration(duration1) == normalizeDuration(duration2)
-}
-
 // durationNormalizePlanModifier implements the plan modifier.
 type durationNormalizePlanModifier struct{}
 
