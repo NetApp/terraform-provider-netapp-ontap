@@ -83,6 +83,10 @@ func (d *ProtocolsFpolicyExternalEnginesDataSource) Schema(ctx context.Context, 
 							MarkdownDescription: "SVM name",
 							Computed:            true,
 						},
+						"id": schema.StringAttribute{
+							MarkdownDescription: "FPolicy external engine UUID",
+							Computed:            true,
+						},
 						"keep_alive_interval": schema.StringAttribute{
 							MarkdownDescription: "Specifies the ISO-8601 interval time for a storage appliance to send Keep Alive message to an FPolicy server",
 							Computed:            true,
@@ -275,7 +279,8 @@ func (d *ProtocolsFpolicyExternalEnginesDataSource) Read(ctx context.Context, re
 		data.ProtocolsFpolicyExternalEngines[index] = ProtocolsFpolicyExternalEngineDataSourceModel{
 			CxProfileName:         data.CxProfileName,
 			Name:                  types.StringValue(record.Name),
-			SVMName:               types.StringValue(record.SVM.Name),
+			SVMName:               types.StringValue(data.Filter.SVMName.ValueString()),
+			ID:                    types.StringValue(fmt.Sprintf("%s/%s", record.SVM.UUID, record.Name)),
 			KeepAliveInterval:     types.StringValue(record.KeepAliveInterval),
 			RequestCancelTimeout:  types.StringValue(record.RequestCancelTimeout),
 			SessionTimeout:        types.StringValue(record.SessionTimeout),
@@ -352,11 +357,7 @@ func (d *ProtocolsFpolicyExternalEnginesDataSource) Read(ctx context.Context, re
 
 		// Set primary servers
 		if len(record.PrimaryServers) > 0 {
-			primaryServersList := make([]types.String, len(record.PrimaryServers))
-			for i, server := range record.PrimaryServers {
-				primaryServersList[i] = types.StringValue(server)
-			}
-			primaryServersSet, diags := types.SetValueFrom(ctx, types.StringType, primaryServersList)
+			primaryServersSet, diags := types.SetValueFrom(ctx, types.StringType, record.PrimaryServers)
 			resp.Diagnostics.Append(diags...)
 			if resp.Diagnostics.HasError() {
 				return
@@ -368,11 +369,7 @@ func (d *ProtocolsFpolicyExternalEnginesDataSource) Read(ctx context.Context, re
 
 		// Set secondary servers
 		if len(record.SecondaryServers) > 0 {
-			secondaryServersList := make([]types.String, len(record.SecondaryServers))
-			for i, server := range record.SecondaryServers {
-				secondaryServersList[i] = types.StringValue(server)
-			}
-			secondaryServersSet, diags := types.SetValueFrom(ctx, types.StringType, secondaryServersList)
+			secondaryServersSet, diags := types.SetValueFrom(ctx, types.StringType, record.SecondaryServers)
 			resp.Diagnostics.Append(diags...)
 			if resp.Diagnostics.HasError() {
 				return

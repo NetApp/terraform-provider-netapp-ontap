@@ -87,6 +87,17 @@ func normalizeDuration(duration string) string {
 	return result
 }
 
+// areDurationsEquivalent checks if two ISO8601 duration strings represent the same amount of time.
+// This handles cases where ONTAP returns "PT3M" but user configured "PT180S".
+func areDurationsEquivalent(duration1, duration2 string) bool {
+	if duration1 == duration2 {
+		return true
+	}
+	
+	// Normalize both durations to total seconds for comparison
+	return normalizeDuration(duration1) == normalizeDuration(duration2)
+}
+
 // durationNormalizePlanModifier implements the plan modifier.
 type durationNormalizePlanModifier struct{}
 
@@ -445,36 +456,26 @@ func (r *ProtocolsFpolicyExternalEngineResource) Read(ctx context.Context, req r
 	if data.KeepAliveInterval.IsNull() {
 		if restInfo.KeepAliveInterval != "" {
 			data.KeepAliveInterval = types.StringValue(restInfo.KeepAliveInterval)
-		} else {
-			data.KeepAliveInterval = types.StringValue("PT2M") // ONTAP default
 		}
 	}
 	if data.RequestCancelTimeout.IsNull() {
 		if restInfo.RequestCancelTimeout != "" {
 			data.RequestCancelTimeout = types.StringValue(restInfo.RequestCancelTimeout)
-		} else {
-			data.RequestCancelTimeout = types.StringValue("PT1M") // ONTAP default
 		}
 	}
 	if data.SessionTimeout.IsNull() {
 		if restInfo.SessionTimeout != "" {
 			data.SessionTimeout = types.StringValue(restInfo.SessionTimeout)
-		} else {
-			data.SessionTimeout = types.StringValue("PT10S") // ONTAP default
 		}
 	}
 	if data.RequestAbortTimeout.IsNull() {
 		if restInfo.RequestAbortTimeout != "" {
 			data.RequestAbortTimeout = types.StringValue(restInfo.RequestAbortTimeout)
-		} else {
-			data.RequestAbortTimeout = types.StringValue("PT40S") // ONTAP default
 		}
 	}
 	if data.StatusRequestInterval.IsNull() {
 		if restInfo.StatusRequestInterval != "" {
 			data.StatusRequestInterval = types.StringValue(restInfo.StatusRequestInterval)
-		} else {
-			data.StatusRequestInterval = types.StringValue("PT10S") // ONTAP default
 		}
 	}
 	data.SSLOption = types.StringValue(restInfo.SSLOption)
@@ -482,8 +483,6 @@ func (r *ProtocolsFpolicyExternalEngineResource) Read(ctx context.Context, req r
 	if data.ServerProgressTimeout.IsNull() {
 		if restInfo.ServerProgressTimeout != "" {
 			data.ServerProgressTimeout = types.StringValue(restInfo.ServerProgressTimeout)
-		} else {
-			data.ServerProgressTimeout = types.StringValue("PT1M") // ONTAP default
 		}
 	}
 	data.Format = types.StringValue(restInfo.Format)
@@ -782,43 +781,57 @@ func (r *ProtocolsFpolicyExternalEngineResource) Create(ctx context.Context, req
 		return
 	}
 
-	// Update all fields with current values from ONTAP, but preserve planned duration values
+	// Update all fields with current values from ONTAP, using proper duration handling pattern
 	data.Name = types.StringValue(restInfo.Name)
-	// For duration fields, keep the planned config values to prevent provider inconsistency
-	// The plan modifier and ONTAP normalization ensure semantic correctness
+	// For duration fields, use ONTAP defaults when null/unknown, semantic comparison when configured
 	if data.KeepAliveInterval.IsNull() || data.KeepAliveInterval.IsUnknown() {
 		if restInfo.KeepAliveInterval != "" {
 			data.KeepAliveInterval = types.StringValue(restInfo.KeepAliveInterval)
-		} else {
-			data.KeepAliveInterval = types.StringValue("PT2M") // ONTAP default
+		}
+	} else {
+		configValue := data.KeepAliveInterval.ValueString()
+		if !areDurationsEquivalent(configValue, restInfo.KeepAliveInterval) {
+			data.KeepAliveInterval = types.StringValue(restInfo.KeepAliveInterval)
 		}
 	}
 	if data.RequestCancelTimeout.IsNull() || data.RequestCancelTimeout.IsUnknown() {
 		if restInfo.RequestCancelTimeout != "" {
 			data.RequestCancelTimeout = types.StringValue(restInfo.RequestCancelTimeout)
-		} else {
-			data.RequestCancelTimeout = types.StringValue("PT1M") // ONTAP default
+		}
+	} else {
+		configValue := data.RequestCancelTimeout.ValueString()
+		if !areDurationsEquivalent(configValue, restInfo.RequestCancelTimeout) {
+			data.RequestCancelTimeout = types.StringValue(restInfo.RequestCancelTimeout)
 		}
 	}
 	if data.SessionTimeout.IsNull() || data.SessionTimeout.IsUnknown() {
 		if restInfo.SessionTimeout != "" {
 			data.SessionTimeout = types.StringValue(restInfo.SessionTimeout)
-		} else {
-			data.SessionTimeout = types.StringValue("PT10S") // ONTAP default
+		}
+	} else {
+		configValue := data.SessionTimeout.ValueString()
+		if !areDurationsEquivalent(configValue, restInfo.SessionTimeout) {
+			data.SessionTimeout = types.StringValue(restInfo.SessionTimeout)
 		}
 	}
 	if data.RequestAbortTimeout.IsNull() || data.RequestAbortTimeout.IsUnknown() {
 		if restInfo.RequestAbortTimeout != "" {
 			data.RequestAbortTimeout = types.StringValue(restInfo.RequestAbortTimeout)
-		} else {
-			data.RequestAbortTimeout = types.StringValue("PT40S") // ONTAP default
+		}
+	} else {
+		configValue := data.RequestAbortTimeout.ValueString()
+		if !areDurationsEquivalent(configValue, restInfo.RequestAbortTimeout) {
+			data.RequestAbortTimeout = types.StringValue(restInfo.RequestAbortTimeout)
 		}
 	}
 	if data.StatusRequestInterval.IsNull() || data.StatusRequestInterval.IsUnknown() {
 		if restInfo.StatusRequestInterval != "" {
 			data.StatusRequestInterval = types.StringValue(restInfo.StatusRequestInterval)
-		} else {
-			data.StatusRequestInterval = types.StringValue("PT10S") // ONTAP default
+		}
+	} else {
+		configValue := data.StatusRequestInterval.ValueString()
+		if !areDurationsEquivalent(configValue, restInfo.StatusRequestInterval) {
+			data.StatusRequestInterval = types.StringValue(restInfo.StatusRequestInterval)
 		}
 	}
 	data.SSLOption = types.StringValue(restInfo.SSLOption)
@@ -826,8 +839,11 @@ func (r *ProtocolsFpolicyExternalEngineResource) Create(ctx context.Context, req
 	if data.ServerProgressTimeout.IsNull() || data.ServerProgressTimeout.IsUnknown() {
 		if restInfo.ServerProgressTimeout != "" {
 			data.ServerProgressTimeout = types.StringValue(restInfo.ServerProgressTimeout)
-		} else {
-			data.ServerProgressTimeout = types.StringValue("PT1M") // ONTAP default
+		}
+	} else {
+		configValue := data.ServerProgressTimeout.ValueString()
+		if !areDurationsEquivalent(configValue, restInfo.ServerProgressTimeout) {
+			data.ServerProgressTimeout = types.StringValue(restInfo.ServerProgressTimeout)
 		}
 	}
 	data.Format = types.StringValue(restInfo.Format)
@@ -1097,42 +1113,57 @@ func (r *ProtocolsFpolicyExternalEngineResource) Update(ctx context.Context, req
 		return
 	}
 
-	// Update all fields with current values from ONTAP, but preserve planned duration values
+	// Update all fields with current values from ONTAP, using proper duration handling pattern
 	data.Name = types.StringValue(restInfo.Name)
-	// For duration fields, keep the planned config values to prevent provider inconsistency
+	// For duration fields, use ONTAP defaults when null/unknown, semantic comparison when configured
 	if data.KeepAliveInterval.IsNull() || data.KeepAliveInterval.IsUnknown() {
 		if restInfo.KeepAliveInterval != "" {
 			data.KeepAliveInterval = types.StringValue(restInfo.KeepAliveInterval)
-		} else {
-			data.KeepAliveInterval = types.StringValue("PT2M") // ONTAP default
+		}
+	} else {
+		configValue := data.KeepAliveInterval.ValueString()
+		if !areDurationsEquivalent(configValue, restInfo.KeepAliveInterval) {
+			data.KeepAliveInterval = types.StringValue(restInfo.KeepAliveInterval)
 		}
 	}
 	if data.RequestCancelTimeout.IsNull() || data.RequestCancelTimeout.IsUnknown() {
 		if restInfo.RequestCancelTimeout != "" {
 			data.RequestCancelTimeout = types.StringValue(restInfo.RequestCancelTimeout)
-		} else {
-			data.RequestCancelTimeout = types.StringValue("PT1M") // ONTAP default
+		}
+	} else {
+		configValue := data.RequestCancelTimeout.ValueString()
+		if !areDurationsEquivalent(configValue, restInfo.RequestCancelTimeout) {
+			data.RequestCancelTimeout = types.StringValue(restInfo.RequestCancelTimeout)
 		}
 	}
 	if data.SessionTimeout.IsNull() || data.SessionTimeout.IsUnknown() {
 		if restInfo.SessionTimeout != "" {
 			data.SessionTimeout = types.StringValue(restInfo.SessionTimeout)
-		} else {
-			data.SessionTimeout = types.StringValue("PT10S") // ONTAP default
+		}
+	} else {
+		configValue := data.SessionTimeout.ValueString()
+		if !areDurationsEquivalent(configValue, restInfo.SessionTimeout) {
+			data.SessionTimeout = types.StringValue(restInfo.SessionTimeout)
 		}
 	}
 	if data.RequestAbortTimeout.IsNull() || data.RequestAbortTimeout.IsUnknown() {
 		if restInfo.RequestAbortTimeout != "" {
 			data.RequestAbortTimeout = types.StringValue(restInfo.RequestAbortTimeout)
-		} else {
-			data.RequestAbortTimeout = types.StringValue("PT40S") // ONTAP default
+		}
+	} else {
+		configValue := data.RequestAbortTimeout.ValueString()
+		if !areDurationsEquivalent(configValue, restInfo.RequestAbortTimeout) {
+			data.RequestAbortTimeout = types.StringValue(restInfo.RequestAbortTimeout)
 		}
 	}
 	if data.StatusRequestInterval.IsNull() || data.StatusRequestInterval.IsUnknown() {
 		if restInfo.StatusRequestInterval != "" {
 			data.StatusRequestInterval = types.StringValue(restInfo.StatusRequestInterval)
-		} else {
-			data.StatusRequestInterval = types.StringValue("PT10S") // ONTAP default
+		}
+	} else {
+		configValue := data.StatusRequestInterval.ValueString()
+		if !areDurationsEquivalent(configValue, restInfo.StatusRequestInterval) {
+			data.StatusRequestInterval = types.StringValue(restInfo.StatusRequestInterval)
 		}
 	}
 	data.SSLOption = types.StringValue(restInfo.SSLOption)
@@ -1140,8 +1171,11 @@ func (r *ProtocolsFpolicyExternalEngineResource) Update(ctx context.Context, req
 	if data.ServerProgressTimeout.IsNull() || data.ServerProgressTimeout.IsUnknown() {
 		if restInfo.ServerProgressTimeout != "" {
 			data.ServerProgressTimeout = types.StringValue(restInfo.ServerProgressTimeout)
-		} else {
-			data.ServerProgressTimeout = types.StringValue("PT1M") // ONTAP default
+		}
+	} else {
+		configValue := data.ServerProgressTimeout.ValueString()
+		if !areDurationsEquivalent(configValue, restInfo.ServerProgressTimeout) {
+			data.ServerProgressTimeout = types.StringValue(restInfo.ServerProgressTimeout)
 		}
 	}
 	data.Format = types.StringValue(restInfo.Format)

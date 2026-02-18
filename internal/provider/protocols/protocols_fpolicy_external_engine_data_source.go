@@ -37,6 +37,7 @@ type ProtocolsFpolicyExternalEngineDataSourceModel struct {
 	CxProfileName         types.String `tfsdk:"cx_profile_name"`
 	Name                  types.String `tfsdk:"name"`
 	SVMName               types.String `tfsdk:"svm_name"`
+	ID                    types.String `tfsdk:"id"`
 	KeepAliveInterval     types.String `tfsdk:"keep_alive_interval"`
 	RequestCancelTimeout  types.String `tfsdk:"request_cancel_timeout"`
 	Certificate           types.Object `tfsdk:"certificate"`
@@ -214,6 +215,10 @@ func (d *ProtocolsFpolicyExternalEngineDataSource) Schema(ctx context.Context, r
 				MarkdownDescription: "The maximum number of attempts to reconnect to the FPolicy server",
 				Computed:            true,
 			},
+			"id": schema.StringAttribute{
+				MarkdownDescription: "FPolicy external engine ID",
+				Computed:            true,
+			},
 		},
 	}
 }
@@ -290,6 +295,7 @@ func (d *ProtocolsFpolicyExternalEngineDataSource) Read(ctx context.Context, req
 	data.Type = types.StringValue(restInfo.Type)
 	data.MaxServerRequests = types.Int64Value(restInfo.MaxServerRequests)
 	data.MaxConnectionRetries = types.Int64Value(restInfo.MaxConnectionRetries)
+	data.ID = types.StringValue(fmt.Sprintf("%s/%s", svm.UUID, restInfo.Name))
 
 	// Set certificate
 	if restInfo.Certificate.Name != "" || restInfo.Certificate.SerialNumber != "" || restInfo.Certificate.Ca != "" {
