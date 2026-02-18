@@ -64,7 +64,7 @@ resource "netapp-ontap_fpolicy_external_engine" "protocols_fpolicy_external_engi
     recv_buffer = 4294304
   }
   resiliency = {
-    enabled            = false
+    enabled            = true
     directory_path     = "/dir"
     retention_duration = "PT4M"
   }
