@@ -82,7 +82,7 @@ resource "netapp-ontap_storage_volume_resource" "example" {
   name = "%s"
   svm_name = "%s"
   aggregates = [
-	{name = "tf_acc_aggr"}
+	{name = "NSOL_NetApp_A70_T19U05a_NVME_SSD_1"}
 ]
   space_guarantee = "none"
   snapshot_policy = "default-1weekly"
@@ -144,7 +144,7 @@ resource "netapp-ontap_storage_volume_resource" "example" {
   name = "%s"
   svm_name = "%s"
   aggregates = [
-	{name = "tf_acc_aggr"}
+	{name = "NSOL_NetApp_A70_T19U05a_NVME_SSD_1"}
 ]
   space_guarantee = "none"
   snapshot_policy = "default-1weekly"

@@ -82,7 +82,7 @@ resource "netapp-ontap_volume" "example" {
   name = "%s"
   svm_name = "%s"
   aggregates = [
-	{name = "tf_acc_aggr"}
+	{name = "NSOL_NetApp_A70_T19U05a_NVME_SSD_1"}
   ]
   encryption = true
   space_guarantee = "none"
@@ -115,7 +115,6 @@ resource "netapp-ontap_volume" "example" {
     mode = "off"
     size_unit = "mb"
   }
-  snapshot_locking_enabled = true
 }`, host, admin, password, volName, svm)
 }
 
@@ -148,7 +147,7 @@ resource "netapp-ontap_volume" "example" {
   name = "%s"
   svm_name = "%s"
   aggregates = [
-	{name = "tf_acc_aggr"}
+	{name = "NSOL_NetApp_A70_T19U05a_NVME_SSD_1"}
 ]
   encryption = true
   space_guarantee = "none"

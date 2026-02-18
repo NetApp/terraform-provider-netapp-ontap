@@ -198,6 +198,15 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 			return
 		}
 
+		// Validate that aws_lambda and gcnv cannot be used together
+		if !connectionProfile.ONTAPProviderAWSModel.IsNull() && !connectionProfile.ONTAPProviderGCNVModel.IsNull() {
+			resp.Diagnostics.AddError(
+				"Invalid configuration",
+				fmt.Sprintf("connection profile '%s' cannot have both aws_lambda and gcnv configured. Please use only one.", connectionProfile.Name.ValueString()),
+			)
+			return
+		}
+
 		// Validate that hostname, username, password are provided when gcnv is not used
 		if connectionProfile.ONTAPProviderGCNVModel.IsNull() {
 			if connectionProfile.Hostname.IsNull() || connectionProfile.Hostname.ValueString() == "" {
