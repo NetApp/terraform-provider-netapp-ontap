@@ -42,19 +42,23 @@ func NewClient(ctx context.Context, profile GCNVProfile) (*GCNVClient, error) {
 func (c *GCNVClient) Invoke(baseURL string, method string, body map[string]interface{}, queryValues url.Values) (int, []byte, error) {
 	statusCode := -1
 
-	// If no token is provided, fetch it automatically using service account key file
+	// If no token is provided, fetch it automatically using Application Default Credentials (ADC)
 	if c.profile.AuthToken == "" {
 		serviceAccountKeyPath := c.profile.ServiceAccountKeyPath
-		if serviceAccountKeyPath == "" {
-			return statusCode, nil, fmt.Errorf("no auth token or service account key path provided")
+
+		tflog.Debug(c.ctx, "No auth token provided, fetching using Application Default Credentials (ADC)")
+		if serviceAccountKeyPath != "" {
+			tflog.Debug(c.ctx, fmt.Sprintf("Using service account key file: %s", serviceAccountKeyPath))
+		} else {
+			tflog.Debug(c.ctx, "No service account key path provided, will use gcloud ADC or workload identity")
 		}
-		tflog.Debug(c.ctx, fmt.Sprintf("No auth token provided, fetching using service account key file: %s", serviceAccountKeyPath))
+
 		token, err := GetAccessToken(c.ctx, serviceAccountKeyPath)
 		if err != nil {
-			return statusCode, nil, fmt.Errorf("failed to get access token from %s: %w", serviceAccountKeyPath, err)
+			return statusCode, nil, fmt.Errorf("failed to get access token: %w", err)
 		}
 		c.profile.AuthToken = token
-		tflog.Debug(c.ctx, fmt.Sprintf("Successfully fetched access token from %s, length=%d", serviceAccountKeyPath, len(token)))
+		tflog.Debug(c.ctx, fmt.Sprintf("Successfully fetched access token, length=%d", len(token)))
 	}
 
 	// Log GCNV profile for debugging
