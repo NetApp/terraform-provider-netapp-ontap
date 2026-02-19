@@ -10,4 +10,4 @@ variable "validate_certs" {
     type = bool
 }
 
-# Alternative: For certificate-based auth, see docs/guides/ssl_certificate_authentication.md
+# Alternate method: For certificate-based auth, see docs/guides/ssl_certificate_authentication.md

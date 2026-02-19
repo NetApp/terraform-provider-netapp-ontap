@@ -4,4 +4,4 @@ username = "admin"
 password = "xxxxxxxxx"
 validate_certs = true
 
-# Alternative: For certificate-based auth, see docs/guides/ssl_certificate_authentication.md
+# Alternate method: For certificate-based auth, see docs/guides/ssl_certificate_authentication.md
