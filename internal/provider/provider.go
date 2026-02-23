@@ -62,10 +62,9 @@ type ONTAPProviderAWSLambdaModel struct {
 }
 
 type ONTAPProviderGCNVDataModel struct {
-	ProjectID             types.String `tfsdk:"project_id"`
-	Location              types.String `tfsdk:"location"`
-	StoragePool           types.String `tfsdk:"storage_pool"`
-	ServiceAccountKeyPath types.String `tfsdk:"service_account_key_path"`
+	ProjectID   types.String `tfsdk:"project_id"`
+	Location    types.String `tfsdk:"location"`
+	StoragePool types.String `tfsdk:"storage_pool"`
 }
 
 // Metadata defines the provider type name for inclusion in each data source and resource type name
@@ -146,11 +145,6 @@ func (p *ONTAPProvider) Schema(ctx context.Context, req provider.SchemaRequest, 
 								"storage_pool": schema.StringAttribute{
 									MarkdownDescription: "Storage pool name",
 									Required:            true,
-								},
-								"service_account_key_path": schema.StringAttribute{
-									MarkdownDescription: "Path to the Google Cloud service account key file (JSON). Optional - if not provided, will use Application Default Credentials (gcloud auth application-default login, GOOGLE_APPLICATION_CREDENTIALS env var, or workload identity).",
-									Optional:            true,
-									Sensitive:           false,
 								},
 							},
 						},
@@ -287,10 +281,9 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 			currentProfile := connectionProfiles[connectionProfile.Name.ValueString()]
 			currentProfile.UseGCNV = true
 			currentProfile.GCNV = connection.GCNVConfig{
-				ProjectID:             gcnvConfig.ProjectID.ValueString(),
-				Location:              gcnvConfig.Location.ValueString(),
-				StoragePool:           gcnvConfig.StoragePool.ValueString(),
-				ServiceAccountKeyPath: gcnvConfig.ServiceAccountKeyPath.ValueString(),
+				ProjectID:   gcnvConfig.ProjectID.ValueString(),
+				Location:    gcnvConfig.Location.ValueString(),
+				StoragePool: gcnvConfig.StoragePool.ValueString(),
 			}
 			connectionProfiles[connectionProfile.Name.ValueString()] = currentProfile
 

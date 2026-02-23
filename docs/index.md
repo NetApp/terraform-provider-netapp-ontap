@@ -63,24 +63,14 @@ provider "netapp-ontap" {
       }
     },
     {
-      name = "gcnv_with_key"
+      name = "gcnv"
       gcnv = {
         project_id = "my-gcp-project-id"
         location = "us-central1-a"
         storage_pool = "my-storage-pool"
-        service_account_key_path = "/path/to/gcp_creds.json"
-      }
-    },
-    {
-      name = "gcnv_with_adc"
-      gcnv = {
-        project_id = "my-gcp-project-id"
-        location = "us-central1-a"
-        storage_pool = "my-storage-pool"
-        # service_account_key_path is optional
-        # If not provided, uses Application Default Credentials:
+        # Uses Application Default Credentials (ADC):
+        # - GOOGLE_APPLICATION_CREDENTIALS environment variable
         # - gcloud auth application-default login
-        # - GOOGLE_APPLICATION_CREDENTIALS env var
       }
     }
   ]
@@ -139,8 +129,6 @@ Required:
 - `location` (String) Google Cloud location (e.g., us-central1-a)
 - `storage_pool` (String) Storage pool name
 
-Optional:
-
-- `service_account_key_path` (String) Path to the Google Cloud service account key file (JSON). If not provided, Application Default Credentials (ADC) will be used. ADC checks credentials in the following order:
+Authentication uses Application Default Credentials (ADC) which checks in the following order:
   1. `GOOGLE_APPLICATION_CREDENTIALS` environment variable pointing to a service account key file
   2. `gcloud auth application-default login` credentials

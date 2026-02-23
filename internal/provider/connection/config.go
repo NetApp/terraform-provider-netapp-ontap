@@ -34,10 +34,9 @@ type AWSConfig struct {
 }
 
 type GCNVConfig struct {
-	ProjectID             string `mapstructure:"project_id"`
-	Location              string `mapstructure:"location"`
-	StoragePool           string `mapstructure:"storage_pool"`
-	ServiceAccountKeyPath string `mapstructure:"service_account_key_path"`
+	ProjectID   string `mapstructure:"project_id"`
+	Location    string `mapstructure:"location"`
+	StoragePool string `mapstructure:"storage_pool"`
 }
 
 // Config is created by the provide configure method

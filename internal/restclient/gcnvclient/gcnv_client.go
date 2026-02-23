@@ -22,11 +22,10 @@ type GCNVClient struct {
 
 // GCNVProfile defines the GCNV connection profile
 type GCNVProfile struct {
-	ProjectID             string `mapstructure:"project_id"`
-	Location              string `mapstructure:"location"`
-	StoragePool           string `mapstructure:"storage_pool"`
-	AuthToken             string `mapstructure:"auth_token"`
-	ServiceAccountKeyPath string `mapstructure:"service_account_key_path"`
+	ProjectID   string `mapstructure:"project_id"`
+	Location    string `mapstructure:"location"`
+	StoragePool string `mapstructure:"storage_pool"`
+	AuthToken   string `mapstructure:"auth_token"`
 }
 
 // NewClient creates a new GCNV client
@@ -44,16 +43,9 @@ func (c *GCNVClient) Invoke(baseURL string, method string, body map[string]inter
 
 	// If no token is provided, fetch it automatically using Application Default Credentials (ADC)
 	if c.profile.AuthToken == "" {
-		serviceAccountKeyPath := c.profile.ServiceAccountKeyPath
-
 		tflog.Debug(c.ctx, "No auth token provided, fetching using Application Default Credentials (ADC)")
-		if serviceAccountKeyPath != "" {
-			tflog.Debug(c.ctx, fmt.Sprintf("Using service account key file: %s", serviceAccountKeyPath))
-		} else {
-			tflog.Debug(c.ctx, "No service account key path provided, will use gcloud ADC or workload identity")
-		}
 
-		token, err := GetAccessToken(c.ctx, serviceAccountKeyPath)
+		token, err := GetAccessToken(c.ctx)
 		if err != nil {
 			return statusCode, nil, fmt.Errorf("failed to get access token: %w", err)
 		}

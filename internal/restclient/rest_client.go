@@ -38,11 +38,10 @@ type AWSConfig struct {
 }
 
 type GCNVConfig struct {
-	ProjectID             string `mapstructure:"project_id,omitempty"`
-	Location              string `mapstructure:"location,omitempty"`
-	StoragePool           string `mapstructure:"storage_pool,omitempty"`
-	AuthToken             string `mapstructure:"auth_token,omitempty"`
-	ServiceAccountKeyPath string `mapstructure:"service_account_key_path,omitempty"`
+	ProjectID   string `mapstructure:"project_id,omitempty"`
+	Location    string `mapstructure:"location,omitempty"`
+	StoragePool string `mapstructure:"storage_pool,omitempty"`
+	AuthToken   string `mapstructure:"auth_token,omitempty"`
 }
 
 // RestClient to interact with the ONTAP REST API
