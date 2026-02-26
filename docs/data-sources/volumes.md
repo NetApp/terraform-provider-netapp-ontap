@@ -74,6 +74,7 @@ Read-Only:
 - `nas` (Attributes) (see [below for nested schema](#nestedatt--storage_volumes--nas))
 - `qos_policy_group` (String) Specifies a QoS policy group to be set on volume
 - `snaplock` (Attributes) (see [below for nested schema](#nestedatt--storage_volumes--snaplock))
+- `snapshot_locking_enabled` (Boolean) Whether or not snapshot copy locking is enabled on the volume
 - `snapshot_policy` (String) The name of the snapshot policy
 - `space` (Attributes) (see [below for nested schema](#nestedatt--storage_volumes--space))
 - `space_guarantee` (String) Space guarantee style for the volume
