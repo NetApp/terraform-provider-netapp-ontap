@@ -244,10 +244,6 @@ func (d *StorageVolumesDataSource) Schema(ctx context.Context, req datasource.Sc
 								},
 							},
 						},
-						"snapshot_locking_enabled": schema.BoolAttribute{
-							MarkdownDescription: "Whether snapshot locking is enabled for this volume. May not be available for GCNV.",
-							Computed:            true,
-						},
 						"analytics": schema.SingleNestedAttribute{
 							Computed: true,
 							Attributes: map[string]schema.Attribute{
@@ -405,7 +401,6 @@ func (d *StorageVolumesDataSource) Read(ctx context.Context, req datasource.Read
 			SnapLock: &StorageVolumeDataSourceSnapLock{
 				SnaplockType: types.StringValue(record.Snaplock.Type),
 			},
-			SnapshotLockingEnabled: types.BoolPointerValue(record.SnapshotLockingEnabled),
 			Analytics: &StorageVolumeDataSourceAnalytics{
 				State: types.StringValue(record.Analytics.State),
 			},
