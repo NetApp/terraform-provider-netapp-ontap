@@ -173,9 +173,26 @@ func (c *RestClient) unmarshalGCNVResponse(statusCode int, responseJSON []byte, 
 	// Parse the GCNV response
 	var dataMap map[string]interface{}
 	if err := json.Unmarshal(responseJSON, &dataMap); err != nil {
-		tflog.Error(c.ctx, fmt.Sprintf("unable to unmarshall GCNV response, statusCode %d, error=%s, response=%#v", statusCode, err, responseJSON))
+		// Provide helpful error message when API returns HTML instead of JSON
+		responsePreview := string(responseJSON)
+		if len(responsePreview) > 150 {
+			responsePreview = responsePreview[:150] + "..."
+		}
+
+		var detailedError string
+		if statusCode == 404 {
+			detailedError = fmt.Sprintf("API endpoint not found (404). The GCNV API endpoint may not exist. Please verify: 1) 'environment' setting (prod/test), 2) 'api_version' setting (v1/v1beta1), 3) project_id, location, and storage_pool are correct. Response preview: %s", responsePreview)
+		} else if statusCode >= 400 && statusCode < 500 {
+			detailedError = fmt.Sprintf("Client error (HTTP %d). The API request may be malformed or the endpoint doesn't exist. Check your GCNV configuration (environment, api_version). Response preview: %s", statusCode, responsePreview)
+		} else if statusCode >= 500 {
+			detailedError = fmt.Sprintf("Server error (HTTP %d). The GCNV service may be experiencing issues. Response preview: %s", statusCode, responsePreview)
+		} else {
+			detailedError = fmt.Sprintf("unable to parse JSON response (HTTP %d): %s. Response preview: %s", statusCode, err, responsePreview)
+		}
+
+		tflog.Error(c.ctx, fmt.Sprintf("%s. Full response: %s", detailedError, string(responseJSON)))
 		emptyResponse.ErrorType = "bad_response_decode_json"
-		return statusCode, emptyResponse, err
+		return statusCode, emptyResponse, fmt.Errorf("%s", detailedError)
 	}
 	tflog.Debug(c.ctx, fmt.Sprintf("GCNV dataMap %#v", dataMap))
 

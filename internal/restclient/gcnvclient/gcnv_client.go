@@ -22,19 +22,94 @@ type GCNVClient struct {
 
 // GCNVProfile defines the GCNV connection profile
 type GCNVProfile struct {
-	ProjectID   string `mapstructure:"project_id"`
-	Location    string `mapstructure:"location"`
-	StoragePool string `mapstructure:"storage_pool"`
-	AuthToken   string `mapstructure:"auth_token"`
+	ProjectID     string `mapstructure:"project_id"`
+	Location      string `mapstructure:"location"`
+	StoragePool   string `mapstructure:"storage_pool"`
+	AuthToken     string `mapstructure:"auth_token"`
+	CustomBaseUrl string `mapstructure:"custom_base_url"`
 }
 
-// NewClient creates a new GCNV client
+// NewClient creates a new GCNV client and validates API connectivity
 func NewClient(ctx context.Context, profile GCNVProfile) (*GCNVClient, error) {
-	return &GCNVClient{
+	client := &GCNVClient{
 		httpClient: &http.Client{},
 		ctx:        ctx,
 		profile:    profile,
-	}, nil
+	}
+
+	// Validate API endpoint accessibility
+	if err := client.ValidateAPIEndpoint(); err != nil {
+		return nil, fmt.Errorf("GCNV API validation failed: %w", err)
+	}
+
+	return client, nil
+}
+
+// ValidateAPIEndpoint checks if the GCNV API endpoint is accessible
+func (c *GCNVClient) ValidateAPIEndpoint() error {
+	// Fetch token if not provided
+	if c.profile.AuthToken == "" {
+		tflog.Debug(c.ctx, "Validating API endpoint: fetching access token")
+		token, err := GetAccessToken(c.ctx)
+		if err != nil {
+			return fmt.Errorf("failed to get access token: %w", err)
+		}
+		c.profile.AuthToken = token
+	}
+
+	// Use custom base URL directly (includes version)
+	customBaseUrl := c.profile.CustomBaseUrl
+	if customBaseUrl == "" {
+		customBaseUrl = "https://netapp.googleapis.com/v1"
+	}
+
+	// Construct validation URL
+	validationURL := fmt.Sprintf("%s/projects/%s/locations/%s/storagePools/%s/ontap/api/cluster",
+		customBaseUrl,
+		c.profile.ProjectID,
+		c.profile.Location,
+		c.profile.StoragePool,
+	)
+
+	tflog.Info(c.ctx, fmt.Sprintf("Validating GCNV API endpoint: %s (custom_base_url=%s)",
+		validationURL, customBaseUrl))
+
+	// Make a simple GET request to /cluster endpoint
+	req, err := http.NewRequest("GET", validationURL, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create validation request: %w", err)
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.profile.AuthToken))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to connect to GCNV API endpoint: %w. Check network connectivity and firewall settings", err)
+	}
+	defer resp.Body.Close()
+
+	// Read response
+	responseBody, _ := io.ReadAll(resp.Body)
+
+	// Check if we got HTML instead of JSON (indicates wrong endpoint)
+	if resp.StatusCode == 404 || (resp.StatusCode >= 400 && len(responseBody) > 0 && responseBody[0] == '<') {
+		return fmt.Errorf("API endpoint not found (HTTP %d). Please verify your GCNV configuration:\n"+
+			"  - custom_base_url: '%s' (should be like 'https://netapp.googleapis.com/v1')\n"+
+			"  - project_id: '%s'\n"+
+			"  - location: '%s'\n"+
+			"  - storage_pool: '%s'\n"+
+			"Attempted URL: %s",
+			resp.StatusCode, customBaseUrl, c.profile.ProjectID, c.profile.Location, c.profile.StoragePool, validationURL)
+	}
+
+	if resp.StatusCode >= 400 {
+		return fmt.Errorf("API endpoint returned error (HTTP %d). Check your credentials and permissions. Response: %s",
+			resp.StatusCode, string(responseBody))
+	}
+
+	tflog.Info(c.ctx, "GCNV API endpoint validation successful")
+	return nil
 }
 
 // Invoke sends the API Request to the GCNV ONTAP API endpoint
@@ -60,12 +135,22 @@ func (c *GCNVClient) Invoke(baseURL string, method string, body map[string]inter
 		c.profile.StoragePool,
 		len(c.profile.AuthToken)))
 
+	// Use custom base URL directly (includes version)
+	customBaseUrlPrefix := c.profile.CustomBaseUrl
+	if customBaseUrlPrefix == "" {
+		customBaseUrlPrefix = "https://netapp.googleapis.com/v1"
+	}
+
 	// Construct GCNV base URL
-	gcnvBaseURL := fmt.Sprintf("https://autopush-netapp.sandbox.googleapis.com/v1beta1/projects/%s/locations/%s/storagePools/%s/ontap/api",
+	gcnvBaseURL := fmt.Sprintf("%s/projects/%s/locations/%s/storagePools/%s/ontap/api",
+		customBaseUrlPrefix,
 		c.profile.ProjectID,
 		c.profile.Location,
 		c.profile.StoragePool,
 	)
+
+	tflog.Debug(c.ctx, fmt.Sprintf("GCNV base URL: %s (custom_base_url=%s)",
+		gcnvBaseURL, customBaseUrlPrefix))
 
 	// Build full URL
 	fullURL := fmt.Sprintf("%s/%s", gcnvBaseURL, baseURL)

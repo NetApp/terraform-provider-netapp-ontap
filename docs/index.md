@@ -63,14 +63,20 @@ provider "netapp-ontap" {
       }
     },
     {
-      name = "gcnv"
-      gcnv = {
+      name = "google_netapp_unified_pool"
+      google_netapp_unified_pool = {
         project_id = "my-gcp-project-id"
         location = "us-central1-a"
         storage_pool = "my-storage-pool"
+        # Optional: custom_base_url (defaults to "https://netapp.googleapis.com/v1")
+        # custom_base_url = "https://netapp.googleapis.com/v1"  # Production v1 API
+        
         # Uses Application Default Credentials (ADC):
         # - GOOGLE_APPLICATION_CREDENTIALS environment variable
         # - gcloud auth application-default login
+        # - Workload Identity (when running on GCE/GKE/Cloud Run)
+        
+        # Note: The provider validates API endpoint connectivity on initialization
       }
     }
   ]
@@ -121,7 +127,7 @@ Optional:
 
 <a id="nestedatt--connection_profiles--gcnv"></a>
 
-### Nested Schema for `connection_profiles.gcnv`
+### Nested Schema for `connection_profiles.google_netapp_unified_pool`
 
 Required:
 
@@ -129,6 +135,11 @@ Required:
 - `location` (String) Google Cloud location (e.g., us-central1-a)
 - `storage_pool` (String) Storage pool name
 
+Optional:
+
+- `custom_base_url` (String) GCNV API base URL including version. Defaults to `https://netapp.googleapis.com/v1`.
+
 Authentication uses Application Default Credentials (ADC) which checks in the following order:
   1. `GOOGLE_APPLICATION_CREDENTIALS` environment variable pointing to a service account key file
   2. `gcloud auth application-default login` credentials
+  3. Workload Identity (when running on GCE, GKE, or Cloud Run)
