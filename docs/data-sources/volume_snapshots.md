@@ -35,7 +35,6 @@ data "netapp-ontap_volume_snapshots" "storage_volume_snapshots" {
 ### Required
 
 - `cx_profile_name` (String) Connection profile name
-- `name` (String) Snapshot name
 - `volume_name` (String) Volume Name
 - `svm_name` (String) SVM name
 
@@ -62,9 +61,9 @@ Optional:
 Required:
 
 - `cx_profile_name` (String) Connection profile name
-- `name` (String) StorageVolumeSnapshot name
 - `volume_name` (String) Volume Name
 - `svm_name` (String) SVM name
+- `name` (String) Snapshot name
 
 Read-Only:
 

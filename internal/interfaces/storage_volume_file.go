@@ -70,7 +70,7 @@ func GetStorageVolumesFiles(errorHandler *utils.ErrorHandler, r restclient.RestC
 		err = fmt.Errorf("no response for GET %s", api)
 	}
 	if err != nil {
-		return nil, errorHandler.MakeAndReportError("error reading storage_volumes_filess info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
+		return nil, errorHandler.MakeAndReportError("error reading storage_volumes_files info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
 	}
 
 	var dataONTAP []StorageVolumesFilesGetDataModelONTAP
@@ -82,7 +82,7 @@ func GetStorageVolumesFiles(errorHandler *utils.ErrorHandler, r restclient.RestC
 		}
 		dataONTAP = append(dataONTAP, record)
 	}
-	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read storage_volumes_filess data source: %#v", dataONTAP))
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read storage_volumes_files data source: %#v", dataONTAP))
 	return dataONTAP, nil
 }
 
