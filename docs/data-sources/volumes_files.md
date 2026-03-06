@@ -18,7 +18,7 @@ Retrieves an existing storage volume files
 ## Example Usage
 
 ```terraform
-data "netapp-ontap_volume_files" "storage_volume_files" {
+data "netapp-ontap_volumes_files" "storage_volumes_files" {
   cx_profile_name = "cluster4"
   volume_name = "acc_test_peer_root"
   path = ".snapshot"
