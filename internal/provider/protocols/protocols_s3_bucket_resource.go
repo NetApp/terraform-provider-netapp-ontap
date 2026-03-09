@@ -1585,6 +1585,12 @@ func (r *ProtocolsS3BucketResource) Update(ctx context.Context, req resource.Upd
 		}
 	}
 
+	if len(errors) > 0 {
+		errorsString := strings.Join(errors, ", ")
+		tflog.Error(ctx, fmt.Sprintf("The following options have ONTAP version constraints: %#v", errorsString))
+		return
+	}
+
 	err = interfaces.UpdateProtocolsS3Bucket(errorHandler, *client, body, plan.ID.ValueString(), svm.UUID)
 	if err != nil {
 		return
