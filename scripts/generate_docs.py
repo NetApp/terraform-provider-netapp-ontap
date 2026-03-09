@@ -68,9 +68,15 @@ CATEGORIES = {
         "network_ip_service_policy_resource.md"],
     'nvme': [],
     'object-store': [
+        "protocols_s3_bucket_data_source.md",
+        "protocols_s3_buckets_data_source.md", 
+        "protocols_s3_bucket_resource.md",
         "protocols_s3_group_data_source.md",
         "protocols_s3_groups_data_source.md", 
         "protocols_s3_group_resource.md",
+        "protocols_s3_policy_data_source.md",
+        "protocols_s3_policies_data_source.md", 
+        "protocols_s3_policy_resource.md",
     ],
     'san': [
         "protocols_san_igroup_data_source.md",
