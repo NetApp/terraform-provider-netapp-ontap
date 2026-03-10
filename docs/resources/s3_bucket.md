@@ -6,7 +6,7 @@ description: |-
   S3 Bucket resource
 ---
 
-# Resource S3 Group
+# Resource S3 Bucket
 
 Create, delete, or modify S3 bucket
 
