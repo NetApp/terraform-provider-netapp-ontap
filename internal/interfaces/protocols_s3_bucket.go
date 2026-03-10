@@ -20,7 +20,7 @@ type ProtocolsS3BucketGetDataModelONTAP struct {
 	VersioningState      string                       `mapstructure:"versioning_state"`
 	Policy              *PolicyDataModel              `mapstructure:"policy,omitempty"`
 	QoSPolicy           *QoSPolicyDataModel           `mapstructure:"qos_policy,omitempty"`
-	SnapshotPolicy       SnapshotPolicyDataModel      `mapstructure:"snapshot_policy"`
+	SnapshotPolicy       SnapshotPolicy               `mapstructure:"snapshot_policy"`
 	AuditEventSelector  *AuditEventSelectorDataModel  `mapstructure:"audit_event_selector,omitempty"`
 	UUID                 string                       `mapstructure:"uuid"`
  }
@@ -57,11 +57,6 @@ type QoSPolicyDataModel struct {
 	MaxThroughputMbps  int     `mapstructure:"max_throughput_mbps,omitempty"`
 	MinThroughputIops  int     `mapstructure:"min_throughput_iops,omitempty"`
 	MinThroughputMbps  int     `mapstructure:"min_throughput_mbps,omitempty"`
-}
-
-// SnapshotPolicyDataModel describes the snapshot_policy data model using go types for mapping
-type SnapshotPolicyDataModel struct {
-	Name  string  `mapstructure:"name,omitempty"`
 }
 
 // AuditEventSelectorDataModel describes the audit_event_selector data model using go types for mapping
@@ -211,8 +206,8 @@ func GetProtocolsS3Buckets(errorHandler *utils.ErrorHandler, r restclient.RestCl
 	return dataONTAP, nil
 }
 
-// CreateProtocolS3Bucket to create a S3 bucket
-func CreateProtocolS3Bucket(errorHandler *utils.ErrorHandler, r restclient.RestClient, request ProtocolsS3BucketResourceBodyDataModel) (*ProtocolsS3BucketGetDataModelONTAP, error) {
+// CreateProtocolsS3Bucket to create a S3 bucket
+func CreateProtocolsS3Bucket(errorHandler *utils.ErrorHandler, r restclient.RestClient, request ProtocolsS3BucketResourceBodyDataModel) (*ProtocolsS3BucketGetDataModelONTAP, error) {
 	api := "protocols/s3/buckets"
 	
 	var body map[string]interface{}
