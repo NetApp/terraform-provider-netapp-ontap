@@ -705,7 +705,7 @@ func (r *ProtocolsS3BucketResource) Read(ctx context.Context, req resource.ReadR
 	var restInfo *interfaces.ProtocolsS3BucketGetDataModelONTAP
 	restInfo, err = interfaces.GetProtocolsS3Bucket(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString(), cluster.Version)
 	if err != nil {
-		// error reporting done inside GetProtocolsS3BucketbyID, GetProtocolsS3Bucket
+		// error reporting done inside GetProtocolsS3Bucket
 		return
 	}
 
@@ -1129,7 +1129,7 @@ func (r *ProtocolsS3BucketResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
-	resource, err := interfaces.CreateProtocolS3Bucket(errorHandler, *client, body)
+	resource, err := interfaces.CreateProtocolsS3Bucket(errorHandler, *client, body)
 	if err != nil {
 		return
 	}
@@ -1598,6 +1598,7 @@ func (r *ProtocolsS3BucketResource) Update(ctx context.Context, req resource.Upd
 
 	restInfo, err := interfaces.GetProtocolsS3Bucket(errorHandler, *client, plan.Name.ValueString(), plan.SVMName.ValueString(), cluster.Version)
 	if err != nil {
+		// error reporting done inside GetProtocolsS3Bucket
 		return
 	}
 
