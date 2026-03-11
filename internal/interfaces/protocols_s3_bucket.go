@@ -23,7 +23,9 @@ type ProtocolsS3BucketGetDataModelONTAP struct {
 	SnapshotPolicy       SnapshotPolicy               `mapstructure:"snapshot_policy"`
 	AuditEventSelector  *AuditEventSelectorDataModel  `mapstructure:"audit_event_selector,omitempty"`
 	UUID                 string                       `mapstructure:"uuid"`
- }
+}
+
+// SnapshotPolicy struct defined in interfaces/svm.go
 
 // PolicyDataModel describes the policy data model using go types for mapping
 type PolicyDataModel struct {
@@ -76,7 +78,7 @@ type ProtocolsS3BucketResourceBodyDataModel struct {
 	VersioningState             string                       `mapstructure:"versioning_state,omitempty"`
 	Policy                     *PolicyDataModel              `mapstructure:"policy,omitempty"`
 	QoSPolicy                  *QoSPolicyDataModel           `mapstructure:"qos_policy,omitempty"`
-	SnapshotPolicy              string                       `mapstructure:"snapshot_policy,omitempty"`
+	SnapshotPolicy              SnapshotPolicy               `mapstructure:"snapshot_policy,omitempty"`
 	AuditEventSelector         *AuditEventSelectorDataModel  `mapstructure:"audit_event_selector,omitempty"`
 	Aggregates                []string                       `mapstructure:"aggregates,omitempty"`
 	ConstituentsPerAggregate    int64                        `mapstructure:"constituents_per_aggregate,omitempty"`
@@ -103,9 +105,6 @@ func GetProtocolsS3Bucket(errorHandler *utils.ErrorHandler, r restclient.RestCli
 		"svm",
 		"size",
 		"comment",
-		"type",
-		"nas_path",
-		"volume.uuid",
 		"policy",
 		"policy.statements",
 		"qos_policy",
@@ -155,9 +154,6 @@ func GetProtocolsS3Buckets(errorHandler *utils.ErrorHandler, r restclient.RestCl
 		"svm",
 		"size",
 		"comment",
-		"type",
-		"nas_path",
-		"volume.uuid",
 		"policy",
 		"policy.statements",
 		"qos_policy",
