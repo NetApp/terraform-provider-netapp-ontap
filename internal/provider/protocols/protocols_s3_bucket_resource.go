@@ -398,7 +398,7 @@ func (r *ProtocolsS3BucketResource) Schema(ctx context.Context, req resource.Sch
 			"qos_policy": schema.SingleNestedAttribute{
 				MarkdownDescription: `
 				A policy group defines measurable service level objectives (SLOs) that apply to the storage objects with which the policy group is associated.
-				If you do not assign a policy group to a bucket, the system wil not monitor and control the traffic to it.
+				If you do not assign a policy group to a bucket, the system will not monitor and control the traffic to it.
 				This option is not supported when type is set to NAS.
 				`,
 				Optional:            true,
@@ -992,7 +992,7 @@ func (r *ProtocolsS3BucketResource) Create(ctx context.Context, req resource.Cre
 	if !data.SnapshotPolicy.IsNull() && !data.SnapshotPolicy.IsUnknown() {
 		if cluster.Version.Generation == 9 && cluster.Version.Major >= 16 {
 			if snapshotPolicy := data.SnapshotPolicy.ValueString(); snapshotPolicy != "" {
-				body.SnapshotPolicy = snapshotPolicy
+				body.SnapshotPolicy.Name = snapshotPolicy
 			}
 		} else {
 			errors = append(errors, "snapshot_policy requires ONTAP 9.16 or later")
@@ -1425,7 +1425,7 @@ func (r *ProtocolsS3BucketResource) Update(ctx context.Context, req resource.Upd
 			return
 		}
 		if cluster.Version.Generation == 9 && cluster.Version.Major >= 16 {
-			body.SnapshotPolicy = plan.SnapshotPolicy.ValueString()
+			body.SnapshotPolicy.Name = plan.SnapshotPolicy.ValueString()
 		} else {
 			errors = append(errors, "snapshot_policy requires ONTAP 9.16 or later")
 		}
