@@ -91,7 +91,7 @@ resource "netapp-ontap_s3_bucket" "s3_bucket" {
 				Requires ONTAP 9.12.1 or later.
 - `policy` (Attributes) Access policy uses the AWS policy language syntax to allow S3 tenants to create access policies to their data. (see [below for nested schema](#nestedatt--policy))
 - `qos_policy` (Attributes) A policy group defines measurable service level objectives (SLOs) that apply to the storage objects with which the policy group is associated.
-				If you do not assign a policy group to a bucket, the system wil not monitor and control the traffic to it.
+				If you do not assign a policy group to a bucket, the system will not monitor and control the traffic to it.
 				This option is not supported when type is set to NAS. (see [below for nested schema](#nestedatt--qos_policy))
 - `size` (Number) The size of the S3 bucket in bytes. This option is not supported when type is set to NAS.
 - `snapshot_policy` (String) The snapshot policy for the bucket.
