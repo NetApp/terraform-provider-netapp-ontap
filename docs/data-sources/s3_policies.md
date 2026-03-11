@@ -3,7 +3,7 @@
 page_title: "netapp-ontap_protocols_s3_policies Data Source - terraform-provider-netapp-ontap"
 subcategory: "Object-store"
 description: |-
-  ProtocolsS3Policies data source
+  S3 Policies data source
 ---
 
 # netapp-ontap_s3_policies (Data Source)
