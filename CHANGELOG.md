@@ -13,6 +13,7 @@ FEATURES:
 - **New Resource:** `netapp-ontap_network_ip_service_policy` ([#621](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/621))
 - **New Data Source:** `netapp-ontap_fpolicy_external_engine` and `netapp-ontap_fpolicy_external_engines` ([#625](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/625))
 - **New Resource:** `netapp-ontap_fpolicy_external_engine` ([#625](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/625))
+- Configured SSL certificate based authentication in addition to basic username and password authentication in provider config.
 
 ENHANCEMENTS:
 
