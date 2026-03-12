@@ -108,7 +108,6 @@ func GetProtocolsS3Bucket(errorHandler *utils.ErrorHandler, r restclient.RestCli
 		"policy",
 		"policy.statements",
 		"qos_policy",
-		"snapshot_policy",
 	}
 	if version.Generation == 9 && version.Major >= 10 {
 		fields = append(fields, "audit_event_selector")
@@ -157,7 +156,6 @@ func GetProtocolsS3Buckets(errorHandler *utils.ErrorHandler, r restclient.RestCl
 		"policy",
 		"policy.statements",
 		"qos_policy",
-		"snapshot_policy",
 	}
 	if version.Generation == 9 && version.Major >= 10 {
 		fields = append(fields, "audit_event_selector")
@@ -210,7 +208,7 @@ func CreateProtocolsS3Bucket(errorHandler *utils.ErrorHandler, r restclient.Rest
 	if err := mapstructure.Decode(request, &body); err != nil {
 		return nil, errorHandler.MakeAndReportError(
 			"error encoding protocols/s3/buckets body",
-			fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body),
+			fmt.Sprintf("error on encoding %s body: %s, request: %#v", api, err, request),
 		)
 	}
 	
@@ -248,7 +246,7 @@ func UpdateProtocolsS3Bucket(errorHandler *utils.ErrorHandler, r restclient.Rest
 	if err := mapstructure.Decode(request, &body); err != nil {
 		return errorHandler.MakeAndReportError(
 			"error encoding protocols/s3/buckets/{svm.uuid}/{uuid} body",
-			fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body),
+			fmt.Sprintf("error on encoding %s body: %s, request: %#v", api, err, request),
 		)
 	}
 	
