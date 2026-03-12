@@ -1,9 +1,4 @@
-# 2.4.1 (2026-**-**)
-
-BUG FIXES:
-
-- **netapp-ontap_volumes**: fixed issue with data source ([#578](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/578))
-- **netapp-ontap_svms_data_source**: Fixed `storage_limit` value conversion error. ([#574](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/574))
+# 2.5.0 (2026-03-12)
 
 FEATURES:
 
@@ -19,6 +14,9 @@ BUG FIXES:
 
 - Fixed import documentation on resources which are supporting import. ([#613](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/613))
 - **netapp-ontap_name_services_ldap_resource**: Fixed duplicate Set Element Error with `preferred_ad_servers` ([#615](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/615))
+- **netapp-ontap_volumes**: fixed issue with data source ([#578](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/578))
+- **netapp-ontap_svms_data_source**: Fixed `storage_limit` value conversion error. ([#574](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/574))
+- **netapp-ontap_snapmirror**: fixed issue with reading `policy` option in resource. ([#641](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/641))
 
 # 2.4.0 (2025-11-20)
 
