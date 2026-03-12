@@ -7,6 +7,8 @@ BUG FIXES:
 
 FEATURES:
 
+- **New Data Source:** `netapp-ontap_s3_bucket` and `netapp-ontap_s3_buckets`([#637](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/637))
+- **New Resource:** `netapp-ontap_s3_bucket` ([#637](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/637))
 - **New Resource:** `netapp-ontap_fpolicy_policy` ([#623](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/623))
 - **New Resource:** `netapp-ontap_fpolicy_event` ([#624](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/624))
 - **New Data Source:** `netapp-ontap_network_ip_service_policy` and `netapp-ontap_network_ip_service_policies`([#621](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/621))
