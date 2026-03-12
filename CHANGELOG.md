@@ -24,6 +24,8 @@ BUG FIXES:
 - **netapp-ontap_volumes**: fixed issue with data source ([#578](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/578))
 - **netapp-ontap_svms_data_source**: Fixed `storage_limit` value conversion error. ([#574](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/574))
 - **netapp-ontap_snapmirror**: fixed issue with reading `policy` option in resource. ([#641](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/641))
+- **netapp-ontap_volume_snapshots data source**: The `name` field in the filter block is now optional.
+- **netapp-ontap_volumes_files data source**: Fixed documentation with corrected terminology and renamed the documentation file from `volume_files.md` to `volumes_files.md`
 
 # 2.4.0 (2025-11-20)
 
