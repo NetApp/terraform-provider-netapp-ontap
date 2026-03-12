@@ -74,7 +74,7 @@ func (d *StorageVolumeSnapshotsDataSource) Schema(ctx context.Context, req datas
 				Attributes: map[string]schema.Attribute{
 					"name": schema.StringAttribute{
 						MarkdownDescription: "StorageVolumeSnapshot name",
-						Required:            true,
+						Optional:            true,
 					},
 					"volume_name": schema.StringAttribute{
 						MarkdownDescription: "StorageVolumeSnapshot volume name",
@@ -178,10 +178,6 @@ func (d *StorageVolumeSnapshotsDataSource) Read(ctx context.Context, req datasou
 		return
 	}
 
-	if data.Filter.Name.IsNull() {
-		errorHandler.MakeAndReportError("error reading snapshot", "filter.name is required")
-		return
-	}
 	svm, err := interfaces.GetSvmByName(errorHandler, *client, data.Filter.SVMName.ValueString())
 	if err != nil {
 		// error reporting done inside GetStorageVolumeSnapshots

@@ -45,6 +45,9 @@ type ConnectionProfileModel struct {
 	Password              types.String `tfsdk:"password"`
 	ValidateCerts         types.Bool   `tfsdk:"validate_certs"`
 	ONTAPProviderAWSModel types.Object `tfsdk:"aws_lambda"`
+	CertFilepath	   types.String `tfsdk:"cert_filepath"`
+	KeyFilepath	   types.String `tfsdk:"key_filepath"`
+	CACertFile	   types.String `tfsdk:"ca_cert_file"`
 }
 
 // ONTAPProviderModel describes the provider data model.
@@ -94,15 +97,27 @@ func (p *ONTAPProvider) Schema(ctx context.Context, req provider.SchemaRequest, 
 						},
 						"username": schema.StringAttribute{
 							MarkdownDescription: "ONTAP management user name (cluster or svm)",
-							Required:            true,
+							Optional:            true,
 						},
 						"password": schema.StringAttribute{
 							MarkdownDescription: "ONTAP management password for username",
-							Required:            true,
+							Optional:            true,
 							Sensitive:           true,
 						},
 						"validate_certs": schema.BoolAttribute{
 							MarkdownDescription: "Whether to enforce SSL certificate validation, defaults to true. Not applicable for AWS Lambda",
+							Optional:            true,
+						},
+						"key_filepath": schema.StringAttribute{
+							MarkdownDescription: "Path to the key file. Not applicable for AWS Lambda",
+							Optional:            true,
+						},
+						"cert_filepath": schema.StringAttribute{
+							MarkdownDescription: "Path to the certificate file. Not applicable for AWS Lambda",
+							Optional:            true,
+						},
+						"ca_cert_file": schema.StringAttribute{
+							MarkdownDescription: "Path to the CA certificate file. Not applicable for AWS Lambda",
 							Optional:            true,
 						},
 						"aws_lambda": schema.SingleNestedAttribute{
@@ -172,12 +187,33 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 		} else {
 			validateCerts = connectionProfile.ValidateCerts.ValueBool()
 		}
+
+		var username, password, certFilepath, keyFilepath, caCertFile string
+		if !connectionProfile.Username.IsNull() {
+			username = connectionProfile.Username.ValueString()
+		}
+		if !connectionProfile.Password.IsNull() {
+			password = connectionProfile.Password.ValueString()
+		}
+		if !connectionProfile.CertFilepath.IsNull() {
+			certFilepath = connectionProfile.CertFilepath.ValueString()
+		}
+		if !connectionProfile.KeyFilepath.IsNull() {
+			keyFilepath = connectionProfile.KeyFilepath.ValueString()
+		}
+		if !connectionProfile.CACertFile.IsNull() {
+			caCertFile = connectionProfile.CACertFile.ValueString()
+		}
+
 		connectionProfiles[connectionProfile.Name.ValueString()] = connection.Profile{
 			Hostname:              connectionProfile.Hostname.ValueString(),
-			Username:              connectionProfile.Username.ValueString(),
-			Password:              connectionProfile.Password.ValueString(),
+			Username:              username,
+			Password:              password,
 			ValidateCerts:         validateCerts,
 			MaxConcurrentRequests: 0,
+			CertFilepath:          certFilepath,
+			KeyFilepath:           keyFilepath,
+			CACertFile:            caCertFile,
 		}
 		if !connectionProfile.ONTAPProviderAWSModel.IsNull() {
 			var lambdaConfig ONTAPProviderAWSLambdaModel
