@@ -152,8 +152,8 @@ func (c *GCNVClient) Invoke(baseURL string, method string, body map[string]inter
 	tflog.Debug(c.ctx, fmt.Sprintf("GCNV base URL: %s (custom_base_url=%s)",
 		gcnvBaseURL, customBaseUrlPrefix))
 
-	// Build full URL
-	fullURL := fmt.Sprintf("%s/%s", gcnvBaseURL, baseURL)
+	// Build full URL — strip any leading/trailing slashes from baseURL to avoid malformed paths
+	fullURL := fmt.Sprintf("%s/%s", gcnvBaseURL, strings.Trim(baseURL, "/"))
 
 	// Replace 'fields' with 'ontap_fields' for GCNV
 	if len(queryValues) > 0 {
