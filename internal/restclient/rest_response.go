@@ -1,241 +1,452 @@
 package restclient
 
 import (
-	"encoding/json"
+	"context"
+	"errors"
 	"fmt"
+	"log"
+	"net/url"
+	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mitchellh/mapstructure"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient/awsclient"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient/httpclient"
 )
 
-// RestError maps the REST error structure
-type RestError struct {
-	Code    string
-	Message string
-	Target  string
+// ConnectionProfile describes out to reach a cluster or svm
+type ConnectionProfile struct {
+	// TODO: add certs in addition to basic authentication
+	// TODO: Add Timeout (currently hardcoded to 10 seconds)
+	Hostname              string
+	Username              string
+	Password              string
+	ValidateCerts         bool
+	MaxConcurrentRequests int
+	UseAWSLambda          bool
+	AWS                   AWSConfig `mapstructure:"AWS,omitempty"`
 }
 
-// RestResponse to return a list of records (can be empty) and/or errors.
-type RestResponse struct {
-	NumRecords int `mapstructure:"num_records"`
-	Records    []map[string]interface{}
-	RestError  RestError `mapstructure:"error"`
-	StatusCode int
-	HTTPError  string
-	ErrorType  string
-	Job        map[string]interface{}
-	Jobs       []map[string]interface{}
+type AWSConfig struct {
+	Region              string `mapstructure:"region,omitempty"`
+	SharedConfigProfile string
+	FunctionName        string
 }
 
-type AWSLambdaRestResponse struct {
-	StatusCode int `mapstructure:"status"`
-	Data       AWSLambdaRestData
+// RestClient to interact with the ONTAP REST API
+type RestClient struct {
+	connectionProfile     ConnectionProfile
+	ctx                   context.Context
+	maxConcurrentRequests int
+	httpClient            httpclient.HTTPClient
+	awsClient             awsclient.AWSLambdaClient
+	requestSlots          chan int
+	mode                  string
+	responses             []MockResponse
+	jobCompletionTimeOut  int
+	tag                   string
 }
 
-type AWSLambdaRestData struct {
-	NumRecords int `mapstructure:"num_records"`
-	Records    []map[string]interface{}
-	RestError  RestError `mapstructure:"error"`
-	HTTPError  string
-	ErrorType  string
-	Job        map[string]interface{}
-	Jobs       []map[string]interface{}
+// parseHref parses an href URL to separate the base path from query parameters
+func (r *RestClient) parseHref(href string) (string, *RestQuery, error) {
+	// Remove "/api" prefix to match other requests
+	cleanHref := strings.TrimPrefix(href, "/api/")
+
+	// Parse the URL to separate path and query
+	parsedURL, err := url.Parse(cleanHref)
+	if err != nil {
+		return "", nil, fmt.Errorf("failed to parse href URL: %s", err)
+	}
+
+	// Create RestQuery from parsed query parameters
+	query := &RestQuery{Values: parsedURL.Query()}
+
+	// Return the path without query parameters
+	return parsedURL.Path, query, nil
 }
 
-// unmarshalAWSLambdaResponse converts the REST response from AWS Lambda into a structure with a list of 0 or more records.
-// This response is different from the direct ONTAP REST response because the actual ONTAP REST response is wrapped in a data field.
-// There are two status codes, one is the HTTP status code from the lambda call, and the other is the status code from the actual ONTAP REST response.
-// if the call to AWS Lambda fails(wrong passowrd, incorrect Lambda function name and etc.), the HTTP status code and the error are returned.
-// if the call to AWS Lambda is successful, but the ONTAP REST call fails(entry does not exist and etc.), the ONTAP REST status code and the error are returned.
-// This is what the response looks like:
-//
-//		{
-//			"status": 201,
-//			"data": {
-//			  "num_records": 1,
-//			  "records": [
-//	        ...
-//			  ]
-//			}
-//		  }
-func (c *RestClient) unmarshalAWSLambdaResponse(statusCode int, responseJSON []byte, httpClientErr error) (int, RestResponse, error) {
-	emptyResponse := RestResponse{
-		NumRecords: 0,
-		Records:    []map[string]interface{}{},
-		RestError:  RestError{},
-		StatusCode: statusCode,
-		HTTPError:  "",
-		ErrorType:  "",
-	}
-	if httpClientErr != nil {
-		emptyResponse.HTTPError = httpClientErr.Error()
-		emptyResponse.ErrorType = "http"
-		return statusCode, emptyResponse, httpClientErr
-	}
-	statusCode = -1
-	// We don't know which fields are present or not, and fields may not be in a record, so just use interface{}
-	var dataMap map[string]interface{}
-	if err := json.Unmarshal(responseJSON, &dataMap); err != nil {
-		tflog.Error(c.ctx, fmt.Sprintf("unable to unmarshall response, this may be expected when statusCode %d >= 300, unmarshall error=%s, response=%#v", statusCode, err, responseJSON))
-		emptyResponse.ErrorType = "bad_response_decode_json"
-		return statusCode, emptyResponse, err
-	}
-	tflog.Debug(c.ctx, fmt.Sprintf("dataMap %#v", dataMap))
+// handlePagination processes paginated responses by following _links.next.href
+func (r *RestClient) handlePagination(initialResponse RestResponse, method string, originalQuery *RestQuery, body map[string]interface{}) (int, RestResponse, error) {
+	allRecords := initialResponse.Records
+	currentResponse := initialResponse
+	lastStatusCode := initialResponse.StatusCode
 
-	var awsDataMap map[string]interface{}
-	if err := mapstructure.Decode(dataMap, &awsDataMap); err != nil {
-		tflog.Error(c.ctx, fmt.Sprintf("unable to format awsDataMap, this may be expected when statusCode %d >= 300, unmarshall error=%s, response=%#v", statusCode, err, dataMap))
-		emptyResponse.ErrorType = "bad_response_decode_json"
-		return statusCode, emptyResponse, err
-	}
-	tflog.Debug(c.ctx, fmt.Sprintf("awsDataMap %#v", awsDataMap))
-	statusCode = int(awsDataMap["status"].(float64))
+	for {
+		// Check if there's a next link in the response
+		nextHref, hasNext := r.extractNextHref(currentResponse)
+		if !hasNext {
+			break
+		}
 
-	// The returned REST response may or may not contain records.
-	// If records is not present, the contents will show in Other.
-	type restStagedResponse struct {
-		NumRecords int `mapstructure:"num_records"`
-		Records    []map[string]interface{}
-		Error      RestError
-		Job        map[string]interface{}
-		Jobs       []map[string]interface{}
-		Other      map[string]interface{} `mapstructure:",remain"`
+		// Parse the href to separate base URL and query parameters
+		baseURL, query, err := r.parseHref(nextHref)
+		if err != nil {
+			tflog.Error(r.ctx, fmt.Sprintf("Failed to parse pagination href: %s, error: %s", nextHref, err))
+			return lastStatusCode, currentResponse, err
+		}
+
+		tflog.Debug(r.ctx, fmt.Sprintf("Following pagination link - baseURL: %s, query: %v", baseURL, query))
+
+		// Make request for next page with parsed URL and query
+		statusCode, nextResponse, err := r.callAPIMethod(method, baseURL, query, body)
+		if err != nil {
+			tflog.Error(r.ctx, fmt.Sprintf("Pagination request failed: %s", err))
+			return statusCode, currentResponse, err
+		}
+
+		// Update last status code
+		lastStatusCode = statusCode
+
+		// Add records from this page
+		allRecords = append(allRecords, nextResponse.Records...)
+		currentResponse = nextResponse
 	}
 
-	var rawResponse restStagedResponse
-	var metadata mapstructure.Metadata
-	if err := mapstructure.DecodeMetadata(dataMap["data"], &rawResponse, &metadata); err != nil {
-		tflog.Error(c.ctx, fmt.Sprintf("unable to format raw response, this may be expected when statusCode %d >= 300, unmarshall error=%s, response=%#v", statusCode, err, dataMap))
-		emptyResponse.ErrorType = "bad_aws_response_decode_interface"
-		return statusCode, emptyResponse, err
-	}
+	// Update the final response with all collected records
+	finalResponse := initialResponse
+	finalResponse.Records = allRecords
+	finalResponse.NumRecords = len(allRecords)
+	finalResponse.StatusCode = lastStatusCode
 
-	tflog.Debug(c.ctx, fmt.Sprintf("rawAWSResponse %#v, metadata %#v", rawResponse, metadata))
-
-	// If Other is present, add it to records.
-	// But ignore it if we already have some records.
-	// Other will always have 1 element called _link, so only do this if Other has more than 1 element
-	// Examples:
-	// {NumRecords:0 Records:[] Error:{Code: Message: Target:} Job:map[] Jobs:[] Other:map[_links:map[self:map[href:/api/cluster/schedules?fields=name%2Cuuid%2Ccron%2Cinterval%2Ctype%2Cscope&name=mytest]]]}
-	// {NumRecords:0 Records:[] Error:{Code: Message: Target:} Job:map[] Jobs:[] Other:map[_links:map[self:map[href:/api/cluster]] certificate:map[_links:map[self:map[href:/api/security/certificates/2f632ea7-92cd-11ed-8f2b-005056b3357c]] uuid:2f632ea7-92cd-11ed-8f2b-005056b3357c] metric:map[duration:PT15S iops:map[other:0 read:0 total:0 write:0] latency:map[other:0 read:0 total:0 write:0] status:ok throughput:map[other:0 read:0 total:0 write:0] timestamp:2023-03-16T18:36:30Z] name:laurentncluster-2 peering_policy:map[authentication_required:true encryption_required:false minimum_passphrase_length:8] san_optimized:false statistics:map[iops_raw:map[other:0 read:0 total:0 write:0] latency_raw:map[other:0 read:0 total:0 write:0] status:ok throughput_raw:map[other:0 read:0 total:0 write:0] timestamp:2023-03-16T18:36:31Z] timezone:map[name:Etc/UTC] uuid:2115008a-92cd-11ed-8f2b-005056b3357c version:map[full:NetApp Release Metropolitan__9.11.1: Sat Dec 10 19:08:07 UTC 2022 generation:9 major:11 minor:1]]}
-	if rawResponse.NumRecords == 0 && len(rawResponse.Records) == 0 && len(rawResponse.Other) > 1 {
-		rawResponse.NumRecords = 1
-		rawResponse.Records = append(rawResponse.Records, rawResponse.Other)
-	}
-
-	var finalResponse RestResponse
-	if err := mapstructure.DecodeMetadata(rawResponse, &finalResponse, &metadata); err != nil {
-		tflog.Error(c.ctx, fmt.Sprintf("unable to format final response - statusCode %d, http err=%#v, decode error=%s, response=%#v", statusCode, httpClientErr, err, rawResponse))
-		emptyResponse.ErrorType = "bad_aws_response_decode_raw"
-		return statusCode, emptyResponse, err
-	}
-
-	// If we reached this point, the only possible errors are a bad HTTP status code and/or a REST error encoded in the paybload
-	finalResponse.StatusCode = statusCode
-	finalResponse, err := c.checkRestErrors(statusCode, finalResponse)
-	tflog.Debug(c.ctx, fmt.Sprintf("finalResponse %#v, metadata %#v", finalResponse, metadata))
-	return statusCode, finalResponse, err
+	return lastStatusCode, finalResponse, nil
 }
 
-// unmarshalResponse converts the REST response into a structure with a list of 0 or more records.
-// we're doing it in two phases:
-// unmarshall to intermediate structure, as records may or may not present
-// adjust intermediate structure, and decode to final structure
-func (c *RestClient) unmarshalResponse(statusCode int, responseJSON []byte, httpClientErr error) (int, RestResponse, error) {
-	emptyResponse := RestResponse{
-		NumRecords: 0,
-		Records:    []map[string]interface{}{},
-		RestError:  RestError{},
-		StatusCode: statusCode,
-		HTTPError:  "",
-		ErrorType:  "",
-	}
-	if httpClientErr != nil {
-		emptyResponse.HTTPError = httpClientErr.Error()
-		emptyResponse.ErrorType = "http"
-		return statusCode, emptyResponse, httpClientErr
+// extractNextHref extracts the next href from response-level _links
+func (r *RestClient) extractNextHref(response RestResponse) (string, bool) {
+	if response.Links == nil {
+		return "", false
 	}
 
-	// We don't know which fields are present or not, and fields may not be in a record, so just use interface{}
-	var dataMap map[string]interface{}
-	if err := json.Unmarshal(responseJSON, &dataMap); err != nil {
-		tflog.Error(c.ctx, fmt.Sprintf("unable to unmarshall response, this may be expected when statusCode %d >= 300, unmarshall error=%s, response=%#v", statusCode, err, responseJSON))
-		emptyResponse.ErrorType = "bad_response_decode_json"
-		return statusCode, emptyResponse, err
-	}
-	tflog.Debug(c.ctx, fmt.Sprintf("dataMap %#v", dataMap))
-
-	// The returned REST response may or may not contain records.
-	// If records is not present, the contents will show in Other.
-	type restStagedResponse struct {
-		NumRecords int `mapstructure:"num_records"`
-		Records    []map[string]interface{}
-		Error      RestError
-		Job        map[string]interface{}
-		Jobs       []map[string]interface{}
-		Other      map[string]interface{} `mapstructure:",remain"`
-	}
-
-	var rawResponse restStagedResponse
-	var metadata mapstructure.Metadata
-	if err := mapstructure.DecodeMetadata(dataMap, &rawResponse, &metadata); err != nil {
-		tflog.Error(c.ctx, fmt.Sprintf("unable to format raw response, this may be expected when statusCode %d >= 300, unmarshall error=%s, response=%#v", statusCode, err, dataMap))
-		emptyResponse.ErrorType = "bad_response_decode_interface"
-		return statusCode, emptyResponse, err
-	}
-
-	tflog.Debug(c.ctx, fmt.Sprintf("rawResponse %#v, metadata %#v", rawResponse, metadata))
-
-	// If Other is present, add it to records.
-	// But ignore it if we already have some records.
-	// Add the records under Other if Other has more than 1 element
-	// and if Other has only one element and it is not _links
-	// Examples:
-	// {NumRecords:0 Records:[] Error:{Code: Message: Target:} Job:map[] Jobs:[] Other:map[_links:map[self:map[href:/api/cluster/schedules?fields=name%2Cuuid%2Ccron%2Cinterval%2Ctype%2Cscope&name=mytest]]]}
-	// {NumRecords:0 Records:[] Error:{Code: Message: Target:} Job:map[] Jobs:[] Other:map[_links:map[self:map[href:/api/cluster]] certificate:map[_links:map[self:map[href:/api/security/certificates/2f632ea7-92cd-11ed-8f2b-005056b3357c]] uuid:2f632ea7-92cd-11ed-8f2b-005056b3357c] metric:map[duration:PT15S iops:map[other:0 read:0 total:0 write:0] latency:map[other:0 read:0 total:0 write:0] status:ok throughput:map[other:0 read:0 total:0 write:0] timestamp:2023-03-16T18:36:30Z] name:laurentncluster-2 peering_policy:map[authentication_required:true encryption_required:false minimum_passphrase_length:8] san_optimized:false statistics:map[iops_raw:map[other:0 read:0 total:0 write:0] latency_raw:map[other:0 read:0 total:0 write:0] status:ok throughput_raw:map[other:0 read:0 total:0 write:0] timestamp:2023-03-16T18:36:31Z] timezone:map[name:Etc/UTC] uuid:2115008a-92cd-11ed-8f2b-005056b3357c version:map[full:NetApp Release Metropolitan__9.11.1: Sat Dec 10 19:08:07 UTC 2022 generation:9 major:11 minor:1]]}
-	// {NumRecords:0 Records:[] Error:{Code: Message: Target:} Job:map[] Jobs:[] Other:map[public_certificate:-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----\n]}
-	// if rawResponse.NumRecords == 0 && len(rawResponse.Records) == 0 && len(rawResponse.Other) > 1 {
-	if rawResponse.NumRecords == 0 && len(rawResponse.Records) == 0 {
-		_, found := rawResponse.Other["_links"]
-		if (len(rawResponse.Other) == 1 && !found) || len(rawResponse.Other) > 1 {
-			rawResponse.NumRecords = 1
-			rawResponse.Records = append(rawResponse.Records, rawResponse.Other)
+	if next, hasNext := response.Links["next"]; hasNext {
+		if nextMap, ok := next.(map[string]interface{}); ok {
+			if href, hasHref := nextMap["href"]; hasHref {
+				if hrefStr, ok := href.(string); ok {
+					return hrefStr, true
+				}
+			}
 		}
 	}
 
-	var finalResponse RestResponse
-	if err := mapstructure.DecodeMetadata(rawResponse, &finalResponse, &metadata); err != nil {
-		tflog.Error(c.ctx, fmt.Sprintf("unable to format final response - statusCode %d, http err=%#v, decode error=%s, response=%#v", statusCode, httpClientErr, err, rawResponse))
-		emptyResponse.ErrorType = "bad_response_decode_raw"
-		return statusCode, emptyResponse, err
-	}
-
-	// If we reached this point, the only possible errors are a bad HTTP status code and/or a REST error encoded in the paybload
-	finalResponse.StatusCode = statusCode
-	finalResponse, err := c.checkRestErrors(statusCode, finalResponse)
-	tflog.Debug(c.ctx, fmt.Sprintf("finalResponse %#v, metadata %#v", finalResponse, metadata))
-	return statusCode, finalResponse, err
+	return "", false
 }
 
-// check for statusCode and RestError
-func (c *RestClient) checkRestErrors(statusCode int, response RestResponse) (RestResponse, error) {
-	var err error
-	if response.RestError.Code != "0" && response.RestError.Code != "" {
-		response.ErrorType = "rest_error"
-		err = fmt.Errorf("REST reported error %#v, statusCode: %d", response.RestError, statusCode)
-	} else if err = c.checkStatusCode(statusCode); err != nil {
-		response.ErrorType = "statuscode_error"
+// shouldHandlePagination determines if we should attempt to handle pagination
+func (r *RestClient) shouldHandlePagination(response RestResponse) bool {
+	_, hasNext := r.extractNextHref(response)
+	return hasNext
+}
+
+// CallCreateMethod returns response from POST results.  An error is reported if an error is received.
+func (r *RestClient) CallCreateMethod(baseURL string, query *RestQuery, body map[string]interface{}) (int, RestResponse, error) {
+	if query == nil {
+		query = r.NewQuery()
 	}
+	// TODO: make this a connection parameter ?
+	query.Set("return_timeout", "60")
+	statusCode, response, err := r.callAPIMethod("POST", baseURL, query, body)
 	if err != nil {
-		tflog.Error(c.ctx, fmt.Sprintf("checkRestError: %s, statusCode %d, response: %#v", err, statusCode, response))
+		tflog.Debug(r.ctx, fmt.Sprintf("CallCreateMethod request failed %#v", statusCode))
+		return statusCode, RestResponse{}, err
 	}
-	return response, err
+
+	if response.Job != nil {
+		statusCode, _, err = r.Wait(response.Job["uuid"].(string))
+		if err != nil {
+			return statusCode, RestResponse{}, err
+		}
+	} else if response.Jobs != nil {
+		for _, v := range response.Jobs {
+			statusCode, _, err = r.Wait(v["uuid"].(string))
+			if err != nil {
+				return statusCode, RestResponse{}, err
+			}
+		}
+	}
+	return statusCode, response, err
 }
 
-// check for statusCode
-func (c *RestClient) checkStatusCode(statusCode int) error {
-	if statusCode >= 300 || statusCode < 200 {
-		return fmt.Errorf("statusCode indicates error, without details: %d", statusCode)
+// CallUpdateMethod returns response from PATCH results.  An error is reported if an error is received.
+func (r *RestClient) CallUpdateMethod(baseURL string, query *RestQuery, body map[string]interface{}) (int, RestResponse, error) {
+	if query == nil {
+		query = r.NewQuery()
 	}
-	return nil
+	// TODO: make this a connection parameter ?
+	query.Set("return_timeout", "60")
+	statusCode, response, err := r.callAPIMethod("PATCH", baseURL, query, body)
+	if err != nil {
+		tflog.Debug(r.ctx, fmt.Sprintf("CallUpdateMethod request failed %#v", statusCode))
+		return statusCode, RestResponse{}, err
+	}
+
+	if response.Job != nil {
+		statusCode, _, err = r.Wait(response.Job["uuid"].(string))
+		if err != nil {
+			return statusCode, RestResponse{}, err
+		}
+	} else if response.Jobs != nil {
+		for _, v := range response.Jobs {
+			statusCode, _, err = r.Wait(v["uuid"].(string))
+			if err != nil {
+				return statusCode, RestResponse{}, err
+			}
+		}
+	}
+	return statusCode, response, err
+}
+
+// CallDeleteMethod returns response from DELETE results.  An error is reported if an error is received.
+func (r *RestClient) CallDeleteMethod(baseURL string, query *RestQuery, body map[string]interface{}) (int, RestResponse, error) {
+	if query == nil {
+		query = r.NewQuery()
+	}
+	// TODO: make this a connection parameter ?
+	query.Set("return_timeout", "60")
+	statusCode, response, err := r.callAPIMethod("DELETE", baseURL, query, body)
+	if err != nil {
+		tflog.Debug(r.ctx, fmt.Sprintf("CallDeleteMethod request failed %#v", statusCode))
+		return statusCode, RestResponse{}, err
+	}
+
+	// TODO: handle waitOnCompletion
+	return statusCode, response, err
+}
+
+// GetNilOrOneRecord returns nil if no record is found or a single record.
+// Handles pagination and returns error if multiple records are received after pagination.
+func (r *RestClient) GetNilOrOneRecord(baseURL string, query *RestQuery, body map[string]interface{}) (int, map[string]interface{}, error) {
+	statusCode, response, err := r.callAPIMethod("GET", baseURL, query, body)
+	if err != nil {
+		return statusCode, nil, err
+	}
+
+	// Handle pagination if present
+	if r.shouldHandlePagination(response) {
+		statusCode, paginatedResponse, paginationErr := r.handlePagination(response, "GET", query, body)
+		if paginationErr != nil {
+			tflog.Error(r.ctx, fmt.Sprintf("Pagination failed: %s", paginationErr))
+			return statusCode, nil, paginationErr
+		}
+		response = paginatedResponse
+	}
+
+	if response.NumRecords > 1 {
+		msg := fmt.Sprintf("received %d records when only one is expected - statusCode %d, err=%#v, response=%#v", response.NumRecords, statusCode, err, response)
+		tflog.Error(r.ctx, msg)
+		return statusCode, nil, errors.New(msg)
+	}
+	if response.NumRecords == 1 {
+		return statusCode, response.Records[0], err
+	}
+	return statusCode, nil, err
+}
+
+// GetZeroOrMoreRecords returns a list of records, handling pagination automatically.
+func (r *RestClient) GetZeroOrMoreRecords(baseURL string, query *RestQuery, body map[string]interface{}) (int, []map[string]interface{}, error) {
+	statusCode, response, err := r.callAPIMethod("GET", baseURL, query, body)
+	if err != nil {
+		return statusCode, nil, err
+	}
+
+	// Handle pagination if present
+	if r.shouldHandlePagination(response) {
+		statusCode, paginatedResponse, paginationErr := r.handlePagination(response, "GET", query, body)
+		if paginationErr != nil {
+			tflog.Error(r.ctx, fmt.Sprintf("Pagination failed: %s", paginationErr))
+			return statusCode, response.Records, paginationErr
+		}
+		return statusCode, paginatedResponse.Records, err
+	}
+
+	return statusCode, response.Records, err
+}
+
+// callAPIMethod can be used to make a request to any REST API method, receiving response as bytes
+func (r *RestClient) callAPIMethod(method string, baseURL string, query *RestQuery, body map[string]interface{}) (int, RestResponse, error) {
+	log.Print("callAPIMethod")
+	if r.mode == "mock" {
+		return r.mockCallAPIMethod(method, baseURL, query, body)
+	}
+	r.waitForAvailableSlot()
+	defer r.releaseSlot()
+
+	values := url.Values{}
+	if query != nil {
+		values = query.Values
+	}
+	if r.connectionProfile.UseAWSLambda {
+		statusCode, response, awsClientErr := r.awsClient.Invoke(baseURL, method, body, values)
+		return r.unmarshalAWSLambdaResponse(statusCode, response, awsClientErr)
+	}
+	statusCode, response, httpClientErr := r.httpClient.Do(baseURL, &httpclient.Request{
+		Method: method,
+		Body:   body,
+		Query:  values,
+	})
+
+	// TODO: error handling for HTTTP status code >=300
+	// TODO: handle async calls (job in response)
+	return r.unmarshalResponse(statusCode, response, httpClientErr)
+}
+
+// NewClient creates a new REST client and a supporting HTTP or AWS Lambda client.
+// Lambda client is created if UseAWSLambdaLink is set to true.
+// If UseAWSLambdaLink is false, a new HTTP client is created.
+func NewClient(ctx context.Context, cxProfile ConnectionProfile, tag string, jobCompletionTimeOut int) (*RestClient, error) {
+	if cxProfile.UseAWSLambda {
+		var awsLambdaProfile awsclient.AWSLambdaProfile
+		awsLambdaProfile.APIRoot = "api"
+		err := mapstructure.Decode(cxProfile, &awsLambdaProfile)
+		if err != nil {
+			msg := fmt.Sprintf("decode error on ConnectionProfile %#v to AWSLambdaProfile", cxProfile)
+			tflog.Error(ctx, msg)
+			return nil, errors.New(msg)
+		}
+		maxConcurrentRequests := cxProfile.MaxConcurrentRequests
+		if maxConcurrentRequests == 0 {
+			maxConcurrentRequests = 6
+		}
+		newClient, err := awsclient.NewClient(ctx, awsLambdaProfile)
+		if err != nil {
+			return nil, err
+		}
+		client := RestClient{
+			connectionProfile:     cxProfile,
+			ctx:                   ctx,
+			awsClient:             *newClient,
+			maxConcurrentRequests: maxConcurrentRequests,
+			mode:                  "prod",
+			requestSlots:          make(chan int, maxConcurrentRequests),
+			jobCompletionTimeOut:  jobCompletionTimeOut,
+			tag:                   tag,
+		}
+		return &client, nil
+	}
+
+	var httpProfile httpclient.HTTPProfile
+	err := mapstructure.Decode(cxProfile, &httpProfile)
+	if err != nil {
+		msg := fmt.Sprintf("decode error on ConnectionProfile %#v to HTTPProfile", cxProfile)
+		tflog.Error(ctx, msg)
+		return nil, errors.New(msg)
+	}
+	httpProfile.APIRoot = "api"
+	maxConcurrentRequests := cxProfile.MaxConcurrentRequests
+	if maxConcurrentRequests == 0 {
+		maxConcurrentRequests = 6
+	}
+	client := RestClient{
+		connectionProfile:     cxProfile,
+		ctx:                   ctx,
+		httpClient:            httpclient.NewClient(ctx, httpProfile, tag),
+		maxConcurrentRequests: maxConcurrentRequests,
+		mode:                  "prod",
+		requestSlots:          make(chan int, maxConcurrentRequests),
+		jobCompletionTimeOut:  jobCompletionTimeOut,
+		tag:                   tag,
+	}
+	return &client, nil
+}
+
+func (r *RestClient) waitForAvailableSlot() {
+	r.requestSlots <- 1
+}
+
+func (r *RestClient) releaseSlot() {
+	<-r.requestSlots
+}
+
+// NewQuery is used to provide query parameters.  Set and Add functions are inherited from url.Values
+func (r *RestClient) NewQuery() *RestQuery {
+	query := new(RestQuery)
+	query.Values = url.Values{}
+	return query
+}
+
+// RestQuery is a wrapper around urlValues, and supports a Fields method in addition to Set, Add.
+type RestQuery struct {
+	url.Values
+}
+
+// Fields adds a list of fields to query
+func (q *RestQuery) Fields(fields []string) {
+	q.Set("fields", strings.Join(fields, ","))
+}
+
+// SetValues adds a set of key, value
+func (q *RestQuery) SetValues(keyValues map[string]interface{}) {
+	for k, v := range keyValues {
+		// TODO: add some type validation
+		value := fmt.Sprintf("%v", v)
+		if value != "" {
+			q.Set(k, value)
+		}
+	}
+}
+
+// Wait waits for job to finish.
+func (r *RestClient) Wait(uuid string) (int, RestResponse, error) {
+	timeRemaining := r.jobCompletionTimeOut
+	errorRetries := 3
+	for timeRemaining > 0 {
+		statusCode, response, err := r.GetNilOrOneRecord("cluster/jobs/"+uuid, nil, nil)
+		if err != nil {
+			if errorRetries <= 0 {
+				return statusCode, RestResponse{}, err
+			}
+			time.Sleep(10 * time.Second)
+			errorRetries--
+			continue
+		}
+		var job Job
+		if err := mapstructure.Decode(response, &job); err != nil {
+			tflog.Error(r.ctx, fmt.Sprintf("Read job data - decode error: %s, data: %#v", err, response))
+			return statusCode, RestResponse{}, err
+		}
+		if job.State == "queued" || job.State == "running" || job.State == "paused" {
+			timeRemaining = timeRemaining - 10
+		} else if job.State == "success" {
+			return statusCode, RestResponse{}, nil
+		} else {
+			// if job struct ifself contains message and code, jobError struct might be empty. Vice versa.
+			if job.Error != (jobError{}) {
+				if job.Error.Code != "" {
+					errorMessage := fmt.Errorf("fail to get job status. Error code: %s. Message: %s, Target: %s", job.Error.Code, job.Error.Message, job.Error.Target)
+					return statusCode, RestResponse{}, errorMessage
+				}
+				return statusCode, RestResponse{}, fmt.Errorf("fail to get job status. Unknown error")
+			}
+			if job.Code != 0 {
+				return statusCode, RestResponse{}, fmt.Errorf("Job UUID %s failed. Error code: %d. Message: %s", uuid, job.Code, job.Message)
+			}
+		}
+		time.Sleep(10 * time.Second)
+	}
+	// TODO: clean up the resources in creation when errors out.
+	return 0, RestResponse{}, fmt.Errorf("fail to wait for job to finish. Exit now")
+}
+
+// Job is ONTAP API job data structure
+type Job struct {
+	State   string
+	Error   jobError
+	Code    int
+	Message string
+}
+
+type jobError struct {
+	Message string `tfsdk:"state"`
+	Code    string `tfsdk:"code"`
+	Target  string `tfsdk:"target"`
+}
+
+// Equals is a test function for Unit Testing
+func (r *RestClient) Equals(r2 *RestClient) (ok bool, firstDiff string) {
+	if r.connectionProfile != r2.connectionProfile {
+		return false, fmt.Sprintf("expected %#v, got %#v", r.connectionProfile, r2.connectionProfile)
+	}
+	if r.tag != r2.tag {
+		return false, fmt.Sprintf("expected %#v, got %#v", r.tag, r2.tag)
+	}
+	return true, ""
 }
