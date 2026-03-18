@@ -164,7 +164,7 @@ func (d *ClusterScheduleDataSource) Read(ctx context.Context, req datasource.Rea
 		// error reporting done inside NewClient
 		return
 	}
-	restInfo, err := interfaces.GetClusterSchedule(errorHandler, *client, data.Name.ValueString())
+	restInfo, err := interfaces.GetClusterScheduleByName(errorHandler, *client, data.Name.ValueString())
 	if err != nil {
 		// error reporting done inside GetClusterSchedule
 		return
