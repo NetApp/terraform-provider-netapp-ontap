@@ -46,6 +46,9 @@ type ConnectionProfileModel struct {
 	ValidateCerts          types.Bool   `tfsdk:"validate_certs"`
 	ONTAPProviderAWSModel  types.Object `tfsdk:"aws_lambda"`
 	ONTAPProviderGCNVModel types.Object `tfsdk:"google_netapp_unified_pool"`
+	CertFilepath           types.String `tfsdk:"cert_filepath"`
+	KeyFilepath            types.String `tfsdk:"key_filepath"`
+	CACertFile             types.String `tfsdk:"ca_cert_file"`
 }
 
 // ONTAPProviderModel describes the provider data model.
@@ -101,16 +104,28 @@ func (p *ONTAPProvider) Schema(ctx context.Context, req provider.SchemaRequest, 
 							Optional:            true,
 						},
 						"username": schema.StringAttribute{
-							MarkdownDescription: "ONTAP management user name (cluster or svm). Not required when using Google Cloud NetApp Volumes (google_netapp_unified_pool).",
+							MarkdownDescription: "ONTAP management user name (cluster or svm)",
 							Optional:            true,
 						},
 						"password": schema.StringAttribute{
-							MarkdownDescription: "ONTAP management password for username. Not required when using Google Cloud NetApp Volumes (google_netapp_unified_pool).",
+							MarkdownDescription: "ONTAP management password for username",
 							Optional:            true,
 							Sensitive:           true,
 						},
 						"validate_certs": schema.BoolAttribute{
 							MarkdownDescription: "Whether to enforce SSL certificate validation, defaults to true. Not applicable for AWS Lambda",
+							Optional:            true,
+						},
+						"key_filepath": schema.StringAttribute{
+							MarkdownDescription: "Path to the key file. Not applicable for AWS Lambda",
+							Optional:            true,
+						},
+						"cert_filepath": schema.StringAttribute{
+							MarkdownDescription: "Path to the certificate file. Not applicable for AWS Lambda",
+							Optional:            true,
+						},
+						"ca_cert_file": schema.StringAttribute{
+							MarkdownDescription: "Path to the CA certificate file. Not applicable for AWS Lambda",
 							Optional:            true,
 						},
 						"aws_lambda": schema.SingleNestedAttribute{
@@ -237,10 +252,7 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 			validateCerts = connectionProfile.ValidateCerts.ValueBool()
 		}
 
-		// Use empty string for hostname, username, password when google_netapp_unified_pool is used and they're not provided
-		hostname := ""
-		username := ""
-		password := ""
+		var hostname, username, password, certFilepath, keyFilepath, caCertFile string
 		if !connectionProfile.Hostname.IsNull() {
 			hostname = connectionProfile.Hostname.ValueString()
 		}
@@ -250,6 +262,15 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 		if !connectionProfile.Password.IsNull() {
 			password = connectionProfile.Password.ValueString()
 		}
+		if !connectionProfile.CertFilepath.IsNull() {
+			certFilepath = connectionProfile.CertFilepath.ValueString()
+		}
+		if !connectionProfile.KeyFilepath.IsNull() {
+			keyFilepath = connectionProfile.KeyFilepath.ValueString()
+		}
+		if !connectionProfile.CACertFile.IsNull() {
+			caCertFile = connectionProfile.CACertFile.ValueString()
+		}
 
 		connectionProfiles[connectionProfile.Name.ValueString()] = connection.Profile{
 			Hostname:              hostname,
@@ -257,6 +278,9 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 			Password:              password,
 			ValidateCerts:         validateCerts,
 			MaxConcurrentRequests: 0,
+			CertFilepath:          certFilepath,
+			KeyFilepath:           keyFilepath,
+			CACertFile:            caCertFile,
 		}
 		if !connectionProfile.ONTAPProviderAWSModel.IsNull() {
 			var lambdaConfig ONTAPProviderAWSLambdaModel

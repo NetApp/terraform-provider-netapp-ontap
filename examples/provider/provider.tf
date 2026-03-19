@@ -60,6 +60,18 @@ provider "netapp-ontap" {
       username = var.username
       password = var.password
       validate_certs = var.validate_certs
+    },
+    {
+      name = "mycluster"
+      hostname = "10.196.19.82"
+      username = var.username
+      password = var.password
+      client_cert_file = var.client_cert_file
+      client_key_file = var.client_key_file
+      ca_cert_file = var.ca_cert_file
+      validate_certs = var.validate_certs
+      https = true
+      insecure = true
     }
   ]
 }

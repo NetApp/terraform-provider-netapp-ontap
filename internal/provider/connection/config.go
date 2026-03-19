@@ -25,6 +25,9 @@ type Profile struct {
 	UseGCNV               bool
 	AWS                   AWSConfig  `mapstructure:"aws,omitempty"`
 	GCNV                  GCNVConfig `mapstructure:"gcnv,omitempty"`
+	CertFilepath          string
+	KeyFilepath           string
+	CACertFile            string
 }
 
 type AWSConfig struct {
