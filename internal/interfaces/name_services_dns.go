@@ -16,6 +16,15 @@ type NameServicesDNSGetDataModelONTAP struct {
 	Servers              []string          `mapstructure:"servers"`
 	SVM                  SvmDataModelONTAP `mapstructure:"svm"`
 	SkipConfigValidation bool              `mapstructure:"skip_config_validation"`
+	DynamicDNS           *DynamicDNS       `mapstructure:"dynamic_dns,omitempty"`
+}
+
+type DynamicDNS struct {
+	Enabled            bool   `mapstructure:"enabled"`
+	FQDN               string `mapstructure:"fqdn,omitempty"`
+	SkipFQDNValidation bool   `mapstructure:"skip_fqdn_validation"`
+	TimeToLive         string `mapstructure:"time_to_live,omitempty"`
+	UseSecure          bool   `mapstructure:"use_secure"`
 }
 
 // NameServicesDNSDataSourceFilterModel describes filter model.
@@ -30,7 +39,7 @@ func GetNameServicesDNS(errorHandler *utils.ErrorHandler, r restclient.RestClien
 	api := "name-services/dns"
 	query := r.NewQuery()
 	query.Add("svm.name", svmName)
-	query.Fields([]string{"domains", "servers"})
+	query.Fields([]string{"svm.name", "svm.uuid", "domains", "servers", "dynamic_dns"})
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
 		err = fmt.Errorf("no response for GET %s", api)
@@ -65,7 +74,7 @@ func GetListNameServicesDNSs(errorHandler *utils.ErrorHandler, r restclient.Rest
 		}
 	}
 
-	query.Fields([]string{"svm.name", "domains", "servers"})
+	query.Fields([]string{"svm.name", "svm.uuid", "domains", "servers", "dynamic_dns"})
 
 	statusCode, response, err := r.GetZeroOrMoreRecords(api, query, nil)
 	if err == nil && response == nil {
@@ -115,6 +124,21 @@ func DeleteNameServicesDNS(errorHandler *utils.ErrorHandler, r restclient.RestCl
 	statusCode, _, err := r.CallDeleteMethod("name-services/dns/"+uuid, nil, nil)
 	if err != nil {
 		return errorHandler.MakeAndReportError("error deleting DNS", fmt.Sprintf("error on DELETE name-services/dns: %s, statusCode %d", err, statusCode))
+	}
+	return nil
+}
+
+// UpdateNameServicesDNS updates an existing DNS service
+func UpdateNameServicesDNS(errorHandler *utils.ErrorHandler, r restclient.RestClient, data NameServicesDNSGetDataModelONTAP, uuid string) error {
+	var body map[string]interface{}
+	if err := mapstructure.Decode(data, &body); err != nil {
+		return errorHandler.MakeAndReportError("error encoding DNS body", fmt.Sprintf("error on encoding name-services/dns body: %s, body: %#v", err, data))
+	}
+	query := r.NewQuery()
+	query.Add("return_records", "true")
+	statusCode, _, err := r.CallUpdateMethod("name-services/dns/"+uuid, query, body)
+	if err != nil {
+		return errorHandler.MakeAndReportError("error updating DNS", fmt.Sprintf("error on PATCH name-services/dns: %s, statusCode %d", err, statusCode))
 	}
 	return nil
 }

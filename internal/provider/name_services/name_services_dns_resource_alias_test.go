@@ -26,6 +26,8 @@ func TestAccNameServicesDNSResourceAlias(t *testing.T) {
 				Config: testAccNameServicesDNSResourceConfigAlias("tf_acc_svm"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_name_services_dns_resource.dns", "svm_name", "tf_acc_svm"),
+					resource.TestCheckResourceAttr("netapp-ontap_name_services_dns_resource.dns", "dynamic_dns.enabled", "true"),
+					resource.TestCheckResourceAttr("netapp-ontap_name_services_dns_resource.dns", "dynamic_dns.fqdn", "tf_acc_svm.bar.com"),
 				),
 			},
 			// Test importing a resource
@@ -70,6 +72,13 @@ resource "netapp-ontap_name_services_dns_resource" "dns" {
   name_servers = ["1.1.1.1", "2.2.2.2"]
   dns_domains = ["foo.bar.com", "boo.bar.com"]
   skip_config_validation = true
+	dynamic_dns = {
+		fqdn = "tf_acc_svm.bar.com"
+		time_to_live = "P2D"
+		skip_fqdn_validation = true
+		use_secure = false
+		enabled = true
+	}
 }
 `, host, admin, password, svmName)
 }

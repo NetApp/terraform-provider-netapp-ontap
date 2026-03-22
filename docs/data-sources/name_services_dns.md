@@ -35,5 +35,18 @@ data "netapp-ontap_dns" "dns" {
 ### Read-Only
 
 - `dns_domains` (List of String) List of DNS domains such as 'sales.bar.com'. The first domain is the one that the svm belongs to
+- `dynamic_dns` (Set, Read-Only) Dynamic DNS update configuration for the SVM. (see [below for nested schema](#nestedatt--dynamic_dns))
 - `name_servers` (List of String) List of IPv4 addresses of name servers such as '123.123.123.123'.
 - `svm_uuid` (String) UUID of svm
+
+<a id="nestedatt--dynamic_dns"></a>
+
+### Nested Schema for `dynamic_dns`
+
+Read-Only:
+
+- `enabled` (Boolean) Enable or disable Dynamic DNS (DDNS) updates for the specified SVM
+- `fqdn` (String) Fully Qualified Domain Name (FQDN) to be used for dynamic DNS updates
+- `skip_fqdn_validation` (Boolean) Enable or disable FQDN validation
+- `time_to_live` (String) Time to live value for the dynamic DNS updates, in an ISO-8601 duration formatted string
+- `use_secure` (Boolean) Enable or disable secure dynamic DNS updates for the specified SVM

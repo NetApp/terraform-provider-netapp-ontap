@@ -6,6 +6,7 @@ import (
 
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -47,6 +48,7 @@ type NameServicesDNSDataSourceModel struct {
 	SVMUUID       types.String   `tfsdk:"svm_uuid"`
 	Domains       []types.String `tfsdk:"dns_domains"`
 	NameServers   []types.String `tfsdk:"name_servers"`
+	DynamicDNS    types.Object   `tfsdk:"dynamic_dns"`
 }
 
 // Metadata returns the data source type name.
@@ -82,6 +84,32 @@ func (d *NameServicesDNSDataSource) Schema(ctx context.Context, req datasource.S
 				ElementType:         types.StringType,
 				Computed:            true,
 				MarkdownDescription: "List of IPv4 addresses of name servers such as '123.123.123.123'.",
+			},
+			"dynamic_dns": schema.SingleNestedAttribute{
+				Computed:    true,
+				Description: "Dynamic DNS update configuration for the SVM.",
+				Attributes: map[string]schema.Attribute{
+					"fqdn": schema.StringAttribute{
+						MarkdownDescription: "Fully Qualified Domain Name (FQDN) to be used for dynamic DNS updates",
+						Computed:            true,
+					},
+					"time_to_live": schema.StringAttribute{
+						MarkdownDescription: "Time to live value for the dynamic DNS updates, in an ISO-8601 duration formatted string",
+						Computed:            true,
+					},
+					"skip_fqdn_validation": schema.BoolAttribute{
+						MarkdownDescription: "Enable or disable FQDN validation",
+						Computed:            true,
+					},
+					"use_secure": schema.BoolAttribute{
+						MarkdownDescription: "Enable or disable secure dynamic DNS updates for the specified SVM",
+						Computed:            true,
+					},
+					"enabled": schema.BoolAttribute{
+						MarkdownDescription: "Enable or disable Dynamic DNS (DDNS) updates for the specified SVM",
+						Computed:            true,
+					},
+				},
 			},
 		},
 	}
@@ -145,6 +173,32 @@ func (d *NameServicesDNSDataSource) Read(ctx context.Context, req datasource.Rea
 		domains = append(data.Domains, types.StringValue(v))
 	}
 	data.Domains = domains
+
+	dynamicDNSAttrTypes := map[string]attr.Type{
+		"enabled":              types.BoolType,
+		"fqdn":                 types.StringType,
+		"skip_fqdn_validation": types.BoolType,
+		"time_to_live":         types.StringType,
+		"use_secure":           types.BoolType,
+	}
+
+	if restInfo.DynamicDNS != nil {
+		dynamicDNSValues := map[string]attr.Value{
+			"enabled":              types.BoolValue(restInfo.DynamicDNS.Enabled),
+			"fqdn":                 types.StringValue(restInfo.DynamicDNS.FQDN),
+			"skip_fqdn_validation": types.BoolValue(restInfo.DynamicDNS.SkipFQDNValidation),
+			"time_to_live":         types.StringValue(restInfo.DynamicDNS.TimeToLive),
+			"use_secure":           types.BoolValue(restInfo.DynamicDNS.UseSecure),
+		}
+		dynamicDNSObject, diags := types.ObjectValue(dynamicDNSAttrTypes, dynamicDNSValues)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		data.DynamicDNS = dynamicDNSObject
+	} else {
+		data.DynamicDNS = types.ObjectNull(dynamicDNSAttrTypes)
+	}
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
