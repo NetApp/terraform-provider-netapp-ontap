@@ -34,10 +34,10 @@ resource "netapp-ontap_dns" "dns" {
   name_servers = ["1.1.1.1", "2.2.2.2"]
   dns_domains = ["foo.bar.com", "boo.bar.com"]
 
-  dynamic_dns {
+  dynamic_dns = {
     enabled              = true
     fqdn                 = "testSVM.foo.bar.com"
-    time_to_live         = "PT1H"
+    time_to_live         = "P1D"
     skip_fqdn_validation = false
     use_secure           = false
   }
