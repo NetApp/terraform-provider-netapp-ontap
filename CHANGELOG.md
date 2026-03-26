@@ -1,3 +1,9 @@
+# 2.6.0
+
+ENHANCEMENTS:
+
+- **netapp-ontap_name_services_dns_resource**, **netapp-ontap_name_services_dns_data_source**,**netapp-ontap_name_services_dnss_data_source**: Added dynamic_dns option and update support for all the options.([#646](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/646))
+
 # 2.5.0 (2026-03-12)
 
 FEATURES:

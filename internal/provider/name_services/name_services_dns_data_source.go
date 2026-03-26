@@ -165,12 +165,12 @@ func (d *NameServicesDNSDataSource) Read(ctx context.Context, req datasource.Rea
 	data.SVMUUID = types.StringValue(restInfo.SVM.UUID)
 	var servers []types.String
 	for _, v := range restInfo.Servers {
-		servers = append(data.NameServers, types.StringValue(v))
+		servers = append(servers, types.StringValue(v))
 	}
 	data.NameServers = servers
 	var domains []types.String
 	for _, v := range restInfo.Domains {
-		domains = append(data.Domains, types.StringValue(v))
+		domains = append(domains, types.StringValue(v))
 	}
 	data.Domains = domains
 
