@@ -1,3 +1,9 @@
+# 2.5.1 (2026-03-xx)
+
+BUG FIXES:
+
+- **netapp-ontap_snapmirror_policy resource**: fixed issue with create when `retention` is not set in config ([#647](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/647))
+
 # 2.5.0 (2026-03-12)
 
 FEATURES:
