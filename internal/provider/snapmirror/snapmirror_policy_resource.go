@@ -299,7 +299,7 @@ func (r *SnapmirrorPolicyResource) Read(ctx context.Context, req resource.ReadRe
 	data.ID = types.StringValue(restInfo.UUID)
 
 	// preserve a null/empty retention in state unless the user configured rules
-	if data.Retention != nil && len(data.Retention) > 0 {
+	if len(data.Retention) > 0 {
 		if restInfo.Retention == nil {
 			data.Retention = nil
 		} else {
@@ -453,7 +453,7 @@ func (r *SnapmirrorPolicyResource) Create(ctx context.Context, req resource.Crea
 	// Update the computed parameters
 	data.ID = types.StringValue(resource.UUID)
 	// preserve null/empty retention when it was not configured
-	if data.Retention != nil && len(data.Retention) > 0 {
+	if len(data.Retention) > 0 {
 		if resource.Retention == nil {
 			data.Retention = nil
 			tflog.Debug(ctx, fmt.Sprintf("create snapmirror policy retention is nil: %#v", data.Retention))
@@ -658,7 +658,7 @@ func (r *SnapmirrorPolicyResource) Update(ctx context.Context, req resource.Upda
 	}
 
 	// preserve null/empty retention when it was not configured
-	if plan.Retention != nil && len(plan.Retention) > 0 {
+	if len(plan.Retention) > 0 {
 		if restInfo.Retention == nil {
 			plan.Retention = nil
 		} else {
