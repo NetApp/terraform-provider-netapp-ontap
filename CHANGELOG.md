@@ -1,3 +1,10 @@
+# 2.6.0 (2026-xx-xx)
+
+FEATURES:
+
+- **New Data Source:** `netapp-ontap_s3_user` and `netapp-ontap_s3_users`([#507](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/507))
+- **New Resource:** `netapp-ontap_s3_user` ([#508](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/508))
+
 # 2.5.0 (2026-03-12)
 
 FEATURES:
