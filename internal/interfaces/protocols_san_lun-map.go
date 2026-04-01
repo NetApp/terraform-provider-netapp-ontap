@@ -39,9 +39,9 @@ type ProtocolsSanLunMapsResourceBodyDataModelONTAP struct {
 
 // ProtocolsSanLunMapsDataSourceFilterModel describes the data source data model for queries.
 type ProtocolsSanLunMapsDataSourceFilterModel struct {
-	Lun    Lun    `mapstructure:"lun"`
-	SVM    SVM    `mapstructure:"svm"`
-	IGroup IGroup `mapstructure:"igroup"`
+	Lun    *Lun    `mapstructure:"lun"`
+	SVM    *SVM    `mapstructure:"svm"`
+	IGroup *IGroup `mapstructure:"igroup"`
 }
 
 // GetProtocolsSanLunMaps to get protocols_san_lun-maps info
@@ -50,11 +50,15 @@ func GetProtocolsSanLunMaps(errorHandler *utils.ErrorHandler, r restclient.RestC
 	query := r.NewQuery()
 	query.Fields([]string{"svm.name", "igroup.name", "igroup.uuid", "lun.name", "lun.uuid", "logical_unit_number"})
 	if filter != nil {
-		var filterMap map[string]interface{}
-		if err := mapstructure.Decode(filter, &filterMap); err != nil {
-			return nil, errorHandler.MakeAndReportError("error encoding /protocols/san/lun-maps filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
+		if filter.SVM != nil && filter.SVM.Name != "" {
+			query.Set("svm.name", filter.SVM.Name)
 		}
-		query.SetValues(filterMap)
+		if filter.Lun != nil && filter.Lun.Name != "" {
+			query.Set("lun.name", filter.Lun.Name)
+		}
+		if filter.IGroup != nil && filter.IGroup.Name != "" {
+			query.Set("igroup.name", filter.IGroup.Name)
+		}
 	}
 
 	statusCode, response, err := r.GetZeroOrMoreRecords(api, query, nil)

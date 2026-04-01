@@ -1,3 +1,9 @@
+# 2.6.0
+
+BUG FIXES:
+
+- **netapp-ontap_san_lun-maps**: Fixed Value Conversion Error when optional filter fields are not set([#651](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/651))
+
 # 2.5.0 (2026-03-12)
 
 FEATURES:
