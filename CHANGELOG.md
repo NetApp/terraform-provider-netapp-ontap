@@ -1,3 +1,9 @@
+# 2.6.0
+
+BUG FIXES:
+
+- **netapp-ontap_cifs_share**: Fixed issue with creating ACLs resource ([#653](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/653))
+
 # 2.5.0 (2026-03-12)
 
 FEATURES:

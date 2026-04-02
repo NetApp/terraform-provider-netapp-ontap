@@ -69,7 +69,7 @@ type ProtocolsCIFSShareResourceBodyDataModelONTAP struct {
 	ShowSnapshot          bool   `mapstructure:"show_snapshot,omitempty"`
 	UnixSymlink           string `mapstructure:"unix_symlink,omitempty"`  // API complains if this is not omit empty
 	VscanProfile          string `mapstructure:"vscan_profile,omitempty"` // API complains if this is not omit empty
-	AccessBasedEnumeration bool  `mapstructure:"access_based_enumeration"`
+	AccessBasedEnumeration *bool `mapstructure:"access_based_enumeration,omitempty"`
 }
 
 // ProtocolsCIFSShareDataSourceFilterModel describes the data source data model for queries.

@@ -499,7 +499,8 @@ func (r *ProtocolsCIFSShareResource) Create(ctx context.Context, req resource.Cr
 		body.Encryption = data.Encryption.ValueBool()
 	}
 	if !data.AccessBasedEnumeration.IsUnknown() {
-		body.AccessBasedEnumeration = data.AccessBasedEnumeration.ValueBool()
+		accessBasedEnumeration := data.AccessBasedEnumeration.ValueBool()
+		body.AccessBasedEnumeration = &accessBasedEnumeration
 	}
 	if !data.FileUmask.IsUnknown() {
 		body.FileUmask = data.FileUmask.ValueInt64()
@@ -624,6 +625,21 @@ func (r *ProtocolsCIFSShareResource) Create(ctx context.Context, req resource.Cr
 			}
 			data.Acls = setValue
 		}
+
+		if data.Acls.IsUnknown() {
+			setValue, diags := types.SetValue(types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"permission":    types.StringType,
+					"type":          types.StringType,
+					"user_or_group": types.StringType,
+				},
+			}, []attr.Value{})
+			if diags.HasError() {
+				resp.Diagnostics.Append(diags...)
+				return
+			}
+			data.Acls = setValue
+		}
 	}
 
 	tflog.Trace(ctx, "created a resource")
@@ -681,7 +697,8 @@ func (r *ProtocolsCIFSShareResource) Update(ctx context.Context, req resource.Up
 	}
 	if !plan.AccessBasedEnumeration.IsUnknown() {
 		if plan.AccessBasedEnumeration != state.AccessBasedEnumeration {
-			body.AccessBasedEnumeration = plan.AccessBasedEnumeration.ValueBool()
+			accessBasedEnumeration := plan.AccessBasedEnumeration.ValueBool()
+			body.AccessBasedEnumeration = &accessBasedEnumeration
 		}
 	}
 	if !plan.FileUmask.IsUnknown() {
@@ -772,6 +789,14 @@ func (r *ProtocolsCIFSShareResource) Update(ctx context.Context, req resource.Up
 			if diags.HasError() {
 				resp.Diagnostics.Append(diags...)
 				return
+			}
+			// If plan has no ACLs at all, delete every state ACL directly.
+			if len(planeAcls) == 0 {
+				err = interfaces.DeleteProtocolsCIFSShareACL(errorHandler, *client, svm.UUID, plan.Name.ValueString(), stateACLElement.UserOrGroup, stateACLElement.Type)
+				if err != nil {
+					return
+				}
+				continue
 			}
 			for index, planACL := range planeAcls {
 				var planACLElement ProtocolsCIFSShareResourceAcls
