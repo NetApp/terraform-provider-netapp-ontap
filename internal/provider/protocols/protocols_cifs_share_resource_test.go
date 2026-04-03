@@ -23,7 +23,7 @@ func TestAccProtocolsCIFSShareResource(t *testing.T) {
 			},
 			// Read testing
 			{
-				Config: testAccProtocolsCIFSShareResourceConfig("tfsvm", "acc_test_cifs_share"),
+				Config: testAccProtocolsCIFSShareResourceConfig("one", "acc_test_cifs_share"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_cifs_share.example", "name", "acc_test_cifs_share"),
 					resource.TestCheckResourceAttr("netapp-ontap_cifs_share.example", "comment", "this is a comment"),
@@ -31,7 +31,7 @@ func TestAccProtocolsCIFSShareResource(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccProtocolsCIFSShareResourceConfigUpdate("tfsvm", "acc_test_cifs_share"),
+				Config: testAccProtocolsCIFSShareResourceConfigUpdate("one", "acc_test_cifs_share"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_cifs_share.example", "name", "acc_test_cifs_share"),
 					resource.TestCheckResourceAttr("netapp-ontap_cifs_share.example", "comment", "update comment"),
@@ -39,13 +39,13 @@ func TestAccProtocolsCIFSShareResource(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccProtocolsCIFSShareResourceConfigUpdateAddACL("tfsvm", "acc_test_cifs_share"),
+				Config: testAccProtocolsCIFSShareResourceConfigUpdateAddACL("one", "acc_test_cifs_share"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_cifs_share.example", "name", "acc_test_cifs_share"),
 				),
 			},
 			{
-				Config: testAccProtocolsCIFSShareResourceConfigUpdateDeleteACL("tfsvm", "acc_test_cifs_share"),
+				Config: testAccProtocolsCIFSShareResourceConfigUpdateDeleteACL("one", "acc_test_cifs_share"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_cifs_share.example", "name", "acc_test_cifs_share"),
 				),
@@ -54,7 +54,7 @@ func TestAccProtocolsCIFSShareResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_cifs_share.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s", "acc_test_cifs_share", "tf_acc_svm", "clustercifs"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s", "acc_test_cifs_share", "one", "clustercifs"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_cifs_share.example", "name", "acc_test_cifs_share"),
 				),
@@ -89,7 +89,7 @@ resource "netapp-ontap_cifs_share" "example" {
 	cx_profile_name = "clustercifs"
   	name = "%s"
   	svm_name = "%s"
-	path = "/acc_test_cifs_share_volume"
+	path = "/"
 	acls = [
 		{
 	  		"permission": "read",
@@ -128,7 +128,7 @@ resource "netapp-ontap_cifs_share" "example" {
   cx_profile_name = "clustercifs"
   name = "%s"
   svm_name = "%s"
-  path = "/acc_test_cifs_share_volume"
+  path = "/"
   acls = [
 	{
 		"permission": "full_control",
@@ -168,7 +168,7 @@ resource "netapp-ontap_cifs_share" "example" {
   cx_profile_name = "clustercifs"
   name = "%s"
   svm_name = "%s"
-  path = "/acc_test_cifs_share_volume"
+  path = "/"
   acls = [
 	  {
 			"permission": "read",
@@ -212,7 +212,7 @@ resource "netapp-ontap_cifs_share" "example" {
   cx_profile_name = "clustercifs"
   name = "%s"
   svm_name = "%s"
-  path = "/acc_test_cifs_share_volume"
+  path = "/"
   acls = [
 	  {
 			"permission": "read",
