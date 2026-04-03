@@ -54,9 +54,9 @@ func TestAccProtocolsCIFSShareResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_cifs_share.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s", "acc_test_cifs_share_import", "tfsvm", "clustercifs"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s", "acc_test_cifs_share", "tf_acc_svm", "clustercifs"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_cifs_share.example", "name", "acc_test_cifs_share_import"),
+					resource.TestCheckResourceAttr("netapp-ontap_cifs_share.example", "name", "acc_test_cifs_share"),
 				),
 			},
 		},
