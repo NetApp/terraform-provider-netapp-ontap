@@ -195,19 +195,13 @@ func (d *ProtocolsSanLunMapsDataSource) Read(ctx context.Context, req datasource
 	if data.Filter != nil {
 		filter = &interfaces.ProtocolsSanLunMapsDataSourceFilterModel{}
 		if data.Filter.SVM != nil {
-			filter.SVM = &interfaces.SVM{
-				Name: data.Filter.SVM.Name.ValueString(),
-			}
+			filter.SVMName = data.Filter.SVM.Name.ValueString()
 		}
 		if data.Filter.Lun != nil {
-			filter.Lun = &interfaces.Lun{
-				Name: data.Filter.Lun.Name.ValueString(),
-			}
+			filter.LunName = data.Filter.Lun.Name.ValueString()
 		}
 		if data.Filter.IGroup != nil {
-			filter.IGroup = &interfaces.IGroup{
-				Name: data.Filter.IGroup.Name.ValueString(),
-			}
+			filter.IGroupName = data.Filter.IGroup.Name.ValueString()
 		}
 	}
 	restInfo, err := interfaces.GetProtocolsSanLunMaps(errorHandler, *client, filter)
