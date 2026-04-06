@@ -117,7 +117,7 @@ func (r *ProtocolsS3UserResource) Schema(ctx context.Context, req resource.Schem
 				when creating or modifying a user or when the user keys were last regenerated, after which the user keys expire and are no longer valid.
 				Valid format is: 'PnDTnHnMnS|PnW'. For example, P2DT6H3M10S specifies a time period of 2 days, 6 hours, 3 minutes, and 10 seconds.
 				If the value specified is '0' seconds, then the keys won't expire.
-				It can only be used when the keys regeneration operation is performed.
+				It can be used during user creation (POST) and during keys regeneration (PATCH with regenerate_keys).
 				`,
 				Optional: 		     true,
 			},
@@ -375,6 +375,14 @@ func (r *ProtocolsS3UserResource) Create(ctx context.Context, req resource.Creat
 			errors = append(errors, "secret_key requires ONTAP 9.16 or later")
 		}
 	}
+	if !data.KeyTimeToLive.IsNull() && !data.KeyTimeToLive.IsUnknown() && strings.TrimSpace(data.KeyTimeToLive.ValueString()) != "" {
+		if cluster.Version.Generation == 9 && cluster.Version.Major >= 14 {
+			ttlValue := data.KeyTimeToLive.ValueString()
+			body.KeyTimeToLive = &ttlValue
+		} else {
+			errors = append(errors, "key_time_to_live requires ONTAP 9.14 or later")
+		}
+	}
 
 	if len(errors) > 0 {
 		errorsString := strings.Join(errors, ", ")
@@ -401,8 +409,18 @@ func (r *ProtocolsS3UserResource) Create(ctx context.Context, req resource.Creat
 	data.Name = types.StringValue(restInfo.Name)
 	data.SVMName = types.StringValue(restInfo.SVM.Name)
 	data.Comment = types.StringValue(restInfo.Comment)
-	data.KeyExpiryTime = types.StringNull()
-	data.KeyTimeToLive = types.StringNull()
+	// key_time_to_live is an input-style argument. Keep the planned value in state.
+	// Only persist key_expiry_time when key_time_to_live is explicitly set.
+	if !data.KeyTimeToLive.IsNull() && !data.KeyTimeToLive.IsUnknown() && strings.TrimSpace(data.KeyTimeToLive.ValueString()) != "" {
+		if restInfo.KeyExpiryTime != "" {
+			data.KeyExpiryTime = types.StringValue(restInfo.KeyExpiryTime)
+		} else {
+			data.KeyExpiryTime = types.StringNull()
+		}
+	} else {
+		data.KeyTimeToLive = types.StringNull()
+		data.KeyExpiryTime = types.StringNull()
+	}
 
 	// keep action-style arguments out of state so they can be re-applied
 	// on subsequent runs when set in config
@@ -485,7 +503,7 @@ func (r *ProtocolsS3UserResource) Update(ctx context.Context, req resource.Updat
 		if !state.AccessKey.IsNull() && !state.AccessKey.IsUnknown() && strings.TrimSpace(state.AccessKey.ValueString()) != "" {
 			keysPresent = true
 		}
-		if !keysPresent && !state.SecretKey.IsNull() && !state.SecretKey.IsUnknown() && strings.TrimSpace(state.SecretKey.ValueString()) != "" {
+		if !state.SecretKey.IsNull() && !state.SecretKey.IsUnknown() && strings.TrimSpace(state.SecretKey.ValueString()) != "" {
 			keysPresent = true
 		}
 		if keysPresent {
