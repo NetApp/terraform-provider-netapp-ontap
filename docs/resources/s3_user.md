@@ -77,7 +77,7 @@ resource "netapp-ontap_s3_user" "example3" {
 				when creating or modifying a user or when the user keys were last regenerated, after which the user keys expire and are no longer valid.
 				Valid format is: 'PnDTnHnMnS|PnW'. For example, P2DT6H3M10S specifies a time period of 2 days, 6 hours, 3 minutes, and 10 seconds.
 				If the value specified is '0' seconds, then the keys won't expire.
-				It can only be used when the keys regeneration operation is performed.
+        It can be used during user creation (POST) and during keys regeneration (PATCH with regenerate_keys).
 - `regenerate_keys` (Boolean, [Write-only](https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments)) Specifies if secret_key and access_key need to be regenerated.
 				**Note:** This resource is not idempotent when this option is set.
 - `secret_key` (String, Sensitive) Specifies the secret key for the user.
