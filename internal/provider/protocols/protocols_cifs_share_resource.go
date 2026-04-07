@@ -794,8 +794,7 @@ func (r *ProtocolsCIFSShareResource) Update(ctx context.Context, req resource.Up
 					return
 				}
 			}
-		}
-		if len(planeAcls) != 0 {
+		} else {
 			// iterate over plan acls and compare with state acls. Make create or update or delete calls accordingly.
 			for _, element := range stateAcls {
 				var stateACLElement ProtocolsCIFSShareResourceAcls
