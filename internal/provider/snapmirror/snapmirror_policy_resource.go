@@ -298,30 +298,67 @@ func (r *SnapmirrorPolicyResource) Read(ctx context.Context, req resource.ReadRe
 	data.CreateSnapshotOnSource = types.BoolValue(restInfo.CreateSnapshotOnSource)
 	data.ID = types.StringValue(restInfo.UUID)
 
-	// if len(restInfo.Retention) == 0 {
-	if restInfo.Retention == nil {
-		data.Retention = nil
-	} else {
-		data.Retention = []RetentionModel{}
-		for _, item := range restInfo.Retention {
-			var retention RetentionModel
-			// conver count from string to int
-			count, err := strconv.Atoi(item.Count)
-			if err != nil {
-				errorHandler.MakeAndReportError("Decode count error", "snapmirror_policy retention count is not valid")
-				return
+	// preserve a null/empty retention in state unless the user configured rules
+	if len(data.Retention) > 0 {
+		if restInfo.Retention == nil {
+			data.Retention = nil
+		} else {
+			// Match by label and preserve the configured order. This also avoids
+			// persisting any additional default rule(s) returned by the API.
+			restRetentionByLabel := make(map[string]interfaces.RetentionGetRawDataModel, len(restInfo.Retention))
+			for _, item := range restInfo.Retention {
+				if item.Label == "" {
+					continue
+				}
+				// don't persist default retention rule returned by ONTAP
+				if item.Label == "sm_created" && item.Count == "1" {
+					continue
+				}
+				restRetentionByLabel[item.Label] = item
 			}
-			retention.Count = types.Int64Value(int64(count))
-			if item.CreationSchedule.Name != "" {
-				retention.CreationScheduleName = types.StringValue(item.CreationSchedule.Name)
+
+			configuredRetention := data.Retention
+			data.Retention = make([]RetentionModel, 0, len(configuredRetention))
+			for _, configured := range configuredRetention {
+				retention := configured
+				// store unknown optional values as unset in state
+				if retention.Count.IsUnknown() {
+					retention.Count = types.Int64Null()
+				}
+				if retention.CreationScheduleName.IsUnknown() {
+					retention.CreationScheduleName = types.StringNull()
+				}
+				if retention.Prefix.IsUnknown() {
+					retention.Prefix = types.StringNull()
+				}
+
+				// drop the default rule if it already exists in prior state
+				if retention.Label.ValueString() == "sm_created" && (retention.Count.IsNull() || retention.Count.ValueInt64() == 1) {
+					continue
+				}
+				configuredLabel := retention.Label.ValueString()
+				restItem, ok := restRetentionByLabel[configuredLabel]
+				if !ok {
+					data.Retention = append(data.Retention, retention)
+					continue
+				}
+				retention.Label = types.StringValue(restItem.Label)
+				if !retention.Count.IsNull() {
+					count, err := strconv.Atoi(restItem.Count)
+					if err != nil {
+						errorHandler.MakeAndReportError("Decode count error", "snapmirror_policy retention count is not valid")
+						return
+					}
+					retention.Count = types.Int64Value(int64(count))
+				}
+				if !retention.CreationScheduleName.IsNull() && !retention.CreationScheduleName.IsUnknown() && restItem.CreationSchedule.Name != "" {
+					retention.CreationScheduleName = types.StringValue(restItem.CreationSchedule.Name)
+				}
+				if !retention.Prefix.IsNull() && !retention.Prefix.IsUnknown() && restItem.Prefix != "" {
+					retention.Prefix = types.StringValue(restItem.Prefix)
+				}
+				data.Retention = append(data.Retention, retention)
 			}
-			if item.Label != "" {
-				retention.Label = types.StringValue(item.Label)
-			}
-			if item.Prefix != "" {
-				retention.Prefix = types.StringValue(item.Prefix)
-			}
-			data.Retention = append(data.Retention, retention)
 		}
 	}
 
@@ -415,30 +452,68 @@ func (r *SnapmirrorPolicyResource) Create(ctx context.Context, req resource.Crea
 	tflog.Debug(ctx, fmt.Sprintf("create snapmirror policy get resource: %#v", resource))
 	// Update the computed parameters
 	data.ID = types.StringValue(resource.UUID)
-	if resource.Retention == nil {
-		data.Retention = nil
-		tflog.Debug(ctx, fmt.Sprintf("create snapmirror policy retention is nil: %#v", data.Retention))
-	} else {
-		data.Retention = []RetentionModel{}
-		for _, item := range resource.Retention {
-			var retention RetentionModel
-			// conver count from string to int
-			count, err := strconv.Atoi(item.Count)
-			if err != nil {
-				errorHandler.MakeAndReportError("decode count error", "snapmirror_policy retention count is not valid")
-				return
+	// preserve null/empty retention when it was not configured
+	if len(data.Retention) > 0 {
+		if resource.Retention == nil {
+			data.Retention = nil
+			tflog.Debug(ctx, fmt.Sprintf("create snapmirror policy retention is nil: %#v", data.Retention))
+		} else {
+			// Match by label and preserve the configured order to avoid including
+			// any additional default rule(s) returned by the API.
+			restRetentionByLabel := make(map[string]interfaces.RetentionGetRawDataModel, len(resource.Retention))
+			for _, item := range resource.Retention {
+				if item.Label == "" {
+					continue
+				}
+				// don't persist default retention rule returned by ONTAP
+				if item.Label == "sm_created" && item.Count == "1" {
+					continue
+				}
+				restRetentionByLabel[item.Label] = item
 			}
-			retention.Count = types.Int64Value(int64(count))
-			if item.CreationSchedule.Name != "" {
-				retention.CreationScheduleName = types.StringValue(item.CreationSchedule.Name)
+
+			configuredRetention := data.Retention
+			data.Retention = make([]RetentionModel, 0, len(configuredRetention))
+			for _, configured := range configuredRetention {
+				retention := configured
+				// store unknown optional values as unset in state
+				if retention.Count.IsUnknown() {
+					retention.Count = types.Int64Null()
+				}
+				if retention.CreationScheduleName.IsUnknown() {
+					retention.CreationScheduleName = types.StringNull()
+				}
+				if retention.Prefix.IsUnknown() {
+					retention.Prefix = types.StringNull()
+				}
+
+				// drop the default rule if it already exists in prior state
+				if retention.Label.ValueString() == "sm_created" && (retention.Count.IsNull() || retention.Count.ValueInt64() == 1) {
+					continue
+				}
+				configuredLabel := retention.Label.ValueString()
+				restItem, ok := restRetentionByLabel[configuredLabel]
+				if !ok {
+					data.Retention = append(data.Retention, retention)
+					continue
+				}
+				retention.Label = types.StringValue(restItem.Label)
+				if !retention.Count.IsNull() {
+					count, err := strconv.Atoi(restItem.Count)
+					if err != nil {
+						errorHandler.MakeAndReportError("decode count error", "snapmirror_policy retention count is not valid")
+						return
+					}
+					retention.Count = types.Int64Value(int64(count))
+				}
+				if !retention.CreationScheduleName.IsNull() && !retention.CreationScheduleName.IsUnknown() && restItem.CreationSchedule.Name != "" {
+					retention.CreationScheduleName = types.StringValue(restItem.CreationSchedule.Name)
+				}
+				if !retention.Prefix.IsNull() && !retention.Prefix.IsUnknown() && restItem.Prefix != "" {
+					retention.Prefix = types.StringValue(restItem.Prefix)
+				}
+				data.Retention = append(data.Retention, retention)
 			}
-			if item.Label != "" {
-				retention.Label = types.StringValue(item.Label)
-			}
-			if item.Prefix != "" {
-				retention.Prefix = types.StringValue(item.Prefix)
-			}
-			data.Retention = append(data.Retention, retention)
 		}
 	}
 	data.Type = types.StringValue(resource.Type)
@@ -582,29 +657,67 @@ func (r *SnapmirrorPolicyResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	if restInfo.Retention == nil {
-		plan.Retention = nil
-	} else {
-		plan.Retention = []RetentionModel{}
-		for _, item := range restInfo.Retention {
-			var retention RetentionModel
-			// conver count from string to int
-			count, err := strconv.Atoi(item.Count)
-			if err != nil {
-				errorHandler.MakeAndReportError("decode count error", "snapmirror_policy retention count is not valid")
-				return
+	// preserve null/empty retention when it was not configured
+	if len(plan.Retention) > 0 {
+		if restInfo.Retention == nil {
+			plan.Retention = nil
+		} else {
+			// Match by label and preserve the configured order to avoid including
+			// any additional default rule(s) returned by the API.
+			restRetentionByLabel := make(map[string]interfaces.RetentionGetRawDataModel, len(restInfo.Retention))
+			for _, item := range restInfo.Retention {
+				if item.Label == "" {
+					continue
+				}
+				// don't persist default retention rule returned by ONTAP
+				if item.Label == "sm_created" && item.Count == "1" {
+					continue
+				}
+				restRetentionByLabel[item.Label] = item
 			}
-			retention.Count = types.Int64Value(int64(count))
-			if item.CreationSchedule.Name != "" {
-				retention.CreationScheduleName = types.StringValue(item.CreationSchedule.Name)
+
+			configuredRetention := plan.Retention
+			plan.Retention = make([]RetentionModel, 0, len(configuredRetention))
+			for _, configured := range configuredRetention {
+				retention := configured
+				// store unknown optional values as unset in state
+				if retention.Count.IsUnknown() {
+					retention.Count = types.Int64Null()
+				}
+				if retention.CreationScheduleName.IsUnknown() {
+					retention.CreationScheduleName = types.StringNull()
+				}
+				if retention.Prefix.IsUnknown() {
+					retention.Prefix = types.StringNull()
+				}
+
+				// drop the default rule if it already exists in prior plan/state
+				if retention.Label.ValueString() == "sm_created" && (retention.Count.IsNull() || retention.Count.ValueInt64() == 1) {
+					continue
+				}
+				configuredLabel := retention.Label.ValueString()
+				restItem, ok := restRetentionByLabel[configuredLabel]
+				if !ok {
+					plan.Retention = append(plan.Retention, retention)
+					continue
+				}
+				retention.Label = types.StringValue(restItem.Label)
+				if !retention.Count.IsNull() {
+					count, err := strconv.Atoi(restItem.Count)
+					if err != nil {
+						errorHandler.MakeAndReportError("decode count error", "snapmirror_policy retention count is not valid")
+						return
+					}
+					retention.Count = types.Int64Value(int64(count))
+				}
+				if !retention.CreationScheduleName.IsNull() && !retention.CreationScheduleName.IsUnknown() && restItem.CreationSchedule.Name != "" {
+					retention.CreationScheduleName = types.StringValue(restItem.CreationSchedule.Name)
+				}
+				if !retention.Prefix.IsNull() && !retention.Prefix.IsUnknown() && restItem.Prefix != "" {
+					retention.Prefix = types.StringValue(restItem.Prefix)
+				}
+				plan.Retention = append(plan.Retention, retention)
 			}
-			if item.Label != "" {
-				retention.Label = types.StringValue(item.Label)
-			}
-			if item.Prefix != "" {
-				retention.Prefix = types.StringValue(item.Prefix)
-			}
-			plan.Retention = append(plan.Retention, retention)
 		}
 	}
 

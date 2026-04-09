@@ -77,6 +77,9 @@ CATEGORIES = {
         "protocols_s3_policy_data_source.md",
         "protocols_s3_policies_data_source.md", 
         "protocols_s3_policy_resource.md",
+        "protocols_s3_user_data_source.md",
+        "protocols_s3_users_data_source.md", 
+        "protocols_s3_user_resource.md",
     ],
     'san': [
         "protocols_san_igroup_data_source.md",
