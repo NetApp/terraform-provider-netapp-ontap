@@ -768,8 +768,8 @@ func (r *ProtocolsCIFSShareResource) Update(ctx context.Context, req resource.Up
 
 	if !plan.Acls.IsUnknown() {
 		// reading acls from plan
-		planeAcls := make([]types.Object, 0, len(plan.Acls.Elements()))
-		diags := plan.Acls.ElementsAs(ctx, &planeAcls, false)
+		planAcls := make([]types.Object, 0, len(plan.Acls.Elements()))
+		diags := plan.Acls.ElementsAs(ctx, &planAcls, false)
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
@@ -781,7 +781,7 @@ func (r *ProtocolsCIFSShareResource) Update(ctx context.Context, req resource.Up
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		if len(planeAcls) == 0 {
+		if len(planAcls) == 0 {
 			for _, element := range stateAcls {
 				var stateACLElement ProtocolsCIFSShareResourceAcls
 				diags := element.As(ctx, &stateACLElement, basetypes.ObjectAsOptions{})
@@ -803,7 +803,7 @@ func (r *ProtocolsCIFSShareResource) Update(ctx context.Context, req resource.Up
 					resp.Diagnostics.Append(diags...)
 					return
 				}
-				for index, planACL := range planeAcls {
+				for index, planACL := range planAcls {
 					var planACLElement ProtocolsCIFSShareResourceAcls
 					diags := planACL.As(ctx, &planACLElement, basetypes.ObjectAsOptions{})
 					if diags.HasError() {
@@ -826,7 +826,7 @@ func (r *ProtocolsCIFSShareResource) Update(ctx context.Context, req resource.Up
 						}
 					}
 					// if we reach the end of stateAcls, then it's a delete action because it was not found in plan acls.
-					if index == len(planeAcls)-1 {
+					if index == len(planAcls)-1 {
 						err = interfaces.DeleteProtocolsCIFSShareACL(errorHandler, *client, svm.UUID, plan.Name.ValueString(), stateACLElement.UserOrGroup, stateACLElement.Type)
 						if err != nil {
 							return
@@ -838,7 +838,7 @@ func (r *ProtocolsCIFSShareResource) Update(ctx context.Context, req resource.Up
 			}
 		}
 		// now handle create action
-		for _, planACL := range planeAcls {
+		for _, planACL := range planAcls {
 			var planACLElement ProtocolsCIFSShareResourceAcls
 			diags := planACL.As(ctx, &planACLElement, basetypes.ObjectAsOptions{})
 			if diags.HasError() {
