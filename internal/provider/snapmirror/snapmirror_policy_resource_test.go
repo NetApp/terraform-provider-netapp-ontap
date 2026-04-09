@@ -18,21 +18,21 @@ func TestAccSnapmirrorPolicyResource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Test snapmirror policy error
 			{
-				Config:      testAccSnapmirrorPolicyResourceBasicConfig("non-existant"),
+				Config:      testAccSnapmirrorPolicyResourceBasicConfig("non-existent"),
 				ExpectError: regexp.MustCompile("2621462"),
 			},
 			// Test create snapmirror policy basic
 			{
 				Config: testAccSnapmirrorPolicyResourceBasicConfig("tf_acc_svm"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "name", "tf_acc_test"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "name", "tf_acc_snapmirror_policy"),
 				),
 			},
 			//  Test adding transfer_schedule
 			{
 				Config: testAccSnapmirrorPolicyResourceAddTransferScheduleBasicConfig("tf_acc_svm", "weekly"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "name", "tf_acc_test"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "name", "tf_acc_snapmirror_policy"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "transfer_schedule_name", "weekly"),
 				),
 			},
@@ -40,7 +40,7 @@ func TestAccSnapmirrorPolicyResource(t *testing.T) {
 			{
 				Config: testAccSnapmirrorPolicyResourceAddTransferScheduleBasicConfig("tf_acc_svm", "daily"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "name", "tf_acc_test"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "name", "tf_acc_snapmirror_policy"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "transfer_schedule_name", "daily"),
 				),
 			},
@@ -48,14 +48,14 @@ func TestAccSnapmirrorPolicyResource(t *testing.T) {
 			{
 				Config: testAccSnapmirrorPolicyResourceBasicConfig("tf_acc_svm"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "name", "tf_acc_test"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "name", "tf_acc_snapmirror_policy"),
 				),
 			},
 			// Test add snapmirror policy with comment and identity_preservation
 			{
 				Config: testAccSnapmirrorPolicyResourceConfig("tf_acc_svm", "test comment", "full"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "name", "tf_acc_test"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "name", "tf_acc_snapmirror_policy"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "comment", "test comment"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "identity_preservation", "full"),
 				),
@@ -64,7 +64,7 @@ func TestAccSnapmirrorPolicyResource(t *testing.T) {
 			{
 				Config: testAccSnapmirrorPolicyResourceConfig("tf_acc_svm", "update comment", "exclude_network_config"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "name", "tf_acc_test"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "name", "tf_acc_snapmirror_policy"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "comment", "update comment"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "identity_preservation", "exclude_network_config"),
 				),
@@ -73,10 +73,10 @@ func TestAccSnapmirrorPolicyResource(t *testing.T) {
 			{
 				Config: testAccSnapmirrorPolicyResourceAddTwoRetentionConfig("tf_acc_svm", "update comment", "exclude_network_config", "weekly", 5),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "name", "tf_acc_test"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "name", "tf_acc_snapmirror_policy"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "comment", "update comment"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "identity_preservation", "exclude_network_config"),
-					// check number of reteion
+					// check number of retention
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "retention.#", "2"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "retention.0.label", "hourly"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "retention.0.count", "7"),
@@ -88,7 +88,7 @@ func TestAccSnapmirrorPolicyResource(t *testing.T) {
 			{
 				Config: testAccSnapmirrorPolicyResourceRemoveOneRetentionConfig("tf_acc_svm", "update comment", "exclude_network_config"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "name", "tf_acc_test"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "name", "tf_acc_snapmirror_policy"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "comment", "update comment"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.example", "identity_preservation", "exclude_network_config"),
 					// check number of reteion
@@ -101,7 +101,7 @@ func TestAccSnapmirrorPolicyResource(t *testing.T) {
 			{
 				Config: testAccSnapmirrorPolicyResourceSyncBasicConfig("tf_acc_svm", "test sync"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.sync_example", "name", "test_sync"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.sync_example", "name", "tf_acc_snapmirror_policy_sync"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.sync_example", "comment", "test sync"),
 				),
 			},
@@ -109,7 +109,7 @@ func TestAccSnapmirrorPolicyResource(t *testing.T) {
 			{
 				Config: testAccSnapmirrorPolicyResourceSyncBasicConfig("tf_acc_svm", "test update sync comment"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.sync_example", "name", "test_sync"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.sync_example", "name", "tf_acc_snapmirror_policy_sync"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.sync_example", "comment", "test update sync comment"),
 				),
 			},
@@ -117,7 +117,7 @@ func TestAccSnapmirrorPolicyResource(t *testing.T) {
 			{
 				Config: testAccSnapmirrorPolicyResourceSyncAddRetentionConfig("tf_acc_svm", "test add retenion in sync type"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.sync_example", "name", "test_sync"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.sync_example", "name", "tf_acc_snapmirror_policy_sync"),
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.sync_example", "comment", "test add retenion in sync type"),
 					// check number of reteion
 					resource.TestCheckResourceAttr("netapp-ontap_snapmirror_policy.sync_example", "retention.#", "1"),
@@ -157,7 +157,7 @@ provider "netapp-ontap" {
 
 resource "netapp-ontap_snapmirror_policy" "example" {
   cx_profile_name = "cluster4"
-  name = "tf_acc_test"
+  name = "tf_acc_snapmirror_policy"
   svm_name = "%s"
   type = "async"
 }`, host, admin, password, svm)
@@ -186,7 +186,7 @@ provider "netapp-ontap" {
 
 resource "netapp-ontap_snapmirror_policy" "example" {
   cx_profile_name = "cluster4"
-  name = "tf_acc_test"
+  name = "tf_acc_snapmirror_policy"
   svm_name = "%s"
   type = "async"
   transfer_schedule_name = "%s"
@@ -216,7 +216,7 @@ provider "netapp-ontap" {
 
 resource "netapp-ontap_snapmirror_policy" "example" {
   cx_profile_name = "cluster4"
-  name = "tf_acc_test"
+  name = "tf_acc_snapmirror_policy"
   svm_name = "%s"
   comment = "%s"
   identity_preservation = "%s"
@@ -247,7 +247,7 @@ provider "netapp-ontap" {
 
 resource "netapp-ontap_snapmirror_policy" "example" {
   cx_profile_name = "cluster4"
-  name = "tf_acc_test"
+  name = "tf_acc_snapmirror_policy"
   svm_name = "%s"
   comment = "%s"
   identity_preservation = "%s"
@@ -289,7 +289,7 @@ provider "netapp-ontap" {
 
 resource "netapp-ontap_snapmirror_policy" "example" {
   cx_profile_name = "cluster4"
-  name = "tf_acc_test"
+  name = "tf_acc_snapmirror_policy"
   svm_name = "%s"
   comment = "%s"
   identity_preservation = "%s"
@@ -327,7 +327,7 @@ provider "netapp-ontap" {
 
 resource "netapp-ontap_snapmirror_policy" "sync_example" {
   cx_profile_name = "cluster4"
-  name = "test_sync"
+  name = "tf_acc_snapmirror_policy_sync"
   svm_name = "%s"
   type = "sync"
   sync_type = "sync"
@@ -358,7 +358,7 @@ provider "netapp-ontap" {
 
 resource "netapp-ontap_snapmirror_policy" "sync_example" {
   cx_profile_name = "cluster4"
-  name = "test_sync"
+  name = "tf_acc_snapmirror_policy_sync"
   svm_name = "%s"
   type = "sync"
   sync_type = "sync"
@@ -395,7 +395,7 @@ provider "netapp-ontap" {
 
 resource "netapp-ontap_snapmirror_policy" "sync_example" {
   cx_profile_name = "cluster4"
-  name = "test_sync"
+  name = "tf_acc_snapmirror_policy_sync"
   svm_name = "%s"
   type = "sync"
   sync_type = "sync"

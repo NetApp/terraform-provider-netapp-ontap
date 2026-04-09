@@ -50,9 +50,9 @@ type ProtocolsSanLunMapsDataSourceModel struct {
 
 // ProtocolsSanLunMapsDataSourceFilterModel describes the data source data model for queries.
 type ProtocolsSanLunMapsDataSourceFilterModel struct {
-	SVM    svm.SVM `tfsdk:"svm"`
-	Lun    Lun     `tfsdk:"lun"`
-	IGroup IGroup  `tfsdk:"igroup"`
+	SVM    *svm.SVM `tfsdk:"svm"`
+	Lun    *Lun     `tfsdk:"lun"`
+	IGroup *IGroup  `tfsdk:"igroup"`
 }
 
 // Metadata returns the data source type name.
@@ -193,16 +193,15 @@ func (d *ProtocolsSanLunMapsDataSource) Read(ctx context.Context, req datasource
 
 	var filter *interfaces.ProtocolsSanLunMapsDataSourceFilterModel = nil
 	if data.Filter != nil {
-		filter = &interfaces.ProtocolsSanLunMapsDataSourceFilterModel{
-			SVM: interfaces.SVM{
-				Name: data.Filter.SVM.Name.ValueString(),
-			},
-			Lun: interfaces.Lun{
-				Name: data.Filter.Lun.Name.ValueString(),
-			},
-			IGroup: interfaces.IGroup{
-				Name: data.Filter.IGroup.Name.ValueString(),
-			},
+		filter = &interfaces.ProtocolsSanLunMapsDataSourceFilterModel{}
+		if data.Filter.SVM != nil {
+			filter.SVMName = data.Filter.SVM.Name.ValueString()
+		}
+		if data.Filter.Lun != nil {
+			filter.LunName = data.Filter.Lun.Name.ValueString()
+		}
+		if data.Filter.IGroup != nil {
+			filter.IGroupName = data.Filter.IGroup.Name.ValueString()
 		}
 	}
 	restInfo, err := interfaces.GetProtocolsSanLunMaps(errorHandler, *client, filter)
