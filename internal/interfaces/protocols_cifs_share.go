@@ -51,7 +51,7 @@ type AclsGet struct {
 // ProtocolsCIFSShareResourceBodyDataModelONTAP describes the body data model using go types for mapping.
 type ProtocolsCIFSShareResourceBodyDataModelONTAP struct {
 	Name                  string `mapstructure:"name,omitempty"` // can't be present in update, so omit empty.
-	SVM                   svm    `mapstructure:"svm"`
+	SVM                   svm    `mapstructure:"svm,omitempty"`
 	Acls                  []Acls `mapstructure:"acls,omitempty"` // API complains if this is not omit empty
 	ChangeNotify          bool   `mapstructure:"change_notify,omitempty"`
 	Comment               string `mapstructure:"comment,omitempty"` // API complains if this is not omit empty

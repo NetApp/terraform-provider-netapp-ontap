@@ -390,37 +390,31 @@ func (r *ProtocolsCIFSShareResource) Read(ctx context.Context, req resource.Read
 	data.AccessBasedEnumeration = types.BoolValue(restInfo.AccessBasedEnumeration)
 
 	// Acls
-	setElements := []attr.Value{}
+	aclsAttrTypes := map[string]attr.Type{
+		"permission":    types.StringType,
+		"type":          types.StringType,
+		"user_or_group": types.StringType,
+	}
+	setElements := make([]attr.Value, 0, len(restInfo.Acls))
 	for _, acls := range restInfo.Acls {
-		elementType := map[string]attr.Type{
-			"permission":    types.StringType,
-			"type":          types.StringType,
-			"user_or_group": types.StringType,
-		}
 		elementValue := map[string]attr.Value{
 			"permission":    types.StringValue(acls.Permission),
 			"type":          types.StringValue(acls.Type),
 			"user_or_group": types.StringValue(acls.UserOrGroup),
 		}
-		objectValue, diags := types.ObjectValue(elementType, elementValue)
+		objectValue, diags := types.ObjectValue(aclsAttrTypes, elementValue)
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
 		}
 		setElements = append(setElements, objectValue)
-		setValue, diags := types.SetValue(types.ObjectType{
-			AttrTypes: map[string]attr.Type{
-				"permission":    types.StringType,
-				"type":          types.StringType,
-				"user_or_group": types.StringType,
-			},
-		}, setElements)
-		if diags.HasError() {
-			resp.Diagnostics.Append(diags...)
-			return
-		}
-		data.Acls = setValue
 	}
+	setValue, diags := types.SetValue(types.ObjectType{AttrTypes: aclsAttrTypes}, setElements)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	data.Acls = setValue
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
@@ -668,96 +662,106 @@ func (r *ProtocolsCIFSShareResource) Update(ctx context.Context, req resource.Up
 	}
 
 	var body interfaces.ProtocolsCIFSShareResourceBodyDataModelONTAP
+	shareUpdateNeeded := false
 
 	if !plan.ChangeNotify.IsUnknown() {
 		if plan.ChangeNotify != state.ChangeNotify {
 			body.ChangeNotify = plan.ChangeNotify.ValueBool()
+			shareUpdateNeeded = true
 		}
 	}
 	if !plan.Comment.IsUnknown() {
 		if plan.Comment != state.Comment {
 			body.Comment = plan.Comment.ValueString()
+			shareUpdateNeeded = true
 		}
 	}
 	if !plan.ContinuouslyAvailable.IsUnknown() {
 		if plan.ContinuouslyAvailable != state.ContinuouslyAvailable {
 			body.ContinuouslyAvailable = plan.ContinuouslyAvailable.ValueBool()
+			shareUpdateNeeded = true
 		}
 	}
 
 	if !plan.DirUmask.IsUnknown() {
 		if plan.DirUmask != state.DirUmask {
 			body.DirUmask = plan.DirUmask.ValueInt64()
+			shareUpdateNeeded = true
 		}
 	}
 	if !plan.Encryption.IsUnknown() {
 		if plan.Encryption != state.Encryption {
 			body.Encryption = plan.Encryption.ValueBool()
+			shareUpdateNeeded = true
 		}
 	}
 	if !plan.AccessBasedEnumeration.IsUnknown() {
 		if plan.AccessBasedEnumeration != state.AccessBasedEnumeration {
 			accessBasedEnumeration := plan.AccessBasedEnumeration.ValueBool()
 			body.AccessBasedEnumeration = &accessBasedEnumeration
+			shareUpdateNeeded = true
 		}
 	}
 	if !plan.FileUmask.IsUnknown() {
 		if plan.FileUmask != state.FileUmask {
 			body.FileUmask = plan.FileUmask.ValueInt64()
+			shareUpdateNeeded = true
 		}
 	}
 
 	if !plan.ForceGroupForCreate.IsUnknown() {
 		if plan.ForceGroupForCreate != state.ForceGroupForCreate {
 			body.ForceGroupForCreate = plan.ForceGroupForCreate.ValueString()
+			shareUpdateNeeded = true
 		}
 	}
 
 	if !plan.NamespaceCaching.IsUnknown() {
 		if plan.NamespaceCaching != state.NamespaceCaching {
 			body.NamespaceCaching = plan.NamespaceCaching.ValueBool()
+			shareUpdateNeeded = true
 		}
 	}
 
 	if !plan.NoStrictSecurity.IsUnknown() {
 		if plan.NoStrictSecurity != state.NoStrictSecurity {
 			body.NoStrictSecurity = plan.NoStrictSecurity.ValueBool()
+			shareUpdateNeeded = true
 		}
 	}
 
 	if !plan.OfflineFiles.IsUnknown() {
 		if plan.OfflineFiles != state.OfflineFiles {
 			body.OfflineFiles = plan.OfflineFiles.ValueString()
+			shareUpdateNeeded = true
 		}
 	}
 
 	if !plan.Oplocks.IsUnknown() {
 		if plan.Oplocks != state.Oplocks {
 			body.Oplocks = plan.Oplocks.ValueBool()
+			shareUpdateNeeded = true
 		}
 	}
 
 	if !plan.ShowSnapshot.IsUnknown() {
 		if plan.ShowSnapshot != state.ShowSnapshot {
 			body.ShowSnapshot = plan.ShowSnapshot.ValueBool()
+			shareUpdateNeeded = true
 		}
 	}
 
 	if !plan.UnixSymlink.IsUnknown() {
 		if plan.UnixSymlink != state.UnixSymlink {
 			body.UnixSymlink = plan.UnixSymlink.ValueString()
+			shareUpdateNeeded = true
 		}
 	}
 
 	if !plan.VscanProfile.IsUnknown() {
 		if plan.VscanProfile != state.VscanProfile {
 			body.VscanProfile = plan.VscanProfile.ValueString()
-		}
-	}
-
-	if !plan.ContinuouslyAvailable.IsUnknown() {
-		if plan.ContinuouslyAvailable != state.ContinuouslyAvailable {
-			body.ContinuouslyAvailable = plan.ContinuouslyAvailable.ValueBool()
+			shareUpdateNeeded = true
 		}
 	}
 
@@ -790,6 +794,24 @@ func (r *ProtocolsCIFSShareResource) Update(ctx context.Context, req resource.Up
 					return
 				}
 				err = interfaces.DeleteProtocolsCIFSShareACL(errorHandler, *client, svm.UUID, plan.Name.ValueString(), stateACLElement.UserOrGroup, stateACLElement.Type)
+				if err != nil {
+					return
+				}
+			}
+		} else if len(stateAcls) == 0 {
+			// state had no ACLs; create all ACLs from plan
+			for _, planACL := range planAcls {
+				var planACLElement ProtocolsCIFSShareResourceAcls
+				diags := planACL.As(ctx, &planACLElement, basetypes.ObjectAsOptions{})
+				if diags.HasError() {
+					resp.Diagnostics.Append(diags...)
+					return
+				}
+				interfacesAcls := interfaces.ProtocolsCIFSShareACLResourceBodyDataModelONTAP{}
+				interfacesAcls.Permission = planACLElement.Permission
+				interfacesAcls.Type = planACLElement.Type
+				interfacesAcls.UserOrGroup = planACLElement.UserOrGroup
+				_, err = interfaces.CreateProtocolsCIFSShareACL(errorHandler, *client, interfacesAcls, svm.UUID, plan.Name.ValueString())
 				if err != nil {
 					return
 				}
@@ -837,50 +859,48 @@ func (r *ProtocolsCIFSShareResource) Update(ctx context.Context, req resource.Up
 
 			}
 		}
-		// now handle create action
-		for _, planACL := range planAcls {
-			var planACLElement ProtocolsCIFSShareResourceAcls
-			diags := planACL.As(ctx, &planACLElement, basetypes.ObjectAsOptions{})
-			if diags.HasError() {
-				resp.Diagnostics.Append(diags...)
-				return
-			}
-
-			for index, element := range stateAcls {
-				var stateACLElement ProtocolsCIFSShareResourceAcls
-				diags := element.As(ctx, &stateACLElement, basetypes.ObjectAsOptions{})
+		// now handle create action (only when state had ACLs)
+		if len(planAcls) != 0 && len(stateAcls) != 0 {
+			for _, planACL := range planAcls {
+				var planACLElement ProtocolsCIFSShareResourceAcls
+				diags := planACL.As(ctx, &planACLElement, basetypes.ObjectAsOptions{})
 				if diags.HasError() {
 					resp.Diagnostics.Append(diags...)
 					return
 				}
-				if stateACLElement.UserOrGroup == planACLElement.UserOrGroup && stateACLElement.Type == planACLElement.Type {
-					if stateACLElement.Permission == planACLElement.Permission {
-						break
-					} else {
-						// update is already handled by above logic, so break
+
+				for index, element := range stateAcls {
+					var stateACLElement ProtocolsCIFSShareResourceAcls
+					diags := element.As(ctx, &stateACLElement, basetypes.ObjectAsOptions{})
+					if diags.HasError() {
+						resp.Diagnostics.Append(diags...)
+						return
+					}
+					if stateACLElement.UserOrGroup == planACLElement.UserOrGroup && stateACLElement.Type == planACLElement.Type {
 						break
 					}
-				}
-				// if we reach the end of planAcls, then we know it's a create action because it was not found in state acls.
-				if index == len(stateAcls)-1 {
-					interfacesAcls := interfaces.ProtocolsCIFSShareACLResourceBodyDataModelONTAP{}
-					interfacesAcls.Permission = planACLElement.Permission
-					interfacesAcls.Type = planACLElement.Type
-					interfacesAcls.UserOrGroup = planACLElement.UserOrGroup
-					_, err = interfaces.CreateProtocolsCIFSShareACL(errorHandler, *client, interfacesAcls, svm.UUID, plan.Name.ValueString())
-					if err != nil {
-						return
+					// if we reach the end of stateAcls, then we know it's a create action because it was not found in state acls.
+					if index == len(stateAcls)-1 {
+						interfacesAcls := interfaces.ProtocolsCIFSShareACLResourceBodyDataModelONTAP{}
+						interfacesAcls.Permission = planACLElement.Permission
+						interfacesAcls.Type = planACLElement.Type
+						interfacesAcls.UserOrGroup = planACLElement.UserOrGroup
+						_, err = interfaces.CreateProtocolsCIFSShareACL(errorHandler, *client, interfacesAcls, svm.UUID, plan.Name.ValueString())
+						if err != nil {
+							return
+						}
 					}
 				}
 			}
-
 		}
 
 	}
 
-	err = interfaces.UpdateProtocolsCIFSShare(errorHandler, *client, body, plan.Name.ValueString(), svm.UUID)
-	if err != nil {
-		return
+	if shareUpdateNeeded {
+		err = interfaces.UpdateProtocolsCIFSShare(errorHandler, *client, body, plan.Name.ValueString(), svm.UUID)
+		if err != nil {
+			return
+		}
 	}
 
 	// Save updated data into Terraform state
