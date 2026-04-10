@@ -12,15 +12,5 @@ variable "validate_certs" {
     type = bool
     default = false
 }
-variable "client_cert_file" {
-    type = string
-    default = null
-}
-variable "client_key_file" {
-    type = string
-    default = null
-}
-variable "ca_cert_file" {
-    type = string
-    default = null
-}
+
+# Alternate method: For certificate-based auth, see docs/guides/ssl_certificate_authentication.md

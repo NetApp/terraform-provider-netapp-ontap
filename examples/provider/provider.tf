@@ -62,16 +62,13 @@ provider "netapp-ontap" {
       validate_certs = var.validate_certs
     },
     {
-      name = "mycluster"
-      hostname = "10.196.19.82"
-      username = var.username
-      password = var.password
-      client_cert_file = var.client_cert_file
-      client_key_file = var.client_key_file
-      ca_cert_file = var.ca_cert_file
-      validate_certs = var.validate_certs
-      https = true
-      insecure = true
+      name = "gcnv-ontap-mode"
+      google_netapp_unified_pool = {
+        project_id = "1234567890"
+        location = var.location
+        storage_pool = var.storage_pool
+        # custom_base_url = "https://netapp.googleapis.com/v1beta1"
+      }
     }
   ]
 }

@@ -243,18 +243,42 @@ func (r *SnapmirrorResource) Read(ctx context.Context, req resource.ReadRequest,
 		data.ID = types.StringValue(restInfo.UUID)
 		data.Healthy = types.BoolValue(restInfo.Healthy)
 		data.State = types.StringValue(restInfo.State)
-		data.Policy.TransferSchedule.Name = types.StringValue(restInfo.Policy.TransferSchedule.Name)
+		// only refresh policy fields if policy and policy.transfer_schedule were configured
+		// and already exist in prior state
+		if data.Policy != nil {
+			if restInfo.Policy.Name != "" {
+				data.Policy.Name = types.StringValue(restInfo.Policy.Name)
+			}
+			if data.Policy.TransferSchedule != nil {
+				if restInfo.Policy.TransferSchedule != nil && restInfo.Policy.TransferSchedule.Name != "" {
+					data.Policy.TransferSchedule = &TransferSchedule{
+						Name: types.StringValue(restInfo.Policy.TransferSchedule.Name),
+					}
+				}
+			}
+		}
 	} else {
 		restInfoImport, err := interfaces.GetSnapmirrorByDestinationPath(errorHandler, *client, data.DestinationEndPoint.Path.ValueString(), nil)
 		if err != nil {
-			// error reporting done inside GetSnapmirrorByID
+			// error reporting done inside GetSnapmirrorByDestinationPath
 			return
 		}
 		data.ID = types.StringValue(restInfoImport.UUID)
 		data.Healthy = types.BoolValue(restInfoImport.Healthy)
 		data.State = types.StringValue(restInfoImport.State)
 		data.DestinationEndPoint.Path = types.StringValue(restInfoImport.Destination.Path)
-		data.Policy.TransferSchedule.Name = types.StringValue(restInfoImport.Policy.TransferSchedule.Name)
+		if data.Policy != nil {
+			if restInfoImport.Policy.Name != "" {
+				data.Policy.Name = types.StringValue(restInfoImport.Policy.Name)
+			}
+			if data.Policy.TransferSchedule != nil {
+				if restInfoImport.Policy.TransferSchedule != nil && restInfoImport.Policy.TransferSchedule.Name != "" {
+					data.Policy.TransferSchedule = &TransferSchedule{
+						Name: types.StringValue(restInfoImport.Policy.TransferSchedule.Name),
+					}
+				}
+			}
+		}
 	}
 
 	// Write logs using the tflog package

@@ -27,10 +27,10 @@ type ConnectionProfile struct {
 	MaxConcurrentRequests int
 	UseAWSLambda          bool
 	UseGCNV               bool
-	AWS                   AWSConfig  `mapstructure:"aws,omitempty"`
 	GCNV                  GCNVConfig `mapstructure:"gcnv,omitempty"`
-	ClientCertFile        string
-	ClientKeyFile         string
+	AWS                   AWSConfig  `mapstructure:"AWS,omitempty"`
+	CertFilepath          string
+	KeyFilepath           string
 	CACertFile            string
 }
 
@@ -270,6 +270,9 @@ func NewClient(ctx context.Context, cxProfile ConnectionProfile, tag string, job
 		return nil, errors.New(msg)
 	}
 	httpProfile.APIRoot = "api"
+	httpProfile.CertFilepath = cxProfile.CertFilepath
+	httpProfile.KeyFilepath = cxProfile.KeyFilepath
+	httpProfile.CACertFile = cxProfile.CACertFile
 	maxConcurrentRequests := cxProfile.MaxConcurrentRequests
 	if maxConcurrentRequests == 0 {
 		maxConcurrentRequests = 6

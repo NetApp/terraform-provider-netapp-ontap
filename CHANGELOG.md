@@ -1,9 +1,17 @@
-# 2.4.1 (2026-**-**)
+# 2.6.0 (2026-xx-xx)
+
+FEATURES:
+- **New:** Support ONTAP-mode in Google Cloud NetApp Volumes (GCNV)
+- **New Data Source:** `netapp-ontap_s3_user` and `netapp-ontap_s3_users`([#507](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/507))
+- **New Resource:** `netapp-ontap_s3_user` ([#508](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/508))
 
 BUG FIXES:
 
-- **netapp-ontap_volumes**: fixed issue with data source ([#578](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/578))
-- **netapp-ontap_svms_data_source**: Fixed `storage_limit` value conversion error. ([#574](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/574))
+- **netapp-ontap_snapmirror_policy resource**: fixed issue with create when `retention` is not set in config ([#647](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/647))
+- **netapp-ontap_san_lun-maps**: Fixed Value Conversion Error when optional filter fields are not set ([#651](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/651))
+- **netapp-ontap_cifs_share**: Fixed issue with creating ACLs resource ([#653](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/653))
+
+# 2.5.0 (2026-03-12)
 
 FEATURES:
 
@@ -15,6 +23,7 @@ FEATURES:
 - **New Resource:** `netapp-ontap_network_ip_service_policy` ([#621](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/621))
 - **New Data Source:** `netapp-ontap_fpolicy_external_engine` and `netapp-ontap_fpolicy_external_engines` ([#625](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/625))
 - **New Resource:** `netapp-ontap_fpolicy_external_engine` ([#625](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/625))
+- Configured SSL certificate based authentication in addition to basic username and password authentication in provider config.
 
 ENHANCEMENTS:
 
@@ -25,6 +34,11 @@ BUG FIXES:
 
 - Fixed import documentation on resources which are supporting import. ([#613](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/613))
 - **netapp-ontap_name_services_ldap_resource**: Fixed duplicate Set Element Error with `preferred_ad_servers` ([#615](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/615))
+- **netapp-ontap_volumes**: fixed issue with data source ([#578](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/578))
+- **netapp-ontap_svms_data_source**: Fixed `storage_limit` value conversion error. ([#574](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/574))
+- **netapp-ontap_snapmirror**: fixed issue with reading `policy` option in resource. ([#641](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/641))
+- **netapp-ontap_volume_snapshots data source**: The `name` field in the filter block is now optional.
+- **netapp-ontap_volumes_files data source**: Fixed documentation with corrected terminology and renamed the documentation file from `volume_files.md` to `volumes_files.md`
 
 # 2.4.0 (2025-11-20)
 
