@@ -137,6 +137,173 @@ func (c *RestClient) unmarshalAWSLambdaResponse(statusCode int, responseJSON []b
 	return statusCode, finalResponse, err
 }
 
+// unmarshalGCNVResponse converts the REST response from GCNV into a structure with a list of 0 or more records.
+// GCNV wraps ONTAP REST responses in a "body" object. The response structure is:
+//
+//	{
+//	  "body": {
+//	    "num_records": 1,
+//	    "records": [...]
+//	  }
+//	}
+//
+// For errors, GCNV returns:
+//
+//	{
+//	  "body": {
+//	    "code": 400,
+//	    "message": "error message"
+//	  }
+//	}
+func (c *RestClient) unmarshalGCNVResponse(statusCode int, responseJSON []byte, httpClientErr error) (int, RestResponse, error) {
+	emptyResponse := RestResponse{
+		NumRecords: 0,
+		Records:    []map[string]interface{}{},
+		RestError:  RestError{},
+		StatusCode: statusCode,
+		HTTPError:  "",
+		ErrorType:  "",
+	}
+	if httpClientErr != nil {
+		emptyResponse.HTTPError = httpClientErr.Error()
+		emptyResponse.ErrorType = "http"
+		return statusCode, emptyResponse, httpClientErr
+	}
+
+	// Parse the GCNV response
+	var dataMap map[string]interface{}
+	if err := json.Unmarshal(responseJSON, &dataMap); err != nil {
+		// Provide helpful error message when API returns HTML instead of JSON
+		responsePreview := string(responseJSON)
+		if len(responsePreview) > 150 {
+			responsePreview = responsePreview[:150] + "..."
+		}
+
+		var detailedError string
+		if statusCode == 404 {
+			detailedError = fmt.Sprintf("API endpoint not found (404). The GCNV API endpoint may not exist. Please verify: 1) 'environment' setting (prod/test), 2) 'api_version' setting (v1/v1beta1), 3) project_id, location, and storage_pool are correct. Response preview: %s", responsePreview)
+		} else if statusCode >= 400 && statusCode < 500 {
+			detailedError = fmt.Sprintf("Client error (HTTP %d). The API request may be malformed or the endpoint doesn't exist. Check your GCNV configuration (environment, api_version). Response preview: %s", statusCode, responsePreview)
+		} else if statusCode >= 500 {
+			detailedError = fmt.Sprintf("Server error (HTTP %d). The GCNV service may be experiencing issues. Response preview: %s", statusCode, responsePreview)
+		} else {
+			detailedError = fmt.Sprintf("unable to parse JSON response (HTTP %d): %s. Response preview: %s", statusCode, err, responsePreview)
+		}
+
+		tflog.Error(c.ctx, fmt.Sprintf("%s. Full response: %s", detailedError, string(responseJSON)))
+		emptyResponse.ErrorType = "bad_response_decode_json"
+		return statusCode, emptyResponse, fmt.Errorf("%s", detailedError)
+	}
+	tflog.Debug(c.ctx, fmt.Sprintf("GCNV dataMap %#v", dataMap))
+
+	// Check for GCNV error format (error at root level)
+	if errorData, hasError := dataMap["error"].(map[string]interface{}); hasError {
+		emptyResponse.ErrorType = "gcnv_error"
+		code := errorData["code"]
+		message := errorData["message"]
+		status := errorData["status"]
+		err := fmt.Errorf("GCNV API error %v (%v): %v", code, status, message)
+		tflog.Error(c.ctx, fmt.Sprintf("GCNV error detected: code=%v, status=%v, message=%v", code, status, message))
+		// Put error in Records for checkRestErrors compatibility
+		emptyResponse.Records = []map[string]interface{}{
+			{
+				"body": map[string]interface{}{
+					"code":    code,
+					"message": message,
+					"status":  status,
+				},
+			},
+		}
+		emptyResponse.NumRecords = 1
+		return statusCode, emptyResponse, err
+	}
+
+	// Extract the "body" or "rawResponse" wrapper for success responses
+	bodyData, ok := dataMap["body"].(map[string]interface{})
+	if !ok {
+		// Try "rawResponse" wrapper (used by GCNV for GET requests)
+		bodyData, ok = dataMap["rawResponse"].(map[string]interface{})
+		if !ok {
+			err := fmt.Errorf("GCNV response missing 'body' or 'rawResponse' wrapper")
+			tflog.Error(c.ctx, fmt.Sprintf("%s, response=%#v", err, dataMap))
+			emptyResponse.ErrorType = "bad_gcnv_response_format"
+			return statusCode, emptyResponse, err
+		}
+	}
+
+	// Check for GCNV error format within body (code and message in body)
+	// Only treat as error if code is non-zero (code=0 means success in GCNV)
+	if code, codeExists := bodyData["code"]; codeExists {
+		if message, msgExists := bodyData["message"]; msgExists {
+			// Convert code to float64 for comparison
+			var codeNum float64
+			switch v := code.(type) {
+			case float64:
+				codeNum = v
+			case int:
+				codeNum = float64(v)
+			case int64:
+				codeNum = float64(v)
+			}
+
+			// Only treat as error if code is non-zero
+			if codeNum != 0 {
+				emptyResponse.ErrorType = "gcnv_error"
+				err := fmt.Errorf("GCNV API error %v: %v", code, message)
+				tflog.Error(c.ctx, fmt.Sprintf("GCNV error detected: code=%v, message=%v", code, message))
+				// Put error in Records for checkRestErrors compatibility
+				emptyResponse.Records = []map[string]interface{}{
+					{
+						"body": map[string]interface{}{
+							"code":    code,
+							"message": message,
+						},
+					},
+				}
+				emptyResponse.NumRecords = 1
+				return statusCode, emptyResponse, err
+			}
+		}
+	}
+
+	// Process successful response
+	type restStagedResponse struct {
+		NumRecords int `mapstructure:"num_records"`
+		Records    []map[string]interface{}
+		Error      RestError
+		Job        map[string]interface{}
+		Jobs       []map[string]interface{}
+		Other      map[string]interface{} `mapstructure:",remain"`
+	}
+
+	var rawResponse restStagedResponse
+	var metadata mapstructure.Metadata
+	if err := mapstructure.DecodeMetadata(bodyData, &rawResponse, &metadata); err != nil {
+		tflog.Error(c.ctx, fmt.Sprintf("unable to format raw GCNV response - statusCode %d, decode error=%s, response=%#v", statusCode, err, bodyData))
+		emptyResponse.ErrorType = "bad_gcnv_response_decode_raw"
+		return statusCode, emptyResponse, err
+	}
+	tflog.Debug(c.ctx, fmt.Sprintf("GCNV rawResponse %#v, metadata %#v", rawResponse, metadata))
+
+	// Handle single record responses without explicit records array
+	if rawResponse.NumRecords == 0 && len(rawResponse.Records) == 0 && len(rawResponse.Other) > 1 {
+		rawResponse.NumRecords = 1
+		rawResponse.Records = append(rawResponse.Records, rawResponse.Other)
+	}
+
+	var finalResponse RestResponse
+	if err := mapstructure.DecodeMetadata(rawResponse, &finalResponse, &metadata); err != nil {
+		tflog.Error(c.ctx, fmt.Sprintf("unable to format final GCNV response - statusCode %d, decode error=%s, response=%#v", statusCode, err, rawResponse))
+		emptyResponse.ErrorType = "bad_gcnv_response_decode_final"
+		return statusCode, emptyResponse, err
+	}
+
+	finalResponse.StatusCode = statusCode
+	// Don't call checkRestErrors again, we already handled GCNV errors above
+	tflog.Debug(c.ctx, fmt.Sprintf("GCNV finalResponse %#v, metadata %#v", finalResponse, metadata))
+	return statusCode, finalResponse, nil
+}
+
 // unmarshalResponse converts the REST response into a structure with a list of 0 or more records.
 // we're doing it in two phases:
 // unmarshall to intermediate structure, as records may or may not present
@@ -220,6 +387,7 @@ func (c *RestClient) unmarshalResponse(statusCode int, responseJSON []byte, http
 // check for statusCode and RestError
 func (c *RestClient) checkRestErrors(statusCode int, response RestResponse) (RestResponse, error) {
 	var err error
+
 	if response.RestError.Code != "0" && response.RestError.Code != "" {
 		response.ErrorType = "rest_error"
 		err = fmt.Errorf("REST reported error %#v, statusCode: %d", response.RestError, statusCode)

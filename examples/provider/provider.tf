@@ -60,6 +60,15 @@ provider "netapp-ontap" {
       username = var.username
       password = var.password
       validate_certs = var.validate_certs
+    },
+    {
+      name = "gcnv-ontap-mode"
+      google_netapp_unified_pool = {
+        project_id = "1234567890"
+        location = var.location
+        storage_pool = var.storage_pool
+        # custom_base_url = "https://netapp.googleapis.com/v1beta1"
+      }
     }
   ]
 }

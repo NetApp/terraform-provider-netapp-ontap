@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient/awsclient"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient/gcnvclient"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient/httpclient"
 )
 
@@ -25,16 +26,26 @@ type ConnectionProfile struct {
 	ValidateCerts         bool
 	MaxConcurrentRequests int
 	UseAWSLambda          bool
-	AWS                   AWSConfig `mapstructure:"AWS,omitempty"`
-	CertFilepath string
-	KeyFilepath  string
-	CACertFile     string
+	UseGCNV               bool
+	GCNV                  GCNVConfig `mapstructure:"gcnv,omitempty"`
+	AWS                   AWSConfig  `mapstructure:"AWS,omitempty"`
+	CertFilepath          string
+	KeyFilepath           string
+	CACertFile            string
 }
 
 type AWSConfig struct {
 	Region              string `mapstructure:"region,omitempty"`
-	SharedConfigProfile string
-	FunctionName        string
+	SharedConfigProfile string `mapstructure:"shared_config_profile,omitempty"`
+	FunctionName        string `mapstructure:"function_name,omitempty"`
+}
+
+type GCNVConfig struct {
+	ProjectID     string `mapstructure:"project_id,omitempty"`
+	Location      string `mapstructure:"location,omitempty"`
+	StoragePool   string `mapstructure:"storage_pool,omitempty"`
+	AuthToken     string `mapstructure:"auth_token,omitempty"`
+	CustomBaseUrl string `mapstructure:"custom_base_url,omitempty"`
 }
 
 // RestClient to interact with the ONTAP REST API
@@ -44,6 +55,7 @@ type RestClient struct {
 	maxConcurrentRequests int
 	httpClient            httpclient.HTTPClient
 	awsClient             awsclient.AWSLambdaClient
+	gcnvClient            gcnvclient.GCNVClient
 	requestSlots          chan int
 	mode                  string
 	responses             []MockResponse
@@ -58,6 +70,7 @@ func (r *RestClient) CallCreateMethod(baseURL string, query *RestQuery, body map
 	}
 	// TODO: make this a connection parameter ?
 	query.Set("return_timeout", "60")
+
 	statusCode, response, err := r.callAPIMethod("POST", baseURL, query, body)
 	if err != nil {
 		tflog.Debug(r.ctx, fmt.Sprintf("CallCreateMethod request failed %#v", statusCode))
@@ -87,6 +100,7 @@ func (r *RestClient) CallUpdateMethod(baseURL string, query *RestQuery, body map
 	}
 	// TODO: make this a connection parameter ?
 	query.Set("return_timeout", "60")
+
 	statusCode, response, err := r.callAPIMethod("PATCH", baseURL, query, body)
 	if err != nil {
 		tflog.Debug(r.ctx, fmt.Sprintf("CallUpdateMethod request failed %#v", statusCode))
@@ -169,6 +183,10 @@ func (r *RestClient) callAPIMethod(method string, baseURL string, query *RestQue
 		statusCode, response, awsClientErr := r.awsClient.Invoke(baseURL, method, body, values)
 		return r.unmarshalAWSLambdaResponse(statusCode, response, awsClientErr)
 	}
+	if r.connectionProfile.UseGCNV {
+		statusCode, response, gcnvClientErr := r.gcnvClient.Invoke(baseURL, method, body, values)
+		return r.unmarshalGCNVResponse(statusCode, response, gcnvClientErr)
+	}
 	statusCode, response, httpClientErr := r.httpClient.Do(baseURL, &httpclient.Request{
 		Method: method,
 		Body:   body,
@@ -180,9 +198,10 @@ func (r *RestClient) callAPIMethod(method string, baseURL string, query *RestQue
 	return r.unmarshalResponse(statusCode, response, httpClientErr)
 }
 
-// NewClient creates a new REST client and a supporting HTTP or AWS Lambda client.
-// Lambda client is created if UseAWSLambdaLink is set to true.
-// If UseAWSLambdaLink is false, a new HTTP client is created.
+// NewClient creates a new REST client and a supporting HTTP, AWS Lambda, or GCNV client.
+// Lambda client is created if UseAWSLambda is set to true.
+// GCNV client is created if UseGCNV is set to true.
+// Otherwise, a new HTTP client is created.
 func NewClient(ctx context.Context, cxProfile ConnectionProfile, tag string, jobCompletionTimeOut int) (*RestClient, error) {
 	if cxProfile.UseAWSLambda {
 		var awsLambdaProfile awsclient.AWSLambdaProfile
@@ -205,6 +224,35 @@ func NewClient(ctx context.Context, cxProfile ConnectionProfile, tag string, job
 			connectionProfile:     cxProfile,
 			ctx:                   ctx,
 			awsClient:             *newClient,
+			maxConcurrentRequests: maxConcurrentRequests,
+			mode:                  "prod",
+			requestSlots:          make(chan int, maxConcurrentRequests),
+			jobCompletionTimeOut:  jobCompletionTimeOut,
+			tag:                   tag,
+		}
+		return &client, nil
+	}
+
+	if cxProfile.UseGCNV {
+		var gcnvProfile gcnvclient.GCNVProfile
+		err := mapstructure.Decode(cxProfile.GCNV, &gcnvProfile)
+		if err != nil {
+			msg := fmt.Sprintf("decode error on ConnectionProfile.GCNV %#v to GCNVProfile", cxProfile.GCNV)
+			tflog.Error(ctx, msg)
+			return nil, errors.New(msg)
+		}
+		maxConcurrentRequests := cxProfile.MaxConcurrentRequests
+		if maxConcurrentRequests == 0 {
+			maxConcurrentRequests = 6
+		}
+		newClient, err := gcnvclient.NewClient(ctx, gcnvProfile)
+		if err != nil {
+			return nil, err
+		}
+		client := RestClient{
+			connectionProfile:     cxProfile,
+			ctx:                   ctx,
+			gcnvClient:            *newClient,
 			maxConcurrentRequests: maxConcurrentRequests,
 			mode:                  "prod",
 			requestSlots:          make(chan int, maxConcurrentRequests),

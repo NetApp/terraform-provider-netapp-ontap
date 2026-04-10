@@ -39,15 +39,16 @@ type ONTAPProvider struct {
 // ConnectionProfileModel associate a connection profile with a name
 // TODO: augment address with hostname, ...
 type ConnectionProfileModel struct {
-	Name                  types.String `tfsdk:"name"`
-	Hostname              types.String `tfsdk:"hostname"`
-	Username              types.String `tfsdk:"username"`
-	Password              types.String `tfsdk:"password"`
-	ValidateCerts         types.Bool   `tfsdk:"validate_certs"`
-	ONTAPProviderAWSModel types.Object `tfsdk:"aws_lambda"`
-	CertFilepath	   types.String `tfsdk:"cert_filepath"`
-	KeyFilepath	   types.String `tfsdk:"key_filepath"`
-	CACertFile	   types.String `tfsdk:"ca_cert_file"`
+	Name                   types.String `tfsdk:"name"`
+	Hostname               types.String `tfsdk:"hostname"`
+	Username               types.String `tfsdk:"username"`
+	Password               types.String `tfsdk:"password"`
+	ValidateCerts          types.Bool   `tfsdk:"validate_certs"`
+	ONTAPProviderAWSModel  types.Object `tfsdk:"aws_lambda"`
+	ONTAPProviderGCNVModel types.Object `tfsdk:"google_netapp_unified_pool"`
+	CertFilepath           types.String `tfsdk:"cert_filepath"`
+	KeyFilepath            types.String `tfsdk:"key_filepath"`
+	CACertFile             types.String `tfsdk:"ca_cert_file"`
 }
 
 // ONTAPProviderModel describes the provider data model.
@@ -61,6 +62,13 @@ type ONTAPProviderAWSLambdaModel struct {
 	Region              types.String `tfsdk:"region"`
 	SharedConfigProfile types.String `tfsdk:"shared_config_profile"`
 	FunctionName        types.String `tfsdk:"function_name"`
+}
+
+type ONTAPProviderGCNVDataModel struct {
+	ProjectID     types.String `tfsdk:"project_id"`
+	Location      types.String `tfsdk:"location"`
+	StoragePool   types.String `tfsdk:"storage_pool"`
+	CustomBaseUrl types.String `tfsdk:"custom_base_url"`
 }
 
 // Metadata defines the provider type name for inclusion in each data source and resource type name
@@ -92,8 +100,8 @@ func (p *ONTAPProvider) Schema(ctx context.Context, req provider.SchemaRequest, 
 							Required:            true,
 						},
 						"hostname": schema.StringAttribute{
-							MarkdownDescription: "ONTAP management interface IP address or name. For AWS Lambda, the management endpoints for the FSxN system.",
-							Required:            true,
+							MarkdownDescription: "ONTAP management interface IP address or name. For AWS Lambda, the management endpoints for the FSxN system. Not required when using Google Cloud NetApp Volumes (google_netapp_unified_pool).",
+							Optional:            true,
 						},
 						"username": schema.StringAttribute{
 							MarkdownDescription: "ONTAP management user name (cluster or svm)",
@@ -138,6 +146,27 @@ func (p *ONTAPProvider) Schema(ctx context.Context, req provider.SchemaRequest, 
 								},
 							},
 						},
+						"google_netapp_unified_pool": schema.SingleNestedAttribute{
+							MarkdownDescription: "Google Cloud NetApp Volumes configuration",
+							Optional:            true,
+							Attributes: map[string]schema.Attribute{
+								"project_id": schema.StringAttribute{
+									MarkdownDescription: "Google Cloud project ID",
+									Required:            true,
+								},
+								"location": schema.StringAttribute{
+									MarkdownDescription: "Google Cloud location",
+									Required:            true,
+								},
+								"storage_pool": schema.StringAttribute{
+									MarkdownDescription: "Storage pool name",
+									Required:            true,
+								},
+								"custom_base_url": schema.StringAttribute{
+									MarkdownDescription: "GCNV API base URL including version. Defaults to 'https://netapp.googleapis.com/v1'.",
+									Optional:            true,
+								}},
+						},
 					},
 				},
 			},
@@ -181,6 +210,41 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 			resp.Diagnostics.Append(diags...)
 			return
 		}
+
+		// Validate that aws_lambda and google_netapp_unified_pool cannot be used together
+		if !connectionProfile.ONTAPProviderAWSModel.IsNull() && !connectionProfile.ONTAPProviderGCNVModel.IsNull() {
+			resp.Diagnostics.AddError(
+				"Invalid configuration",
+				fmt.Sprintf("connection profile '%s' cannot have both aws_lambda and google_netapp_unified_pool configured. Please use only one.", connectionProfile.Name.ValueString()),
+			)
+			return
+		}
+
+		// Validate that hostname, username, password are provided when google_netapp_unified_pool is not used
+		if connectionProfile.ONTAPProviderGCNVModel.IsNull() {
+			if connectionProfile.Hostname.IsNull() || connectionProfile.Hostname.ValueString() == "" {
+				resp.Diagnostics.AddError(
+					"Missing required attribute",
+					fmt.Sprintf("hostname is required for connection profile '%s' when google_netapp_unified_pool is not configured", connectionProfile.Name.ValueString()),
+				)
+				return
+			}
+			if connectionProfile.Username.IsNull() || connectionProfile.Username.ValueString() == "" {
+				resp.Diagnostics.AddError(
+					"Missing required attribute",
+					fmt.Sprintf("username is required for connection profile '%s' when google_netapp_unified_pool is not configured", connectionProfile.Name.ValueString()),
+				)
+				return
+			}
+			if connectionProfile.Password.IsNull() || connectionProfile.Password.ValueString() == "" {
+				resp.Diagnostics.AddError(
+					"Missing required attribute",
+					fmt.Sprintf("password is required for connection profile '%s' when google_netapp_unified_pool is not configured", connectionProfile.Name.ValueString()),
+				)
+				return
+			}
+		}
+
 		var validateCerts bool
 		if connectionProfile.ValidateCerts.IsNull() {
 			validateCerts = true
@@ -188,7 +252,10 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 			validateCerts = connectionProfile.ValidateCerts.ValueBool()
 		}
 
-		var username, password, certFilepath, keyFilepath, caCertFile string
+		var hostname, username, password, certFilepath, keyFilepath, caCertFile string
+		if !connectionProfile.Hostname.IsNull() {
+			hostname = connectionProfile.Hostname.ValueString()
+		}
 		if !connectionProfile.Username.IsNull() {
 			username = connectionProfile.Username.ValueString()
 		}
@@ -206,7 +273,7 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 		}
 
 		connectionProfiles[connectionProfile.Name.ValueString()] = connection.Profile{
-			Hostname:              connectionProfile.Hostname.ValueString(),
+			Hostname:              hostname,
 			Username:              username,
 			Password:              password,
 			ValidateCerts:         validateCerts,
@@ -228,6 +295,31 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 				Region:              lambdaConfig.Region.ValueString(),
 				SharedConfigProfile: lambdaConfig.SharedConfigProfile.ValueString(),
 				FunctionName:        lambdaConfig.FunctionName.ValueString(),
+			}
+			connectionProfiles[connectionProfile.Name.ValueString()] = currentProfile
+
+		}
+		if !connectionProfile.ONTAPProviderGCNVModel.IsNull() {
+			var gcnvConfig ONTAPProviderGCNVDataModel
+			diags := connectionProfile.ONTAPProviderGCNVModel.As(ctx, &gcnvConfig, basetypes.ObjectAsOptions{})
+			if diags.HasError() {
+				resp.Diagnostics.Append(diags...)
+				return
+			}
+			currentProfile := connectionProfiles[connectionProfile.Name.ValueString()]
+			currentProfile.UseGCNV = true
+
+			// Set default custom base URL
+			customBaseUrl := "https://netapp.googleapis.com/v1"
+			if !gcnvConfig.CustomBaseUrl.IsNull() && gcnvConfig.CustomBaseUrl.ValueString() != "" {
+				customBaseUrl = gcnvConfig.CustomBaseUrl.ValueString()
+			}
+
+			currentProfile.GCNV = connection.GCNVConfig{
+				ProjectID:     gcnvConfig.ProjectID.ValueString(),
+				Location:      gcnvConfig.Location.ValueString(),
+				StoragePool:   gcnvConfig.StoragePool.ValueString(),
+				CustomBaseUrl: customBaseUrl,
 			}
 			connectionProfiles[connectionProfile.Name.ValueString()] = currentProfile
 

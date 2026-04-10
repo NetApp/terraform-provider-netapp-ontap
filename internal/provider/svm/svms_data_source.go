@@ -113,7 +113,7 @@ func (d *SvmsDataSource) Schema(ctx context.Context, req datasource.SchemaReques
 							Computed:            true,
 						},
 						"storage_limit": schema.Int64Attribute{
-							MarkdownDescription: "Maximum storage permitted on svm, in bytes",
+							MarkdownDescription: "Storage limit for the SVM in bytes. May not be available for GCNV.",
 							Computed:            true,
 						},
 						"id": schema.StringAttribute{
@@ -193,6 +193,14 @@ func (d *SvmsDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			aggregates = append(aggregates, types.StringValue(v.Name))
 		}
 
+		// Handle storage limit - may not be available for GCNV
+		var storageLimit types.Int64
+		if record.Storage.Limit > 0 {
+			storageLimit = types.Int64Value(int64(record.Storage.Limit))
+		} else {
+			storageLimit = types.Int64Null()
+		}
+
 		data.Svms[index] = SvmDataSourceModel{
 			CxProfileName:  data.CxProfileName,
 			Name:           types.StringValue(record.Name),
@@ -204,6 +212,7 @@ func (d *SvmsDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			Language:       types.StringValue(record.Language),
 			Aggregates:     aggregates,
 			MaxVolumes:     types.StringValue(record.MaxVolumes),
+			StorageLimit:   storageLimit,
 		}
 	}
 
