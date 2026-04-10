@@ -9,6 +9,7 @@ BUG FIXES:
 
 - **netapp-ontap_snapmirror_policy resource**: fixed issue with create when `retention` is not set in config ([#647](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/647))
 - **netapp-ontap_san_lun-maps**: Fixed Value Conversion Error when optional filter fields are not set ([#651](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/651))
+- **netapp-ontap_cifs_share**: Fixed issue with creating ACLs resource ([#653](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/653))
 
 # 2.5.0 (2026-03-12)
 
