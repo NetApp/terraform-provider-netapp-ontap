@@ -16,6 +16,7 @@ import (
 type Profile struct {
 	// TODO: add certs in addition to basic authentication
 	// TODO: Add Timeout (currently hardcoded to 10 seconds)
+	Scheme                string
 	Hostname              string
 	Username              string
 	Password              string
