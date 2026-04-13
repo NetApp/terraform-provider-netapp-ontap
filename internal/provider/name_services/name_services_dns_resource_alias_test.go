@@ -26,8 +26,19 @@ func TestAccNameServicesDNSResourceAlias(t *testing.T) {
 				Config: testAccNameServicesDNSResourceConfigAlias("tf_acc_svm"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_name_services_dns_resource.dns", "svm_name", "tf_acc_svm"),
-					resource.TestCheckResourceAttr("netapp-ontap_name_services_dns_resource.dns", "dynamic_dns.enabled", "true"),
-					resource.TestCheckResourceAttr("netapp-ontap_name_services_dns_resource.dns", "dynamic_dns.fqdn", "tf_acc_svm.bar.com"),
+					resource.TestCheckTypeSetElemAttr("netapp-ontap_name_services_dns_resource.dns", "name_servers.*", "1.1.1.1"),
+					resource.TestCheckTypeSetElemAttr("netapp-ontap_name_services_dns_resource.dns", "name_servers.*", "2.2.2.2"),
+				),
+			},
+			// Test modifying DNS configuration
+			{
+				Config: testAccNameServicesDNSResourceModifyConfigAlias("tf_acc_svm"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_name_services_dns_resource.dns", "svm_name", "tf_acc_svm"),
+					resource.TestCheckTypeSetElemAttr("netapp-ontap_name_services_dns_resource.dns", "name_servers.*", "8.8.8.8"),
+					resource.TestCheckTypeSetElemAttr("netapp-ontap_name_services_dns_resource.dns", "name_servers.*", "8.8.4.4"),
+					resource.TestCheckResourceAttr("netapp-ontap_name_services_dns_resource.dns", "dynamic_dns.enabled", "false"),
+					resource.TestCheckResourceAttr("netapp-ontap_name_services_dns_resource.dns", "dynamic_dns.fqdn", "test.bar.com"),
 				),
 			},
 			// Test importing a resource
@@ -37,7 +48,7 @@ func TestAccNameServicesDNSResourceAlias(t *testing.T) {
 				ImportStateId: fmt.Sprintf("%s,%s", svmName, credName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_name_services_dns_resource.dns", "svm_name", "tf_acc_svm"),
-					resource.TestCheckResourceAttr("netapp-ontap_name_services_dns_resource.dns", "name_servers.0", "netappad.com"),
+					resource.TestCheckTypeSetElemAttr("netapp-ontap_name_services_dns_resource.dns", "name_servers.*", "netappad.com"),
 				),
 			},
 		},
@@ -72,12 +83,44 @@ resource "netapp-ontap_name_services_dns_resource" "dns" {
   name_servers = ["1.1.1.1", "2.2.2.2"]
   dns_domains = ["foo.bar.com", "boo.bar.com"]
   skip_config_validation = true
+}
+`, host, admin, password, svmName)
+}
+
+func testAccNameServicesDNSResourceModifyConfigAlias(svmName string) string {
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
+	admin := os.Getenv("TF_ACC_NETAPP_USER")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
+	if host == "" || admin == "" || password == "" {
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		os.Exit(1)
+	}
+	return fmt.Sprintf(`
+provider "netapp-ontap" {
+ connection_profiles = [
+    {
+      name = "cluster4"
+      hostname = "%s"
+      username = "%s"
+      password = "%s"
+      validate_certs = false
+    },
+  ]
+}
+
+resource "netapp-ontap_name_services_dns_resource" "dns" {
+  # required to know which system to interface with
+  cx_profile_name = "cluster4"
+  svm_name = "%s"
+  name_servers = ["8.8.8.8", "8.8.4.4"]
+  dns_domains = ["baz.bar.com", "qux.bar.com"]
+  skip_config_validation = true
 	dynamic_dns = {
-		fqdn = "tf_acc_svm.bar.com"
-		time_to_live = "P2D"
-		skip_fqdn_validation = true
+		fqdn = "test.bar.com"
+		time_to_live = "P1D"
+		skip_fqdn_validation = false
 		use_secure = false
-		enabled = true
+		enabled = false
 	}
 }
 `, host, admin, password, svmName)
