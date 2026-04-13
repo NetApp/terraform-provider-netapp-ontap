@@ -40,8 +40,8 @@ type AuthMethod int
 const (
 	AuthMethodNone AuthMethod = iota
 	AuthMethodBasic
-	AuthMethodSingleCert  // single_cert - cert file only
-	AuthMethodCertKey     // cert_key - cert and key files
+	AuthMethodSingleCert // single_cert - cert file only
+	AuthMethodCertKey    // cert_key - cert and key files
 )
 
 // setAuthMethod determines the authentication method based on available credentials
@@ -86,7 +86,7 @@ func (c *HTTPClient) Do(baseURL string, req *Request) (int, []byte, error) {
 	if err != nil {
 		return statusCode, nil, err
 	}
-	tflog.Debug(c.ctx, fmt.Sprintf("sending: %s %s", httpReq.Method, httpReq.URL.String()), map[string]any{"body": req.Body})
+	tflog.Debug(c.ctx, fmt.Sprintf("sending: %s %s", httpReq.Method, httpReq.URL.String()), map[string]any{"body": req.Body, "headers": httpReq.Header})
 	httpRes, err := c.httpClient.Do(httpReq)
 	if httpRes != nil {
 		statusCode = httpRes.StatusCode
@@ -130,7 +130,7 @@ func (c HTTPClient) create() http.Client {
 		// When using client certificates, we might want to skip server cert validation
 		// but still validate client certs
 	}
-	
+
 	// Determine and log authentication method
 	authMethod, err := c.setAuthMethod()
 	if err != nil {
@@ -152,7 +152,7 @@ func (c HTTPClient) create() http.Client {
 		}
 		tflog.Debug(c.ctx, fmt.Sprintf("Using authentication method: %s", authDesc))
 	}
-	
+
 	// Load client cert/key if provided (for cert-based auth)
 	if c.cxProfile.CertFilepath != "" {
 		if c.cxProfile.KeyFilepath != "" {
@@ -170,7 +170,7 @@ func (c HTTPClient) create() http.Client {
 			tflog.Debug(c.ctx, "Single certificate mode - certificate file provided without key")
 		}
 	}
-	
+
 	// Load CA cert if provided
 	if c.cxProfile.CACertFile != "" {
 		caCertPool := x509.NewCertPool()
@@ -186,7 +186,7 @@ func (c HTTPClient) create() http.Client {
 			}
 		}
 	}
-	
+
 	return http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: tlsConfig,

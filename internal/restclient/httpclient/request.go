@@ -8,6 +8,8 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Request represents a request to a REST API
@@ -32,6 +34,9 @@ func (r *Request) BuildHTTPReq(c *HTTPClient, baseURL string) (*http.Request, er
 		if err != nil {
 			return nil, err
 		}
+		tflog.Debug(c.ctx, "Request JSON payload", map[string]any{
+			"json": string(bodyJSON),
+		})
 		body = bytes.NewReader(bodyJSON)
 	}
 	req, err = http.NewRequest(r.Method, url, body)
@@ -41,12 +46,12 @@ func (r *Request) BuildHTTPReq(c *HTTPClient, baseURL string) (*http.Request, er
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	
+
 	authMethod, err := c.setAuthMethod()
 	if err != nil {
 		return nil, fmt.Errorf("authentication error: %v", err)
 	}
-	
+
 	// Apply authentication based on the determined method
 	switch authMethod {
 	case AuthMethodBasic:
@@ -73,11 +78,14 @@ func (r *Request) BuildURL(c *HTTPClient, baseURL string, uuid string) (string, 
 		err = errors.New("error in BuildUrl, HTTPClient is nil")
 	} else if r == nil {
 		err = errors.New("error in BuildUrl, request is nil")
-	} else if c.cxProfile.Hostname == "" || c.cxProfile.APIRoot == "" {
-		err = errors.New("error in BuildUrl, Hostname and APIRoot are required")
 	}
 	if err != nil {
 		return "", err
+	}
+
+	// Standard ONTAP URL construction
+	if c.cxProfile.Hostname == "" || c.cxProfile.APIRoot == "" {
+		return "", errors.New("error in BuildUrl, Hostname and APIRoot are required")
 	}
 	u := &url.URL{
 		Scheme: "https",

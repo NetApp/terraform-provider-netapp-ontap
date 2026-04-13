@@ -19,6 +19,7 @@ To learn the basics of Terraform using this provider, follow the hands-on [get s
 
 * On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
+* Google Cloud NetApp Volumes (GCNV)
 
 ## Example Usage
 
@@ -60,6 +61,23 @@ provider "netapp-ontap" {
         region = "aws_region"
         shared_config_profile = "fsx_profile"
       }
+    },
+    {
+      name = "google_netapp_unified_pool"
+      google_netapp_unified_pool = {
+        project_id = "my-gcp-project-id"
+        location = "us-central1-a"
+        storage_pool = "my-storage-pool"
+        # Optional: custom_base_url (defaults to "https://netapp.googleapis.com/v1")
+        # custom_base_url = "https://netapp.googleapis.com/v1"  # Production v1 API
+        
+        # Uses Application Default Credentials (ADC):
+        # - GOOGLE_APPLICATION_CREDENTIALS environment variable
+        # - gcloud auth application-default login
+        # - Workload Identity (when running on GCE/GKE/Cloud Run)
+        
+        # Note: The provider validates API endpoint connectivity on initialization
+      }
     }
   ]
 }
@@ -83,15 +101,16 @@ provider "netapp-ontap" {
 
 Required:
 
-- `hostname` (String) ONTAP management interface IP address or name. For AWS Lambda, the management endpoints for the FSxN system.
 - `name` (String) Profile name
-- `password` (String, Sensitive) ONTAP management password for username
-- `username` (String) ONTAP management user name (cluster or svm)
 
 Optional:
 
+- `hostname` (String) ONTAP management interface IP address or name. For AWS Lambda, the management endpoints for the FSxN system. Not required when using Google Cloud NetApp Volumes (gcnv).
+- `username` (String) ONTAP management user name (cluster or svm). Not required when using Google Cloud NetApp Volumes (gcnv).
+- `password` (String, Sensitive) ONTAP management password for username. Not required when using Google Cloud NetApp Volumes (gcnv).
 - `aws_lambda` (Attributes) AWS configuration for Lambda (see [below for nested schema](#nestedatt--connection_profiles--aws_lambda))
-- `validate_certs` (Boolean) Whether to enforce SSL certificate validation, defaults to true. Not applicable for AWS Lambda
+- `gcnv` (Attributes) Google Cloud NetApp Volumes configuration (see [below for nested schema](#nestedatt--connection_profiles--gcnv))
+- `validate_certs` (Boolean) Whether to enforce SSL certificate validation, defaults to true. Not applicable for AWS Lambda or Google Cloud NetApp Volumes
 
 <a id="nestedatt--connection_profiles--aws_lambda"></a>
 
@@ -105,3 +124,22 @@ Required:
 Optional:
 
 - `region` (String) AWS region.
+
+<a id="nestedatt--connection_profiles--gcnv"></a>
+
+### Nested Schema for `connection_profiles.google_netapp_unified_pool`
+
+Required:
+
+- `project_id` (String) Google Cloud project ID
+- `location` (String) Google Cloud location (e.g., us-central1-a)
+- `storage_pool` (String) Storage pool name
+
+Optional:
+
+- `custom_base_url` (String) GCNV API base URL including version. Defaults to `https://netapp.googleapis.com/v1`.
+
+Authentication uses Application Default Credentials (ADC) which checks in the following order:
+  1. `GOOGLE_APPLICATION_CREDENTIALS` environment variable pointing to a service account key file
+  2. `gcloud auth application-default login` credentials
+  3. Workload Identity (when running on GCE, GKE, or Cloud Run)

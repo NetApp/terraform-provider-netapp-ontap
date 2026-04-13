@@ -61,27 +61,27 @@ type StorageVolumeResource struct {
 
 // StorageVolumeResourceModel describes the resource data model.
 type StorageVolumeResourceModel struct {
-	CxProfileName  types.String                      `tfsdk:"cx_profile_name"`
-	Name           types.String                      `tfsdk:"name"`
-	SVMName        types.String                      `tfsdk:"svm_name"`
-	State          types.String                      `tfsdk:"state"`
-	Type           types.String                      `tfsdk:"type"`
-	SpaceGuarantee types.String                      `tfsdk:"space_guarantee"`
-	Encrypt        types.Bool                        `tfsdk:"encryption"`
-	SnapshotPolicy types.String                      `tfsdk:"snapshot_policy"`
-	Language       types.String                      `tfsdk:"language"`
-	QOSPolicyGroup types.String                      `tfsdk:"qos_policy_group"`
-	Comment        types.String                      `tfsdk:"comment"`
-	Aggregates     []StorageVolumeResourceAggregates `tfsdk:"aggregates"`
-	ID             types.String                      `tfsdk:"id"`
-	Space          types.Object                      `tfsdk:"space"`
-	Nas            types.Object                      `tfsdk:"nas"`
-	Tiering        types.Object                      `tfsdk:"tiering"`
-	Efficiency     types.Object                      `tfsdk:"efficiency"`
-	SnapLock       types.Object                      `tfsdk:"snaplock"`
-	Analytics      types.Object                      `tfsdk:"analytics"`
-	Autosize       types.Object                      `tfsdk:"autosize"`
-	SnapshotLockingEnabled        types.Bool         `tfsdk:"snapshot_locking_enabled"`
+	CxProfileName          types.String                      `tfsdk:"cx_profile_name"`
+	Name                   types.String                      `tfsdk:"name"`
+	SVMName                types.String                      `tfsdk:"svm_name"`
+	State                  types.String                      `tfsdk:"state"`
+	Type                   types.String                      `tfsdk:"type"`
+	SpaceGuarantee         types.String                      `tfsdk:"space_guarantee"`
+	Encrypt                types.Bool                        `tfsdk:"encryption"`
+	SnapshotPolicy         types.String                      `tfsdk:"snapshot_policy"`
+	Language               types.String                      `tfsdk:"language"`
+	QOSPolicyGroup         types.String                      `tfsdk:"qos_policy_group"`
+	Comment                types.String                      `tfsdk:"comment"`
+	Aggregates             []StorageVolumeResourceAggregates `tfsdk:"aggregates"`
+	ID                     types.String                      `tfsdk:"id"`
+	Space                  types.Object                      `tfsdk:"space"`
+	Nas                    types.Object                      `tfsdk:"nas"`
+	Tiering                types.Object                      `tfsdk:"tiering"`
+	Efficiency             types.Object                      `tfsdk:"efficiency"`
+	SnapLock               types.Object                      `tfsdk:"snaplock"`
+	Analytics              types.Object                      `tfsdk:"analytics"`
+	Autosize               types.Object                      `tfsdk:"autosize"`
+	SnapshotLockingEnabled types.Bool                        `tfsdk:"snapshot_locking_enabled"`
 }
 
 // StorageVolumeResourceAggregates describes the analytics model.
@@ -627,7 +627,7 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 		data.ID = types.StringValue(response.UUID)
 	} else {
 		response, err = interfaces.GetStorageVolume(errorHandler, *client, data.ID.ValueString())
-		
+
 		if err != nil {
 			return
 		}
@@ -1067,6 +1067,8 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	data.Type = types.StringValue(response.Type)
 	if response.SnapshotLockingEnabled != nil {
 		data.SnapshotLockingEnabled = types.BoolValue(*response.SnapshotLockingEnabled)
+	} else {
+		data.SnapshotLockingEnabled = types.BoolValue(false)
 	}
 
 	//Space
@@ -1517,6 +1519,8 @@ func readVolume(ctx context.Context, client *restclient.RestClient, data *Storag
 	data.Type = types.StringValue(response.Type)
 	if response.SnapshotLockingEnabled != nil {
 		data.SnapshotLockingEnabled = types.BoolValue(*response.SnapshotLockingEnabled)
+	} else {
+		data.SnapshotLockingEnabled = types.BoolValue(false)
 	}
 
 	//Space
@@ -1575,6 +1579,8 @@ func readVolume(ctx context.Context, client *restclient.RestClient, data *Storag
 	data.SnapLock = objectValue
 	if response.SnapshotLockingEnabled != nil {
 		data.SnapshotLockingEnabled = types.BoolValue(*response.SnapshotLockingEnabled)
+	} else {
+		data.SnapshotLockingEnabled = types.BoolValue(false)
 	}
 
 	//Efficiency

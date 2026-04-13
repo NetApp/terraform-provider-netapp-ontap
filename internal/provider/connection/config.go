@@ -22,16 +22,25 @@ type Profile struct {
 	ValidateCerts         bool
 	MaxConcurrentRequests int
 	UseAWSLambda          bool
-	AWS                   AWSConfig `mapstructure:"aws,omitempty"`
-	CertFilepath     string
-	KeyFilepath      string
-	CACertFile       string
+	UseGCNV               bool
+	AWS                   AWSConfig  `mapstructure:"aws,omitempty"`
+	GCNV                  GCNVConfig `mapstructure:"gcnv,omitempty"`
+	CertFilepath          string
+	KeyFilepath           string
+	CACertFile            string
 }
 
 type AWSConfig struct {
-	Region              string
-	SharedConfigProfile string
-	FunctionName        string
+	Region              string `mapstructure:"region,omitempty"`
+	SharedConfigProfile string `mapstructure:"shared_config_profile,omitempty"`
+	FunctionName        string `mapstructure:"function_name,omitempty"`
+}
+
+type GCNVConfig struct {
+	ProjectID     string `mapstructure:"project_id"`
+	Location      string `mapstructure:"location"`
+	StoragePool   string `mapstructure:"storage_pool"`
+	CustomBaseUrl string `mapstructure:"custom_base_url"`
 }
 
 // Config is created by the provide configure method
@@ -68,12 +77,22 @@ func (c *Config) NewClient(errorHandler *utils.ErrorHandler, cxProfileName strin
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError("failed to set connection profile", err.Error())
 	}
+
+	// Debug: Log the connection profile GCNV config before decode
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Before decode - connectionProfile.UseGCNV=%v, GCNV=%#v",
+		connectionProfile.UseGCNV, connectionProfile.GCNV))
+
 	var profile restclient.ConnectionProfile
 	err = mapstructure.Decode(connectionProfile, &profile)
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError("unable to create REST client",
 			fmt.Sprintf("decode error on ConnectionProfile %#v to restclient.ConnectionProfile", connectionProfile))
 	}
+
+	// Debug: Log the profile GCNV config after decode
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("After decode - profile.UseGCNV=%v, GCNV=%#v",
+		profile.UseGCNV, profile.GCNV))
+
 	// the tag resource_name/version will be used for telemetry
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Version string is: %#v", strings.Join([]string{"TerrafromONTAP", resName, c.Version}, "/")))
 	client, err := restclient.NewClient(errorHandler.Ctx, profile, strings.Join([]string{"TerraformONTAP", resName, c.Version}, "/"), c.JobCompletionTimeOut)
