@@ -5,6 +5,9 @@ FEATURES:
 - **New Data Source:** `netapp-ontap_s3_user` and `netapp-ontap_s3_users`([#507](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/507))
 - **New Resource:** `netapp-ontap_s3_user` ([#508](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/508))
 
+ENHANCEMENTS:
+- **netapp-ontap_cluster_peer resource**: add `ipspace` parameter ([#656](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/656))
+
 BUG FIXES:
 
 - **netapp-ontap_snapmirror_policy resource**: fixed issue with create when `retention` is not set in config ([#647](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/647))

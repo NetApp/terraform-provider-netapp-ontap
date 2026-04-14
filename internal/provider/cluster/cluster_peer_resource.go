@@ -50,17 +50,18 @@ type ClusterPeersResource struct {
 
 // ClusterPeersResourceModel describes the resource data model.
 type ClusterPeersResourceModel struct {
-	CxProfileName      types.String   `tfsdk:"cx_profile_name"`
-	Passphrase         types.String   `tfsdk:"passphrase"`
-	Name               types.String   `tfsdk:"name"`
-	Remote             *Remote        `tfsdk:"remote"`
-	SourceDetails      *Remote        `tfsdk:"source_details"`
-	PeerCxProfileName  types.String   `tfsdk:"peer_cx_profile_name"`
-	GeneratePassphrase types.Bool     `tfsdk:"generate_passphrase"`
-	PeerApplications   []types.String `tfsdk:"peer_applications"`
-	State              types.String   `tfsdk:"state"`
-	PeerID             types.String   `tfsdk:"peer_id"`
-	ID                 types.String   `tfsdk:"id"`
+	CxProfileName      types.String                  `tfsdk:"cx_profile_name"`
+	Passphrase         types.String                  `tfsdk:"passphrase"`
+	Name               types.String                  `tfsdk:"name"`
+	Remote             *Remote                       `tfsdk:"remote"`
+	SourceDetails      *Remote                       `tfsdk:"source_details"`
+	PeerCxProfileName  types.String                  `tfsdk:"peer_cx_profile_name"`
+	GeneratePassphrase types.Bool                    `tfsdk:"generate_passphrase"`
+	PeerApplications   []types.String                `tfsdk:"peer_applications"`
+	State              types.String                  `tfsdk:"state"`
+	PeerID             types.String                  `tfsdk:"peer_id"`
+	Ipspace            *ClusterPeerDataSourceIpspace `tfsdk:"ipspace"`
+	ID                 types.String                  `tfsdk:"id"`
 }
 
 // Remote describes Remote data model.
@@ -137,6 +138,17 @@ func (r *ClusterPeersResource) Schema(ctx context.Context, req resource.SchemaRe
 			"peer_cx_profile_name": schema.StringAttribute{
 				MarkdownDescription: "Peer connection profile name, to be accepted from peer side to make the status OK",
 				Required:            true,
+			},
+			"ipspace": schema.SingleNestedAttribute{
+				MarkdownDescription: "IPspace for the cluster peer LIFs (e.g. 'Gcnv' for Google Cloud NetApp Volumes)",
+				Optional:            true,
+				Computed:            true,
+				Attributes: map[string]schema.Attribute{
+					"name": schema.StringAttribute{
+						MarkdownDescription: "Name of the IPspace",
+						Required:            true,
+					},
+				},
 			},
 			"state": schema.StringAttribute{
 				Computed: true,
@@ -229,6 +241,11 @@ func (r *ClusterPeersResource) Read(ctx context.Context, req resource.ReadReques
 	data.Remote.IPAddresses = ipAddresses
 	data.State = types.StringValue(restInfo.Authentication.State)
 
+	if data.Ipspace == nil {
+		data.Ipspace = &ClusterPeerDataSourceIpspace{
+			Name: types.StringValue(restInfo.Ipspace.Name),
+		}
+	}
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -268,7 +285,9 @@ func (r *ClusterPeersResource) Create(ctx context.Context, req resource.CreateRe
 	if !data.Passphrase.IsUnknown() {
 		body.Authentication.Passphrase = data.Passphrase.ValueString()
 	}
-
+	if data.Ipspace != nil {
+		body.Ipspace.Name = data.Ipspace.Name.ValueString()
+	}
 	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
@@ -344,6 +363,11 @@ func (r *ClusterPeersResource) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
+	var body interfaces.ClusterPeersResourceBodyDataModelONTAP
+	if state.Ipspace != nil && plan.Ipspace != nil && state.Ipspace.Name.ValueString() != plan.Ipspace.Name.ValueString() {
+		body.Ipspace.Name = plan.Ipspace.Name.ValueString()
+	}
+
 	isEqual := reflect.DeepEqual(plan.Remote.IPAddresses, state.Remote.IPAddresses)
 
 	if plan.Remote.IPAddresses != nil && !isEqual {
@@ -351,12 +375,11 @@ func (r *ClusterPeersResource) Update(ctx context.Context, req resource.UpdateRe
 		for _, e := range plan.Remote.IPAddresses {
 			ipAddresses = append(ipAddresses, e.ValueString())
 		}
-		var body interfaces.ClusterPeersResourceBodyDataModelONTAP
 		body.Remote.IPAddress = ipAddresses
-		err = interfaces.UpdateClusterPeers(errorHandler, *client, body, plan.ID.ValueString())
-		if err != nil {
-			return
-		}
+	}
+	err = interfaces.UpdateClusterPeers(errorHandler, *client, body, plan.ID.ValueString())
+	if err != nil {
+		return
 	}
 
 	restInfo, err := interfaces.GetClusterPeer(errorHandler, *client, plan.ID.ValueString())
