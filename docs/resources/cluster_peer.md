@@ -56,6 +56,7 @@ resource "netapp-ontap_cluster_peer" "cluster_peer" {
 - `name` (String) Name of the peering relationship or name of the remote peer
 - `peer_applications` (String) SVM peering applications
 - `peer_cx_profile_name` (String) Peer connection profile name, to be accepted from peer side to make the status OK
+- `ipspace` (Attributes) (see [below for nested schema](#nestedatt--ipspace)) In GCNV, it is required and cannot be updated.
 
 ### Read-Only
 
@@ -78,6 +79,15 @@ Required:
 Required:
 
 - `ip_addresses` (Set of String) list of the remote ip addresses
+
+### Nested Schema form `ipspace`
+
+<a id="nestedatt--source_details"></a>
+
+Required:
+
+- `name` (String) IPspace for the cluster peer LIFs.
+
 
 ## Import
 
