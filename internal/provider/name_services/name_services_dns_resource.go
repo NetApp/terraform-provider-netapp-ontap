@@ -239,6 +239,7 @@ func (r *NameServicesDNSResource) Read(ctx context.Context, req resource.ReadReq
 	}
 
 	if restInfo.DynamicDNS != nil {
+		// If state already has skip_fqdn_validation, prefer state to avoid drift when ONTAP omits/normalizes this field in dynamic DNS read responses.
 		skipFQDNValidation := types.BoolValue(restInfo.DynamicDNS.SkipFQDNValidation)
 		if !data.DynamicDNS.IsNull() && !data.DynamicDNS.IsUnknown() {
 			var stateDynamicDNSModel NameServicesDNSDynamicDNSModel
@@ -389,6 +390,7 @@ func (r *NameServicesDNSResource) Create(ctx context.Context, req resource.Creat
 	}
 
 	if restInfo.DynamicDNS != nil {
+		// If state already has skip_fqdn_validation, prefer state to avoid drift when ONTAP omits/normalizes this field in dynamic DNS read responses.
 		skipFQDNValidation := types.BoolValue(restInfo.DynamicDNS.SkipFQDNValidation)
 		if !data.DynamicDNS.IsNull() && !data.DynamicDNS.IsUnknown() {
 			var stateDynamicDNSModel NameServicesDNSDynamicDNSModel
