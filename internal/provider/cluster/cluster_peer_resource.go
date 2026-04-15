@@ -286,7 +286,7 @@ func (r *ClusterPeersResource) Create(ctx context.Context, req resource.CreateRe
 		body.Authentication.Passphrase = data.Passphrase.ValueString()
 	}
 	if data.Ipspace != nil {
-		body.Ipspace.Name = data.Ipspace.Name.ValueString()
+		body.Ipspace = &interfaces.ClusterPeerIpspace{Name: data.Ipspace.Name.ValueString()}
 	}
 	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
@@ -365,7 +365,7 @@ func (r *ClusterPeersResource) Update(ctx context.Context, req resource.UpdateRe
 
 	var body interfaces.ClusterPeersResourceBodyDataModelONTAP
 	if state.Ipspace != nil && plan.Ipspace != nil && state.Ipspace.Name.ValueString() != plan.Ipspace.Name.ValueString() {
-		body.Ipspace.Name = plan.Ipspace.Name.ValueString()
+		body.Ipspace = &interfaces.ClusterPeerIpspace{Name: plan.Ipspace.Name.ValueString()}
 	}
 
 	isEqual := reflect.DeepEqual(plan.Remote.IPAddresses, state.Remote.IPAddresses)
