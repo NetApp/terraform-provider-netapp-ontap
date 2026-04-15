@@ -285,7 +285,7 @@ func (r *ClusterPeersResource) Create(ctx context.Context, req resource.CreateRe
 	if !data.Passphrase.IsUnknown() {
 		body.Authentication.Passphrase = data.Passphrase.ValueString()
 	}
-	if data.Ipspace != nil {
+	if data.Ipspace != nil && !data.Ipspace.Name.IsNull() {
 		body.Ipspace = &interfaces.ClusterPeerIpspace{Name: data.Ipspace.Name.ValueString()}
 	}
 	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
@@ -311,6 +311,9 @@ func (r *ClusterPeersResource) Create(ctx context.Context, req resource.CreateRe
 		ipAddressesPeer = append(ipAddressesPeer, e.ValueString())
 	}
 	bodyPeer.Remote.IPAddress = ipAddressesPeer
+	if data.Ipspace != nil && !data.Ipspace.Name.IsNull() && data.Ipspace.Name.ValueString() != "" {
+		bodyPeer.Ipspace = &interfaces.ClusterPeerIpspace{Name: data.Ipspace.Name.ValueString()}
+	}
 	if data.PeerApplications != nil {
 		var applications []string
 		for _, e := range data.PeerApplications {
