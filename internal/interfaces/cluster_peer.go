@@ -31,10 +31,11 @@ type ClusterPeersGetDataModelONTAP struct {
 
 // ClusterPeersResourceBodyDataModelONTAP describes the body data model using go types for mapping.
 type ClusterPeersResourceBodyDataModelONTAP struct {
-	Name             string         `mapstructure:"name,omitempty"`
-	Remote           RemoteBody     `mapstructure:"remote"`
-	PeerApplications []string       `mapstructure:"peer_applications,omitempty"`
-	Authentication   Authentication `mapstructure:"authentication"`
+	Name             string             `mapstructure:"name,omitempty"`
+	Remote           RemoteBody         `mapstructure:"remote"`
+	PeerApplications []string           `mapstructure:"peer_applications,omitempty"`
+	Authentication   Authentication     `mapstructure:"authentication"`
+	Ipspace          ClusterPeerIpspace `mapstructure:"ipspace,omitempty"`
 }
 
 // ClusterPeerIpspace describes the GET record data model using go types for mapping.
