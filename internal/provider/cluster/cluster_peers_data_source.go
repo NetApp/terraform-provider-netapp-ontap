@@ -228,11 +228,11 @@ func (d *ClusterPeersDataSource) Read(ctx context.Context, req datasource.ReadRe
 				Name: types.StringValue(record.Ipspace.Name),
 			},
 		}
-		for index, IPAddress := range record.Remote.IPAddress {
-			data.ClusterPeers[index].Remote.IPAddresses[index] = types.StringValue(IPAddress)
+		for i, IPAddress := range record.Remote.IPAddress {
+			data.ClusterPeers[index].Remote.IPAddresses[i] = types.StringValue(IPAddress)
 		}
-		for index, peerApplication := range record.PeerApplications {
-			data.ClusterPeers[index].PeerApplications[index] = types.StringValue(peerApplication)
+		for i, peerApplication := range record.PeerApplications {
+			data.ClusterPeers[index].PeerApplications[i] = types.StringValue(peerApplication)
 		}
 	}
 
