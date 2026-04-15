@@ -1,22 +1,21 @@
 # 2.6.0 (2026-xx-xx)
 
 FEATURES:
+
 - **New:** Support ONTAP-mode in Google Cloud NetApp Volumes (GCNV)
 - **New Data Source:** `netapp-ontap_s3_user` and `netapp-ontap_s3_users`([#507](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/507))
 - **New Resource:** `netapp-ontap_s3_user` ([#508](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/508))
 
 ENHANCEMENTS:
+
 - **netapp-ontap_cluster_peer resource**: add `ipspace` parameter ([#656](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/656))
+- **netapp-ontap_name_services_dns_resource**, **netapp-ontap_name_services_dns_data_source**,**netapp-ontap_name_services_dnss_data_source**: Added dynamic_dns option and update support for all the options.([#646](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/646))
 
 BUG FIXES:
 
 - **netapp-ontap_snapmirror_policy resource**: fixed issue with create when `retention` is not set in config ([#647](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/647))
 - **netapp-ontap_san_lun-maps**: Fixed Value Conversion Error when optional filter fields are not set ([#651](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/651))
 - **netapp-ontap_cifs_share**: Fixed issue with creating ACLs resource ([#653](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/653))
-
-ENHANCEMENTS:
-
-- **netapp-ontap_name_services_dns_resource**, **netapp-ontap_name_services_dns_data_source**,**netapp-ontap_name_services_dnss_data_source**: Added dynamic_dns option and update support for all the options.([#646](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/646))
 
 # 2.5.0 (2026-03-12)
 
