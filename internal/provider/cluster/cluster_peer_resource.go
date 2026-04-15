@@ -231,11 +231,9 @@ func (r *ClusterPeersResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	if restInfo == nil {
-		errorHandler.MakeAndReportError("error reading info", "No Cluster Peer found")
+		resp.State.RemoveResource(ctx)
 		return
 	}
-
-	data.ID = types.StringValue(restInfo.UUID)
 	var ipAddresses []types.String
 	for _, e := range restInfo.Remote.IPAddress {
 		ipAddresses = append(ipAddresses, types.StringValue(e))
@@ -246,7 +244,7 @@ func (r *ClusterPeersResource) Read(ctx context.Context, req resource.ReadReques
 	data.Remote.IPAddresses = ipAddresses
 	data.State = types.StringValue(restInfo.Authentication.State)
 
-	if restInfo.Ipspace.Name != "" {
+	if !data.Ipspace.IsNull() && restInfo.Ipspace.Name != "" {
 		ipspaceObj, diags := types.ObjectValue(
 			map[string]attr.Type{"name": types.StringType},
 			map[string]attr.Value{"name": types.StringValue(restInfo.Ipspace.Name)},
@@ -349,10 +347,20 @@ func (r *ClusterPeersResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 	if restInfo == nil {
-		errorHandler.MakeAndReportError("error reading info", "No Cluster Peer found")
+		resp.State.RemoveResource(ctx)
 		return
 	}
 	data.State = types.StringValue(restInfo.Authentication.State)
+	if !data.Ipspace.IsNull() && !data.Ipspace.IsUnknown() && restInfo.Ipspace.Name != "" {
+		ipspaceObj, diags := types.ObjectValue(
+			map[string]attr.Type{"name": types.StringType},
+			map[string]attr.Value{"name": types.StringValue(restInfo.Ipspace.Name)},
+		)
+		resp.Diagnostics.Append(diags...)
+		if !diags.HasError() {
+			data.Ipspace = ipspaceObj
+		}
+	}
 
 	tflog.Trace(ctx, "created a resource")
 
@@ -458,8 +466,8 @@ func (r *ClusterPeersResource) Delete(ctx context.Context, req resource.DeleteRe
 		return
 	}
 
-	if data.ID.IsNull() {
-		errorHandler.MakeAndReportError("UUID is null", "cluster_peers UUID is null")
+	if data.PeerID.IsNull() {
+		errorHandler.MakeAndReportError("UUID is null", "cluster_peers peer UUID is null")
 		return
 	}
 
