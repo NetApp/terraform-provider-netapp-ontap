@@ -54,17 +54,27 @@ Optional:
 - `svm_name` (String) IPInterface svm name.
 
 
-<a id="nestedatt--dnss"></a>
+<a id="nestedatt--name_services_dnss"></a>
 
-### Nested Schema for `dnss`
-
-Required:
-
-- `cx_profile_name` (String) Connection profile name
-- `svm_name` (String) IPInterface svm name
+### Nested Schema for `name_services_dnss`
 
 Read-Only:
 
+- `cx_profile_name` (String) Connection profile name
 - `dns_domains` (List of String) List of DNS domains such as 'sales.bar.com'. The first domain is the one that the svm belongs to.
+- `dynamic_dns` (Set, Read-Only) Dynamic DNS update configuration for the SVM. (see [below for nested schema](#nestedatt--name_services_dnss--dynamic_dns))
 - `name_servers` (List of String) List of IPv4 addresses of name servers such as '123.123.123.123'.
+- `svm_name` (String) IPInterface svm name
 - `svm_uuid` (String) UUID of svm
+
+<a id="nestedatt--name_services_dnss--dynamic_dns"></a>
+
+### Nested Schema for `name_services_dnss.dynamic_dns`
+
+Read-Only:
+
+- `enabled` (Boolean) Enable or disable Dynamic DNS (DDNS) updates for the specified SVM
+- `fqdn` (String) Fully Qualified Domain Name (FQDN) to be used for dynamic DNS updates
+- `skip_fqdn_validation` (Boolean) Enable or disable FQDN validation
+- `time_to_live` (String) Time to live value for the dynamic DNS updates, in an ISO-8601 duration formatted string
+- `use_secure` (Boolean) Enable or disable secure dynamic DNS updates for the specified SVM

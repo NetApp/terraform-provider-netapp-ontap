@@ -7,13 +7,17 @@ import (
 
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
@@ -54,6 +58,15 @@ type NameServicesDNSResourceModel struct {
 	SkipConfigValidation types.Bool     `tfsdk:"skip_config_validation"`
 	Domains              []types.String `tfsdk:"dns_domains"`
 	NameServers          []types.String `tfsdk:"name_servers"`
+	DynamicDNS           types.Object   `tfsdk:"dynamic_dns"`
+}
+
+type NameServicesDNSDynamicDNSModel struct {
+	Enabled            types.Bool   `tfsdk:"enabled"`
+	FQDN               types.String `tfsdk:"fqdn"`
+	SkipFQDNValidation types.Bool   `tfsdk:"skip_fqdn_validation"`
+	TimeToLive         types.String `tfsdk:"time_to_live"`
+	UseSecure          types.Bool   `tfsdk:"use_secure"`
 }
 
 // Metadata returns the resource type name.
@@ -79,6 +92,9 @@ func (r *NameServicesDNSResource) Schema(ctx context.Context, req resource.Schem
 			"id": schema.StringAttribute{
 				MarkdownDescription: "UUID of svm",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"dns_domains": schema.SetAttribute{
 				ElementType:         types.StringType,
@@ -99,12 +115,59 @@ func (r *NameServicesDNSResource) Schema(ctx context.Context, req resource.Schem
 					boolplanmodifier.UseStateForUnknown(),
 				},
 			},
+			"dynamic_dns": schema.SingleNestedAttribute{
+				MarkdownDescription: "Dynamic DNS update configuration for the SVM.",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
+				Attributes: map[string]schema.Attribute{
+					"fqdn": schema.StringAttribute{
+						MarkdownDescription: "Fully Qualified Domain Name (FQDN) to be used for dynamic DNS updates",
+						Optional:            true,
+						Computed:            true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
+					},
+					"time_to_live": schema.StringAttribute{
+						MarkdownDescription: "Time to live value for the dynamic DNS updates, in an ISO-8601 duration formatted string",
+						Optional:            true,
+						Computed:            true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
+					},
+					"skip_fqdn_validation": schema.BoolAttribute{
+						MarkdownDescription: "Enable or disable FQDN validation",
+						Optional:            true,
+						Computed:            true,
+						PlanModifiers: []planmodifier.Bool{
+							boolplanmodifier.UseStateForUnknown(),
+						},
+					},
+					"use_secure": schema.BoolAttribute{
+						MarkdownDescription: "Enable or disable secure dynamic DNS updates for the specified SVM",
+						Optional:            true,
+						Computed:            true,
+						PlanModifiers: []planmodifier.Bool{
+							boolplanmodifier.UseStateForUnknown(),
+						},
+					},
+					"enabled": schema.BoolAttribute{
+						MarkdownDescription: "Enable or disable Dynamic DNS (DDNS) updates for the specified SVM",
+						Optional:            true,
+						Computed:            true,
+						PlanModifiers: []planmodifier.Bool{
+							boolplanmodifier.UseStateForUnknown(),
+						},
+					},
+				},
+			},
 		},
 	}
 }
-
-// create a function that add 2 numbers togehter
-
 // Configure adds the provider configured client to the resource.
 func (r *NameServicesDNSResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
@@ -167,6 +230,46 @@ func (r *NameServicesDNSResource) Read(ctx context.Context, req resource.ReadReq
 		}
 	}
 
+	dynamicDNSAttrTypes := map[string]attr.Type{
+		"enabled":              types.BoolType,
+		"fqdn":                 types.StringType,
+		"skip_fqdn_validation": types.BoolType,
+		"time_to_live":         types.StringType,
+		"use_secure":           types.BoolType,
+	}
+
+	if restInfo.DynamicDNS != nil {
+		// If state already has skip_fqdn_validation, prefer state to avoid drift when ONTAP omits/normalizes this field in dynamic DNS read responses.
+		skipFQDNValidation := types.BoolValue(restInfo.DynamicDNS.SkipFQDNValidation)
+		if !data.DynamicDNS.IsNull() && !data.DynamicDNS.IsUnknown() {
+			var stateDynamicDNSModel NameServicesDNSDynamicDNSModel
+			diags := data.DynamicDNS.As(ctx, &stateDynamicDNSModel, basetypes.ObjectAsOptions{})
+			resp.Diagnostics.Append(diags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			if !stateDynamicDNSModel.SkipFQDNValidation.IsNull() && !stateDynamicDNSModel.SkipFQDNValidation.IsUnknown() {
+				skipFQDNValidation = stateDynamicDNSModel.SkipFQDNValidation
+			}
+		}
+
+		dynamicDNSValues := map[string]attr.Value{
+			"enabled":              types.BoolValue(restInfo.DynamicDNS.Enabled),
+			"fqdn":                 types.StringValue(restInfo.DynamicDNS.FQDN),
+			"skip_fqdn_validation": skipFQDNValidation,
+			"time_to_live":         types.StringValue(restInfo.DynamicDNS.TimeToLive),
+			"use_secure":           types.BoolValue(restInfo.DynamicDNS.UseSecure),
+		}
+		dynamicDNSObject, diags := types.ObjectValue(dynamicDNSAttrTypes, dynamicDNSValues)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		data.DynamicDNS = dynamicDNSObject
+	} else {
+		data.DynamicDNS = types.ObjectNull(dynamicDNSAttrTypes)
+	}
+
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
 	tflog.Debug(ctx, fmt.Sprintf("read a resource: %#v", data))
@@ -182,37 +285,141 @@ func (r *NameServicesDNSResource) Create(ctx context.Context, req resource.Creat
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-	var body interfaces.NameServicesDNSGetDataModelONTAP
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	body := interfaces.NameServicesDNSGetDataModelONTAP{
+		Servers: []string{},
+		Domains: []string{},
+	}
+	for _, value := range data.NameServers {
+		body.Servers = append(body.Servers, value.ValueString())
+	}
+	for _, value := range data.Domains {
+		body.Domains = append(body.Domains, value.ValueString())
+	}
+	if !data.SkipConfigValidation.IsNull() && !data.SkipConfigValidation.IsUnknown() {
+		body.SkipConfigValidation = data.SkipConfigValidation.ValueBool()
+	}
+	if !data.DynamicDNS.IsNull() && !data.DynamicDNS.IsUnknown() {
+		var dynamicDNSModel NameServicesDNSDynamicDNSModel
+		diags := data.DynamicDNS.As(ctx, &dynamicDNSModel, basetypes.ObjectAsOptions{})
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		dynamicDNS := interfaces.DynamicDNS{}
+		hasDynamicDNS := false
+
+		if !dynamicDNSModel.Enabled.IsNull() && !dynamicDNSModel.Enabled.IsUnknown() {
+			dynamicDNS.Enabled = dynamicDNSModel.Enabled.ValueBool()
+			hasDynamicDNS = true
+		}
+		if !dynamicDNSModel.FQDN.IsNull() && !dynamicDNSModel.FQDN.IsUnknown() {
+			dynamicDNS.FQDN = dynamicDNSModel.FQDN.ValueString()
+			hasDynamicDNS = true
+		}
+		if !dynamicDNSModel.SkipFQDNValidation.IsNull() && !dynamicDNSModel.SkipFQDNValidation.IsUnknown() {
+			dynamicDNS.SkipFQDNValidation = dynamicDNSModel.SkipFQDNValidation.ValueBool()
+			hasDynamicDNS = true
+		}
+		if !dynamicDNSModel.TimeToLive.IsNull() && !dynamicDNSModel.TimeToLive.IsUnknown() {
+			dynamicDNS.TimeToLive = dynamicDNSModel.TimeToLive.ValueString()
+			hasDynamicDNS = true
+		}
+		if !dynamicDNSModel.UseSecure.IsNull() && !dynamicDNSModel.UseSecure.IsUnknown() {
+			dynamicDNS.UseSecure = dynamicDNSModel.UseSecure.ValueBool()
+			hasDynamicDNS = true
+		}
+
+		if hasDynamicDNS {
+			body.DynamicDNS = &dynamicDNS
+		}
+	}
 	body.SVM.Name = data.SVMName.ValueString()
 	body.SVM.UUID = data.ID.ValueString()
 
-	var servers, domains []string
-	for _, v := range data.NameServers {
-		servers = append(servers, v.ValueString())
-	}
-	for _, v := range data.Domains {
-		domains = append(domains, v.ValueString())
-	}
-	body.Servers = servers
-	body.Domains = domains
-	body.SkipConfigValidation = data.SkipConfigValidation.ValueBool()
 	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		// error reporting done inside NewClient
 		return
 	}
 
-	dns, err := interfaces.CreateNameServicesDNS(errorHandler, *client, body)
-	if err != nil {
+	dns, createErr := interfaces.CreateNameServicesDNS(errorHandler, *client, body)
+	if createErr != nil {
 		return
 	}
 	data.ID = types.StringValue(dns.SVM.UUID)
+
+	restInfo, err := interfaces.GetNameServicesDNS(errorHandler, *client, data.SVMName.ValueString())
+	if err != nil {
+		return
+	}
+	if restInfo == nil {
+		errorHandler.MakeAndReportError("No DNS found", fmt.Sprintf("NO DNS on svm %s found.", data.SVMName.ValueString()))
+		return
+	}
+
+	data.SVMName = types.StringValue(restInfo.SVM.Name)
+	data.ID = types.StringValue(restInfo.SVM.UUID)
+
+	if restInfo.Servers != nil {
+		data.NameServers = make([]types.String, len(restInfo.Servers))
+		for index, server := range restInfo.Servers {
+			data.NameServers[index] = types.StringValue(server)
+		}
+	}
+
+	if restInfo.Domains != nil {
+		data.Domains = make([]types.String, len(restInfo.Domains))
+		for index, domain := range restInfo.Domains {
+			data.Domains[index] = types.StringValue(domain)
+		}
+	}
+
+	dynamicDNSAttrTypes := map[string]attr.Type{
+		"enabled":              types.BoolType,
+		"fqdn":                 types.StringType,
+		"skip_fqdn_validation": types.BoolType,
+		"time_to_live":         types.StringType,
+		"use_secure":           types.BoolType,
+	}
+
+	if restInfo.DynamicDNS != nil {
+		// If state already has skip_fqdn_validation, prefer state to avoid drift when ONTAP omits/normalizes this field in dynamic DNS read responses.
+		skipFQDNValidation := types.BoolValue(restInfo.DynamicDNS.SkipFQDNValidation)
+		if !data.DynamicDNS.IsNull() && !data.DynamicDNS.IsUnknown() {
+			var stateDynamicDNSModel NameServicesDNSDynamicDNSModel
+			diags := data.DynamicDNS.As(ctx, &stateDynamicDNSModel, basetypes.ObjectAsOptions{})
+			resp.Diagnostics.Append(diags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			if !stateDynamicDNSModel.SkipFQDNValidation.IsNull() && !stateDynamicDNSModel.SkipFQDNValidation.IsUnknown() {
+				skipFQDNValidation = stateDynamicDNSModel.SkipFQDNValidation
+			}
+		}
+
+		dynamicDNSValues := map[string]attr.Value{
+			"enabled":              types.BoolValue(restInfo.DynamicDNS.Enabled),
+			"fqdn":                 types.StringValue(restInfo.DynamicDNS.FQDN),
+			"skip_fqdn_validation": skipFQDNValidation,
+			"time_to_live":         types.StringValue(restInfo.DynamicDNS.TimeToLive),
+			"use_secure":           types.BoolValue(restInfo.DynamicDNS.UseSecure),
+		}
+		dynamicDNSObject, diags := types.ObjectValue(dynamicDNSAttrTypes, dynamicDNSValues)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		data.DynamicDNS = dynamicDNSObject
+	} else {
+		data.DynamicDNS = types.ObjectNull(dynamicDNSAttrTypes)
+	}
 
 	tflog.Trace(ctx, "created a resource")
 
@@ -231,12 +438,76 @@ func (r *NameServicesDNSResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
-	// License updates are not supported
-	err := errorHandler.MakeAndReportError("Update not supported for dns", "Update not supported for dns")
+	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		return
 	}
-	// Save updated data into Terraform state
+
+
+	request := interfaces.NameServicesDNSGetDataModelONTAP{
+		Servers: []string{},
+		Domains: []string{},
+	}
+
+	for _, value := range data.NameServers {
+		request.Servers = append(request.Servers, value.ValueString())
+	}
+	for _, value := range data.Domains {
+		request.Domains = append(request.Domains, value.ValueString())
+	}
+
+	if !data.SkipConfigValidation.IsNull() && !data.SkipConfigValidation.IsUnknown() {
+		request.SkipConfigValidation = data.SkipConfigValidation.ValueBool()
+	}
+
+	if !data.DynamicDNS.IsNull() && !data.DynamicDNS.IsUnknown() {
+		var dynamicDNSModel NameServicesDNSDynamicDNSModel
+		diags := data.DynamicDNS.As(ctx, &dynamicDNSModel, basetypes.ObjectAsOptions{})
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		dynamicDNS := interfaces.DynamicDNS{}
+		hasDynamicDNS := false
+
+		if !dynamicDNSModel.Enabled.IsNull() && !dynamicDNSModel.Enabled.IsUnknown() {
+			dynamicDNS.Enabled = dynamicDNSModel.Enabled.ValueBool()
+			hasDynamicDNS = true
+		}
+		if !dynamicDNSModel.FQDN.IsNull() && !dynamicDNSModel.FQDN.IsUnknown() {
+			dynamicDNS.FQDN = dynamicDNSModel.FQDN.ValueString()
+			hasDynamicDNS = true
+		}
+		if !dynamicDNSModel.SkipFQDNValidation.IsNull() && !dynamicDNSModel.SkipFQDNValidation.IsUnknown() {
+			dynamicDNS.SkipFQDNValidation = dynamicDNSModel.SkipFQDNValidation.ValueBool()
+			hasDynamicDNS = true
+		}
+		if !dynamicDNSModel.TimeToLive.IsNull() && !dynamicDNSModel.TimeToLive.IsUnknown() {
+			dynamicDNS.TimeToLive = dynamicDNSModel.TimeToLive.ValueString()
+			hasDynamicDNS = true
+		}
+		if !dynamicDNSModel.UseSecure.IsNull() && !dynamicDNSModel.UseSecure.IsUnknown() {
+			dynamicDNS.UseSecure = dynamicDNSModel.UseSecure.ValueBool()
+			hasDynamicDNS = true
+		}
+
+		if hasDynamicDNS {
+			request.DynamicDNS = &dynamicDNS
+		}
+	}
+
+	if data.ID.IsNull() {
+		errorHandler.MakeAndReportError("ID is null", "name_services_dns ID is null")
+		return
+	}
+
+	err = interfaces.UpdateNameServicesDNS(errorHandler, *client, request, data.ID.ValueString())
+	if err != nil {
+		return
+	}
+	tflog.Trace(ctx, "updated a name_services_dns resource")
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 

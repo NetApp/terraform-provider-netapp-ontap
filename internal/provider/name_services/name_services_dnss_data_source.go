@@ -6,6 +6,7 @@ import (
 
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -112,6 +113,32 @@ func (d *NameServicesDNSsDataSource) Schema(ctx context.Context, req datasource.
 							Computed:            true,
 							MarkdownDescription: "List of IPv4 addresses of name servers such as '123.123.123.123'.",
 						},
+						"dynamic_dns": schema.SingleNestedAttribute{
+							Computed:    true,
+							Description: "Dynamic DNS update configuration for the SVM.",
+							Attributes: map[string]schema.Attribute{
+								"fqdn": schema.StringAttribute{
+									MarkdownDescription: "Fully Qualified Domain Name (FQDN) to be used for dynamic DNS updates",
+									Computed:            true,
+								},
+								"time_to_live": schema.StringAttribute{
+									MarkdownDescription: "Time to live value for the dynamic DNS updates, in an ISO-8601 duration formatted string",
+									Computed:            true,
+								},
+								"skip_fqdn_validation": schema.BoolAttribute{
+									MarkdownDescription: "Enable or disable FQDN validation",
+									Computed:            true,
+								},
+								"use_secure": schema.BoolAttribute{
+									MarkdownDescription: "Enable or disable secure dynamic DNS updates for the specified SVM",
+									Computed:            true,
+								},
+								"enabled": schema.BoolAttribute{
+									MarkdownDescription: "Enable or disable Dynamic DNS (DDNS) updates for the specified SVM",
+									Computed:            true,
+								},
+							},
+						},
 					},
 				},
 				Computed:            true,
@@ -170,14 +197,41 @@ func (d *NameServicesDNSsDataSource) Read(ctx context.Context, req datasource.Re
 		return
 	}
 
+	dynamicDNSAttrTypes := map[string]attr.Type{
+		"enabled":              types.BoolType,
+		"fqdn":                 types.StringType,
+		"skip_fqdn_validation": types.BoolType,
+		"time_to_live":         types.StringType,
+		"use_secure":           types.BoolType,
+	}
+
 	data.NameServicesDNSs = make([]NameServicesDNSDataSourceModel, len(restInfo))
 	for index, record := range restInfo {
+		dynamicDNS := types.ObjectNull(dynamicDNSAttrTypes)
+		if record.DynamicDNS != nil {
+			dynamicDNSValues := map[string]attr.Value{
+				"enabled":              types.BoolValue(record.DynamicDNS.Enabled),
+				"fqdn":                 types.StringValue(record.DynamicDNS.FQDN),
+				"skip_fqdn_validation": types.BoolValue(record.DynamicDNS.SkipFQDNValidation),
+				"time_to_live":         types.StringValue(record.DynamicDNS.TimeToLive),
+				"use_secure":           types.BoolValue(record.DynamicDNS.UseSecure),
+			}
+
+			dynamicDNSObject, diags := types.ObjectValue(dynamicDNSAttrTypes, dynamicDNSValues)
+			resp.Diagnostics.Append(diags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			dynamicDNS = dynamicDNSObject
+		}
+
 		data.NameServicesDNSs[index] = NameServicesDNSDataSourceModel{
 			CxProfileName: types.String(data.CxProfileName),
 			SVMName:       types.StringValue(record.SVM.Name),
 			SVMUUID:       types.StringValue(record.SVM.UUID),
 			Domains:       connection.FlattenTypesStringList(record.Domains),
 			NameServers:   connection.FlattenTypesStringList(record.Servers),
+			DynamicDNS:    dynamicDNS,
 		}
 	}
 

@@ -26,6 +26,19 @@ func TestAccNameServicesDNSResource(t *testing.T) {
 				Config: testAccNameServicesDNSResourceConfig("tf_acc_svm"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_dns.dns", "svm_name", "tf_acc_svm"),
+					resource.TestCheckTypeSetElemAttr("netapp-ontap_dns.dns", "name_servers.*", "1.1.1.1"),
+					resource.TestCheckTypeSetElemAttr("netapp-ontap_dns.dns", "name_servers.*", "2.2.2.2"),
+				),
+			},
+			// Test modifying DNS configuration
+			{
+				Config: testAccNameServicesDNSResourceModifyConfig("tf_acc_svm"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_dns.dns", "svm_name", "tf_acc_svm"),
+					resource.TestCheckTypeSetElemAttr("netapp-ontap_dns.dns", "name_servers.*", "8.8.8.8"),
+					resource.TestCheckTypeSetElemAttr("netapp-ontap_dns.dns", "name_servers.*", "8.8.4.4"),
+					resource.TestCheckResourceAttr("netapp-ontap_dns.dns", "dynamic_dns.enabled", "false"),
+					resource.TestCheckResourceAttr("netapp-ontap_dns.dns", "dynamic_dns.fqdn", "test.bar.com"),
 				),
 			},
 			// Test importing a resource
@@ -70,6 +83,45 @@ resource "netapp-ontap_dns" "dns" {
   name_servers = ["1.1.1.1", "2.2.2.2"]
   dns_domains = ["foo.bar.com", "boo.bar.com"]
   skip_config_validation = true
+}
+`, host, admin, password, svmName)
+}
+
+func testAccNameServicesDNSResourceModifyConfig(svmName string) string {
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
+	admin := os.Getenv("TF_ACC_NETAPP_USER")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
+	if host == "" || admin == "" || password == "" {
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		os.Exit(1)
+	}
+	return fmt.Sprintf(`
+provider "netapp-ontap" {
+ connection_profiles = [
+    {
+      name = "cluster4"
+      hostname = "%s"
+      username = "%s"
+      password = "%s"
+      validate_certs = false
+    },
+  ]
+}
+
+resource "netapp-ontap_dns" "dns" {
+  # required to know which system to interface with
+  cx_profile_name = "cluster4"
+  svm_name = "%s"
+  name_servers = ["8.8.8.8", "8.8.4.4"]
+  dns_domains = ["baz.bar.com", "qux.bar.com"]
+  skip_config_validation = true
+	dynamic_dns = {
+		fqdn = "test.bar.com"
+		time_to_live = "P1D"
+		skip_fqdn_validation = false
+		use_secure = false
+		enabled = false
+	}
 }
 `, host, admin, password, svmName)
 }
