@@ -9,6 +9,7 @@ import (
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -51,18 +52,18 @@ type ClusterPeersResource struct {
 
 // ClusterPeersResourceModel describes the resource data model.
 type ClusterPeersResourceModel struct {
-	CxProfileName      types.String                  `tfsdk:"cx_profile_name"`
-	Passphrase         types.String                  `tfsdk:"passphrase"`
-	Name               types.String                  `tfsdk:"name"`
-	Remote             *Remote                       `tfsdk:"remote"`
-	SourceDetails      *Remote                       `tfsdk:"source_details"`
-	PeerCxProfileName  types.String                  `tfsdk:"peer_cx_profile_name"`
-	GeneratePassphrase types.Bool                    `tfsdk:"generate_passphrase"`
-	PeerApplications   []types.String                `tfsdk:"peer_applications"`
-	State              types.String                  `tfsdk:"state"`
-	PeerID             types.String                  `tfsdk:"peer_id"`
-	Ipspace            *ClusterPeerDataSourceIpspace `tfsdk:"ipspace"`
-	ID                 types.String                  `tfsdk:"id"`
+	CxProfileName      types.String   `tfsdk:"cx_profile_name"`
+	Passphrase         types.String   `tfsdk:"passphrase"`
+	Name               types.String   `tfsdk:"name"`
+	Remote             *Remote        `tfsdk:"remote"`
+	SourceDetails      *Remote        `tfsdk:"source_details"`
+	PeerCxProfileName  types.String   `tfsdk:"peer_cx_profile_name"`
+	GeneratePassphrase types.Bool     `tfsdk:"generate_passphrase"`
+	PeerApplications   []types.String `tfsdk:"peer_applications"`
+	State              types.String   `tfsdk:"state"`
+	PeerID             types.String   `tfsdk:"peer_id"`
+	Ipspace            types.Object   `tfsdk:"ipspace"`
+	ID                 types.String   `tfsdk:"id"`
 }
 
 // Remote describes Remote data model.
@@ -245,9 +246,14 @@ func (r *ClusterPeersResource) Read(ctx context.Context, req resource.ReadReques
 	data.Remote.IPAddresses = ipAddresses
 	data.State = types.StringValue(restInfo.Authentication.State)
 
-	if data.Ipspace == nil {
-		data.Ipspace = &ClusterPeerDataSourceIpspace{
-			Name: types.StringValue(restInfo.Ipspace.Name),
+	if restInfo.Ipspace.Name != "" {
+		ipspaceObj, diags := types.ObjectValue(
+			map[string]attr.Type{"name": types.StringType},
+			map[string]attr.Value{"name": types.StringValue(restInfo.Ipspace.Name)},
+		)
+		resp.Diagnostics.Append(diags...)
+		if !diags.HasError() {
+			data.Ipspace = ipspaceObj
 		}
 	}
 	// Save data into Terraform state
@@ -289,8 +295,10 @@ func (r *ClusterPeersResource) Create(ctx context.Context, req resource.CreateRe
 	if !data.Passphrase.IsUnknown() {
 		body.Authentication.Passphrase = data.Passphrase.ValueString()
 	}
-	if data.Ipspace != nil && !data.Ipspace.Name.IsNull() {
-		body.Ipspace = &interfaces.ClusterPeerIpspace{Name: data.Ipspace.Name.ValueString()}
+	if !data.Ipspace.IsNull() && !data.Ipspace.IsUnknown() {
+		if nameAttr, ok := data.Ipspace.Attributes()["name"].(types.String); ok {
+			body.Ipspace = &interfaces.ClusterPeerIpspace{Name: nameAttr.ValueString()}
+		}
 	}
 	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
@@ -315,8 +323,10 @@ func (r *ClusterPeersResource) Create(ctx context.Context, req resource.CreateRe
 		ipAddressesPeer = append(ipAddressesPeer, e.ValueString())
 	}
 	bodyPeer.Remote.IPAddress = ipAddressesPeer
-	if data.Ipspace != nil && !data.Ipspace.Name.IsNull() && data.Ipspace.Name.ValueString() != "" {
-		bodyPeer.Ipspace = &interfaces.ClusterPeerIpspace{Name: data.Ipspace.Name.ValueString()}
+	if !data.Ipspace.IsNull() && !data.Ipspace.IsUnknown() {
+		if nameAttr, ok := data.Ipspace.Attributes()["name"].(types.String); ok && nameAttr.ValueString() != "" {
+			bodyPeer.Ipspace = &interfaces.ClusterPeerIpspace{Name: nameAttr.ValueString()}
+		}
 	}
 	if data.PeerApplications != nil {
 		var applications []string
@@ -371,8 +381,12 @@ func (r *ClusterPeersResource) Update(ctx context.Context, req resource.UpdateRe
 	}
 
 	var body interfaces.ClusterPeersResourceBodyDataModelONTAP
-	if state.Ipspace != nil && plan.Ipspace != nil && state.Ipspace.Name.ValueString() != plan.Ipspace.Name.ValueString() {
-		body.Ipspace = &interfaces.ClusterPeerIpspace{Name: plan.Ipspace.Name.ValueString()}
+	if !state.Ipspace.IsNull() && !plan.Ipspace.IsNull() {
+		stateNameAttr, stateOk := state.Ipspace.Attributes()["name"].(types.String)
+		planNameAttr, planOk := plan.Ipspace.Attributes()["name"].(types.String)
+		if stateOk && planOk && stateNameAttr.ValueString() != planNameAttr.ValueString() {
+			body.Ipspace = &interfaces.ClusterPeerIpspace{Name: planNameAttr.ValueString()}
+		}
 	}
 
 	isEqual := reflect.DeepEqual(plan.Remote.IPAddresses, state.Remote.IPAddresses)
