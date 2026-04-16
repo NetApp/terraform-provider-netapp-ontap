@@ -69,7 +69,7 @@ func (r *RestClient) CallCreateMethod(baseURL string, query *RestQuery, body map
 		query = r.NewQuery()
 	}
 	// TODO: make this a connection parameter ?
-	query.Set("return_timeout", "90")
+	query.Set("return_timeout", "120")
 
 	statusCode, response, err := r.callAPIMethod("POST", baseURL, query, body)
 	if err != nil {
