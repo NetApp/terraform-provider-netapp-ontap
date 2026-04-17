@@ -65,7 +65,10 @@ CATEGORIES = {
         "network_ip_route_resource.md",
         "network_ip_service_policy_data_source.md",
         "network_ip_service_policies_data_source.md",
-        "network_ip_service_policy_resource.md"],
+        "network_ip_service_policy_resource.md",
+        "network_ipspace_data_source.md",
+        "network_ipspaces_data_source.md",
+        "network_ipspace_resource.md"],
     'nvme': [],
     'object-store': [
         "protocols_s3_bucket_data_source.md",
