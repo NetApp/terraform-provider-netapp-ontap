@@ -1,3 +1,10 @@
+# 2.7.0 (2026-xx-xx)
+
+FEATURES:
+
+- **New Data Source:** `netapp-ontap_network_ipspace` and `netapp-ontap_network_ipspaces`([#612](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/612))
+- **New Resource:** `netapp-ontap_network_ipspace` ([#612](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/612))
+
 # 2.6.0 (2026-04-16)
 
 FEATURES:
