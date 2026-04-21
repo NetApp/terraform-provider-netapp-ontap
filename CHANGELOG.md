@@ -1,3 +1,9 @@
+# 2.6.1 (2026-xx-xx)
+
+BUG FIXES:
+
+- **provider**: fixed issue with AWS lambda client. ([#664](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/664))
+
 # 2.6.0 (2026-04-16)
 
 FEATURES:
