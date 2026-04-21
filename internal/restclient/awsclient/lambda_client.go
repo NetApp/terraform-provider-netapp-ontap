@@ -31,9 +31,9 @@ type AWSLambdaProfile struct {
 }
 
 type AWSConfig struct {
-	FunctionName        string
-	Region              string
-	SharedConfigProfile string
+	FunctionName        string `mapstructure:"function_name,omitempty"`
+	Region              string `mapstructure:"region,omitempty"`
+	SharedConfigProfile string `mapstructure:"shared_config_profile,omitempty"`
 }
 
 type RequestType string
