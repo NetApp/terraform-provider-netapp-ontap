@@ -62,6 +62,18 @@ provider "netapp-ontap" {
       validate_certs = var.validate_certs
     },
     {
+      name = "aws-fsx"
+      hostname = "********83"
+      username = var.username
+      password = var.password
+      validate_certs = var.validate_certs
+      aws_lambda = {
+        function_name = var.aws_lambda_function_name
+        region = var.aws_region
+        shared_config_profile = var.aws_shared_config_profile
+      }
+    },
+    {
       name = "gcnv-ontap-mode"
       google_netapp_unified_pool = {
         project_id = "1234567890"
