@@ -87,6 +87,7 @@ resource "netapp-ontap_s3_bucket" "s3_bucket" {
 				Requires ONTAP 9.10.1 or later. (see [below for nested schema](#nestedatt--audit_event_selector))
 - `comment` (String) Additional information about the bucket.
 - `constituents_per_aggregate` (Number) Number of constituents per aggregate. This option is not supported when type is set to NAS.
+- `cors_rules` (Attributes Set) The list of object store bucket CORS rules. Requires ONTAP 9.16.1 or later. (see [below for nested schema](#nestedatt--cors_rules))
 - `nas_path` (String) The NAS path to which the NAS bucket corresponds.
 				Requires ONTAP 9.12.1 or later.
 - `policy` (Attributes) Access policy uses the AWS policy language syntax to allow S3 tenants to create access policies to their data. (see [below for nested schema](#nestedatt--policy))
@@ -113,6 +114,19 @@ Optional:
 
 - `access` (String) The type of event access to be audited.
 - `permission` (String) The type of event permission to be audited.
+
+<a id="nestedatt--cors_rules"></a>
+
+### Nested Schema for `cors_rules`
+
+Optional:
+
+- `allowed_headers` (Set of String) List of HTTP headers allowed in the cross-origin requests.
+- `allowed_methods` (Set of String) List of HTTP methods allowed in the cross-origin requests.
+- `allowed_origins` (Set of String) List of origins from where a cross-origin request is allowed to originate from for the S3 bucket.
+- `expose_headers` (Set of String) List of extra headers sent in the response that customers can access from their applications.
+- `max_age_seconds` (Number) The time in seconds for your browser to cache the preflight response for the specified resource.
+- `rule_id` (String) Bucket CORS rule identifier.
 
 <a id="nestedatt--policy"></a>
 
