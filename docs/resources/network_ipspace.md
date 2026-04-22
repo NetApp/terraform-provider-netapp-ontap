@@ -8,7 +8,9 @@ description: |-
 
 # Resource Ipspace
 
-Create, delete, or rename Ipspace
+Create, delete, or rename Ipspace.
+The `network_ipspace` resource does not support update operations.
+Renaming the IPspace will force a new resource: Terraform will destroy the existing IPspace and recreate it.
 
 ## Related ONTAP commands
 
