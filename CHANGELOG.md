@@ -1,3 +1,9 @@
+# 2.7.0 (2026-xx-xx)
+
+ENHANCEMENTS:
+
+- **netapp-ontap_network_ipspace**: New option `cors_rules` added, requires ONTAP 9.16 or later. ([#658](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/658))
+
 # 2.6.1 (2026-04-21)
 
 BUG FIXES:
