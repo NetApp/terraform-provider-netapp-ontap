@@ -5,6 +5,12 @@ FEATURES:
 - **New Data Source:** `netapp-ontap_network_ipspace` and `netapp-ontap_network_ipspaces`([#612](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/612))
 - **New Resource:** `netapp-ontap_network_ipspace` ([#612](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/612))
 
+# 2.6.1 (2026-04-21)
+
+BUG FIXES:
+
+- **provider**: fixed issue with AWS lambda client. ([#664](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/664))
+
 # 2.6.0 (2026-04-16)
 
 FEATURES:
