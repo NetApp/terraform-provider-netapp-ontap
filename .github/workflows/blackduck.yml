@@ -46,7 +46,7 @@ jobs:
     needs: validate-version
     runs-on: self-hosted
     steps:
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: 'temurin' # See 'Supported distributions' for available options
           java-version: '17'
