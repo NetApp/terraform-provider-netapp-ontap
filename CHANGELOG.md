@@ -1,3 +1,9 @@
+# 2.7.0 (2026-xx-xx)
+
+BUG FIXES:
+
+- **netapp-ontap_nfs_service resource**: fixed issue with idempotency. ([#310](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/310))
+
 # 2.6.1 (2026-04-21)
 
 BUG FIXES:
