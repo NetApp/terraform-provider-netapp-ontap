@@ -26,6 +26,11 @@ func TestAccStorageVolumeResourceAlias(t *testing.T) {
 				Config:      testAccStorageVolumeResourceConfigAlias("non-existant", "name-cant-have-dashes"),
 				ExpectError: regexp.MustCompile("917888"),
 			},
+			// restore_to is update-only, throws error when used during create.
+			{
+				Config:      testAccStorageVolumeResourceConfigAliasWithRestore("tf_acc_svm", "tf_acc_volume_restore_snapshot"),
+				ExpectError: regexp.MustCompile("Invalid restore_to usage during create"),
+			},
 			// Read testing
 			{
 				Config: testAccStorageVolumeResourceConfigAlias("tf_acc_svm", "tf_acc_volume2"),
@@ -114,6 +119,73 @@ resource "netapp-ontap_storage_volume_resource" "example" {
     mode = "off"
     size_unit = "mb"
   }
+}`, host, admin, password, volName, svm)
+}
+
+func testAccStorageVolumeResourceConfigAliasWithRestore(svm, volName string) string {
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
+	admin := os.Getenv("TF_ACC_NETAPP_USER")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
+
+	if host == "" || admin == "" || password == "" {
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		os.Exit(1)
+	}
+	return fmt.Sprintf(`
+provider "netapp-ontap" {
+ connection_profiles = [
+		{
+			name = "cluster5"
+			hostname = "%s"
+			username = "%s"
+			password = "%s"
+			validate_certs = false
+		},
+	]
+}
+
+resource "netapp-ontap_storage_volume_resource" "example" {
+	cx_profile_name = "cluster5"
+	name = "%s"
+	svm_name = "%s"
+	aggregates = [
+	{name = "NSOL_NetApp_A70_T19U05a_NVME_SSD_1"}
+]
+	space_guarantee = "none"
+	snapshot_policy = "default-1weekly"
+	space = {
+	size = 30
+	size_unit = "mb"
+	percent_snapshot_space = 10
+		logical_space = {
+			enforcement = true
+			reporting = true
+		}
+	}
+	tiering = {
+		policy_name = "all"
+	}
+	nas = {
+		export_policy_name = "default"
+		group_id = 1
+		user_id = 2
+		unix_permissions = "100"
+		security_style = "mixed"
+	junction_path = "/testacc"
+	}
+	autosize = {
+		minimum = 20
+		maximum = 60
+		shrink_threshold = 10
+		grow_threshold = 90
+		mode = "off"
+		size_unit = "mb"
+	}
+	restore_to = {
+		snapshot = {
+			name = "snap1"
+		}
+	}
 }`, host, admin, password, volName, svm)
 }
 

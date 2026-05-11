@@ -94,6 +94,7 @@ resource "netapp-ontap_volume" "example" {
 - `language` (String) Language to use for volume
 - `nas` (Attributes) (see [below for nested schema](#nestedatt--nas))
 - `qos_policy_group` (String) Specifies a QoS policy group to be set on volume
+- `restore_to` (Attributes) Snapshot restore target. (see [below for nested schema](#nestedatt--restore_to))
 - `snaplock` (Attributes) (see [below for nested schema](#nestedatt--snaplock))
 - `snapshot_policy` (String) The name of the snapshot policy
 - `space_guarantee` (String) Space guarantee style for the volume
@@ -160,6 +161,22 @@ Optional:
 									off - Autosizing of the volume is disabled.
 - `shrink_threshold` (Number) Used space threshold size, in percentage, for the automatic shrinkage of the volume.
 - `size_unit` (String) The unit used to interpret the minimum or maximum size parameters
+
+<a id="nestedatt--restore_to"></a>
+
+### Nested Schema for `restore_to`
+
+Optional:
+
+- `snapshot` (Attributes) Snapshot reference used for restore (see [below for nested schema](#nestedatt--restore_to--snapshot))
+
+<a id="nestedatt--restore_to--snapshot"></a>
+
+### Nested Schema for `restore_to.snapshot`
+
+Optional:
+
+- `name` (String) Name of the snapshot to restore the volume to
 
 <a id="nestedatt--efficiency"></a>
 
