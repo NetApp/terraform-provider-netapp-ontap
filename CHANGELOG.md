@@ -1,3 +1,9 @@
+# 2.7.0 (xxxx-xx-xx)
+
+ENHANCEMENTS:
+
+- **netapp-ontap_volume resource**: added snapshot restore_to volume ([#677](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/677))
+
 # 2.6.1 (2026-04-21)
 
 BUG FIXES:
