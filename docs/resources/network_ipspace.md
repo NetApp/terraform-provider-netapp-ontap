@@ -28,7 +28,7 @@ Renaming the IPspace will force a new resource: Terraform will destroy the exist
 ## Example Usage
 
 ```terraform
-resource "netapp-ontap_network_ipspace" "example" {
+resource "netapp-ontap_network_ipspace" "example_ipspace1" {
     cx_profile_name = "hw-cluster"
     name            = "csahu_ipspace1"
 }
