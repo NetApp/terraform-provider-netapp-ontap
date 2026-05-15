@@ -52,6 +52,7 @@ data "netapp-ontap_volume" "storage_volume" {
 - `space_guarantee` (String) Space guarantee style for the volume
 - `snapshot_locking_enabled` (Boolean) Whether or not snapshot copy locking is enabled on the volume
 - `state` (String) Whether the specified volume is online, or not
+- `style` (String) Volume style (flexvol, flexgroup, flexgroup_constituent)
 - `tiering` (Attributes) (see [below for nested schema](#nestedatt--tiering))
 - `type` (String) The volume type, either read-write (RW) or data-protection (DP)
 

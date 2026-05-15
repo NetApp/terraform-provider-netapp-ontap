@@ -45,6 +45,7 @@ type StorageVolumeDataSourceModel struct {
 	Name           types.String                        `tfsdk:"name"`
 	SVMName        types.String                        `tfsdk:"svm_name"`
 	State          types.String                        `tfsdk:"state"`
+	Style          types.String                        `tfsdk:"style"`
 	Type           types.String                        `tfsdk:"type"`
 	SpaceGuarantee types.String                        `tfsdk:"space_guarantee"`
 	Encrypt        types.Bool                          `tfsdk:"encryption"`
@@ -165,6 +166,10 @@ func (d *StorageVolumeDataSource) Schema(ctx context.Context, req datasource.Sch
 			},
 			"state": schema.StringAttribute{
 				MarkdownDescription: "Whether the specified volume is online, or not",
+				Computed:            true,
+			},
+			"style": schema.StringAttribute{
+				MarkdownDescription: "Volume style (flexvol, flexgroup, flexgroup_constituent).",
 				Computed:            true,
 			},
 			"type": schema.StringAttribute{
@@ -392,6 +397,7 @@ func (d *StorageVolumeDataSource) Read(ctx context.Context, req datasource.ReadR
 	}
 	data.Aggregates = aggregates
 	data.State = types.StringValue(volume.State)
+	data.Style = types.StringValue(volume.Style)
 	data.Type = types.StringValue(volume.Type)
 	data.SpaceGuarantee = types.StringValue(volume.SpaceGuarantee.Type)
 	data.Encrypt = types.BoolValue(volume.Encryption.Enabled)

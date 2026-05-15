@@ -928,7 +928,7 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	if !data.Style.IsUnknown() {
 		request.Style = data.Style.ValueString()
 	}
-	if !data.ConstituentsPerAggregate.IsNull() && !data.ConstituentsPerAggregate.IsUnknown() {
+	if !data.ConstituentsPerAggregate.IsNull() {
 		request.ConstituentsPerAggregate = int(data.ConstituentsPerAggregate.ValueInt64())
 	}
 
@@ -1254,7 +1254,7 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	data.Autosize = objectValue
 
 	tflog.Trace(ctx, "created a resource")
-	tflog.Debug(ctx, fmt.Sprintf("My Volume data after create: %#v", data.ConstituentsPerAggregate))
+
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 

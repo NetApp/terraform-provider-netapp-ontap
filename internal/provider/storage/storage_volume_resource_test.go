@@ -31,6 +31,7 @@ func TestAccStorageVolumeResource(t *testing.T) {
 				Config: testAccStorageVolumeResourceConfig("tf_acc_svm", "tf_acc_volume_1"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_volume.example", "name", "tf_acc_volume_1"),
+          resource.TestCheckResourceAttr("netapp-ontap_volume.example", "style", "flexvol"),
 					resource.TestCheckNoResourceAttr("netapp-ontap_volume.example", "volname"),
 				),
 			},
@@ -38,6 +39,7 @@ func TestAccStorageVolumeResource(t *testing.T) {
 				Config: testAccStorageVolumeResourceConfigUpdate("tf_acc_svm", "tf_acc_volume_1"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_volume.example", "name", "tf_acc_volume_1"),
+          resource.TestCheckResourceAttr("netapp-ontap_volume.example", "style", "flexvol"),
 					resource.TestCheckResourceAttr("netapp-ontap_volume.example", "nas.group_id", "10"),
 					resource.TestCheckNoResourceAttr("netapp-ontap_volume.example", "volname"),
 				),
@@ -87,6 +89,7 @@ resource "netapp-ontap_volume" "example" {
   encryption = true
   space_guarantee = "none"
   snapshot_policy = "default-1weekly"
+  style = "flexvol"
   space = {
 	size = 30
 	size_unit = "mb"
@@ -115,11 +118,12 @@ resource "netapp-ontap_volume" "example" {
     mode = "off"
     size_unit = "mb"
   }
+  snapshot_locking_enabled = true
 }`, host, admin, password, volName, svm)
 }
 
 // testAccStorageVolumeResourceConfigUpdate updates percent_snapshot_space from 10 to 20
-// and group_id from 1 to 10, and size from 30 to 60
+// and group_id from 1 to 10, and size from 30 to 40
 func testAccStorageVolumeResourceConfigUpdate(svm, volName string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
@@ -152,8 +156,9 @@ resource "netapp-ontap_volume" "example" {
   encryption = true
   space_guarantee = "none"
   snapshot_policy = "default-1weekly"
+  style = "flexvol"
   space = {
-	size = 60
+	size = 40
 	size_unit = "mb"
 	percent_snapshot_space = 20
     logical_space = {

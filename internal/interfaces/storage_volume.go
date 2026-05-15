@@ -227,7 +227,6 @@ func GetUUIDVolumeByName(errorHandler *utils.ErrorHandler, r restclient.RestClie
 // GetStorageVolume to get volume info by uuid
 func GetStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) (*StorageVolumeGetDataModelONTAP, error) {
 	query := r.NewQuery()
-	// Note: constituents_per_aggregate is not supported in fields parameter but may be returned if not filtered
 	query.Fields([]string{"name", "uuid", "comment", "state", "style", "type", "language",
 		"encryption", "snapshot_policy", "space", "nas", "efficiency", "tiering",
 		"snaplock", "analytics", "aggregates", "svm", "qos", "autosize",
@@ -254,7 +253,6 @@ func GetStorageVolumeByName(errorHandler *utils.ErrorHandler, r restclient.RestC
 	query.Add("name", name)
 	query.Add("svm.name", svmName)
 	query.Add("return_records", "true")
-	// Note: constituents_per_aggregate is not supported in fields parameter but may be returned if not filtered
 	query.Fields([]string{"name", "uuid", "comment", "state", "style", "type", "language",
 		"encryption", "snapshot_policy", "space", "nas", "efficiency", "tiering",
 		"snaplock", "analytics", "aggregates", "svm", "qos", "autosize",
@@ -283,7 +281,6 @@ func GetStorageVolumeByName(errorHandler *utils.ErrorHandler, r restclient.RestC
 func GetStorageVolumes(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *StorageVolumeDataSourceFilterModel) ([]StorageVolumeGetDataModelONTAP, error) {
 	api := "storage/volumes"
 	query := r.NewQuery()
-	// Note: constituents_per_aggregate is not supported in fields parameter but may be returned if not filtered
 
 	if filter != nil {
 		var filterMap map[string]interface{}

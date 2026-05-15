@@ -31,6 +31,7 @@ func TestAccStorageVolumeResourceAlias(t *testing.T) {
 				Config: testAccStorageVolumeResourceConfigAlias("tf_acc_svm", "tf_acc_volume2"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "name", "tf_acc_volume2"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "style", "flexvol"),
 					resource.TestCheckNoResourceAttr("netapp-ontap_storage_volume_resource.example", "volname"),
 				),
 			},
@@ -38,6 +39,7 @@ func TestAccStorageVolumeResourceAlias(t *testing.T) {
 				Config: testAccStorageVolumeResourceConfigAliasUpdate("tf_acc_svm", "accVolume1"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "name", "accVolume1"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "style", "flexvol"),
 					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "nas.group_id", "10"),
 					resource.TestCheckNoResourceAttr("netapp-ontap_storage_volume_resource.example", "volname"),
 				),
@@ -84,8 +86,10 @@ resource "netapp-ontap_storage_volume_resource" "example" {
   aggregates = [
 	{name = "NSOL_NetApp_A70_T19U05a_NVME_SSD_1"}
 ]
+  encryption = true
   space_guarantee = "none"
   snapshot_policy = "default-1weekly"
+  style = "flexvol"
   space = {
 	size = 30
 	size_unit = "mb"
@@ -96,7 +100,7 @@ resource "netapp-ontap_storage_volume_resource" "example" {
     }
   }
   tiering = {
-  	policy_name = "all"
+	policy_name = "none"
   }
   nas = {
     export_policy_name = "default"
@@ -114,6 +118,7 @@ resource "netapp-ontap_storage_volume_resource" "example" {
     mode = "off"
     size_unit = "mb"
   }
+  snapshot_locking_enabled = true
 }`, host, admin, password, volName, svm)
 }
 
@@ -146,8 +151,10 @@ resource "netapp-ontap_storage_volume_resource" "example" {
   aggregates = [
 	{name = "NSOL_NetApp_A70_T19U05a_NVME_SSD_1"}
 ]
+  encryption = true
   space_guarantee = "none"
   snapshot_policy = "default-1weekly"
+  style = "flexvol"
   space = {
 	size = 30
 	size_unit = "mb"
@@ -158,7 +165,7 @@ resource "netapp-ontap_storage_volume_resource" "example" {
     }
   }
   tiering = {
-  	policy_name = "all"
+	policy_name = "none"
   }
   nas = {
     export_policy_name = "default"
@@ -176,5 +183,6 @@ resource "netapp-ontap_storage_volume_resource" "example" {
     mode = "grow"
     size_unit = "mb"
   }
+  snapshot_locking_enabled = false
 }`, host, admin, password, volName, svm)
 }
