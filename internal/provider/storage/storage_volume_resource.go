@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -31,10 +32,10 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
+
 var _ resource.Resource = &StorageVolumeResource{}
 var _ resource.ResourceWithImportState = &StorageVolumeResource{}
-
-// var _ resource.ResourceWithModifyPlan = &StorageVolumeResource{}
+var _ resource.ResourceWithModifyPlan = &StorageVolumeResource{}
 
 // NewStorageVolumeResource is a helper function to simplify the provider implementation.
 func NewStorageVolumeResource() resource.Resource {
@@ -82,6 +83,8 @@ type StorageVolumeResourceModel struct {
 	Analytics              types.Object                      `tfsdk:"analytics"`
 	Autosize               types.Object                      `tfsdk:"autosize"`
 	SnapshotLockingEnabled types.Bool                        `tfsdk:"snapshot_locking_enabled"`
+	Style                  types.String                      `tfsdk:"style"`
+	ConstituentsPerAggregate types.Int64                     `tfsdk:"constituents_per_aggregate"`
 }
 
 // StorageVolumeResourceAggregates describes the analytics model.
@@ -174,6 +177,9 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 			"aggregates": schema.SetNestedAttribute{
 				Required:            true,
 				MarkdownDescription: "List of aggregates to place volume on",
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.RequiresReplace(),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
@@ -538,6 +544,25 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 					},
 				},
 			},
+			"style": schema.StringAttribute{
+				MarkdownDescription: "Volume style (flexvol, flexgroup, flexgroup_constituent). Specifies the volume type to create.",
+				Optional:            true,
+				Computed:            true,
+				Validators: []validator.String{
+					stringvalidator.OneOf("flexvol", "flexgroup", "flexgroup_constituent"),
+				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"constituents_per_aggregate": schema.Int64Attribute{
+				MarkdownDescription: "Number of constituents per aggregate when creating a FlexGroup volume. If specified on a single aggregate, creates a FlexGroup volume instead of a flexible volume.",
+				Optional:            true,
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.RequiresReplace(),
+				},
+			},
 			"id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Volume identifier",
@@ -552,12 +577,15 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 // ModifyPlan makes terraform errors if config or state sets state of the volume offline.
 // TO DO: when offline, values change from API response.
 func (r *StorageVolumeResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	if req.Plan.Raw.IsNull() {
+		return
+	}
+
 	// Fill in logic.
-	var plan, state, config *StorageVolumeResourceModel
+	var plan, state *StorageVolumeResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 
 	if state != nil && !state.State.IsUnknown() && state.State.ValueString() == "offline" {
 		resp.Diagnostics.AddError("Volume is offline", "Provider is not supported to manage offline volume. Please manually switch the volume online")
@@ -646,6 +674,7 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 	if response.SnapshotLockingEnabled != nil {
 		data.SnapshotLockingEnabled = types.BoolValue(*response.SnapshotLockingEnabled)
 	}
+	data.Style = types.StringValue(response.Style)
 
 	//Space
 	nestedElementTypes := map[string]attr.Type{
@@ -852,15 +881,15 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	//	aggregates[i].Name = v.Name.ValueString()
 	//}
 
-	aggrgatges := []interfaces.Aggregate{}
+	aggregates := []interfaces.Aggregate{}
 	for _, v := range data.Aggregates {
 		var aggr interfaces.Aggregate
 		aggr.Name = v.Name.ValueString()
-		aggrgatges = append(aggrgatges, aggr)
+		aggregates = append(aggregates, aggr)
 	}
-	err := mapstructure.Decode(aggrgatges, &request.Aggregates)
+	err := mapstructure.Decode(aggregates, &request.Aggregates)
 	if err != nil {
-		errorHandler.MakeAndReportError("error creating Volume", fmt.Sprintf("error on encoding copies info: %s, copies %#v", err, aggrgatges))
+		errorHandler.MakeAndReportError("error creating Volume", fmt.Sprintf("error on encoding copies info: %s, copies %#v", err, aggregates))
 		return
 	}
 
@@ -895,6 +924,12 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	}
 	if !data.Comment.IsUnknown() {
 		request.Comment = data.Comment.ValueString()
+	}
+	if !data.Style.IsUnknown() {
+		request.Style = data.Style.ValueString()
+	}
+	if !data.ConstituentsPerAggregate.IsNull() && !data.ConstituentsPerAggregate.IsUnknown() {
+		request.ConstituentsPerAggregate = int(data.ConstituentsPerAggregate.ValueInt64())
 	}
 
 	if !data.Nas.IsUnknown() {
@@ -1057,6 +1092,12 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	}
 
 	data.ID = types.StringValue(response.UUID)
+	// Best effort refresh to capture server-side defaults that may be omitted in POST return_records.
+	var refreshDiags diag.Diagnostics
+	refreshErrorHandler := utils.NewErrorHandler(ctx, &refreshDiags)
+	if refreshedResponse, readErr := interfaces.GetStorageVolume(refreshErrorHandler, *client, data.ID.ValueString()); readErr == nil && refreshedResponse != nil {
+		response = refreshedResponse
+	}
 	data.Comment = types.StringValue(response.Comment)
 	data.Encrypt = types.BoolValue(response.Encryption.Enabled)
 	data.State = types.StringValue(response.State)
@@ -1070,6 +1111,7 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	} else {
 		data.SnapshotLockingEnabled = types.BoolValue(false)
 	}
+	data.Style = types.StringValue(response.Style)
 
 	//Space
 	nestedElementTypes := map[string]attr.Type{
@@ -1212,7 +1254,7 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	data.Autosize = objectValue
 
 	tflog.Trace(ctx, "created a resource")
-
+	tflog.Debug(ctx, fmt.Sprintf("My Volume data after create: %#v", data.ConstituentsPerAggregate))
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -1522,6 +1564,7 @@ func readVolume(ctx context.Context, client *restclient.RestClient, data *Storag
 	} else {
 		data.SnapshotLockingEnabled = types.BoolValue(false)
 	}
+	data.Style = types.StringValue(response.Style)
 
 	//Space
 	nestedElementTypes := map[string]attr.Type{
@@ -1658,38 +1701,42 @@ func readVolume(ctx context.Context, client *restclient.RestClient, data *Storag
 	data.Analytics = objectValue
 
 	//Autosize
-	elementTypes = map[string]attr.Type{
-		"minimum":          types.Int64Type,
-		"maximum":          types.Int64Type,
-		"shrink_threshold": types.Int64Type,
-		"grow_threshold":   types.Int64Type,
-		"mode":             types.StringType,
-		"size_unit":        types.StringType,
-	}
-	// var sizeUnit is already defined as part of Space model
-	if !data.Autosize.IsUnknown() {
-		var autosize StorageVolumeResourceAutosize
-		diags = data.Autosize.As(ctx, &autosize, basetypes.ObjectAsOptions{})
+	if !data.Autosize.IsNull() {
+		elementTypes = map[string]attr.Type{
+			"minimum":          types.Int64Type,
+			"maximum":          types.Int64Type,
+			"shrink_threshold": types.Int64Type,
+			"grow_threshold":   types.Int64Type,
+			"mode":             types.StringType,
+			"size_unit":        types.StringType,
+		}
+		var autoSizeUnit string
+		if !data.Autosize.IsUnknown() {
+			var autosize StorageVolumeResourceAutosize
+			diags = data.Autosize.As(ctx, &autosize, basetypes.ObjectAsOptions{})
+			if diags.HasError() {
+				allDiags.Append(diags...)
+				return allDiags
+			}
+			autoSizeUnit = autosize.SizeUnit.ValueString()
+		}
+		if autoSizeUnit == "" {
+			_, autoSizeUnit = interfaces.ByteFormat(int64(response.Autosize.Minimum))
+		}
+		elements = map[string]attr.Value{
+			"minimum":          types.Int64Value(int64(response.Autosize.Minimum / interfaces.POW2BYTEMAP[autoSizeUnit])),
+			"maximum":          types.Int64Value(int64(response.Autosize.Maximum / interfaces.POW2BYTEMAP[autoSizeUnit])),
+			"shrink_threshold": types.Int64Value(int64(response.Autosize.ShrinkThreshold)),
+			"grow_threshold":   types.Int64Value(int64(response.Autosize.GrowThreshold)),
+			"mode":             types.StringValue(response.Autosize.Mode),
+			"size_unit":        types.StringValue(autoSizeUnit),
+		}
+		objectValue, diags = types.ObjectValue(elementTypes, elements)
 		if diags.HasError() {
 			allDiags.Append(diags...)
-			return allDiags
 		}
-		sizeUnit = autosize.SizeUnit.ValueString()
+		data.Autosize = objectValue
 	}
-
-	elements = map[string]attr.Value{
-		"minimum":          types.Int64Value(int64(response.Autosize.Minimum / interfaces.POW2BYTEMAP[sizeUnit])),
-		"maximum":          types.Int64Value(int64(response.Autosize.Maximum / interfaces.POW2BYTEMAP[sizeUnit])),
-		"shrink_threshold": types.Int64Value(int64(response.Autosize.ShrinkThreshold)),
-		"grow_threshold":   types.Int64Value(int64(response.Autosize.GrowThreshold)),
-		"mode":             types.StringValue(response.Autosize.Mode),
-		"size_unit":        types.StringValue(sizeUnit),
-	}
-	objectValue, diags = types.ObjectValue(elementTypes, elements)
-	if diags.HasError() {
-		allDiags.Append(diags...)
-	}
-	data.Autosize = objectValue
 
 	return allDiags
 }

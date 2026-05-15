@@ -1,3 +1,9 @@
+# 2.7.0
+
+ENHANCEMENTS:
+
+- **netapp-ontap_volume**: added `constituents_per_aggregate` and `style` options in resource. ([#382](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/382))
+
 # 2.6.1 (2026-04-21)
 
 BUG FIXES:

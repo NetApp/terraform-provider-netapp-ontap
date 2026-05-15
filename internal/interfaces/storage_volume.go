@@ -14,49 +14,52 @@ import (
 
 // StorageVolumeGetDataModelONTAP describes the GET record data model using go types for mapping.
 type StorageVolumeGetDataModelONTAP struct {
-	Name                   string
-	SVM                    svm
-	Space                  Space
-	State                  string
-	Type                   string
-	Comment                string
-	SpaceGuarantee         Guarantee `mapstructure:"guarantee"`
-	NAS                    NAS
-	QOS                    QOS
-	Encryption             Encryption
-	Efficiency             Efficiency
-	SnapshotPolicy         SnapshotPolicy `mapstructure:"snapshot_policy,omitempty"`
-	TieringPolicy          TieringPolicy  `mapstructure:"tiering,omitempty"`
-	Snaplock               Snaplock
-	Analytics              Analytics
-	Language               string
-	Aggregates             []Aggregate
-	Autosize               Autosize `mapstructure:"autosize,omitempty"`
-	UUID                   string
-	SnapshotLockingEnabled *bool `mapstructure:"snapshot_locking_enabled,omitempty"`
+	Name                     string
+	SVM                      svm
+	Space                    Space
+	State                    string
+	Type                     string
+	Comment                  string
+	SpaceGuarantee           Guarantee `mapstructure:"guarantee"`
+	NAS                      NAS
+	QOS                      QOS
+	Encryption               Encryption
+	Efficiency               Efficiency
+	SnapshotPolicy           SnapshotPolicy `mapstructure:"snapshot_policy,omitempty"`
+	TieringPolicy            TieringPolicy  `mapstructure:"tiering,omitempty"`
+	Snaplock                 Snaplock
+	Analytics                Analytics
+	Language                 string
+	Aggregates               []Aggregate
+	Autosize                 Autosize `mapstructure:"autosize,omitempty"`
+	UUID                     string
+	SnapshotLockingEnabled   *bool  `mapstructure:"snapshot_locking_enabled,omitempty"`
+	Style                    string `mapstructure:"style,omitempty"`
 }
 
 // StorageVolumeResourceModel describes the resource data model.
 type StorageVolumeResourceModel struct {
-	Name                   string                   `mapstructure:"name,omitempty"`
-	SVM                    svm                      `mapstructure:"svm,omitempty"`
-	Space                  Space                    `mapstructure:"space,omitempty"`
-	State                  string                   `mapstructure:"state,omitempty"`
-	Type                   string                   `mapstructure:"type,omitempty"`
-	Comment                string                   `mapstructure:"comment,omitempty"`
-	SpaceGuarantee         Guarantee                `mapstructure:"guarantee,omitempty"`
-	NAS                    NAS                      `mapstructure:"nas,omitempty"`
-	QOS                    QOS                      `mapstructure:"qos,omitempty"`
-	Encryption             Encryption               `mapstructure:"encryption,omitempty"`
-	Efficiency             Efficiency               `mapstructure:"efficiency,omitempty"`
-	SnapshotPolicy         SnapshotPolicy           `mapstructure:"snapshot_policy,omitempty"`
-	TieringPolicy          TieringPolicy            `mapstructure:"tiering,omitempty"`
-	Snaplock               Snaplock                 `mapstructure:"snaplock,omitempty"`
-	Analytics              Analytics                `mapstructure:"analytics,omitempty"`
-	Language               string                   `mapstructure:"language,omitempty"`
-	Aggregates             []map[string]interface{} `mapstructure:"aggregates,omitempty"`
-	Autosize               Autosize                 `mapstructure:"autosize,omitempty"`
-	SnapshotLockingEnabled *bool                    `mapstructure:"snapshot_locking_enabled,omitempty"`
+	Name                     string                   `mapstructure:"name,omitempty"`
+	SVM                      svm                      `mapstructure:"svm,omitempty"`
+	Space                    Space                    `mapstructure:"space,omitempty"`
+	State                    string                   `mapstructure:"state,omitempty"`
+	Type                     string                   `mapstructure:"type,omitempty"`
+	Comment                  string                   `mapstructure:"comment,omitempty"`
+	SpaceGuarantee           Guarantee                `mapstructure:"guarantee,omitempty"`
+	NAS                      NAS                      `mapstructure:"nas,omitempty"`
+	QOS                      QOS                      `mapstructure:"qos,omitempty"`
+	Encryption               Encryption               `mapstructure:"encryption,omitempty"`
+	Efficiency               Efficiency               `mapstructure:"efficiency,omitempty"`
+	SnapshotPolicy           SnapshotPolicy           `mapstructure:"snapshot_policy,omitempty"`
+	TieringPolicy            TieringPolicy            `mapstructure:"tiering,omitempty"`
+	Snaplock                 Snaplock                 `mapstructure:"snaplock,omitempty"`
+	Analytics                Analytics                `mapstructure:"analytics,omitempty"`
+	Language                 string                   `mapstructure:"language,omitempty"`
+	Aggregates               []map[string]interface{} `mapstructure:"aggregates,omitempty"`
+	Autosize                 Autosize                 `mapstructure:"autosize,omitempty"`
+	SnapshotLockingEnabled   *bool                    `mapstructure:"snapshot_locking_enabled,omitempty"`
+	Style                    string                   `mapstructure:"style,omitempty"`
+	ConstituentsPerAggregate int                      `mapstructure:"constituents_per_aggregate,omitempty"`
 }
 
 // Aggregate describes the resource data model.
@@ -199,7 +202,7 @@ func GetUUIDVolumeByName(errorHandler *utils.ErrorHandler, r restclient.RestClie
 	query := r.NewQuery()
 	query.Add("name", name)
 	query.Add("svm.uuid", svmUUID)
-	query.Fields([]string{"name", "uuid", "snapshot_locking_enabled"})
+	query.Fields([]string{"name", "uuid", "snapshot_locking_enabled", "style"})
 	api := "storage/volumes/"
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err != nil {
@@ -224,9 +227,11 @@ func GetUUIDVolumeByName(errorHandler *utils.ErrorHandler, r restclient.RestClie
 // GetStorageVolume to get volume info by uuid
 func GetStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) (*StorageVolumeGetDataModelONTAP, error) {
 	query := r.NewQuery()
-	query.Fields([]string{"name", "svm.name", "aggregates", "space.size", "state", "type", "nas.export_policy.name", "nas.path", "guarantee.type", "space.snapshot.reserve_percent", "efficiency.dedupe", "efficiency.compaction",
-		"nas.security_style", "encryption.enabled", "efficiency.policy.name", "nas.unix_permissions", "nas.gid", "nas.uid", "snapshot_policy.name", "language", "qos.policy.name", "snapshot_locking_enabled",
-		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state", "autosize"})
+	// Note: constituents_per_aggregate is not supported in fields parameter but may be returned if not filtered
+	query.Fields([]string{"name", "uuid", "comment", "state", "style", "type", "language",
+		"encryption", "snapshot_policy", "space", "nas", "efficiency", "tiering",
+		"snaplock", "analytics", "aggregates", "svm", "qos", "autosize",
+		"snapshot_locking_enabled", "guarantee"})
 	statusCode, response, err := r.GetNilOrOneRecord("storage/volumes/"+uuid, query, nil)
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError("error reading volume info", fmt.Sprintf("error on GET storage/volumes: %s", err))
@@ -249,9 +254,11 @@ func GetStorageVolumeByName(errorHandler *utils.ErrorHandler, r restclient.RestC
 	query.Add("name", name)
 	query.Add("svm.name", svmName)
 	query.Add("return_records", "true")
-	query.Fields([]string{"name", "uuid", "svm.name", "aggregates", "space.size", "state", "type", "nas.export_policy.name", "nas.path", "guarantee.type", "space.snapshot.reserve_percent", "efficiency.dedupe", "efficiency.compaction",
-		"nas.security_style", "encryption.enabled", "efficiency.policy.name", "nas.unix_permissions", "nas.gid", "nas.uid", "snapshot_policy.name", "language", "qos.policy.name", "snapshot_locking_enabled",
-		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state", "autosize"})
+	// Note: constituents_per_aggregate is not supported in fields parameter but may be returned if not filtered
+	query.Fields([]string{"name", "uuid", "comment", "state", "style", "type", "language",
+		"encryption", "snapshot_policy", "space", "nas", "efficiency", "tiering",
+		"snaplock", "analytics", "aggregates", "svm", "qos", "autosize",
+		"snapshot_locking_enabled", "guarantee"})
 	statusCode, response, err := r.GetNilOrOneRecord("storage/volumes", query, nil)
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError("error reading volume info by name", fmt.Sprintf("error on GET storage/volumes: %s", err))
@@ -276,9 +283,7 @@ func GetStorageVolumeByName(errorHandler *utils.ErrorHandler, r restclient.RestC
 func GetStorageVolumes(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *StorageVolumeDataSourceFilterModel) ([]StorageVolumeGetDataModelONTAP, error) {
 	api := "storage/volumes"
 	query := r.NewQuery()
-	query.Fields([]string{"name", "svm.name", "aggregates", "space.size", "state", "type", "nas.export_policy.name", "nas.path", "guarantee.type", "space.snapshot.reserve_percent", "efficiency.dedupe", "efficiency.compaction",
-		"nas.security_style", "encryption.enabled", "efficiency.policy.name", "nas.unix_permissions", "nas.gid", "nas.uid", "snapshot_policy.name", "language", "qos.policy.name", "snapshot_locking_enabled",
-		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state", "autosize"})
+	// Note: constituents_per_aggregate is not supported in fields parameter but may be returned if not filtered
 
 	if filter != nil {
 		var filterMap map[string]interface{}
