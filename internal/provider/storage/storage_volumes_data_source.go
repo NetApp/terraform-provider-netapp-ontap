@@ -112,6 +112,10 @@ func (d *StorageVolumesDataSource) Schema(ctx context.Context, req datasource.Sc
 							MarkdownDescription: "Whether the specified volume is online, or not",
 							Computed:            true,
 						},
+						"style": schema.StringAttribute{
+							MarkdownDescription: "Volume style (flexvol, flexgroup, flexgroup_constituent).",
+							Computed:            true,
+						},
 						"type": schema.StringAttribute{
 							MarkdownDescription: "The volume type, either read-write (RW) or data-protection (DP)",
 							Computed:            true,
@@ -354,6 +358,10 @@ func (d *StorageVolumesDataSource) Read(ctx context.Context, req datasource.Read
 
 	data.StorageVolumes = make([]StorageVolumeDataSourceModel, len(restInfo))
 	for index, record := range restInfo {
+		snapshotLockingEnabled := types.BoolNull()
+		if record.SnapshotLockingEnabled != nil {
+			snapshotLockingEnabled = types.BoolValue(*record.SnapshotLockingEnabled)
+		}
 
 		vsize, vunits := interfaces.ByteFormat(int64(record.Space.Size))
 		autosize_minimum, autosize_units := interfaces.ByteFormat(int64(record.Autosize.Minimum))
@@ -368,6 +376,7 @@ func (d *StorageVolumesDataSource) Read(ctx context.Context, req datasource.Read
 			SVMName:        types.StringValue(record.SVM.Name),
 			Aggregates:     aggregates,
 			State:          types.StringValue(record.State),
+			Style:          types.StringValue(record.Style),
 			Type:           types.StringValue(record.Type),
 			SpaceGuarantee: types.StringValue(record.SpaceGuarantee.Type),
 			Encrypt:        types.BoolValue(record.Encryption.Enabled),
@@ -416,7 +425,7 @@ func (d *StorageVolumesDataSource) Read(ctx context.Context, req datasource.Read
 				GrowThreshold:   types.Int64Value(int64(record.Autosize.GrowThreshold)),
 				Mode:            types.StringValue(record.Autosize.Mode),
 			},
-			SnapshotLockingEnabled: types.BoolValue(*record.SnapshotLockingEnabled),
+			SnapshotLockingEnabled: snapshotLockingEnabled,
 			ID: types.StringValue(record.UUID),
 		}
 	}

@@ -436,7 +436,11 @@ func (d *StorageVolumeDataSource) Read(ctx context.Context, req datasource.ReadR
 	data.SnapLock = &StorageVolumeDataSourceSnapLock{
 		SnaplockType: types.StringValue(volume.Snaplock.Type),
 	}
-	data.SnapshotLockingEnabled = types.BoolValue(*volume.SnapshotLockingEnabled)
+	if volume.SnapshotLockingEnabled != nil {
+		data.SnapshotLockingEnabled = types.BoolValue(*volume.SnapshotLockingEnabled)
+	} else {
+		data.SnapshotLockingEnabled = types.BoolNull()
+	}
 
 	data.Analytics = &StorageVolumeDataSourceAnalytics{
 		State: types.StringValue(volume.Analytics.State),

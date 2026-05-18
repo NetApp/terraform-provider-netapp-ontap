@@ -281,6 +281,10 @@ func GetStorageVolumeByName(errorHandler *utils.ErrorHandler, r restclient.RestC
 func GetStorageVolumes(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *StorageVolumeDataSourceFilterModel) ([]StorageVolumeGetDataModelONTAP, error) {
 	api := "storage/volumes"
 	query := r.NewQuery()
+	query.Fields([]string{"name", "uuid", "comment", "state", "style", "type", "language",
+		"encryption", "snapshot_policy", "space", "nas", "efficiency", "tiering",
+		"snaplock", "analytics", "aggregates", "svm", "qos", "autosize",
+		"snapshot_locking_enabled", "guarantee"})
 
 	if filter != nil {
 		var filterMap map[string]interface{}
