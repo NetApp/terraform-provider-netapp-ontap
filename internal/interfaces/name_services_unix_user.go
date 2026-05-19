@@ -98,7 +98,10 @@ func GetNameServicesUnixUsers(errorHandler *utils.ErrorHandler, r restclient.Res
 	if filter != nil {
 		var filterMap map[string]interface{}
 		if err := mapstructure.Decode(filter, &filterMap); err != nil {
-			return nil, errorHandler.MakeAndReportError("error encoding service policy filter info", fmt.Sprintf("error on filter %#v: %s", filter, err))
+			return nil, errorHandler.MakeAndReportError(
+				"error encoding UNIX users filter info",
+				fmt.Sprintf("error on filter %#v: %s", filter, err),
+			)
 		}
 		query.SetValues(filterMap)
 	}
