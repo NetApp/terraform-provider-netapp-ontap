@@ -1,3 +1,10 @@
+# 2.7.0 (2026-xx-xx)
+
+FEATURES:
+
+- **New Data Source:** `netapp-ontap_unix_user` and `netapp-ontap_unix_users`([#679](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/679))
+- **New Resource:** `netapp-ontap_unix_user` ([#679](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/679))
+
 # 2.6.1 (2026-04-21)
 
 BUG FIXES:
