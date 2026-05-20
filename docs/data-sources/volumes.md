@@ -79,6 +79,7 @@ Read-Only:
 - `space` (Attributes) (see [below for nested schema](#nestedatt--storage_volumes--space))
 - `space_guarantee` (String) Space guarantee style for the volume
 - `state` (String) Whether the specified volume is online, or not
+- `style` (String) Volume style (flexvol, flexgroup, flexgroup_constituent)
 - `tiering` (Attributes) (see [below for nested schema](#nestedatt--storage_volumes--tiering))
 - `type` (String) The volume type, either read-write (RW) or data-protection (DP)
 
