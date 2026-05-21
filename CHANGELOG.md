@@ -1,3 +1,10 @@
+# 2.7.0 (2026-xx-xx)
+
+FEATURES:
+
+- **New Data Source:** `netapp-ontap_unix_group` and `netapp-ontap_unix_groups`([#680](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/680))
+- **New Resource:** `netapp-ontap_unix_group` ([#680](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/680))
+
 # 2.6.1 (2026-04-21)
 
 BUG FIXES:
