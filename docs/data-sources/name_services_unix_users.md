@@ -70,14 +70,11 @@ Optional:
 
 ### Nested Schema for `name_services_unix_users`
 
-Required:
-
-- `cx_profile_name` (String) Connection profile name
-- `name` (String) The name of the UNIX user.
-- `svm_name` (String) The name of the SVM.
-
 Read-Only:
 
+- `cx_profile_name` (String) Connection profile name
 - `full_name` (String) Full name of the UNIX user.
 - `id` (Number) UNIX user ID of the specified user.
+- `name` (String) The name of the UNIX user.
 - `primary_gid` (Number) Primary group ID to which the UNIX user belongs.
+- `svm_name` (String) The name of the SVM.
