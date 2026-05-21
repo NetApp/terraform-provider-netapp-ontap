@@ -72,15 +72,15 @@ func (d *NameServicesUnixUsersDataSource) Schema(ctx context.Context, req dataso
 					Attributes: map[string]schema.Attribute{
 						"cx_profile_name": schema.StringAttribute{
 							MarkdownDescription: "Connection profile name",
-							Required:            true,
+							Computed:            true,
 						},
 						"svm_name": schema.StringAttribute{
 							MarkdownDescription: "The name of the SVM.",
-							Required:            true,
+							Computed:            true,
 						},
 						"name": schema.StringAttribute{
 							MarkdownDescription: "The name of the UNIX user.",
-							Required:            true,
+							Computed:            true,
 						},
 						"full_name": schema.StringAttribute{
 							MarkdownDescription: "Full name of the UNIX user.",
