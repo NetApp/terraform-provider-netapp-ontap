@@ -50,10 +50,13 @@ CATEGORIES = {
     'name-services': [
         "name_services_dns_data_source.md",
         "name_services_dnss_data_source.md",
-        "name_services_dns_resource.md"
+        "name_services_dns_resource.md",
         "name_services_ldap_data_source.md",
         "name_services_ldaps_data_source.md",
         "name_services_ldap_resource.md",
+        "name_services_unix_group_data_source.md",
+        "name_services_unix_groups_data_source.md",
+        "name_services_unix_group_resource.md",
     ],
     'ndmp': [],
     'networking': [
