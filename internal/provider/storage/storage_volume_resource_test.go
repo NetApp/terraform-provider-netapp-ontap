@@ -123,8 +123,8 @@ resource "netapp-ontap_volume" "example" {
 }`, host, admin, password, volName, svm)
 }
 
-// testAccStorageVolumeResourceConfigUpdate updates percent_snapshot_space from 10 to 20
-// and group_id from 1 to 10, and size from 30 to 60
+// testAccStorageVolumeResourceConfigWithRestore is used to test restoring a volume from a snapshot.
+// It is update-only because restore_to cannot be used during create.
 func testAccStorageVolumeResourceConfigWithRestore(svm, volName string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")

@@ -94,7 +94,7 @@ resource "netapp-ontap_volume" "example" {
 - `language` (String) Language to use for volume
 - `nas` (Attributes) (see [below for nested schema](#nestedatt--nas))
 - `qos_policy_group` (String) Specifies a QoS policy group to be set on volume
-- `restore_to` (Attributes) Snapshot restore target. (see [below for nested schema](#nestedatt--restore_to))
+- `restore_to` (Attributes) Update-only restore trigger, this restores volume to the point in time the Snapshot copy was taken. (see [below for nested schema](#nestedatt--restore_to))
 - `snaplock` (Attributes) (see [below for nested schema](#nestedatt--snaplock))
 - `snapshot_policy` (String) The name of the snapshot policy
 - `space_guarantee` (String) Space guarantee style for the volume
@@ -165,6 +165,8 @@ Optional:
 <a id="nestedatt--restore_to"></a>
 
 ### Nested Schema for `restore_to`
+
+`restore_to` is update-only and acts as an operation trigger. It initiates a restore during apply.
 
 Optional:
 
