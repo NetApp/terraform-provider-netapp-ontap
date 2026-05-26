@@ -59,4 +59,5 @@ Required:
 Optional:
 
 - `block_size` (Number) The block size of the namespace in bytes. Allowed values: 512, 4096.
+  If not specified, the default block size is `4096`; for `ostype = "vmware"`, the default is `512`.
 - `size_unit` (String) Unit for size conversion. Supported values: bytes, b, k, kb, m, mb, g, gb, t, tb, p, pb, e, eb, z, zb, y, yb.
