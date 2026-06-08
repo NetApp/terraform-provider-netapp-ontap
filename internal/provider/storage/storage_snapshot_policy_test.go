@@ -41,12 +41,10 @@ func TestAccStorageSnapshotPolicyResource(t *testing.T) {
 			},
 			// Test importing a resource
 			{
-				ResourceName:  "netapp-ontap_snapshot_policy.example",
-				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s", "tf_acc_snapshot_policy", "tf_acc_svm", "cluster4"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_snapshot_policy.example", "name", "tf_acc_snapshot_policy"),
-				),
+				ResourceName:      "netapp-ontap_snapshot_policy.example",
+				ImportState:       true,
+				ImportStateId:     fmt.Sprintf("%s,%s,%s", "tf-sn-policy", "tf_acc_svm", "cluster4"),
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -89,4 +87,42 @@ resource "netapp-ontap_snapshot_policy" "example" {
   },
   ]
 }`, host, admin, password, name, svmname, comment, enabled)
+}
+
+func testAccStorageSnapshotPolicyClusterResourceConfig(name string, comment string, enabled bool) string {
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
+	admin := os.Getenv("TF_ACC_NETAPP_USER")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
+	if host == "" || admin == "" || password == "" {
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		os.Exit(1)
+	}
+	return fmt.Sprintf(`
+provider "netapp-ontap" {
+ connection_profiles = [
+    {
+      name = "cluster4"
+      hostname = "%s"
+      username = "%s"
+      password = "%s"
+      validate_certs = false
+    },
+  ]
+}
+
+resource "netapp-ontap_snapshot_policy" "cluster_example" {
+  # required to know which system to interface with
+  cx_profile_name = "cluster4"
+  name = "%s"
+  comment = "%s"
+  enabled = "%t"
+  copies = [
+  {
+	count = 3
+	schedule = {
+	  name = "daily"
+	}
+  },
+  ]
+}`, host, admin, password, name, comment, enabled)
 }
