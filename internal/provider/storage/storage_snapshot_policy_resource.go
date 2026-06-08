@@ -123,17 +123,29 @@ func (r *SnapshotPolicyResource) Schema(ctx context.Context, req resource.Schema
 						"retention_period": schema.StringAttribute{
 							MarkdownDescription: "The retention period of Snapshot copies for this schedule",
 							Optional:            true,
-							PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
+							Computed:            true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.RequiresReplace(),
+								stringplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"snapmirror_label": schema.StringAttribute{
 							MarkdownDescription: "Label for SnapMirror operations",
 							Optional:            true,
-							PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
+							Computed:            true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.RequiresReplace(),
+								stringplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"prefix": schema.StringAttribute{
 							MarkdownDescription: "The prefix to use while creating Snapshot copies at regular intervals",
 							Optional:            true,
-							PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
+							Computed:            true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.RequiresReplace(),
+								stringplanmodifier.UseStateForUnknown(),
+							},
 						},
 					},
 				},
@@ -222,6 +234,42 @@ func (r *SnapshotPolicyResource) Read(ctx context.Context, req resource.ReadRequ
 	}
 	data.Name = types.StringValue(restInfo.Name)
 	data.ID = types.StringValue(restInfo.UUID)
+	data.Enabled = types.BoolValue(restInfo.Enabled)
+
+	if restInfo.Comment != "" {
+		data.Comment = types.StringValue(restInfo.Comment)
+	}
+
+	// iterate over the copies from the rest info and add them to the resource
+	if len(restInfo.Copies) > 0 {
+		var copies []CopyResourceModel
+		for _, restInfoCopy := range restInfo.Copies {
+			c := CopyResourceModel{
+				Count: types.Int64Value(restInfoCopy.Count),
+				Schedule: ScheduleResourceModel{
+					Name: types.StringValue(restInfoCopy.Schedule.Name),
+				},
+				RetentionPeriod: types.String{},
+				SnapmirrorLabel: types.String{},
+				Prefix:          types.String{},
+			}
+
+			// set optional fields
+			if restInfoCopy.RetentionPeriod != "" {
+				c.RetentionPeriod = types.StringValue(restInfoCopy.RetentionPeriod)
+			}
+
+			if restInfoCopy.SnapmirrorLabel != "" {
+				c.SnapmirrorLabel = types.StringValue(restInfoCopy.SnapmirrorLabel)
+			}
+
+			if restInfoCopy.Prefix != "" {
+				c.Prefix = types.StringValue(restInfoCopy.Prefix)
+			}
+			copies = append(copies, c)
+		}
+		data.Copies = copies
+	}
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
@@ -290,6 +338,43 @@ func (r *SnapshotPolicyResource) Create(ctx context.Context, req resource.Create
 
 	data.ID = types.StringValue(resource.UUID)
 	tflog.Trace(ctx, "created a resource")
+
+	// Optional values in the copies attribute may be filled by NetApp. Collect them after creating the resource.
+	restInfo, err := interfaces.GetSnapshotPolicy(errorHandler, *client, data.ID.ValueString())
+	if err != nil {
+		return
+	}
+
+	if len(restInfo.Copies) > 0 {
+		var restInfoCopies []CopyResourceModel
+		for _, restInfoCopy := range restInfo.Copies {
+			c := CopyResourceModel{
+				Count: types.Int64Value(restInfoCopy.Count),
+				Schedule: ScheduleResourceModel{
+					Name: types.StringValue(restInfoCopy.Schedule.Name),
+				},
+				// Set to StringNull to prevent "Unknown" state errors for computed values
+				RetentionPeriod: types.StringNull(),
+				SnapmirrorLabel: types.StringNull(),
+				Prefix:          types.StringNull(),
+			}
+
+			if restInfoCopy.RetentionPeriod != "" {
+				c.RetentionPeriod = types.StringValue(restInfoCopy.RetentionPeriod)
+			}
+
+			if restInfoCopy.SnapmirrorLabel != "" {
+				c.SnapmirrorLabel = types.StringValue(restInfoCopy.SnapmirrorLabel)
+			}
+
+			if restInfoCopy.Prefix != "" {
+				c.Prefix = types.StringValue(restInfoCopy.Prefix)
+			}
+			restInfoCopies = append(restInfoCopies, c)
+		}
+
+		data.Copies = restInfoCopies
+	}
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
