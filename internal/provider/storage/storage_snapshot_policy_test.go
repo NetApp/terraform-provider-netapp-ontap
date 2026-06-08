@@ -46,6 +46,22 @@ func TestAccStorageSnapshotPolicyResource(t *testing.T) {
 				ImportStateId:     fmt.Sprintf("%s,%s,%s", "tf-sn-policy", "tf_acc_svm", "cluster4"),
 				ImportStateVerify: true,
 			},
+			// Create cluster scoped storage snapshot policy and read
+			{
+				Config: testAccStorageSnapshotPolicyClusterResourceConfig("tf-cluster-sn-policy", "create a cluster scoped test snapshot policy", true),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_snapshot_policy.cluster_example", "name", "tf-cluster-sn-policy"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapshot_policy.cluster_example", "comment", "create a cluster scoped test snapshot policy"),
+					resource.TestCheckResourceAttr("netapp-ontap_snapshot_policy.cluster_example", "enabled", "true"),
+				),
+			},
+			// Test importing a cluster scoped storage snapshot policy
+			{
+				ResourceName:      "netapp-ontap_snapshot_policy.cluster_example",
+				ImportState:       true,
+				ImportStateId:     fmt.Sprintf("%s,,%s", "tf-cluster-sn-policy", "cluster4"),
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
