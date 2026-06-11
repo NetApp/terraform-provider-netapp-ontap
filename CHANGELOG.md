@@ -1,3 +1,9 @@
+# 2.7.0 (2026-xx-xx)
+
+BUG FIXES:
+
+- **ontap_flexcache_resource**, **ontap_flexcache_data_source**, **ontap_flexcaches_data_source**: Fix use of use_tiered_aggregate in netapp-ontap_flexcache
+
 # 2.6.1 (2026-04-21)
 
 BUG FIXES:
