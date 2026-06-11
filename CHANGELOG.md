@@ -1,3 +1,9 @@
+# 2.7.0 (2026-xx-xx)
+
+BUG FIXES:
+
+- **ontap_volume_resource**, **ontap_volume_data_source**, **ontap_volumes_data_source**: Add support for tags and tiering_object_tags
+
 # 2.6.1 (2026-04-21)
 
 BUG FIXES:
