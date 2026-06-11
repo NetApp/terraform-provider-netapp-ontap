@@ -3,6 +3,7 @@
 BUG FIXES:
 
 - **ontap_volume_resource**, **ontap_volume_data_source**, **ontap_volumes_data_source**: Add support for tags and tiering_object_tags
+- **ontap_flexcache_resource**, **ontap_flexcache_data_source**, **ontap_flexcaches_data_source**: Fix use of use_tiered_aggregate in netapp-ontap_flexcache
 
 # 2.6.1 (2026-04-21)
 
