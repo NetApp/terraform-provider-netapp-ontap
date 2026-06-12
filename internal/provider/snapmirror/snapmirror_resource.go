@@ -267,17 +267,33 @@ func (r *SnapmirrorResource) Read(ctx context.Context, req resource.ReadRequest,
 		data.Healthy = types.BoolValue(restInfoImport.Healthy)
 		data.State = types.StringValue(restInfoImport.State)
 		data.DestinationEndPoint.Path = types.StringValue(restInfoImport.Destination.Path)
-		if data.Policy != nil {
-			if restInfoImport.Policy.Name != "" {
-				data.Policy.Name = types.StringValue(restInfoImport.Policy.Name)
+		// source_endpoint is a required attribute and is not part of the import ID,
+		// so it has to be filled from the REST response for the imported state to be
+		// usable. The source cluster is left unset on purpose: it is optional in the
+		// configuration and filling it would create a permanent diff for the usual
+		// path-only configurations.
+		if data.SourceEndPoint == nil {
+			data.SourceEndPoint = &EndPoint{}
+		}
+		data.SourceEndPoint.Path = types.StringValue(restInfoImport.Source.Path)
+		// on import the prior state never carries a policy, fill it from the REST
+		// response so the imported relationship keeps its policy in state.
+		if restInfoImport.Policy.Name != "" {
+			if data.Policy == nil {
+				data.Policy = &Policy{}
 			}
-			if data.Policy.TransferSchedule != nil {
-				if restInfoImport.Policy.TransferSchedule != nil && restInfoImport.Policy.TransferSchedule.Name != "" {
-					data.Policy.TransferSchedule = &TransferSchedule{
-						Name: types.StringValue(restInfoImport.Policy.TransferSchedule.Name),
-					}
+			data.Policy.Name = types.StringValue(restInfoImport.Policy.Name)
+			if restInfoImport.Policy.TransferSchedule != nil && restInfoImport.Policy.TransferSchedule.Name != "" {
+				data.Policy.TransferSchedule = &TransferSchedule{
+					Name: types.StringValue(restInfoImport.Policy.TransferSchedule.Name),
 				}
 			}
+		}
+		// initialize only matters at create time, but it is Computed with a default of
+		// true and requires replacement on change. Leaving it null in the imported
+		// state makes the next plan replace the relationship, so set the default here.
+		if data.Initialize.IsNull() {
+			data.Initialize = types.BoolValue(true)
 		}
 	}
 
