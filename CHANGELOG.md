@@ -3,6 +3,7 @@
 BUG FIXES:
 
 - **ontap_flexcache_resource**, **ontap_flexcache_data_source**, **ontap_flexcaches_data_source**: Fix use of use_tiered_aggregate in netapp-ontap_flexcache
+- **netapp-ontap_volume**: fixed issue with volume size modify not working in GCNV([#691](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/691))
 
 # 2.6.1 (2026-04-21)
 
