@@ -123,17 +123,29 @@ func (r *SnapshotPolicyResource) Schema(ctx context.Context, req resource.Schema
 						"retention_period": schema.StringAttribute{
 							MarkdownDescription: "The retention period of Snapshot copies for this schedule",
 							Optional:            true,
-							PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
+							Computed:            true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.RequiresReplace(),
+								stringplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"snapmirror_label": schema.StringAttribute{
 							MarkdownDescription: "Label for SnapMirror operations",
 							Optional:            true,
-							PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
+							Computed:            true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.RequiresReplace(),
+								stringplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"prefix": schema.StringAttribute{
 							MarkdownDescription: "The prefix to use while creating Snapshot copies at regular intervals",
 							Optional:            true,
-							PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
+							Computed:            true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.RequiresReplace(),
+								stringplanmodifier.UseStateForUnknown(),
+							},
 						},
 					},
 				},
@@ -153,6 +165,9 @@ func (r *SnapshotPolicyResource) Schema(ctx context.Context, req resource.Schema
 			"svm_name": schema.StringAttribute{
 				MarkdownDescription: "SnapshotPolicy svm name",
 				Optional:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"id": schema.StringAttribute{
 				MarkdownDescription: "SnapshotPolicy ID",
@@ -222,6 +237,47 @@ func (r *SnapshotPolicyResource) Read(ctx context.Context, req resource.ReadRequ
 	}
 	data.Name = types.StringValue(restInfo.Name)
 	data.ID = types.StringValue(restInfo.UUID)
+	data.Enabled = types.BoolValue(restInfo.Enabled)
+	if restInfo.SVM.Name != "" {
+		data.SVMName = types.StringValue(restInfo.SVM.Name)
+	} else {
+		data.SVMName = types.StringNull()
+	}
+
+	if restInfo.Comment != "" {
+		data.Comment = types.StringValue(restInfo.Comment)
+	}
+
+	// iterate over the copies from the rest info and add them to the resource
+	if len(restInfo.Copies) > 0 {
+		var copies []CopyResourceModel
+		for _, restInfoCopy := range restInfo.Copies {
+			c := CopyResourceModel{
+				Count: types.Int64Value(restInfoCopy.Count),
+				Schedule: ScheduleResourceModel{
+					Name: types.StringValue(restInfoCopy.Schedule.Name),
+				},
+				RetentionPeriod: types.String{},
+				SnapmirrorLabel: types.String{},
+				Prefix:          types.String{},
+			}
+
+			// set optional fields
+			if restInfoCopy.RetentionPeriod != "" {
+				c.RetentionPeriod = types.StringValue(restInfoCopy.RetentionPeriod)
+			}
+
+			if restInfoCopy.SnapmirrorLabel != "" {
+				c.SnapmirrorLabel = types.StringValue(restInfoCopy.SnapmirrorLabel)
+			}
+
+			if restInfoCopy.Prefix != "" {
+				c.Prefix = types.StringValue(restInfoCopy.Prefix)
+			}
+			copies = append(copies, c)
+		}
+		data.Copies = copies
+	}
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
@@ -290,6 +346,43 @@ func (r *SnapshotPolicyResource) Create(ctx context.Context, req resource.Create
 
 	data.ID = types.StringValue(resource.UUID)
 	tflog.Trace(ctx, "created a resource")
+
+	// Optional values in the copies attribute may be filled by NetApp. Collect them after creating the resource.
+	restInfo, err := interfaces.GetSnapshotPolicy(errorHandler, *client, data.ID.ValueString())
+	if err != nil {
+		return
+	}
+
+	if len(restInfo.Copies) > 0 {
+		var restInfoCopies []CopyResourceModel
+		for _, restInfoCopy := range restInfo.Copies {
+			c := CopyResourceModel{
+				Count: types.Int64Value(restInfoCopy.Count),
+				Schedule: ScheduleResourceModel{
+					Name: types.StringValue(restInfoCopy.Schedule.Name),
+				},
+				// Set to StringNull to prevent "Unknown" state errors for computed values
+				RetentionPeriod: types.StringNull(),
+				SnapmirrorLabel: types.StringNull(),
+				Prefix:          types.StringNull(),
+			}
+
+			if restInfoCopy.RetentionPeriod != "" {
+				c.RetentionPeriod = types.StringValue(restInfoCopy.RetentionPeriod)
+			}
+
+			if restInfoCopy.SnapmirrorLabel != "" {
+				c.SnapmirrorLabel = types.StringValue(restInfoCopy.SnapmirrorLabel)
+			}
+
+			if restInfoCopy.Prefix != "" {
+				c.Prefix = types.StringValue(restInfoCopy.Prefix)
+			}
+			restInfoCopies = append(restInfoCopies, c)
+		}
+
+		data.Copies = restInfoCopies
+	}
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -370,14 +463,18 @@ func (r *SnapshotPolicyResource) Delete(ctx context.Context, req resource.Delete
 // ImportState imports a resource using ID from terraform import command by calling the Read method.
 func (r *SnapshotPolicyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	idParts := strings.Split(req.ID, ",")
-	if len(idParts) != 3 || idParts[0] == "" || idParts[1] == "" || idParts[2] == "" {
+	if len(idParts) != 3 || idParts[0] == "" || idParts[2] == "" {
 		resp.Diagnostics.AddError(
 			"Unexpected Import Identifier",
 			fmt.Sprintf("Expected import identifier with format: name,svm_name,cx_profile_name. Got: %q", req.ID),
 		)
 		return
 	}
+
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[0])...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("svm_name"), idParts[1])...)
+	// if a policy is scoped to a cluster, the svm_name should be null
+	if idParts[1] != "" && strings.ToLower(idParts[1]) != "null" {
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("svm_name"), idParts[1])...)
+	}
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cx_profile_name"), idParts[2])...)
 }
