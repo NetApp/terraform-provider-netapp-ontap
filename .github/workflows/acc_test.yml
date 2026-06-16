@@ -100,6 +100,10 @@ jobs:
           export GOFLAGS=-buildvcs=false
           export TF_ACC=1
           export TMPDIR=~/tmp/
+          # Point the SDK to the Terraform binary already on the runner so it
+          # skips downloading and verifying via the (now-expired) HashiCorp PGP
+          # key (openpgp: key expired).
+          export TF_ACC_TERRAFORM_PATH=$(which terraform)
           for FILE in $UPDATED_CHANGED_FILES; do
             printf "Running acceptance test for %s\n" "$FILE"
             go test "$FILE"
