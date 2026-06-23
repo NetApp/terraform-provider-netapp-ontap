@@ -1,4 +1,9 @@
-# 2.7.0 (2026-xx-xx)
+# 2.7.0
+
+FEATURES:
+
+- **New Data Source:** `netapp-ontap_nvme_namespace` and `netapp-ontap_nvme_namespaces`([#483](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/483))
+- **New Resource:** `netapp-ontap_nvme_namespace` ([#482](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/482))
 
 ENHANCEMENTS:
 
