@@ -81,7 +81,13 @@ jobs:
       - name: Create temporary directory
         run: mkdir -p ~/tmp/
 
-      - name: Run Acceptance Tests
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+          terraform_wrapper: false
+
+      - name: Run Accesptance Tests
         if: env.UPDATED_CHANGED_FILES != ''
         env:
           TF_ACC_NETAPP_HOST: ${{ secrets.TF_ACC_NETAPP_HOST }}
@@ -100,6 +106,9 @@ jobs:
           export GOFLAGS=-buildvcs=false
           export TF_ACC=1
           export TMPDIR=~/tmp/
+          # Use the Terraform binary installed by setup-terraform to avoid the
+          # SDK trying to download one using the now-expired HashiCorp PGP key.
+          export TF_ACC_TERRAFORM_PATH=$(which terraform)
           for FILE in $UPDATED_CHANGED_FILES; do
             printf "Running acceptance test for %s\n" "$FILE"
             go test "$FILE"
