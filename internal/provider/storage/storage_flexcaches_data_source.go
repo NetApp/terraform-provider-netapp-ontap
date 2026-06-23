@@ -187,10 +187,6 @@ func (r *StorageFlexcachesDataSource) Schema(ctx context.Context, req datasource
 							MarkdownDescription: "The state of the global file locking",
 							Computed:            true,
 						},
-						"use_tiered_aggregate": schema.BoolAttribute{
-							MarkdownDescription: "The state of the use tiered aggregates",
-							Computed:            true,
-						},
 						"id": schema.StringAttribute{
 							MarkdownDescription: "The UUID of the flexcache volume",
 							Computed:            true,
@@ -264,7 +260,6 @@ func (r *StorageFlexcachesDataSource) Read(ctx context.Context, req datasource.R
 		data.StorageFlexcaches[index].ConstituentsPerAggregate = types.Int64Value(int64(record.ConstituentsPerAggregate))
 		data.StorageFlexcaches[index].DrCache = types.BoolValue(record.DrCache)
 		data.StorageFlexcaches[index].GlobalFileLockingEnabled = types.BoolValue(record.GlobalFileLockingEnabled)
-		data.StorageFlexcaches[index].UseTieredAggregate = types.BoolValue(record.UseTieredAggregate)
 		data.StorageFlexcaches[index].ID = types.StringValue(record.UUID)
 
 		//guarantee
