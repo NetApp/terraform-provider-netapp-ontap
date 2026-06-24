@@ -1,7 +1,21 @@
 # 2.7.0 (2026-xx-xx)
 
+FEATURES:
+
+- **New Data Source:** `netapp-ontap_unix_group` and `netapp-ontap_unix_groups`([#680](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/680))
+- **New Resource:** `netapp-ontap_unix_group` ([#680](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/680))
+- **New Data Source:** `netapp-ontap_nvme_namespace` and `netapp-ontap_nvme_namespaces`([#483](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/483))
+- **New Resource:** `netapp-ontap_nvme_namespace` ([#482](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/482))
+
+ENHANCEMENTS:
+
+- **netapp-ontap_s3_bucket**: New option `cors_rules` added, requires ONTAP 9.16 or later. ([#658](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/658))
+
 BUG FIXES:
 
+- **netapp-ontap_flexcache_resource**, **netapp-ontap_flexcache_data_source**, **netapp-ontap_flexcaches_data_source**: Fix use of use_tiered_aggregate in netapp-ontap_flexcache
+- **netapp-ontap_volume_resource**: fixed issue with volume size modify not working in GCNV([#691](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/691))
+- **netapp-ontap_nfs_service resource**: fixed issue with idempotency. ([#310](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/310))
 - **ontap_flexcache_resource**, **ontap_flexcache_data_source**, **ontap_flexcaches_data_source**: Fix use of use_tiered_aggregate in netapp-ontap_flexcache
 - **netapp-ontap_volume resource**: fixed issue with `autosize.maximum`. ([#692](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/692))
 

@@ -165,8 +165,7 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 						MarkdownDescription: "User ID domain for NFSv4",
 						Optional:            true,
 						Computed:            true,
-						Default:             stringdefault.StaticString("defaultv4iddomain.com"),
-						PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
+						PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown(), stringplanmodifier.RequiresReplace()},
 					},
 					"v40_enabled": schema.BoolAttribute{
 						MarkdownDescription: "NFSv4.0 enabled",
@@ -398,8 +397,7 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 				MarkdownDescription: "Whether Vstorage is enabled",
 				Optional:            true,
 				Computed:            true,
-				Default:             booldefault.StaticBool(true),
-				PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
+				PlanModifiers:       []planmodifier.Bool{boolplanmodifier.UseStateForUnknown(), boolplanmodifier.RequiresReplace()},
 			},
 			"windows": schema.SingleNestedAttribute{
 				Optional: true,
@@ -428,8 +426,7 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 						MarkdownDescription: "whether or not the mapping of an unknown UID to the default Windows user is enabled",
 						Optional:            true,
 						Computed:            true,
-						Default:             booldefault.StaticBool(false),
-						PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
+						PlanModifiers:       []planmodifier.Bool{boolplanmodifier.UseStateForUnknown(), boolplanmodifier.RequiresReplace()},
 					},
 					"v3_ms_dos_client_enabled": schema.BoolAttribute{
 						MarkdownDescription: "if permission checks are to be skipped for NFS WRITE calls from root/owner.",
@@ -442,6 +439,9 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 			},
 			"id": schema.StringAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 		},
 	}
@@ -589,9 +589,12 @@ func (r *ProtocolsNfsServiceResource) Create(ctx context.Context, req resource.C
 		if !data.Protocol.V3Enabled.IsNull() {
 			body.Protocol.V3Enabled = data.Protocol.V3Enabled.ValueBool()
 		}
-		if !data.Protocol.V4IdDomain.IsNull() {
-			body.Protocol.V4IdDomain = data.Protocol.V4IdDomain.ValueString()
+		// avoid sending an empty string if config omits v4_id_domain
+		// set the planned state value so Terraform state captures the same default
+		if data.Protocol.V4IdDomain.IsNull() || data.Protocol.V4IdDomain.IsUnknown() || data.Protocol.V4IdDomain.ValueString() == "" {
+			data.Protocol.V4IdDomain = types.StringValue("defaultv4iddomain.com")
 		}
+		body.Protocol.V4IdDomain = data.Protocol.V4IdDomain.ValueString()
 		if !data.Protocol.V40Enabled.IsNull() {
 			body.Protocol.V40Enabled = data.Protocol.V40Enabled.ValueBool()
 		}
@@ -674,16 +677,22 @@ func (r *ProtocolsNfsServiceResource) Create(ctx context.Context, req resource.C
 			body.Transport.UDP = data.Transport.UDPEnabled.ValueBool()
 		}
 	}
-	if !data.VstorageEnabled.IsNull() {
-		body.VstorageEnabled = data.VstorageEnabled.ValueBool()
+	// if omitted/unknown in config, default to true
+	if data.VstorageEnabled.IsNull() || data.VstorageEnabled.IsUnknown() {
+		data.VstorageEnabled = types.BoolValue(true)
 	}
+	body.VstorageEnabled = data.VstorageEnabled.ValueBool()
 	if data.Windows != nil {
 		if !data.Windows.DefaultUser.IsNull() && cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
 			body.Windows.DefaultUser = data.Windows.DefaultUser.ValueString()
 		} else {
 			errors = append(errors, "windows.default_user")
 		}
-		if !data.Windows.MapUnknownUIDToDefaultUser.IsNull() && cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
+		// if omitted/unknown in config, default to false
+		if data.Windows.MapUnknownUIDToDefaultUser.IsNull() || data.Windows.MapUnknownUIDToDefaultUser.IsUnknown() {
+			data.Windows.MapUnknownUIDToDefaultUser = types.BoolValue(false)
+		}
+		if cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
 			body.Windows.MapUnknownUIDToDefaultUser = data.Windows.MapUnknownUIDToDefaultUser.ValueBool()
 		} else {
 			errors = append(errors, "windows.map_unknown_uid_to_default_user")
@@ -720,7 +729,7 @@ func (r *ProtocolsNfsServiceResource) Create(ctx context.Context, req resource.C
 	tflog.Trace(ctx, "created a resource")
 
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
@@ -767,7 +776,8 @@ func (r *ProtocolsNfsServiceResource) Update(ctx context.Context, req resource.U
 		if !data.Protocol.V3Enabled.IsNull() {
 			request.Protocol.V3Enabled = data.Protocol.V3Enabled.ValueBool()
 		}
-		if !data.Protocol.V4IdDomain.IsNull() {
+		// only send v4_id_domain when it's known in the plan
+		if !data.Protocol.V4IdDomain.IsNull() && !data.Protocol.V4IdDomain.IsUnknown() {
 			request.Protocol.V4IdDomain = data.Protocol.V4IdDomain.ValueString()
 		}
 		if !data.Protocol.V40Enabled.IsNull() {
@@ -856,7 +866,7 @@ func (r *ProtocolsNfsServiceResource) Update(ctx context.Context, req resource.U
 			request.Transport.UDP = data.Transport.UDPEnabled.ValueBool()
 		}
 	}
-	if !data.VstorageEnabled.IsNull() {
+	if !data.VstorageEnabled.IsNull() && !data.VstorageEnabled.IsUnknown() {
 		request.VstorageEnabled = data.VstorageEnabled.ValueBool()
 	}
 	if data.Windows != nil {
@@ -865,10 +875,12 @@ func (r *ProtocolsNfsServiceResource) Update(ctx context.Context, req resource.U
 		} else {
 			errors = append(errors, "windows.default_user")
 		}
-		if !data.Windows.MapUnknownUIDToDefaultUser.IsNull() && cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
-			request.Windows.MapUnknownUIDToDefaultUser = data.Windows.MapUnknownUIDToDefaultUser.ValueBool()
-		} else {
-			errors = append(errors, "windows.map_unknown_uid_to_default_user")
+		if !data.Windows.MapUnknownUIDToDefaultUser.IsNull() && !data.Windows.MapUnknownUIDToDefaultUser.IsUnknown() {
+			if cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
+				request.Windows.MapUnknownUIDToDefaultUser = data.Windows.MapUnknownUIDToDefaultUser.ValueBool()
+			} else {
+				errors = append(errors, "windows.map_unknown_uid_to_default_user")
+			}
 		}
 		if !data.Windows.V3MsDosClientEnabled.IsNull() && cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
 			request.Windows.V3MsDosClientEnabled = data.Windows.V3MsDosClientEnabled.ValueBool()
@@ -890,7 +902,7 @@ func (r *ProtocolsNfsServiceResource) Update(ctx context.Context, req resource.U
 	}
 
 	// Save updated data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
