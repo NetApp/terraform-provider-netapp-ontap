@@ -65,6 +65,7 @@ type ProtocolsS3BucketResourceModel struct {
 	QoSPolicy                 types.Object  `tfsdk:"qos_policy"`
 	SnapshotPolicy            types.String  `tfsdk:"snapshot_policy"`
 	AuditEventSelector        types.Object  `tfsdk:"audit_event_selector"`
+	CORSRules                 types.Set     `tfsdk:"cors_rules"`
 	Aggregates                types.List    `tfsdk:"aggregates"`
 	ConstituentsPerAggregate  types.Int64   `tfsdk:"constituents_per_aggregate"`
 	ID                        types.String  `tfsdk:"id"`
@@ -152,6 +153,27 @@ func (m AuditEventSelectorResourceModel) attributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"access":     types.StringType,
 		"permission": types.StringType,
+	}
+}
+
+// CORSRulesResourceModel describes the CORS rules data model using go types for mapping.
+type CORSRulesResourceModel struct {
+	AllowedOrigins types.Set    `tfsdk:"allowed_origins"`
+	AllowedMethods types.Set    `tfsdk:"allowed_methods"`
+	AllowedHeaders types.Set    `tfsdk:"allowed_headers"`
+	ExposeHeaders  types.Set    `tfsdk:"expose_headers"`
+	RuleID         types.String `tfsdk:"rule_id"`
+	MaxAgeSeconds  types.Int64  `tfsdk:"max_age_seconds"`
+}
+
+func (m CORSRulesResourceModel) attributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"allowed_origins": types.SetType{ElemType: types.StringType},
+		"allowed_methods": types.SetType{ElemType: types.StringType},
+		"allowed_headers": types.SetType{ElemType: types.StringType},
+		"expose_headers":  types.SetType{ElemType: types.StringType},
+		"rule_id":         types.StringType,
+		"max_age_seconds": types.Int64Type,
 	}
 }
 
@@ -513,6 +535,74 @@ func (r *ProtocolsS3BucketResource) Schema(ctx context.Context, req resource.Sch
 					},
 				},
 			},
+			"cors_rules": schema.SetNestedAttribute{
+				MarkdownDescription: "The list of object store bucket CORS rules. Requires ONTAP 9.16.1 or later.",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"allowed_origins": schema.SetAttribute{
+							MarkdownDescription: "List of origins from where a cross-origin request is allowed to originate from for the S3 bucket.",
+							Optional:            true,
+							Computed:            true,
+							ElementType:         types.StringType,
+							PlanModifiers: []planmodifier.Set{
+								setplanmodifier.UseStateForUnknown(),
+							},
+						},
+						"allowed_headers": schema.SetAttribute{
+							MarkdownDescription: "List of HTTP headers allowed in the cross-origin requests.",
+							Optional:            true,
+							Computed:            true,
+							ElementType:         types.StringType,
+							PlanModifiers: []planmodifier.Set{
+								setplanmodifier.UseStateForUnknown(),
+							},
+						},
+						"allowed_methods": schema.SetAttribute{
+							MarkdownDescription: "List of HTTP methods allowed in the cross-origin requests.",
+							Optional:            true,
+							Computed:            true,
+							ElementType:         types.StringType,
+							PlanModifiers: []planmodifier.Set{
+								setplanmodifier.UseStateForUnknown(),
+							},
+						},
+						"expose_headers": schema.SetAttribute{
+							MarkdownDescription: "List of extra headers sent in the response that customers can access from their applications.",
+							Optional:            true,
+							Computed:            true,
+							ElementType:         types.StringType,
+							PlanModifiers: []planmodifier.Set{
+								setplanmodifier.UseStateForUnknown(),
+							},
+							Validators: []validator.Set{
+								setvalidator.SizeAtLeast(1),
+							},
+						},
+						"rule_id": schema.StringAttribute{
+							MarkdownDescription: "Bucket CORS rule identifier.",
+							Optional:            true,
+							Computed:            true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
+						},
+						"max_age_seconds": schema.Int64Attribute{
+							MarkdownDescription: "The time in seconds for your browser to cache the preflight response for the specified resource.",
+							Optional:            true,
+							Computed:            true,
+							PlanModifiers: []planmodifier.Int64{
+								int64planmodifier.UseStateForUnknown(),
+							},
+						},
+					},
+				},
+			},
+					
 			"aggregates": schema.ListAttribute{
 				MarkdownDescription: "List of aggregates to use for the S3 bucket. This option is not supported when type is set to NAS.",
 				Optional:            true,
@@ -679,6 +769,7 @@ func (r *ProtocolsS3BucketResource) Read(ctx context.Context, req resource.ReadR
 	// Read Terraform prior state data in to the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	trackPolicy := !data.Policy.IsNull() && !data.Policy.IsUnknown()
+	trackCorsRules := !data.CORSRules.IsNull() && !data.CORSRules.IsUnknown()
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -918,6 +1009,75 @@ func (r *ProtocolsS3BucketResource) Read(ctx context.Context, req resource.ReadR
 		data.AuditEventSelector = selectorValue
 	}
 
+	// cors_rules
+	corsRuleElemType := types.ObjectType{AttrTypes: CORSRulesResourceModel{}.attributeTypes()}
+	data.CORSRules = types.SetNull(corsRuleElemType)
+	if restInfo.CORS != nil {
+		corsRules := make([]CORSRulesResourceModel, 0, len(restInfo.CORS.Rules))
+		for _, rule := range restInfo.CORS.Rules {
+			corsRule := CORSRulesResourceModel{
+				AllowedOrigins: types.SetNull(types.StringType),
+				AllowedHeaders: types.SetNull(types.StringType),
+				AllowedMethods: types.SetNull(types.StringType),
+				ExposeHeaders:  types.SetNull(types.StringType),
+				RuleID:         types.StringNull(),
+				MaxAgeSeconds:  types.Int64Null(),
+			}
+			if len(rule.AllowedOrigins) > 0 {
+				allowedOriginsSet, diags := types.SetValueFrom(ctx, types.StringType, rule.AllowedOrigins)
+				resp.Diagnostics.Append(diags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				corsRule.AllowedOrigins = allowedOriginsSet
+			}
+			if len(rule.AllowedMethods) > 0 {
+				allowedMethodsSet, diags := types.SetValueFrom(ctx, types.StringType, rule.AllowedMethods)
+				resp.Diagnostics.Append(diags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				corsRule.AllowedMethods = allowedMethodsSet
+			}
+			if len(rule.AllowedHeaders) > 0 {
+				allowedHeadersSet, diags := types.SetValueFrom(ctx, types.StringType, rule.AllowedHeaders)
+				resp.Diagnostics.Append(diags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				corsRule.AllowedHeaders = allowedHeadersSet
+			}
+			if len(rule.ExposeHeaders) > 0 {
+				exposeHeadersSet, diags := types.SetValueFrom(ctx, types.StringType, rule.ExposeHeaders)
+				resp.Diagnostics.Append(diags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				corsRule.ExposeHeaders = exposeHeadersSet
+			}
+			if rule.RuleID != "" {
+				corsRule.RuleID = types.StringValue(rule.RuleID)
+			}
+			if rule.MaxAgeSeconds > 0 {
+				corsRule.MaxAgeSeconds = types.Int64Value(int64(rule.MaxAgeSeconds))
+			}
+			corsRules = append(corsRules, corsRule)
+		}
+		corsRulesSet, diags := types.SetValueFrom(ctx, corsRuleElemType, corsRules)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		data.CORSRules = corsRulesSet
+	} else if trackCorsRules {
+		emptyCorsRulesSet, diags := types.SetValueFrom(ctx, corsRuleElemType, []CORSRulesResourceModel{})
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		data.CORSRules = emptyCorsRulesSet
+	}
+
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
 	tflog.Debug(ctx, fmt.Sprintf("read a resource: %#v", data))
@@ -933,6 +1093,7 @@ func (r *ProtocolsS3BucketResource) Create(ctx context.Context, req resource.Cre
 	// Read Terraform plan data into the model.
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	trackPolicy := data != nil && !data.Policy.IsNull() && !data.Policy.IsUnknown()
+	trackCorsRules := data != nil && !data.CORSRules.IsNull() && !data.CORSRules.IsUnknown()
 
 	var body interfaces.ProtocolsS3BucketResourceBodyDataModel
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
@@ -1113,6 +1274,45 @@ func (r *ProtocolsS3BucketResource) Create(ctx context.Context, req resource.Cre
 			} else {
 				errors = append(errors, "audit_event_selector requires ONTAP 9.10 or later")
 			}
+		}
+	}
+
+	// cors_rules
+	if data != nil && !data.CORSRules.IsNull() && !data.CORSRules.IsUnknown() {
+		if cluster.Version.Generation == 9 && cluster.Version.Major >= 16 {
+			cors := &interfaces.CORSDataModel{Rules: []interfaces.CORSRulesDataModel{}}
+			var corsRules []CORSRulesResourceModel
+			resp.Diagnostics.Append(data.CORSRules.ElementsAs(ctx, &corsRules, false)...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			for _, rule := range corsRules {
+				apiRule := interfaces.CORSRulesDataModel{}
+				if !rule.AllowedOrigins.IsNull() && !rule.AllowedOrigins.IsUnknown() {
+					resp.Diagnostics.Append(rule.AllowedOrigins.ElementsAs(ctx, &apiRule.AllowedOrigins, false)...)
+				}
+				if !rule.AllowedMethods.IsNull() && !rule.AllowedMethods.IsUnknown() {
+					resp.Diagnostics.Append(rule.AllowedMethods.ElementsAs(ctx, &apiRule.AllowedMethods, false)...)
+				}
+				if !rule.AllowedHeaders.IsNull() && !rule.AllowedHeaders.IsUnknown() {
+					resp.Diagnostics.Append(rule.AllowedHeaders.ElementsAs(ctx, &apiRule.AllowedHeaders, false)...)
+				}
+				if !rule.ExposeHeaders.IsNull() && !rule.ExposeHeaders.IsUnknown() {
+					resp.Diagnostics.Append(rule.ExposeHeaders.ElementsAs(ctx, &apiRule.ExposeHeaders, false)...)
+				}
+				if !rule.RuleID.IsNull() && !rule.RuleID.IsUnknown() {
+					apiRule.RuleID = rule.RuleID.ValueString()
+				}
+				if !rule.MaxAgeSeconds.IsNull() && !rule.MaxAgeSeconds.IsUnknown() {
+					apiRule.MaxAgeSeconds = int(rule.MaxAgeSeconds.ValueInt64())
+				}
+				cors.Rules = append(cors.Rules, apiRule)
+			}
+			if !resp.Diagnostics.HasError() {
+				body.CORS = cors
+			}
+		} else {
+			errors = append(errors, "cors_rules requires ONTAP 9.16 or later")
 		}
 	}
 
@@ -1349,6 +1549,75 @@ func (r *ProtocolsS3BucketResource) Create(ctx context.Context, req resource.Cre
 		data.AuditEventSelector = selectorValue
 	}
 
+	// cors_rules
+	corsRuleElemType := types.ObjectType{AttrTypes: CORSRulesResourceModel{}.attributeTypes()}
+	data.CORSRules = types.SetNull(corsRuleElemType)
+	if restInfo.CORS != nil {
+		corsRules := make([]CORSRulesResourceModel, 0, len(restInfo.CORS.Rules))
+		for _, rule := range restInfo.CORS.Rules {
+			corsRule := CORSRulesResourceModel{
+				AllowedOrigins: types.SetNull(types.StringType),
+				AllowedHeaders: types.SetNull(types.StringType),
+				AllowedMethods: types.SetNull(types.StringType),
+				ExposeHeaders:  types.SetNull(types.StringType),
+				RuleID:         types.StringNull(),
+				MaxAgeSeconds:  types.Int64Null(),
+			}
+			if len(rule.AllowedOrigins) > 0 {
+				allowedOriginsSet, diags := types.SetValueFrom(ctx, types.StringType, rule.AllowedOrigins)
+				resp.Diagnostics.Append(diags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				corsRule.AllowedOrigins = allowedOriginsSet
+			}
+			if len(rule.AllowedMethods) > 0 {
+				allowedMethodsSet, diags := types.SetValueFrom(ctx, types.StringType, rule.AllowedMethods)
+				resp.Diagnostics.Append(diags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				corsRule.AllowedMethods = allowedMethodsSet
+			}
+			if len(rule.AllowedHeaders) > 0 {
+				allowedHeadersSet, diags := types.SetValueFrom(ctx, types.StringType, rule.AllowedHeaders)
+				resp.Diagnostics.Append(diags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				corsRule.AllowedHeaders = allowedHeadersSet
+			}
+			if len(rule.ExposeHeaders) > 0 {
+				exposeHeadersSet, diags := types.SetValueFrom(ctx, types.StringType, rule.ExposeHeaders)
+				resp.Diagnostics.Append(diags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				corsRule.ExposeHeaders = exposeHeadersSet
+			}
+			if rule.RuleID != "" {
+				corsRule.RuleID = types.StringValue(rule.RuleID)
+			}
+			if rule.MaxAgeSeconds > 0 {
+				corsRule.MaxAgeSeconds = types.Int64Value(int64(rule.MaxAgeSeconds))
+			}
+			corsRules = append(corsRules, corsRule)
+		}
+		corsRulesSet, diags := types.SetValueFrom(ctx, corsRuleElemType, corsRules)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		data.CORSRules = corsRulesSet
+	} else if trackCorsRules {
+		emptyCorsRulesSet, diags := types.SetValueFrom(ctx, corsRuleElemType, []CORSRulesResourceModel{})
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		data.CORSRules = emptyCorsRulesSet
+	}
+
 	tflog.Trace(ctx, fmt.Sprintf("created S3 bucket resource, ID=%s", data.ID))
 
 	// Save data into Terraform state
@@ -1367,6 +1636,7 @@ func (r *ProtocolsS3BucketResource) Update(ctx context.Context, req resource.Upd
 	if !trackPolicy {
 		trackPolicy = state != nil && !state.Policy.IsNull() && !state.Policy.IsUnknown()
 	}
+	trackCorsRules := (plan != nil && !plan.CORSRules.IsNull() && !plan.CORSRules.IsUnknown()) || (state != nil && !state.CORSRules.IsNull() && !state.CORSRules.IsUnknown())
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
@@ -1581,6 +1851,49 @@ func (r *ProtocolsS3BucketResource) Update(ctx context.Context, req resource.Upd
 				body.AuditEventSelector = selector
 			} else {
 				errors = append(errors, "audit_event_selector requires ONTAP 9.10 or later")
+			}
+		}
+	}
+
+	// cors_rules
+	planHasCorsRules := plan != nil && !plan.CORSRules.IsNull() && !plan.CORSRules.IsUnknown()
+	if planHasCorsRules {
+		corsChanged := state == nil || state.CORSRules.IsUnknown() || !plan.CORSRules.Equal(state.CORSRules)
+		if corsChanged {
+			if cluster.Version.Generation == 9 && cluster.Version.Major >= 16 {
+				cors := &interfaces.CORSDataModel{Rules: []interfaces.CORSRulesDataModel{}}
+				var corsRules []CORSRulesResourceModel
+				resp.Diagnostics.Append(plan.CORSRules.ElementsAs(ctx, &corsRules, false)...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				for _, rule := range corsRules {
+					apiRule := interfaces.CORSRulesDataModel{}
+					if !rule.AllowedOrigins.IsNull() && !rule.AllowedOrigins.IsUnknown() {
+						resp.Diagnostics.Append(rule.AllowedOrigins.ElementsAs(ctx, &apiRule.AllowedOrigins, false)...)
+					}
+					if !rule.AllowedMethods.IsNull() && !rule.AllowedMethods.IsUnknown() {
+						resp.Diagnostics.Append(rule.AllowedMethods.ElementsAs(ctx, &apiRule.AllowedMethods, false)...)
+					}
+					if !rule.AllowedHeaders.IsNull() && !rule.AllowedHeaders.IsUnknown() {
+						resp.Diagnostics.Append(rule.AllowedHeaders.ElementsAs(ctx, &apiRule.AllowedHeaders, false)...)
+					}
+					if !rule.ExposeHeaders.IsNull() && !rule.ExposeHeaders.IsUnknown() {
+						resp.Diagnostics.Append(rule.ExposeHeaders.ElementsAs(ctx, &apiRule.ExposeHeaders, false)...)
+					}
+					if !rule.RuleID.IsNull() && !rule.RuleID.IsUnknown() {
+						apiRule.RuleID = rule.RuleID.ValueString()
+					}
+					if !rule.MaxAgeSeconds.IsNull() && !rule.MaxAgeSeconds.IsUnknown() {
+						apiRule.MaxAgeSeconds = int(rule.MaxAgeSeconds.ValueInt64())
+					}
+					cors.Rules = append(cors.Rules, apiRule)
+				}
+				if !resp.Diagnostics.HasError() {
+					body.CORS = cors
+				}
+			} else {
+				errors = append(errors, "cors_rules requires ONTAP 9.16 or later")
 			}
 		}
 	}
@@ -1810,6 +2123,75 @@ func (r *ProtocolsS3BucketResource) Update(ctx context.Context, req resource.Upd
 			return
 		}
 		plan.AuditEventSelector = selectorValue
+	}
+
+	// cors_rules
+	corsRuleElemType := types.ObjectType{AttrTypes: CORSRulesResourceModel{}.attributeTypes()}
+	plan.CORSRules = types.SetNull(corsRuleElemType)	
+	if restInfo.CORS != nil {
+		corsRules := make([]CORSRulesResourceModel, 0, len(restInfo.CORS.Rules))
+		for _, rule := range restInfo.CORS.Rules {
+			corsRule := CORSRulesResourceModel{
+				AllowedOrigins: types.SetNull(types.StringType),
+				AllowedHeaders: types.SetNull(types.StringType),
+				AllowedMethods: types.SetNull(types.StringType),
+				ExposeHeaders:  types.SetNull(types.StringType),
+				RuleID:         types.StringNull(),
+				MaxAgeSeconds:  types.Int64Null(),
+			}
+			if len(rule.AllowedOrigins) > 0 {
+				allowedOriginsSet, diags := types.SetValueFrom(ctx, types.StringType, rule.AllowedOrigins)
+				resp.Diagnostics.Append(diags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				corsRule.AllowedOrigins = allowedOriginsSet
+			}
+			if len(rule.AllowedMethods) > 0 {
+				allowedMethodsSet, diags := types.SetValueFrom(ctx, types.StringType, rule.AllowedMethods)
+				resp.Diagnostics.Append(diags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				corsRule.AllowedMethods = allowedMethodsSet
+			}
+			if len(rule.AllowedHeaders) > 0 {
+				allowedHeadersSet, diags := types.SetValueFrom(ctx, types.StringType, rule.AllowedHeaders)
+				resp.Diagnostics.Append(diags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				corsRule.AllowedHeaders = allowedHeadersSet
+			}
+			if len(rule.ExposeHeaders) > 0 {
+				exposeHeadersSet, diags := types.SetValueFrom(ctx, types.StringType, rule.ExposeHeaders)
+				resp.Diagnostics.Append(diags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				corsRule.ExposeHeaders = exposeHeadersSet
+			}
+			if rule.RuleID != "" {
+				corsRule.RuleID = types.StringValue(rule.RuleID)
+			}
+			if rule.MaxAgeSeconds > 0 {
+				corsRule.MaxAgeSeconds = types.Int64Value(int64(rule.MaxAgeSeconds))
+			}
+			corsRules = append(corsRules, corsRule)
+		}
+		corsRulesSet, diags := types.SetValueFrom(ctx, corsRuleElemType, corsRules)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		plan.CORSRules = corsRulesSet
+	} else if trackCorsRules {
+		emptyCorsRulesSet, diags := types.SetValueFrom(ctx, corsRuleElemType, []CORSRulesResourceModel{})
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		plan.CORSRules = emptyCorsRulesSet
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("updated S3 bucket resource: ID=%s", plan.ID))
