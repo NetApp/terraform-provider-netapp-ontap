@@ -9,8 +9,6 @@ description: |-
 # Resource Ipspace
 
 Create, delete, or rename Ipspace.
-The `network_ipspace` resource does not support update operations.
-Renaming the IPspace will force a new resource: Terraform will destroy the existing IPspace and recreate it.
 
 ## Related ONTAP commands
 
@@ -45,3 +43,51 @@ resource "netapp-ontap_network_ipspace" "example_ipspace1" {
 ### Read-Only
 
 - `id` (String) The UUID of the IPspace.
+
+## Import
+
+This resource supports import, which allows you to import existing IPspace into the state of this resource.
+Import require a unique ID composed of the IPspace name and connection profile, separated by a comma.
+
+id = `name`,`cx_profile_name`
+
+### Terraform Import
+
+For example
+
+```shell
+ terraform import netapp-ontap_network_ipspace.example_ipspace test_ipspace1,cluster5
+```
+
+!> The terraform import CLI command can only import resources into the state. Importing via the CLI does not generate configuration. If you want to generate the accompanying configuration for imported resources, use the import block instead.
+
+### Terraform Import Block
+
+This requires Terraform 1.5 or higher, and will auto create the configuration for you
+
+First create the block
+
+```terraform
+import {
+  to = netapp-ontap_network_ipspace.example_ipspace
+  id = "test_ipspace1,cluster5"
+}
+```
+
+Next run, this will auto create the configuration for you
+
+```shell
+terraform plan -generate-config-out=generated.tf
+```
+
+This will generate a file called generated.tf, which will contain the configuration for the imported resource
+
+```terraform
+# __generated__ by Terraform
+# Please review these resources and move them into your main configuration files.
+# __generated__ by Terraform from "test_ipspace1,cluster5"
+resource "netapp-ontap_network_ipspace" "example_ipspace" {
+  cx_profile_name = "cluster5"
+  name = "test_ipspace1"
+}
+```
