@@ -13,10 +13,9 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
-- **netapp-ontap_flexcache_resource**, **netapp-ontap_flexcache_data_source**, **netapp-ontap_flexcaches_data_source**: Fix use of use_tiered_aggregate in netapp-ontap_flexcache
+- **netapp-ontap_flexcache_resource**, **netapp-ontap_flexcache_data_source**, **netapp-ontap_flexcaches_data_source**: Fix use of `use_tiered_aggregate` in netapp-ontap_flexcache. ([#581](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/581))
 - **netapp-ontap_volume_resource**: fixed issue with volume size modify not working in GCNV([#691](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/691))
 - **netapp-ontap_nfs_service resource**: fixed issue with idempotency. ([#310](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/310))
-- **ontap_flexcache_resource**, **ontap_flexcache_data_source**, **ontap_flexcaches_data_source**: Fix use of use_tiered_aggregate in netapp-ontap_flexcache
 - **netapp-ontap_volume resource**: fixed issue with `autosize.maximum`. ([#692](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/692))
 
 # 2.6.1 (2026-04-21)
