@@ -33,9 +33,9 @@ func TestAccStorageVolumeResourceAlias(t *testing.T) {
 			},
 			// Read testing
 			{
-				Config: testAccStorageVolumeResourceConfigAlias("tf_acc_svm", "tf_acc_volume2"),
+				Config: testAccStorageVolumeResourceConfigAlias("tf_acc_svm", "tf_acc_volume"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "name", "tf_acc_volume2"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "name", "tf_acc_volume"),
 					resource.TestCheckNoResourceAttr("netapp-ontap_storage_volume_resource.example", "volname"),
 				),
 			},
