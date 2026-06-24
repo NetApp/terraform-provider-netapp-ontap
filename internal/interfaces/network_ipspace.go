@@ -57,6 +57,37 @@ func GetIPspace(errorHandler *utils.ErrorHandler, r restclient.RestClient, name 
 	return &dataONTAP, nil
 }
 
+// GetIPspaceByUUID to get IPspace info given its UUID
+func GetIPspaceByUUID(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) (*IPspaceGetDataModelONTAP, error) {
+	api := fmt.Sprintf("network/ipspaces/%s", uuid)
+	query := r.NewQuery()
+	query.Fields([]string{
+		"name",
+		"uuid",
+	})
+
+	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError(
+			"error reading IPspace info",
+			fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode),
+		)
+	}
+
+	var dataONTAP IPspaceGetDataModelONTAP
+	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
+		return nil, errorHandler.MakeAndReportError(
+			fmt.Sprintf("failed to decode response from GET %s", api),
+			fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response),
+		)
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read ipspace data source by UUID: %#v", dataONTAP))
+	return &dataONTAP, nil
+}
+
 // GetIPspaces to get a list of IPspaces info for given filter options
 func GetIPspaces(errorHandler *utils.ErrorHandler, r restclient.RestClient, name string) ([]IPspaceGetDataModelONTAP, error) {
 	api := "network/ipspaces"
@@ -140,5 +171,29 @@ func DeleteIPspace(errorHandler *utils.ErrorHandler, r restclient.RestClient, uu
 		)
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Deleted ipspace resource: %s", uuid))
+	return nil
+}
+
+// UpdateIPspace to modify an IPspace
+func UpdateIPspace(errorHandler *utils.ErrorHandler, r restclient.RestClient, request IPspaceResourceBodyDataModel, uuid string) error {
+	api := fmt.Sprintf("network/ipspaces/%s", uuid)
+	var body map[string]interface{}
+	if err := mapstructure.Decode(request, &body); err != nil {
+		return errorHandler.MakeAndReportError(
+			"error encoding network/ipspaces body",
+			fmt.Sprintf("error on encoding %s body: %s, body: %#v", api, err, body),
+		)
+	}
+
+	query := r.NewQuery()
+	query.Add("return_records", "true")
+	statusCode, _, err := r.CallUpdateMethod(api, query, body)
+	if err != nil {
+		return errorHandler.MakeAndReportError(
+			"error modifying IPspace",
+			fmt.Sprintf("error on PATCH %s: %s, statusCode %d", api, err, statusCode),
+		)
+	}
+
 	return nil
 }

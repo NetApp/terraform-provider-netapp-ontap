@@ -63,9 +63,6 @@ func (r *IPspaceResource) Schema(ctx context.Context, req resource.SchemaRequest
 			"name": schema.StringAttribute{
 				MarkdownDescription: "Specifies the name of the IPspace.",
 				Required:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The UUID of the IPspace.",
@@ -124,15 +121,22 @@ func (r *IPspaceResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	var restInfo *interfaces.IPspaceGetDataModelONTAP
-	restInfo, err = interfaces.GetIPspace(errorHandler, *client, data.Name.ValueString())
-	if err != nil {
-		// error reporting done inside GetIPspace
-		return
+	if !data.ID.IsNull() && !data.ID.IsUnknown() && strings.TrimSpace(data.ID.ValueString()) != "" {
+		restInfo, err = interfaces.GetIPspaceByUUID(errorHandler, *client, data.ID.ValueString())
+		if err != nil {
+			// error reporting done inside GetIPspaceByUUID
+			return
+		}
+	} else {
+		restInfo, err = interfaces.GetIPspace(errorHandler, *client, data.Name.ValueString())
+		if err != nil {
+			// error reporting done inside GetIPspace
+			return
+		}
 	}
 
 	data.ID = types.StringValue(restInfo.UUID)
 	data.Name = types.StringValue(restInfo.Name)
-	
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
@@ -201,11 +205,41 @@ func (r *IPspaceResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	// IPspace doesn't have any modifiable attributes as of ONTAP 9.19.1.
-	// If there are updatable attributes in the future, we can add conditions here.
-	if plan.Name.Equal(state.Name) {
+	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
+	client, err := connection.GetRestClient(errorHandler, r.config, state.CxProfileName)
+	if err != nil {
+		// error reporting done inside NewClient
 		return
 	}
+
+	if state.ID.IsNull() || state.ID.IsUnknown() || strings.TrimSpace(state.ID.ValueString()) == "" {
+		errorHandler.MakeAndReportError("ID is null", "IPspace UUID is null")
+		return
+	}
+
+	var body interfaces.IPspaceResourceBodyDataModel
+	nameValue := plan.Name.ValueString()
+	body.Name = &nameValue
+
+	err = interfaces.UpdateIPspace(errorHandler, *client, body, state.ID.ValueString())
+	if err != nil {
+		// error reporting done inside UpdateIPspace
+		return
+	}
+
+	restInfo, err := interfaces.GetIPspaceByUUID(errorHandler, *client, state.ID.ValueString())
+	if err != nil {
+		// error reporting done inside GetIPspaceByUUID
+		return
+	}
+
+	plan.ID = types.StringValue(restInfo.UUID)
+	plan.Name = types.StringValue(restInfo.Name)
+
+	tflog.Debug(ctx, fmt.Sprintf("updated IPspace resource: ID=%s", plan.ID.ValueString()))
+
+	// Save data into Terraform state
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
