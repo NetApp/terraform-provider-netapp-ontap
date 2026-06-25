@@ -15,6 +15,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+- **netapp-ontap_cluster_peer**: fixed issue where cluster peering between GCNV and ONTAP failed because both sides were using the same `ipspace`. Added `peer_ipspace` attribute to allow specifying separate IPspaces for local and peer clusters. ([#682](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/682))
 - **netapp-ontap_flexcache_resource**, **netapp-ontap_flexcache_data_source**, **netapp-ontap_flexcaches_data_source**: Fix use of use_tiered_aggregate in netapp-ontap_flexcache
 - **netapp-ontap_volume_resource**: fixed issue with volume size modify not working in GCNV([#691](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/691))
 - **netapp-ontap_nfs_service resource**: fixed issue with idempotency. ([#310](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/310))
