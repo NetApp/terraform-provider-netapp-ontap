@@ -2,6 +2,8 @@
 
 FEATURES:
 
+- **New Data Source:** `netapp-ontap_unix_user` and `netapp-ontap_unix_users`([#679](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/679))
+- **New Resource:** `netapp-ontap_unix_user` ([#679](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/679))
 - **New Data Source:** `netapp-ontap_unix_group` and `netapp-ontap_unix_groups`([#680](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/680))
 - **New Resource:** `netapp-ontap_unix_group` ([#680](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/680))
 - **New Data Source:** `netapp-ontap_nvme_namespace` and `netapp-ontap_nvme_namespaces`([#483](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/483))
