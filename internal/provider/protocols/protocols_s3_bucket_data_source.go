@@ -33,19 +33,20 @@ type ProtocolsS3BucketDataSource struct {
 
 // ProtocolsS3BucketDataSourceModel describes the data source data model.
 type ProtocolsS3BucketDataSourceModel struct {
-	CxProfileName        types.String                        `tfsdk:"cx_profile_name"`
-	SVMName              types.String                        `tfsdk:"svm_name"`
-	Name                 types.String                        `tfsdk:"name"`
-	Size		         types.Int64                         `tfsdk:"size"`
-	Comment              types.String                        `tfsdk:"comment"`
-	Type 		         types.String                        `tfsdk:"type"`	
-	NASPath	             types.String                        `tfsdk:"nas_path"`
-	VersioningState      types.String                        `tfsdk:"versioning_state"`
+	CxProfileName        types.String                       `tfsdk:"cx_profile_name"`
+	SVMName              types.String                       `tfsdk:"svm_name"`
+	Name                 types.String                       `tfsdk:"name"`
+	Size		         types.Int64                        `tfsdk:"size"`
+	Comment              types.String                       `tfsdk:"comment"`
+	Type 		         types.String                       `tfsdk:"type"`	
+	NASPath	             types.String                       `tfsdk:"nas_path"`
+	VersioningState      types.String                       `tfsdk:"versioning_state"`
 	Policy              *PolicyDataSourceModel              `tfsdk:"policy"`
 	QoSPolicy           *QoSPolicyDataSourceModel           `tfsdk:"qos_policy"`
-	SnapshotPolicy       types.String                        `tfsdk:"snapshot_policy"`
+	SnapshotPolicy       types.String                       `tfsdk:"snapshot_policy"`
 	AuditEventSelector  *AuditEventSelectorDataSourceModel  `tfsdk:"audit_event_selector"`
-	UUID                 types.String                        `tfsdk:"uuid"`
+	CORSRules		   []CORSRulesDataSourceModel           `tfsdk:"cors_rules"`
+	UUID                 types.String                       `tfsdk:"uuid"`
 }
 
 // PolicyDataSourceModel describes the policy data model using go types for mapping.
@@ -86,6 +87,16 @@ type QoSPolicyDataSourceModel struct {
 type AuditEventSelectorDataSourceModel struct {
 	Access      types.String  `tfsdk:"access"`
 	Permission  types.String  `tfsdk:"permission"`
+}
+
+// CORSRulesDataSourceModel describes the cors.rules data model using go types for mapping.
+type CORSRulesDataSourceModel struct {
+	AllowedOrigins  types.Set     `tfsdk:"allowed_origins"`
+	AllowedMethods  types.Set     `tfsdk:"allowed_methods"`
+	AllowedHeaders  types.Set     `tfsdk:"allowed_headers"`
+	ExposeHeaders   types.Set     `tfsdk:"expose_headers"`
+	RuleID		    types.String  `tfsdk:"rule_id"`
+	MaxAgeSeconds   types.Int64   `tfsdk:"max_age_seconds"`
 }
 
 // ProtocolsS3BucketDataSourceFilterModel describes the data source data model for queries.
@@ -166,9 +177,9 @@ func (d *ProtocolsS3BucketDataSource) Schema(ctx context.Context, req datasource
 									Computed:            true,
 								},
 								"principals": schema.SetAttribute{
-										MarkdownDescription: "The list of S3 users or groups.",
-										Computed:            true,
-										ElementType:         types.StringType,
+									MarkdownDescription: "The list of S3 users or groups.",
+									Computed:            true,
+									ElementType:         types.StringType,
 								},
 								"conditions": schema.ListNestedAttribute{
 									MarkdownDescription: "Conditions for when a policy is in effect.",
@@ -256,6 +267,42 @@ func (d *ProtocolsS3BucketDataSource) Schema(ctx context.Context, req datasource
 					},
 				},
 			},
+			"cors_rules": schema.ListNestedAttribute{
+				MarkdownDescription: "The list of object store bucket CORS rules.",
+				Computed:            true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"allowed_origins": schema.SetAttribute{
+							MarkdownDescription: "List of origins from where a cross-origin request is allowed to originate from for the S3 bucket.",
+							Computed:            true,
+							ElementType:         types.StringType,
+						},
+						"allowed_headers": schema.SetAttribute{
+							MarkdownDescription: "List of HTTP headers allowed in the cross-origin requests.",
+							Computed:            true,
+							ElementType:         types.StringType,
+						},
+						"allowed_methods": schema.SetAttribute{
+							MarkdownDescription: "List of HTTP methods allowed in the cross-origin requests.",
+							Computed:            true,
+							ElementType:         types.StringType,
+						},
+						"expose_headers": schema.SetAttribute{
+							MarkdownDescription: "List of extra headers sent in the response that customers can access from their applications.",
+							Computed:            true,
+							ElementType:         types.StringType,
+						},
+						"rule_id": schema.StringAttribute{
+							MarkdownDescription: "Bucket CORS rule identifier.",
+							Computed:            true,
+						},
+						"max_age_seconds": schema.Int64Attribute{
+							MarkdownDescription: "The time in seconds for your browser to cache the preflight response for the specified resource.",
+							Computed:            true,
+						},
+					},
+				},
+			},
 			"uuid": schema.StringAttribute{
 				MarkdownDescription: "The UUID of the S3 bucket.",
 				Computed:            true,
@@ -328,7 +375,7 @@ func (d *ProtocolsS3BucketDataSource) Read(ctx context.Context, req datasource.R
 	if restInfo.Policy != nil && len(restInfo.Policy.Statements) > 0 {
 		var policy PolicyDataSourceModel
 		policy.Statements = []StatementsDataSourceModel{}
-		
+
 		for _, item := range restInfo.Policy.Statements {
 			var statement StatementsDataSourceModel
 			statement.SID = types.StringValue(item.SID)
@@ -457,7 +504,7 @@ func (d *ProtocolsS3BucketDataSource) Read(ctx context.Context, req datasource.R
 	} else {
 		data.QoSPolicy = nil
 	}
-	
+
 	if restInfo.SnapshotPolicy.Name != "" {
 		data.SnapshotPolicy = types.StringValue(restInfo.SnapshotPolicy.Name)
 	} else {
@@ -466,13 +513,69 @@ func (d *ProtocolsS3BucketDataSource) Read(ctx context.Context, req datasource.R
 	// audit_event_selector
 	if restInfo.AuditEventSelector != nil && (restInfo.AuditEventSelector.Access != "" || restInfo.AuditEventSelector.Permission != "") {
 		data.AuditEventSelector = &AuditEventSelectorDataSourceModel{
-			Access:      types.StringValue(restInfo.AuditEventSelector.Access),
-			Permission:  types.StringValue(restInfo.AuditEventSelector.Permission),
+			Access:     types.StringValue(restInfo.AuditEventSelector.Access),
+			Permission: types.StringValue(restInfo.AuditEventSelector.Permission),
 		}
 	} else {
 		data.AuditEventSelector = nil
 	}
 	data.UUID = types.StringValue(restInfo.UUID)
+	// cors_rules
+	data.CORSRules = nil
+	if restInfo.CORS != nil && len(restInfo.CORS.Rules) > 0 {
+		data.CORSRules = make([]CORSRulesDataSourceModel, 0, len(restInfo.CORS.Rules))
+		for _, rule := range restInfo.CORS.Rules {
+			corsRule := CORSRulesDataSourceModel{
+				AllowedOrigins: types.SetNull(types.StringType),
+				AllowedMethods: types.SetNull(types.StringType),
+				AllowedHeaders: types.SetNull(types.StringType),
+				ExposeHeaders:  types.SetNull(types.StringType),
+				RuleID:         types.StringNull(),
+				MaxAgeSeconds:  types.Int64Null(),
+			}
+
+			if rule.RuleID != "" {
+				corsRule.RuleID = types.StringValue(rule.RuleID)
+			}
+			if rule.MaxAgeSeconds != 0 {
+				corsRule.MaxAgeSeconds = types.Int64Value(int64(rule.MaxAgeSeconds))
+			}
+
+			if len(rule.AllowedOrigins) > 0 {
+				allowedOriginsSet, diags := types.SetValueFrom(ctx, types.StringType, rule.AllowedOrigins)
+				resp.Diagnostics.Append(diags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				corsRule.AllowedOrigins = allowedOriginsSet
+			}
+			if len(rule.AllowedMethods) > 0 {
+				allowedMethodsSet, diags := types.SetValueFrom(ctx, types.StringType, rule.AllowedMethods)
+				resp.Diagnostics.Append(diags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				corsRule.AllowedMethods = allowedMethodsSet
+			}
+			if len(rule.AllowedHeaders) > 0 {
+				allowedHeadersSet, diags := types.SetValueFrom(ctx, types.StringType, rule.AllowedHeaders)
+				resp.Diagnostics.Append(diags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				corsRule.AllowedHeaders = allowedHeadersSet
+			}
+			if len(rule.ExposeHeaders) > 0 {
+				exposeHeadersSet, diags := types.SetValueFrom(ctx, types.StringType, rule.ExposeHeaders)
+				resp.Diagnostics.Append(diags...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+				corsRule.ExposeHeaders = exposeHeadersSet
+			}
+			data.CORSRules = append(data.CORSRules, corsRule)
+		}
+	}
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
