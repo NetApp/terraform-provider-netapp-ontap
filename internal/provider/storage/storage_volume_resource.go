@@ -827,7 +827,7 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 			maximum = interfaces.ConvertBytesToUnitInt(int64(response.Autosize.Maximum), autoSizeUnit)
 		} else {
 			minimum, autoSizeUnit = interfaces.ByteFormat(int64(response.Autosize.Minimum))
-			maximum, _ = interfaces.ByteFormat(int64(response.Autosize.Maximum))
+			maximum = interfaces.ConvertBytesToUnitInt(int64(response.Autosize.Maximum), autoSizeUnit)
 		}
 
 		elements = map[string]attr.Value{
