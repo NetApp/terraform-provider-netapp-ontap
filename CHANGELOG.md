@@ -4,14 +4,10 @@ FEATURES:
 
 - **New Data Source:** `netapp-ontap_unix_user` and `netapp-ontap_unix_users`([#679](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/679))
 - **New Resource:** `netapp-ontap_unix_user` ([#679](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/679))
-- **New Data Source:** `netapp-ontap_unix_user` and `netapp-ontap_unix_users`([#679](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/679))
-- **New Resource:** `netapp-ontap_unix_user` ([#679](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/679))
 - **New Data Source:** `netapp-ontap_unix_group` and `netapp-ontap_unix_groups`([#680](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/680))
 - **New Resource:** `netapp-ontap_unix_group` ([#680](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/680))
 - **New Data Source:** `netapp-ontap_nvme_namespace` and `netapp-ontap_nvme_namespaces`([#483](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/483))
 - **New Resource:** `netapp-ontap_nvme_namespace` ([#482](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/482))
-- **New Data Source:** `netapp-ontap_network_ipspace` and `netapp-ontap_network_ipspaces`([#612](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/612))
-- **New Resource:** `netapp-ontap_network_ipspace` ([#612](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/612))
 - **New Data Source:** `netapp-ontap_network_ipspace` and `netapp-ontap_network_ipspaces`([#612](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/612))
 - **New Resource:** `netapp-ontap_network_ipspace` ([#612](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/612))
 
