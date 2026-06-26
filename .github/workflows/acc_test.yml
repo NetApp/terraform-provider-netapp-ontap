@@ -111,7 +111,7 @@ jobs:
           export TF_ACC_TERRAFORM_PATH=$(which terraform)
           for FILE in $UPDATED_CHANGED_FILES; do
             printf "Running acceptance test for %s\n" "$FILE"
-            go test "$FILE"
+            go test "./$(dirname "$FILE")"
           done
 
       - name: Cleanup
