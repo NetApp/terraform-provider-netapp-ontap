@@ -289,6 +289,10 @@ func (r *SnapmirrorResource) Read(ctx context.Context, req resource.ReadRequest,
 				}
 			}
 		}
+		// Set initialize to its default (true) so RequiresReplace does not trigger on first plan.
+		if data.Initialize.IsNull() || data.Initialize.IsUnknown() {
+			data.Initialize = types.BoolValue(true)
+		}
 		// initialize only matters at create time, but it is Computed with a default of
 		// true and requires replacement on change. Leaving it null in the imported
 		// state makes the next plan replace the relationship, so set the default here.
