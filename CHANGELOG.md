@@ -14,6 +14,7 @@ FEATURES:
 ENHANCEMENTS:
 
 - **netapp-ontap_s3_bucket**: New option `cors_rules` added, requires ONTAP 9.16 or later. ([#658](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/658))
+- **netapp-ontap_volume resource**: added snapshot restore_to volume ([#677](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/677))
 - **netapp-ontap_nfs_service resource**: Added support for in-place parameter updates. ([#688](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/688))
 
 BUG FIXES:

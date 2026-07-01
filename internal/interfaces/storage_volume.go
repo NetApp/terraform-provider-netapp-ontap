@@ -114,6 +114,16 @@ type Snapshot struct {
 	ReservePercent *int64 `mapstructure:"reserve_percent,omitempty"`
 }
 
+// RestoreTarget describes snapshot restore target for volume PATCH operations.
+type RestoreTarget struct {
+	Snapshot SnapshotRef `mapstructure:"snapshot,omitempty"`
+}
+
+// SnapshotRef describes the snapshot reference in restore_to.
+type SnapshotRef struct {
+	Name string `mapstructure:"name,omitempty"`
+}
+
 // Guarantee describes the resource data model.
 type Guarantee struct {
 	Type string `mapstructure:"type,omitempty"`
@@ -340,6 +350,17 @@ func CreateStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClie
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Create volume source - udata: %#v", dataONTAP))
 	return &dataONTAP, nil
+}
+
+// RestoreVolumeToSnapshot restores a volume to a snapshot by sending restore_to.snapshot.name as a PATCH query parameter.
+func RestoreVolumeToSnapshot(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string, snapshotName string) error {
+	query := r.NewQuery()
+	query.Add("restore_to.snapshot.name", snapshotName)
+	statusCode, _, err := r.CallUpdateMethod("storage/volumes/"+uuid, query, nil)
+	if err != nil {
+		return errorHandler.MakeAndReportError("error restoring volume", fmt.Sprintf("error on PATCH storage/volumes restore: %s, statusCode %d", err, statusCode))
+	}
+	return nil
 }
 
 // DeleteStorageVolume to delete volume
