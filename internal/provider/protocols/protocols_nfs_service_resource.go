@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -148,7 +147,6 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(true),
-				PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 			},
 			"protocol": schema.SingleNestedAttribute{
 				Required:            true,
@@ -159,20 +157,18 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 						Optional:            true,
 						Computed:            true,
 						Default:             booldefault.StaticBool(true),
-						PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 					},
 					"v4_id_domain": schema.StringAttribute{
 						MarkdownDescription: "User ID domain for NFSv4",
 						Optional:            true,
 						Computed:            true,
-						PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown(), stringplanmodifier.RequiresReplace()},
+						PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 					},
 					"v40_enabled": schema.BoolAttribute{
 						MarkdownDescription: "NFSv4.0 enabled",
 						Optional:            true,
 						Computed:            true,
 						Default:             booldefault.StaticBool(true),
-						PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 					},
 					"v40_features": schema.SingleNestedAttribute{
 						Optional: true,
@@ -188,7 +184,6 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 								"read_delegation_enabled":  types.BoolValue(false),
 								"write_delegation_enabled": types.BoolValue(false),
 							})),
-						PlanModifiers:       []planmodifier.Object{objectplanmodifier.RequiresReplace()},
 						MarkdownDescription: "NFSv4.0 features",
 						Attributes: map[string]schema.Attribute{
 							"acl_enabled": schema.BoolAttribute{
@@ -196,21 +191,18 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 								Optional:            true,
 								Computed:            true,
 								Default:             booldefault.StaticBool(false),
-								PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 							},
 							"read_delegation_enabled": schema.BoolAttribute{
 								MarkdownDescription: "Enable Read File Delegation for NFSv4.0",
 								Optional:            true,
 								Computed:            true,
 								Default:             booldefault.StaticBool(false),
-								PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 							},
 							"write_delegation_enabled": schema.BoolAttribute{
 								MarkdownDescription: "Enable Write File Delegation for NFSv4.0",
 								Optional:            true,
 								Computed:            true,
 								Default:             booldefault.StaticBool(false),
-								PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 							},
 						},
 					},
@@ -236,7 +228,6 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 								"read_delegation_enabled":  types.BoolValue(false),
 								"write_delegation_enabled": types.BoolValue(false),
 							})),
-						PlanModifiers:       []planmodifier.Object{objectplanmodifier.RequiresReplace()},
 						MarkdownDescription: "NFSv4.1 features",
 						Attributes: map[string]schema.Attribute{
 							"acl_enabled": schema.BoolAttribute{
@@ -244,28 +235,24 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 								Optional:            true,
 								Computed:            true,
 								Default:             booldefault.StaticBool(false),
-								PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 							},
 							"pnfs_enabled": schema.BoolAttribute{
 								MarkdownDescription: "Enabled pNFS (parallel NFS) for NFSv4.1",
 								Optional:            true,
 								Computed:            true,
 								Default:             booldefault.StaticBool(false),
-								PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 							},
 							"read_delegation_enabled": schema.BoolAttribute{
 								MarkdownDescription: "Enable Read File Delegation for NFSv4.1",
 								Optional:            true,
 								Computed:            true,
 								Default:             booldefault.StaticBool(false),
-								PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 							},
 							"write_delegation_enabled": schema.BoolAttribute{
 								MarkdownDescription: "Enable Write File Delegation for NFSv4.1",
 								Optional:            true,
 								Computed:            true,
 								Default:             booldefault.StaticBool(false),
-								PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 							},
 						},
 					},
@@ -283,7 +270,6 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 						"ignore_nt_acl":               types.BoolValue(false),
 						"skip_write_permission_check": types.BoolValue(false),
 					})),
-				PlanModifiers:       []planmodifier.Object{objectplanmodifier.RequiresReplace()},
 				MarkdownDescription: "Specific Root user options",
 				Attributes: map[string]schema.Attribute{
 					"ignore_nt_acl": schema.BoolAttribute{
@@ -291,14 +277,12 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 						Optional:            true,
 						Computed:            true,
 						Default:             booldefault.StaticBool(false),
-						PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 					},
 					"skip_write_permission_check": schema.BoolAttribute{
 						MarkdownDescription: "Skip write permissions check for root user",
 						Optional:            true,
 						Computed:            true,
 						Default:             booldefault.StaticBool(false),
-						PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 					},
 				},
 			},
@@ -318,7 +302,6 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 						"ntfs_unix_security":        types.StringValue("use_export_policy"),
 						"rpcsec_context_idle":       types.Int64Value(0),
 					})),
-				PlanModifiers:       []planmodifier.Object{objectplanmodifier.RequiresReplace()},
 				MarkdownDescription: "NFS Security options",
 				Attributes: map[string]schema.Attribute{
 					"chown_mode": schema.StringAttribute{
@@ -352,7 +335,6 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
-				PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 			},
 			"transport": schema.SingleNestedAttribute{
 				Optional: true,
@@ -368,28 +350,24 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 						"tcp_max_transfer_size": types.Int64Value(65536),
 						"udp_enabled":           types.BoolValue(true),
 					})),
-				PlanModifiers: []planmodifier.Object{objectplanmodifier.RequiresReplace()},
 				Attributes: map[string]schema.Attribute{
 					"tcp_enabled": schema.BoolAttribute{
 						MarkdownDescription: "tcp enabled",
 						Optional:            true,
 						Computed:            true,
 						Default:             booldefault.StaticBool(true),
-						PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 					},
 					"tcp_max_transfer_size": schema.Int64Attribute{
 						MarkdownDescription: "Max tcp transfer size",
 						Optional:            true,
 						Computed:            true,
 						Default:             int64default.StaticInt64(65536),
-						PlanModifiers:       []planmodifier.Int64{int64planmodifier.RequiresReplace()},
 					},
 					"udp_enabled": schema.BoolAttribute{
 						MarkdownDescription: "udp enabled",
 						Optional:            true,
 						Computed:            true,
 						Default:             booldefault.StaticBool(true),
-						PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 					},
 				},
 			},
@@ -397,7 +375,7 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 				MarkdownDescription: "Whether Vstorage is enabled",
 				Optional:            true,
 				Computed:            true,
-				PlanModifiers:       []planmodifier.Bool{boolplanmodifier.UseStateForUnknown(), boolplanmodifier.RequiresReplace()},
+				PlanModifiers:       []planmodifier.Bool{boolplanmodifier.UseStateForUnknown()},
 			},
 			"windows": schema.SingleNestedAttribute{
 				Optional: true,
@@ -420,20 +398,18 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 						Optional:            true,
 						Computed:            true,
 						Default:             stringdefault.StaticString(""),
-						PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
 					},
 					"map_unknown_uid_to_default_user": schema.BoolAttribute{
 						MarkdownDescription: "whether or not the mapping of an unknown UID to the default Windows user is enabled",
 						Optional:            true,
 						Computed:            true,
-						PlanModifiers:       []planmodifier.Bool{boolplanmodifier.UseStateForUnknown(), boolplanmodifier.RequiresReplace()},
+						PlanModifiers:       []planmodifier.Bool{boolplanmodifier.UseStateForUnknown()},
 					},
 					"v3_ms_dos_client_enabled": schema.BoolAttribute{
 						MarkdownDescription: "if permission checks are to be skipped for NFS WRITE calls from root/owner.",
 						Optional:            true,
 						Computed:            true,
 						Default:             booldefault.StaticBool(false),
-						PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 					},
 				},
 			},

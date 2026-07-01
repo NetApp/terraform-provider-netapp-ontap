@@ -2,21 +2,28 @@
 
 FEATURES:
 
-- **New Data Source:** `netapp-ontap_unix_group` and `netapp-ontap_unix_groups`([#680](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/680))
+- **New Data Source:** `netapp-ontap_unix_user` and `netapp-ontap_unix_users` ([#679](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/679))
+- **New Resource:** `netapp-ontap_unix_user` ([#679](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/679))
+- **New Data Source:** `netapp-ontap_unix_group` and `netapp-ontap_unix_groups` ([#680](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/680))
 - **New Resource:** `netapp-ontap_unix_group` ([#680](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/680))
-- **New Data Source:** `netapp-ontap_nvme_namespace` and `netapp-ontap_nvme_namespaces`([#483](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/483))
+- **New Data Source:** `netapp-ontap_nvme_namespace` and `netapp-ontap_nvme_namespaces` ([#483](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/483))
 - **New Resource:** `netapp-ontap_nvme_namespace` ([#482](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/482))
+- **New Data Source:** `netapp-ontap_network_ipspace` and `netapp-ontap_network_ipspaces` ([#612](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/612))
+- **New Resource:** `netapp-ontap_network_ipspace` ([#612](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/612))
 
 ENHANCEMENTS:
 
 - **netapp-ontap_s3_bucket**: New option `cors_rules` added, requires ONTAP 9.16 or later. ([#658](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/658))
 - **netapp-ontap_volume resource**: added snapshot restore_to volume ([#677](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/677))
+- **netapp-ontap_nfs_service resource**: Added support for in-place parameter updates. ([#688](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/688))
 
 BUG FIXES:
 
-- **netapp-ontap_flexcache_resource**, **netapp-ontap_flexcache_data_source**, **netapp-ontap_flexcaches_data_source**: Fix use of use_tiered_aggregate in netapp-ontap_flexcache
-- **netapp-ontap_volume_resource**: fixed issue with volume size modify not working in GCNV([#691](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/691))
+- **netapp-ontap_flexcache_resource**, **netapp-ontap_flexcache_data_source**, **netapp-ontap_flexcaches_data_source**: Fix use of `use_tiered_aggregate` in netapp-ontap_flexcache. ([#581](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/581))
+- **netapp-ontap_volume_resource**: fixed issue with volume size modify not working in GCNV ([#691](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/691))
 - **netapp-ontap_nfs_service resource**: fixed issue with idempotency. ([#310](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/310))
+- **netapp-ontap_volume_resource**: fixed issue with `autosize.maximum`. ([#692](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/692))
+- **netapp-ontap_snapmirror**: fixed import so that source_endpoint, policy and initialize are populated, preventing the relationship from being recreated on the next plan. ([#694](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/694))
 
 # 2.6.1 (2026-04-21)
 
