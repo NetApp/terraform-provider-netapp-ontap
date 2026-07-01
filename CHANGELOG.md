@@ -23,6 +23,7 @@ BUG FIXES:
 - **netapp-ontap_nfs_service resource**: fixed issue with idempotency. ([#310](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/310))
 - **netapp-ontap_volume_resource**: fixed issue with `autosize.maximum`. ([#692](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/692))
 - **netapp-ontap_snapmirror**: fixed import so that source_endpoint, policy and initialize are populated, preventing the relationship from being recreated on the next plan. ([#694](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/694))
+- **netapp-ontap_snapshot_policy_resource**: fixed issue with cluster scoped snapshot policy import ([#686](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/686))
 
 # 2.6.1 (2026-04-21)
 
