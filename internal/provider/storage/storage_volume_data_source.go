@@ -41,27 +41,28 @@ type StorageVolumeDataSource struct {
 
 // StorageVolumeDataSourceModel describes the data source data model.
 type StorageVolumeDataSourceModel struct {
-	CxProfileName  types.String                        `tfsdk:"cx_profile_name"`
-	Name           types.String                        `tfsdk:"name"`
-	SVMName        types.String                        `tfsdk:"svm_name"`
-	State          types.String                        `tfsdk:"state"`
-	Type           types.String                        `tfsdk:"type"`
-	SpaceGuarantee types.String                        `tfsdk:"space_guarantee"`
-	Encrypt        types.Bool                          `tfsdk:"encryption"`
-	SnapshotPolicy types.String                        `tfsdk:"snapshot_policy"`
-	Language       types.String                        `tfsdk:"language"`
-	QOSPolicyGroup types.String                        `tfsdk:"qos_policy_group"`
-	Comment        types.String                        `tfsdk:"comment"`
-	Aggregates     []StorageVolumeDataSourceAggregates `tfsdk:"aggregates"`
-	ID             types.String                        `tfsdk:"id"`
-	Space          *StorageVolumeDataSourceSpace       `tfsdk:"space"`
-	Nas            *StorageVolumeDataSourceNas         `tfsdk:"nas"`
-	Tiering        *StorageVolumeDataSourceTiering     `tfsdk:"tiering"`
-	Efficiency     *StorageVolumeDataSourceEfficiency  `tfsdk:"efficiency"`
-	SnapLock       *StorageVolumeDataSourceSnapLock    `tfsdk:"snaplock"`
-	Analytics      *StorageVolumeDataSourceAnalytics   `tfsdk:"analytics"`
-	Autosize       *StorageVolumeDataSourceAutosize    `tfsdk:"autosize"`
-	SnapshotLockingEnabled        types.Bool           `tfsdk:"snapshot_locking_enabled"`
+	CxProfileName          types.String                        `tfsdk:"cx_profile_name"`
+	Name                   types.String                        `tfsdk:"name"`
+	SVMName                types.String                        `tfsdk:"svm_name"`
+	State                  types.String                        `tfsdk:"state"`
+	Type                   types.String                        `tfsdk:"type"`
+	SpaceGuarantee         types.String                        `tfsdk:"space_guarantee"`
+	Encrypt                types.Bool                          `tfsdk:"encryption"`
+	SnapshotPolicy         types.String                        `tfsdk:"snapshot_policy"`
+	Language               types.String                        `tfsdk:"language"`
+	QOSPolicyGroup         types.String                        `tfsdk:"qos_policy_group"`
+	Comment                types.String                        `tfsdk:"comment"`
+	Aggregates             []StorageVolumeDataSourceAggregates `tfsdk:"aggregates"`
+	ID                     types.String                        `tfsdk:"id"`
+	Space                  *StorageVolumeDataSourceSpace       `tfsdk:"space"`
+	Nas                    *StorageVolumeDataSourceNas         `tfsdk:"nas"`
+	Tiering                *StorageVolumeDataSourceTiering     `tfsdk:"tiering"`
+	Efficiency             *StorageVolumeDataSourceEfficiency  `tfsdk:"efficiency"`
+	SnapLock               *StorageVolumeDataSourceSnapLock    `tfsdk:"snaplock"`
+	Analytics              *StorageVolumeDataSourceAnalytics   `tfsdk:"analytics"`
+	Autosize               *StorageVolumeDataSourceAutosize    `tfsdk:"autosize"`
+	SnapshotLockingEnabled types.Bool                          `tfsdk:"snapshot_locking_enabled"`
+	Tags                   types.Set                           `tfsdk:"tags"`
 }
 
 // StorageVolumeDataSourceAggregates describes the analytics model.
@@ -91,6 +92,7 @@ type StorageVolumeDataSourceEfficiency struct {
 type StorageVolumeDataSourceTiering struct {
 	Policy             types.String `tfsdk:"policy_name"`
 	MinimumCoolingDays types.Int64  `tfsdk:"minimum_cooling_days"`
+	ObjectTags         types.Set    `tfsdk:"object_tags"`
 }
 
 // StorageVolumeDataSourceNas describes the Nas model.
@@ -266,6 +268,11 @@ func (d *StorageVolumeDataSource) Schema(ctx context.Context, req datasource.Sch
 						MarkdownDescription: "Determines how many days must pass before inactive data in a volume using the Auto or Snapshot-Only policy is considered cold and eligible for tiering",
 						Computed:            true,
 					},
+					"object_tags": schema.SetAttribute{
+						ElementType:         types.StringType,
+						MarkdownDescription: "Object tags are applied to objects in tiered storage",
+						Computed:            true,
+					},
 				},
 			},
 			"efficiency": schema.SingleNestedAttribute{
@@ -346,6 +353,11 @@ func (d *StorageVolumeDataSource) Schema(ctx context.Context, req datasource.Sch
 				MarkdownDescription: "Whether or not snapshot copy locking is enabled on the volume.",
 				Computed:            true,
 			},
+			"tags": schema.SetAttribute{
+				ElementType:         types.StringType,
+				MarkdownDescription: "Set of tags associated with the volume",
+				Computed:            true,
+			},
 			"id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Volume identifier",
@@ -417,9 +429,15 @@ func (d *StorageVolumeDataSource) Read(ctx context.Context, req datasource.ReadR
 		SecurityStyle:   types.StringValue(volume.NAS.SecurityStyle),
 		UnixPermissions: types.Int64Value(int64(volume.NAS.UnixPermissions)),
 	}
+	objectTagsSet, diags := stringSliceToSet(ctx, volume.TieringPolicy.ObjectTags)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
 	data.Tiering = &StorageVolumeDataSourceTiering{
 		Policy:             types.StringValue(volume.TieringPolicy.Policy),
 		MinimumCoolingDays: types.Int64Value(int64(volume.TieringPolicy.MinCoolingDays)),
+		ObjectTags:         objectTagsSet,
 	}
 	data.Efficiency = &StorageVolumeDataSourceEfficiency{
 		Policy:      types.StringValue(volume.Efficiency.Policy.Name),
@@ -446,6 +464,12 @@ func (d *StorageVolumeDataSource) Read(ctx context.Context, req datasource.ReadR
 		Mode:            types.StringValue(volume.Autosize.Mode),
 	}
 	tflog.Debug(ctx, fmt.Sprintf("autosize info compiled: %#v", data.Autosize))
+	tagsSet, diags := stringSliceToSet(ctx, volume.Tags)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	data.Tags = tagsSet
 	data.ID = types.StringValue(volume.UUID)
 
 	// Write logs using the tflog package
