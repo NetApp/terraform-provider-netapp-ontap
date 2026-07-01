@@ -37,6 +37,9 @@ func TestAccStorageVolumeResource(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_volume.example", "name", "tf_acc_volume_1"),
 					resource.TestCheckNoResourceAttr("netapp-ontap_volume.example", "volname"),
+					resource.TestCheckResourceAttr("netapp-ontap_volume.example", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netapp-ontap_volume.example", "tags.*", "env:test"),
+					resource.TestCheckTypeSetElemAttr("netapp-ontap_volume.example", "tags.*", "tier:gold"),
 				),
 			},
 			{
@@ -45,6 +48,9 @@ func TestAccStorageVolumeResource(t *testing.T) {
 					resource.TestCheckResourceAttr("netapp-ontap_volume.example", "name", "tf_acc_volume_1"),
 					resource.TestCheckResourceAttr("netapp-ontap_volume.example", "nas.group_id", "10"),
 					resource.TestCheckNoResourceAttr("netapp-ontap_volume.example", "volname"),
+					resource.TestCheckResourceAttr("netapp-ontap_volume.example", "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr("netapp-ontap_volume.example", "tags.*", "env:prod"),
+					resource.TestCheckTypeSetElemAttr("netapp-ontap_volume.example", "tags.*", "owner:qa"),
 				),
 			},
 			// Test importing a resource
@@ -120,6 +126,7 @@ resource "netapp-ontap_volume" "example" {
     mode = "off"
     size_unit = "mb"
   }
+  tags = ["env:test", "tier:gold"]
 }`, host, admin, password, volName, svm)
 }
 
@@ -256,5 +263,6 @@ resource "netapp-ontap_volume" "example" {
     size_unit = "mb"
   }
   snapshot_locking_enabled = false
+  tags = ["env:prod", "owner:qa"]
 }`, host, admin, password, volName, svm)
 }

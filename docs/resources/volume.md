@@ -78,7 +78,7 @@ resource "netapp-ontap_volume" "example" {
 
 ### Required
 
-- `aggregates` (Attributes List) Aggregates the volume is on (see [below for nested schema](#nestedatt--aggregates))
+- `aggregates` (Attributes Set) List of aggregates to place volume on (see [below for nested schema](#nestedatt--aggregates))
 - `cx_profile_name` (String) Connection profile name
 - `name` (String) The name of the volume to manage
 - `space` (Attributes) (see [below for nested schema](#nestedatt--space))
@@ -96,12 +96,13 @@ resource "netapp-ontap_volume" "example" {
 - `qos_policy_group` (String) Specifies a QoS policy group to be set on volume
 - `restore_to` (Attributes) Update-only restore trigger, this restores volume to the point in time the Snapshot copy was taken. (see [below for nested schema](#nestedatt--restore_to))
 - `snaplock` (Attributes) (see [below for nested schema](#nestedatt--snaplock))
+- `snapshot_locking_enabled` (Boolean) Whether or not snapshot copy locking is enabled on the volume.
 - `snapshot_policy` (String) The name of the snapshot policy
 - `space_guarantee` (String) Space guarantee style for the volume
 - `state` (String) Whether the specified volume is online, or not
+- `tags` (Set of String) Set of tags associated with the volume
 - `tiering` (Attributes) (see [below for nested schema](#nestedatt--tiering))
 - `type` (String) The volume type, either read-write (RW) or data-protection (DP)
-- `snapshot_locking_enabled` (Boolean) Whether or not snapshot copy locking is enabled on the volume
 
 ### Read-Only
 
@@ -189,7 +190,7 @@ Optional:
 - `compression` (String) Whether to enable compression for the volume (HDD and Flash Pool aggregates)
 - `policy_name` (String) Allows a storage efficiency policy to be set on volume creation
 - `dedupe` (String) The system can be enabled/disabled dedupe
-- `compaction` (String) The system can be enabled/disabled compression
+- `compaction` (String) The system can be enabled/disabled compaction
 
 <a id="nestedatt--nas"></a>
 
@@ -219,6 +220,7 @@ Optional:
 Optional:
 
 - `minimum_cooling_days` (Number) Determines how many days must pass before inactive data in a volume using the Auto or Snapshot-Only policy is considered cold and eligible for tiering
+- `object_tags` (Set of String) Object tags are applied to objects in tiered storage
 - `policy_name` (String) The tiering policy that is to be associated with the volume
 
 ## Import

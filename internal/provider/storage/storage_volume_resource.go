@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -54,6 +55,35 @@ func NewStorageVolumeResourceAlias() resource.Resource {
 	}
 }
 
+// stringSliceToSet converts a slice of strings to a types.Set.
+func stringSliceToSet(ctx context.Context, strings []string) (types.Set, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	if len(strings) > 0 {
+		stringValues := make([]attr.Value, len(strings))
+		for i, s := range strings {
+			stringValues[i] = types.StringValue(s)
+		}
+		stringsSet, setDiags := types.SetValue(types.StringType, stringValues)
+		diags.Append(setDiags...)
+		return stringsSet, diags
+	}
+
+	return types.SetNull(types.StringType), diags
+}
+
+// setToStringSlice converts a types.Set to a slice of strings.
+func setToStringSlice(ctx context.Context, set types.Set) ([]string, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var stringSlice []string
+
+	if !set.IsUnknown() && !set.IsNull() {
+		setDiags := set.ElementsAs(ctx, &stringSlice, false)
+		diags.Append(setDiags...)
+	}
+
+	return stringSlice, diags
+}
+
 // StorageVolumeResource defines the resource implementation.
 type StorageVolumeResource struct {
 	config connection.ResourceOrDataSourceConfig
@@ -83,6 +113,7 @@ type StorageVolumeResourceModel struct {
 	Autosize               types.Object                      `tfsdk:"autosize"`
 	RestoreSnapshot        types.Object                      `tfsdk:"restore_to"`
 	SnapshotLockingEnabled types.Bool                        `tfsdk:"snapshot_locking_enabled"`
+	Tags                   types.Set                         `tfsdk:"tags"`
 }
 
 // StorageVolumeResourceAggregates describes the analytics model.
@@ -112,6 +143,7 @@ type StorageVolumeResourceEfficiency struct {
 type StorageVolumeResourceTiering struct {
 	Policy             types.String `tfsdk:"policy_name"`
 	MinimumCoolingDays types.Int64  `tfsdk:"minimum_cooling_days"`
+	ObjectTags         types.Set    `tfsdk:"object_tags"`
 }
 
 // StorageVolumeResourceNas describes the Nas model.
@@ -392,6 +424,15 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 							int64planmodifier.UseStateForUnknown(),
 						},
 					},
+					"object_tags": schema.SetAttribute{
+						ElementType:         types.StringType,
+						MarkdownDescription: "Object tags are applied to objects in tiered storage",
+						Optional:            true,
+						Computed:            true,
+						PlanModifiers: []planmodifier.Set{
+							setplanmodifier.UseStateForUnknown(),
+						},
+					},
 				},
 			},
 			"efficiency": schema.SingleNestedAttribute{
@@ -569,6 +610,13 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 							},
 						},
 					},
+			"tags": schema.SetAttribute{
+				ElementType:         types.StringType,
+				MarkdownDescription: "Set of tags associated with the volume",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"id": schema.StringAttribute{
@@ -685,11 +733,11 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 		"reporting":   types.BoolType,
 		"enforcement": types.BoolType,
 	}
-	nestedEslements := map[string]attr.Value{
+	nestedElements := map[string]attr.Value{
 		"reporting":   types.BoolValue(response.Space.LogicalSpace.Reporting),
 		"enforcement": types.BoolValue(response.Space.LogicalSpace.Enforcement),
 	}
-	logicalObjectValue, _ := types.ObjectValue(nestedElementTypes, nestedEslements)
+	logicalObjectValue, _ := types.ObjectValue(nestedElementTypes, nestedElements)
 	elementTypes := map[string]attr.Type{
 		"size":                   types.Int64Type,
 		"size_unit":              types.StringType,
@@ -766,10 +814,16 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 	elementTypes = map[string]attr.Type{
 		"minimum_cooling_days": types.Int64Type,
 		"policy_name":          types.StringType,
+		"object_tags":          types.SetType{ElemType: types.StringType},
+	}
+	objectTagsSet, diags := stringSliceToSet(ctx, response.TieringPolicy.ObjectTags)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
 	}
 	elements = map[string]attr.Value{
 		"minimum_cooling_days": types.Int64Value(int64(response.TieringPolicy.MinCoolingDays)),
 		"policy_name":          types.StringValue(response.TieringPolicy.Policy),
+		"object_tags":          objectTagsSet,
 	}
 	objectValue, diags = types.ObjectValue(elementTypes, elements)
 	if diags.HasError() {
@@ -890,6 +944,13 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 		}
 		data.RestoreSnapshot = types.ObjectNull(restoreAttrTypes)
 	}
+	// Tags
+	tagsSet, diags := stringSliceToSet(ctx, response.Tags)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	data.Tags = tagsSet
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -1061,6 +1122,12 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 		if !tiering.MinimumCoolingDays.IsUnknown() {
 			request.TieringPolicy.MinCoolingDays = int(tiering.MinimumCoolingDays.ValueInt64())
 		}
+		objectTags, diags := setToStringSlice(ctx, tiering.ObjectTags)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		request.TieringPolicy.ObjectTags = objectTags
 	}
 
 	if !data.SnapLock.IsUnknown() {
@@ -1107,6 +1174,15 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 		if !autosize.Mode.IsUnknown() {
 			request.Autosize.Mode = autosize.Mode.ValueString()
 		}
+	}
+
+	if !data.Tags.IsUnknown() && !data.Tags.IsNull() {
+		tags, diags := setToStringSlice(ctx, data.Tags)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		request.Tags = tags
 	}
 
 	if resp.Diagnostics.HasError() {
@@ -1210,10 +1286,16 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	elementTypes = map[string]attr.Type{
 		"minimum_cooling_days": types.Int64Type,
 		"policy_name":          types.StringType,
+		"object_tags":          types.SetType{ElemType: types.StringType},
+	}
+	objectTagsSet, diags := stringSliceToSet(ctx, response.TieringPolicy.ObjectTags)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
 	}
 	elements = map[string]attr.Value{
 		"minimum_cooling_days": types.Int64Value(int64(response.TieringPolicy.MinCoolingDays)),
 		"policy_name":          types.StringValue(response.TieringPolicy.Policy),
+		"object_tags":          objectTagsSet,
 	}
 	objectValue, diags = types.ObjectValue(elementTypes, elements)
 	if diags.HasError() {
@@ -1303,6 +1385,12 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 		"snapshot": types.ObjectType{AttrTypes: snapshotAttrTypes},
 	}
 	data.RestoreSnapshot = types.ObjectNull(restoreAttrTypes)
+	tagsSet, diags := stringSliceToSet(ctx, response.Tags)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	data.Tags = tagsSet
 
 	tflog.Trace(ctx, "created a resource")
 
@@ -1466,6 +1554,12 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 		}
 		request.TieringPolicy.Policy = tiering.Policy.ValueString()
 		request.TieringPolicy.MinCoolingDays = int(tiering.MinimumCoolingDays.ValueInt64())
+		objectTags, diags := setToStringSlice(ctx, tiering.ObjectTags)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		request.TieringPolicy.ObjectTags = objectTags
 	}
 
 	if !plan.SnapLock.Equal(state.SnapLock) {
@@ -1509,6 +1603,8 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 	if !plan.RestoreSnapshot.IsUnknown() && !plan.RestoreSnapshot.IsNull() && !plan.RestoreSnapshot.Equal(state.RestoreSnapshot) {
 		var restoreSnapshotReq StorageVolumeResourceRestoreSnapshot
 		diags := plan.RestoreSnapshot.As(ctx, &restoreSnapshotReq, basetypes.ObjectAsOptions{})
+	if !plan.Tags.Equal(state.Tags) {
+		tags, diags := setToStringSlice(ctx, plan.Tags)
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
@@ -1532,6 +1628,7 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 		}
 
 		restoreSnapshotName = restoreSnapshot.Name.ValueString()
+		request.Tags = tags
 	}
 
 	ignoreOptions := []string{}
@@ -1753,10 +1850,16 @@ func readVolume(ctx context.Context, client *restclient.RestClient, data *Storag
 	elementTypes = map[string]attr.Type{
 		"minimum_cooling_days": types.Int64Type,
 		"policy_name":          types.StringType,
+		"object_tags":          types.SetType{ElemType: types.StringType},
+	}
+	objectTagsSet, diags := stringSliceToSet(ctx, response.TieringPolicy.ObjectTags)
+	if diags.HasError() {
+		allDiags.Append(diags...)
 	}
 	elements = map[string]attr.Value{
 		"minimum_cooling_days": types.Int64Value(int64(response.TieringPolicy.MinCoolingDays)),
 		"policy_name":          types.StringValue(response.TieringPolicy.Policy),
+		"object_tags":          objectTagsSet,
 	}
 	objectValue, diags = types.ObjectValue(elementTypes, elements)
 	if diags.HasError() {
@@ -1860,6 +1963,12 @@ func readVolume(ctx context.Context, client *restclient.RestClient, data *Storag
 		}
 		data.RestoreSnapshot = types.ObjectNull(restoreAttrTypes)
 	}
+	tagsSet, diags := stringSliceToSet(ctx, response.Tags)
+	if diags.HasError() {
+		allDiags.Append(diags...)
+		return allDiags
+	}
+	data.Tags = tagsSet
 
 	return allDiags
 }
