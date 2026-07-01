@@ -803,34 +803,49 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 	var maximum int64
 	var autoSizeUnit string
 	// If state does not have size unit, which is the case for importing volume, we pick the proper size unit.
-	if !data.Autosize.IsNull() {
-		var autosize StorageVolumeResourceAutosize
-		diags := data.Autosize.As(ctx, &autosize, basetypes.ObjectAsOptions{})
+	// For GCNV connections, autosize modes other than "off" are not supported and are silently dropped
+	// from the request. Keep the planned/state values as-is to avoid "inconsistent result after apply".
+	gcnvKeepAutosize := false
+	if client.IsGCNV() && !data.Autosize.IsNull() {
+		var autosizeCheck StorageVolumeResourceAutosize
+		if diagsCheck := data.Autosize.As(ctx, &autosizeCheck, basetypes.ObjectAsOptions{}); !diagsCheck.HasError() {
+			if m := autosizeCheck.Mode.ValueString(); m != "" && m != "off" {
+				gcnvKeepAutosize = true
+			}
+		}
+	}
+	if !gcnvKeepAutosize {
+		if !data.Autosize.IsNull() {
+			var autosize StorageVolumeResourceAutosize
+			diags := data.Autosize.As(ctx, &autosize, basetypes.ObjectAsOptions{})
+			if diags.HasError() {
+				resp.Diagnostics.Append(diags...)
+				return
+			}
+			autoSizeUnit = autosize.SizeUnit.ValueString()
+			minimum = interfaces.ConvertBytesToUnitInt(int64(response.Autosize.Minimum), autoSizeUnit)
+			maximum = interfaces.ConvertBytesToUnitInt(int64(response.Autosize.Maximum), autoSizeUnit)
+		} else {
+			minimum, autoSizeUnit = interfaces.ByteFormat(int64(response.Autosize.Minimum))
+			maximum = interfaces.ConvertBytesToUnitInt(int64(response.Autosize.Maximum), autoSizeUnit)
+		}
+
+		elements = map[string]attr.Value{
+			"minimum":          types.Int64Value(minimum),
+			"maximum":          types.Int64Value(maximum),
+			"shrink_threshold": types.Int64Value(int64(response.Autosize.ShrinkThreshold)),
+			"grow_threshold":   types.Int64Value(int64(response.Autosize.GrowThreshold)),
+			"mode":             types.StringValue(response.Autosize.Mode),
+			"size_unit":        types.StringValue(autoSizeUnit),
+		}
+		objectValue, diags = types.ObjectValue(elementTypes, elements)
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
-			return
 		}
-		autoSizeUnit = autosize.SizeUnit.ValueString()
-		minimum = interfaces.ConvertBytesToUnitInt(int64(response.Autosize.Minimum), autoSizeUnit)
-		maximum = interfaces.ConvertBytesToUnitInt(int64(response.Autosize.Maximum), autoSizeUnit)
-	} else {
-		minimum, autoSizeUnit = interfaces.ByteFormat(int64(response.Autosize.Minimum))
-		maximum, _ = interfaces.ByteFormat(int64(response.Autosize.Maximum))
+		data.Autosize = objectValue
 	}
-
-	elements = map[string]attr.Value{
-		"minimum":          types.Int64Value(minimum),
-		"maximum":          types.Int64Value(maximum),
-		"shrink_threshold": types.Int64Value(int64(response.Autosize.ShrinkThreshold)),
-		"grow_threshold":   types.Int64Value(int64(response.Autosize.GrowThreshold)),
-		"mode":             types.StringValue(response.Autosize.Mode),
-		"size_unit":        types.StringValue(autoSizeUnit),
-	}
-	objectValue, diags = types.ObjectValue(elementTypes, elements)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-	}
-	data.Autosize = objectValue
+	// else: GCNV dropped the autosize block – data.Autosize already holds the configured
+	// values so Terraform will see a consistent result.
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -1197,19 +1212,34 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 		"mode":             types.StringType,
 		"size_unit":        types.StringType,
 	}
-	elements = map[string]attr.Value{
-		"minimum":          types.Int64Value(int64(response.Autosize.Minimum / interfaces.POW2BYTEMAP[autoSizeUnit])),
-		"maximum":          types.Int64Value(int64(response.Autosize.Maximum / interfaces.POW2BYTEMAP[autoSizeUnit])),
-		"shrink_threshold": types.Int64Value(int64(response.Autosize.ShrinkThreshold)),
-		"grow_threshold":   types.Int64Value(int64(response.Autosize.GrowThreshold)),
-		"mode":             types.StringValue(response.Autosize.Mode),
-		"size_unit":        types.StringValue(autoSizeUnit),
+	// For GCNV, autosize modes other than "off" are silently dropped. Keep
+	// the planned values so Terraform sees a consistent result after apply.
+	gcnvKeepAutosizeCreate := false
+	if client.IsGCNV() && !data.Autosize.IsUnknown() && !data.Autosize.IsNull() {
+		var autosizeCheck StorageVolumeResourceAutosize
+		if diagsCheck := data.Autosize.As(ctx, &autosizeCheck, basetypes.ObjectAsOptions{}); !diagsCheck.HasError() {
+			if m := autosizeCheck.Mode.ValueString(); m != "" && m != "off" {
+				gcnvKeepAutosizeCreate = true
+			}
+		}
 	}
-	objectValue, diags = types.ObjectValue(elementTypes, elements)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
+	if !gcnvKeepAutosizeCreate {
+		elements = map[string]attr.Value{
+			"minimum":          types.Int64Value(int64(response.Autosize.Minimum / interfaces.POW2BYTEMAP[autoSizeUnit])),
+			"maximum":          types.Int64Value(int64(response.Autosize.Maximum / interfaces.POW2BYTEMAP[autoSizeUnit])),
+			"shrink_threshold": types.Int64Value(int64(response.Autosize.ShrinkThreshold)),
+			"grow_threshold":   types.Int64Value(int64(response.Autosize.GrowThreshold)),
+			"mode":             types.StringValue(response.Autosize.Mode),
+			"size_unit":        types.StringValue(autoSizeUnit),
+		}
+		objectValue, diags = types.ObjectValue(elementTypes, elements)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+		}
+		data.Autosize = objectValue
 	}
-	data.Autosize = objectValue
+	// else: GCNV dropped the autosize block – data.Autosize already holds
+	// the planned values so Terraform will see a consistent result.
 
 	tflog.Trace(ctx, "created a resource")
 
@@ -1666,30 +1696,46 @@ func readVolume(ctx context.Context, client *restclient.RestClient, data *Storag
 		"mode":             types.StringType,
 		"size_unit":        types.StringType,
 	}
-	// var sizeUnit is already defined as part of Space model
-	if !data.Autosize.IsUnknown() {
-		var autosize StorageVolumeResourceAutosize
-		diags = data.Autosize.As(ctx, &autosize, basetypes.ObjectAsOptions{})
+	// For GCNV connections, autosize modes other than "off" are not supported and are silently
+	// dropped from the request. Keep the planned/state values as-is to avoid
+	// "inconsistent result after apply" errors.
+	gcnvKeepAutosize := false
+	if client.IsGCNV() && !data.Autosize.IsUnknown() && !data.Autosize.IsNull() {
+		var autosizeCheck StorageVolumeResourceAutosize
+		if diagsCheck := data.Autosize.As(ctx, &autosizeCheck, basetypes.ObjectAsOptions{}); !diagsCheck.HasError() {
+			if m := autosizeCheck.Mode.ValueString(); m != "" && m != "off" {
+				gcnvKeepAutosize = true
+			}
+		}
+	}
+	if !gcnvKeepAutosize {
+		// var sizeUnit is already defined as part of Space model
+		if !data.Autosize.IsUnknown() {
+			var autosize StorageVolumeResourceAutosize
+			diags = data.Autosize.As(ctx, &autosize, basetypes.ObjectAsOptions{})
+			if diags.HasError() {
+				allDiags.Append(diags...)
+				return allDiags
+			}
+			sizeUnit = autosize.SizeUnit.ValueString()
+		}
+
+		elements = map[string]attr.Value{
+			"minimum":          types.Int64Value(int64(response.Autosize.Minimum / interfaces.POW2BYTEMAP[sizeUnit])),
+			"maximum":          types.Int64Value(int64(response.Autosize.Maximum / interfaces.POW2BYTEMAP[sizeUnit])),
+			"shrink_threshold": types.Int64Value(int64(response.Autosize.ShrinkThreshold)),
+			"grow_threshold":   types.Int64Value(int64(response.Autosize.GrowThreshold)),
+			"mode":             types.StringValue(response.Autosize.Mode),
+			"size_unit":        types.StringValue(sizeUnit),
+		}
+		objectValue, diags = types.ObjectValue(elementTypes, elements)
 		if diags.HasError() {
 			allDiags.Append(diags...)
-			return allDiags
 		}
-		sizeUnit = autosize.SizeUnit.ValueString()
+		data.Autosize = objectValue
 	}
-
-	elements = map[string]attr.Value{
-		"minimum":          types.Int64Value(int64(response.Autosize.Minimum / interfaces.POW2BYTEMAP[sizeUnit])),
-		"maximum":          types.Int64Value(int64(response.Autosize.Maximum / interfaces.POW2BYTEMAP[sizeUnit])),
-		"shrink_threshold": types.Int64Value(int64(response.Autosize.ShrinkThreshold)),
-		"grow_threshold":   types.Int64Value(int64(response.Autosize.GrowThreshold)),
-		"mode":             types.StringValue(response.Autosize.Mode),
-		"size_unit":        types.StringValue(sizeUnit),
-	}
-	objectValue, diags = types.ObjectValue(elementTypes, elements)
-	if diags.HasError() {
-		allDiags.Append(diags...)
-	}
-	data.Autosize = objectValue
+	// else: GCNV dropped the autosize block – data.Autosize already holds the configured
+	// values so Terraform will see a consistent result.
 
 	return allDiags
 }
