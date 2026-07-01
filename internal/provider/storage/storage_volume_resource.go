@@ -610,6 +610,8 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 							},
 						},
 					},
+				},
+			},
 			"tags": schema.SetAttribute{
 				ElementType:         types.StringType,
 				MarkdownDescription: "Set of tags associated with the volume",
@@ -1603,8 +1605,6 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 	if !plan.RestoreSnapshot.IsUnknown() && !plan.RestoreSnapshot.IsNull() && !plan.RestoreSnapshot.Equal(state.RestoreSnapshot) {
 		var restoreSnapshotReq StorageVolumeResourceRestoreSnapshot
 		diags := plan.RestoreSnapshot.As(ctx, &restoreSnapshotReq, basetypes.ObjectAsOptions{})
-	if !plan.Tags.Equal(state.Tags) {
-		tags, diags := setToStringSlice(ctx, plan.Tags)
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
@@ -1628,6 +1628,14 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 		}
 
 		restoreSnapshotName = restoreSnapshot.Name.ValueString()
+	}
+
+	if !plan.Tags.Equal(state.Tags) {
+		tags, diags := setToStringSlice(ctx, plan.Tags)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
 		request.Tags = tags
 	}
 
