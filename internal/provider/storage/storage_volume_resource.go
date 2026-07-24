@@ -264,6 +264,9 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 				MarkdownDescription: "Whether or not snapshot copy locking is enabled on the volume.",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"snapshot_policy": schema.StringAttribute{
 				MarkdownDescription: "The name of the snapshot policy",
