@@ -1,3 +1,9 @@
+# 2.7.1
+
+BUG FIXES:
+
+- **ontap_volume_resource**: Fixed resizing error by ignoring nas path during update. ([#631](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/631))
+
 # 2.7.0 (2026-07-09)
 
 FEATURES:
