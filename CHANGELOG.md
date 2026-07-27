@@ -1,3 +1,10 @@
+# 2.8.0 (2026-xx-xx)
+
+FEATURES:
+
+- **New Data Source:** `netapp-ontap_volume_clone` and `netapp-ontap_volume_clones` ([#665](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/665))
+- **New Resource:** `netapp-ontap_volume_clone` ([#665](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/665))
+
 # 2.7.0 (2026-07-09)
 
 FEATURES:
