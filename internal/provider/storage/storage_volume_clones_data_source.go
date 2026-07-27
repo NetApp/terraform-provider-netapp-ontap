@@ -210,8 +210,7 @@ func (d *StorageVolumeClonesDataSource) Read(ctx context.Context, req datasource
 	data.StorageVolumeClones = make([]StorageVolumeCloneDataSourceModel, len(restInfo))
 	for index, record := range restInfo {
 		// Clone
-		var clone *StorageVolumeCloneDataSourceClone
-		clone = &StorageVolumeCloneDataSourceClone{
+		clone := &StorageVolumeCloneDataSourceClone{
 			IsFlexclone:    types.BoolValue(record.Clone.IsFlexclone),
 			Split:          types.BoolValue(!record.Clone.IsFlexclone),
 			ParentVolume:   types.StringNull(),
@@ -229,8 +228,7 @@ func (d *StorageVolumeClonesDataSource) Read(ctx context.Context, req datasource
 		}
 
 		// NAS
-		var nas *StorageVolumeCloneDataSourceNAS
-		nas = &StorageVolumeCloneDataSourceNAS{
+		nas := &StorageVolumeCloneDataSourceNAS{
 			JunctionPath: types.StringNull(),
 			GroupID:      types.Int64Null(),
 			UserID:       types.Int64Null(),
