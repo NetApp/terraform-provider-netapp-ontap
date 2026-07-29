@@ -87,7 +87,7 @@ jobs:
           terraform_version: "1.9.8"
           terraform_wrapper: false
 
-      - name: Run Accesptance Tests
+      - name: Run Acceptance Tests
         if: env.UPDATED_CHANGED_FILES != ''
         env:
           TF_ACC_NETAPP_HOST: ${{ secrets.TF_ACC_NETAPP_HOST }}
