@@ -13,13 +13,25 @@ import (
 
 func TestAccClusterPeerResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { ntest.TestAccPreCheck(t) },
+		PreCheck: func() {
+			ntest.TestAccPreCheck(t)
+			if os.Getenv("TF_ACC_NETAPP_HOST2") == "" || os.Getenv("TF_ACC_NETAPP_USER2") == "" || os.Getenv("TF_ACC_NETAPP_PASS2") == "" {
+				t.Skip("TF_ACC_NETAPP_HOST2, TF_ACC_NETAPP_USER2 and TF_ACC_NETAPP_PASS2 must be set for cluster peer acceptance tests")
+			}
+		},
 		ProtoV6ProviderFactories: ntest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Test cluster peer non existant
+			// Test cluster peer non existent
 			{
 				Config:      testAccClusterPeerResourceConfig("10.193.180.55", "10.193.176.189"),
 				ExpectError: regexp.MustCompile("4653368"),
+			},
+			// Create cluster peer with user-provided passphrase and verify peered state
+			{
+				Config: testAccClusterPeerResourceConfig("172.32.185.252", "172.32.185.25"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_peer.example", "state", "ok"),
+				),
 			},
 			// // Create cluster peer and read
 			// {
@@ -51,12 +63,14 @@ func testAccClusterPeerResourceConfig(remotIP, sourceIP string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS")
-	password2 := os.Getenv("TF_ACC_NETAPP_PASS")
-	host2 := os.Getenv("TF_ACC_NETAPP_HOST")
+	host2 := os.Getenv("TF_ACC_NETAPP_HOST2")
+	admin2 := os.Getenv("TF_ACC_NETAPP_USER2")
+	password2 := os.Getenv("TF_ACC_NETAPP_PASS2")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
+
 	return fmt.Sprintf(`
 provider "netapp-ontap" {
  connection_profiles = [
@@ -88,5 +102,5 @@ resource "netapp-ontap_cluster_peer" "example" {
   peer_cx_profile_name = "cluster3"
   passphrase = "12345678"
   peer_applications = ["snapmirror"]
-}`, host, admin, password2, host2, admin, password, remotIP, sourceIP)
+}`, host, admin, password, host2, admin2, password2, remotIP, sourceIP)
 }
