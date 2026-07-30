@@ -1,3 +1,9 @@
+# 2.7.1 (2026-xx-xx)
+
+BUG FIXES:
+
+- **netapp-ontap_qtree resource**: Fixed intermittent resource failure after qtree creation. ([#710](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/710))
+
 # 2.7.0 (2026-07-09)
 
 FEATURES:
