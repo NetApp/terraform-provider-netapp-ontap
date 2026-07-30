@@ -1,3 +1,9 @@
+# 2.7.1
+
+BUG FIXES:
+
+- **netapp-ontap_cluster_peer resource**: Fixed issue with manual passphrase generation and unknown value error after apply for ipspace. ([#720](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/720))
+
 # 2.7.0 (2026-07-09)
 
 FEATURES:

@@ -3,7 +3,6 @@ package cluster_test
 import (
 	"fmt"
 	"os"
-	"regexp"
 	"testing"
 
 	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
@@ -16,10 +15,12 @@ func TestAccClusterPeerResource(t *testing.T) {
 		PreCheck:                 func() { ntest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ntest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Test cluster peer non existant
+			// Create cluster peer with user-provided passphrase and verify peered state
 			{
-				Config:      testAccClusterPeerResourceConfig("10.193.180.55", "10.193.176.189"),
-				ExpectError: regexp.MustCompile("4653368"),
+				Config: testAccClusterPeerResourceConfig("172.32.185.252", "172.32.185.25"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("netapp-ontap_cluster_peer.example", "state", "ok"),
+				),
 			},
 			// // Create cluster peer and read
 			// {
@@ -51,10 +52,15 @@ func testAccClusterPeerResourceConfig(remotIP, sourceIP string) string {
 	host := os.Getenv("TF_ACC_NETAPP_HOST")
 	admin := os.Getenv("TF_ACC_NETAPP_USER")
 	password := os.Getenv("TF_ACC_NETAPP_PASS")
-	password2 := os.Getenv("TF_ACC_NETAPP_PASS")
-	host2 := os.Getenv("TF_ACC_NETAPP_HOST")
+	host2 := os.Getenv("TF_ACC_NETAPP_HOST2")
+	admin2 := os.Getenv("TF_ACC_NETAPP_USER2")
+	password2 := os.Getenv("TF_ACC_NETAPP_PASS2")
 	if host == "" || admin == "" || password == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		os.Exit(1)
+	}
+	if host2 == "" || admin2 == "" || password2 == "" {
+		fmt.Println("TF_ACC_NETAPP_HOST2, TF_ACC_NETAPP_USER2 and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
 		os.Exit(1)
 	}
 	return fmt.Sprintf(`

@@ -290,7 +290,7 @@ func (r *ClusterPeersResource) Create(ctx context.Context, req resource.CreateRe
 	if !data.GeneratePassphrase.IsUnknown() {
 		body.Authentication.GeneratePassphrase = data.GeneratePassphrase.ValueBool()
 	}
-	if !data.Passphrase.IsUnknown() {
+	if !data.Passphrase.IsNull() && !data.Passphrase.IsUnknown() {
 		body.Authentication.Passphrase = data.Passphrase.ValueString()
 	}
 	if !data.Ipspace.IsNull() && !data.Ipspace.IsUnknown() {
@@ -333,7 +333,12 @@ func (r *ClusterPeersResource) Create(ctx context.Context, req resource.CreateRe
 		}
 		bodyPeer.PeerApplications = applications
 	}
-	bodyPeer.Authentication.Passphrase = resource.Authentication.Passphrase
+	// Use the passphrase from the response if available (generated), otherwise use the user-provided one
+	if resource.Authentication.Passphrase != "" {
+		bodyPeer.Authentication.Passphrase = resource.Authentication.Passphrase
+	} else if !data.Passphrase.IsNull() && !data.Passphrase.IsUnknown() {
+		bodyPeer.Authentication.Passphrase = data.Passphrase.ValueString()
+	}
 	resourcePeer, err := interfaces.CreateClusterPeers(errorHandler, *peerClient, bodyPeer)
 	if err != nil {
 		return
@@ -351,7 +356,7 @@ func (r *ClusterPeersResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 	data.State = types.StringValue(restInfo.Authentication.State)
-	if !data.Ipspace.IsNull() && !data.Ipspace.IsUnknown() && restInfo.Ipspace.Name != "" {
+	if restInfo.Ipspace.Name != "" {
 		ipspaceObj, diags := types.ObjectValue(
 			map[string]attr.Type{"name": types.StringType},
 			map[string]attr.Value{"name": types.StringValue(restInfo.Ipspace.Name)},
@@ -360,6 +365,8 @@ func (r *ClusterPeersResource) Create(ctx context.Context, req resource.CreateRe
 		if !diags.HasError() {
 			data.Ipspace = ipspaceObj
 		}
+	} else {
+		data.Ipspace = types.ObjectNull(map[string]attr.Type{"name": types.StringType})
 	}
 
 	tflog.Trace(ctx, "created a resource")
