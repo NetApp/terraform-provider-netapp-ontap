@@ -3,6 +3,7 @@
 BUG FIXES:
 
 - **netapp-ontap_qtree resource**: Fixed intermittent resource failure after qtree creation. ([#710](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/710))
+- **netapp-ontap_nfs_export_policy_rule_resource**: Added support for setting index during export policy rule creation to avoid non-deterministic rule ordering during parallel creation. ([#713](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/713))
 
 # 2.7.0 (2026-07-09)
 
