@@ -3,6 +3,7 @@ package cluster_test
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	ntest "github.com/netapp/terraform-provider-netapp-ontap/internal/provider"
@@ -15,6 +16,11 @@ func TestAccClusterPeerResource(t *testing.T) {
 		PreCheck:                 func() { ntest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ntest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
+			// Test cluster peer non existent
+			{
+				Config:      testAccClusterPeerResourceConfig("10.193.180.55", "10.193.176.189"),
+				ExpectError: regexp.MustCompile("4653368"),
+			},
 			// Create cluster peer with user-provided passphrase and verify peered state
 			{
 				Config: testAccClusterPeerResourceConfig("172.32.185.252", "172.32.185.25"),
