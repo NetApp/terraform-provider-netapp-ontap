@@ -13,7 +13,12 @@ import (
 
 func TestAccClusterPeerResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { ntest.TestAccPreCheck(t) },
+		PreCheck: func() {
+			ntest.TestAccPreCheck(t)
+			if os.Getenv("TF_ACC_NETAPP_HOST2") == "" || os.Getenv("TF_ACC_NETAPP_USER2") == "" || os.Getenv("TF_ACC_NETAPP_PASS2") == "" {
+				t.Skip("TF_ACC_NETAPP_HOST2, TF_ACC_NETAPP_USER2 and TF_ACC_NETAPP_PASS2 must be set for cluster peer acceptance tests")
+			}
+		},
 		ProtoV6ProviderFactories: ntest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Test cluster peer non existent
@@ -65,10 +70,7 @@ func testAccClusterPeerResourceConfig(remotIP, sourceIP string) string {
 		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER and TF_ACC_NETAPP_PASS must be set for acceptance tests")
 		os.Exit(1)
 	}
-	if host2 == "" || admin2 == "" || password2 == "" {
-		fmt.Println("TF_ACC_NETAPP_HOST2, TF_ACC_NETAPP_USER2 and TF_ACC_NETAPP_PASS2 must be set for acceptance tests")
-		os.Exit(1)
-	}
+
 	return fmt.Sprintf(`
 provider "netapp-ontap" {
  connection_profiles = [
@@ -100,5 +102,5 @@ resource "netapp-ontap_cluster_peer" "example" {
   peer_cx_profile_name = "cluster3"
   passphrase = "12345678"
   peer_applications = ["snapmirror"]
-}`, host, admin, password2, host2, admin, password, remotIP, sourceIP)
+}`, host, admin, password, host2, admin2, password2, remotIP, sourceIP)
 }
