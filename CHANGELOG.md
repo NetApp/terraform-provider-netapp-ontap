@@ -1,7 +1,10 @@
-# 2.7.1
+# 2.7.1 (2026-07-31)
 
 BUG FIXES:
 
+- **netapp-ontap_qtree resource**: Fixed intermittent resource failure after qtree creation. ([#710](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/710))
+- **netapp-ontap_nfs_export_policy_rule resource**: Added support for setting index during export policy rule creation to avoid non-deterministic rule ordering during parallel creation. ([#713](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/713))
+- **netapp-ontap_volume resource**: Fixed resizing error by ignoring nas path during update. ([#631](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/631))
 - **netapp-ontap_cluster_peer resource**: Fixed issue with manual passphrase generation and unknown value error after apply for ipspace. ([#720](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/720))
 
 # 2.7.0 (2026-07-09)
