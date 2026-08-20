@@ -163,6 +163,20 @@ func (d *StorageLunsDataSource) Schema(ctx context.Context, req datasource.Schem
 									MarkdownDescription: "Specifies the value for the space allocation attribute, which determines if the LUN supports the SCSI Thin Provisioning features",
 									Computed:            true,
 								},
+								"guarantee": schema.SingleNestedAttribute{
+									MarkdownDescription: "Specifies the space guarantee state for the LUN",
+									Computed:            true,
+									Attributes: map[string]schema.Attribute{
+										"requested": schema.BoolAttribute{
+											MarkdownDescription: "Indicates if the space is requested",
+											Computed:            true,
+										},
+										"reserved": schema.BoolAttribute{
+											MarkdownDescription: "Indicates if the space is reserved",
+											Computed:            true,
+										},
+									},
+								},
 							},
 						},
 						"id": schema.StringAttribute{
@@ -251,6 +265,10 @@ func (d *StorageLunsDataSource) Read(ctx context.Context, req datasource.ReadReq
 				Size:       types.Int64Value(record.Space.Size),
 				Used:       types.Int64Value(record.Space.Used),
 				Allocation: types.BoolPointerValue(record.Space.Allocation),
+				Guarantee: &StorageLunDataSourceReservationModel{
+					Requested: types.BoolPointerValue(record.Space.Guarantee.Requested),
+					Reserved:  types.BoolPointerValue(record.Space.Guarantee.Reserved),
+				},
 			},
 			ID: types.StringValue(record.UUID),
 		}
