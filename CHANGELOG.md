@@ -1,3 +1,9 @@
+# 2.7.2
+
+ENHANCEMENTS:
+
+- **netapp-ontap_lun resource**, **netapp-ontap_lun_data_source**,**netapp-ontap_name_luns_data_source**: Added `space` parameter ([#722](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/722))
+
 # 2.7.1 (2026-07-30)
 
 BUG FIXES:

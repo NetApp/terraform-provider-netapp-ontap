@@ -34,6 +34,7 @@ func TestAccStorageLunResouce(t *testing.T) {
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "volume_name", "tf_acc_volume"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "os_type", "linux"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "size", "1048576"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "space.guarantee.requested", "true"),
 				),
 			},
 			// Update name
@@ -45,15 +46,17 @@ func TestAccStorageLunResouce(t *testing.T) {
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "volume_name", "tf_acc_volume"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "os_type", "linux"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "size", "1048576"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "space.guarantee.requested", "true"),
 				),
 			},
 			// Test importing a resource
 			{
 				ResourceName:  "netapp-ontap_lun.example",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "/vol/tf_acc_volume/tf_acc_lun", "tf_acc_volume", "tf_acc_svm", "cluster5"),
+				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "/vol/tf_acc_volume/ACC-lun2", "tf_acc_volume", "tf_acc_svm", "cluster5"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "name", "tf_acc_lun"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "name", "/vol/tf_acc_volume/ACC-lun2"),
+					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "logical_unit", "ACC-lun2"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "os_type", "linux"),
 					resource.TestCheckResourceAttr("netapp-ontap_lun.example", "size", "1048576"),
 				),
@@ -129,6 +132,11 @@ resource "netapp-ontap_lun" "example" {
   volume_name = "%s"
   os_type = "%s"
   size = "%d"
+  space = {
+    guarantee = {
+	  requested = true
+	}
+  }
 }`, host, admin, password, logicalUnit, svmname, volumeName, osType, size)
 }
 
