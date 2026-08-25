@@ -161,7 +161,7 @@ func DeleteSVMAuditConfigWithRetry(ctx context.Context, errorHandler *utils.Erro
 			return err
 		}
 
-		tflog.Warn(ctx, fmt.Sprintf("Could not delete audit configuration for SVM. Reason: Final consolidation is in progress."))
+		tflog.Warn(ctx, "Could not delete audit configuration for SVM. Reason: Final consolidation is in progress.")
 		tflog.Warn(ctx, fmt.Sprintf("retrying SVM audit config DELETE after failure (attempt %d/%d), waiting %s", attempt, retries, delay))
 		time.Sleep(delay)
 	}
@@ -846,6 +846,12 @@ func (r *ProtocolsSVMAuditResource) Create(ctx context.Context, req resource.Cre
 		}
 	}
 
+	if len(errors) > 0 {
+		errorsString := strings.Join(errors, ", ")
+		tflog.Error(ctx, fmt.Sprintf("The following options have ONTAP version constraints: %#v", errorsString))
+		return
+	}
+
 	resource, err := interfaces.CreateSVMAuditConfig(errorHandler, *client, body)
 	if err != nil {
 		// error reporting done inside CreateSVMAuditConfig
@@ -1344,6 +1350,12 @@ func (r *ProtocolsSVMAuditResource) Update(ctx context.Context, req resource.Upd
 		!plan.LogPath.IsNull() && !plan.LogPath.IsUnknown() {
 		logPathValue := plan.LogPath.ValueString()
 		body.LogPath = &logPathValue
+	}
+
+	if len(errors) > 0 {
+		errorsString := strings.Join(errors, ", ")
+		tflog.Error(ctx, fmt.Sprintf("The following options have ONTAP version constraints: %#v", errorsString))
+		return
 	}
 
 	err = interfaces.UpdateSVMAuditConfig(errorHandler, *client, body, svm.UUID)
