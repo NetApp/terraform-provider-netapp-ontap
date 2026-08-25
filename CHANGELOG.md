@@ -1,3 +1,10 @@
+# 2.8.0 (2026-xx-xx)
+
+FEATURES:
+
+- **New Data Source:** `netapp-ontap_svm_audit` and `netapp-ontap_svm_audits` ([#712](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/712))
+- **New Resource:** `netapp-ontap_svm_audit` ([#712](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/712))
+
 # 2.7.1 (2026-07-30)
 
 BUG FIXES:
