@@ -8,7 +8,11 @@ import (
 
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -25,6 +29,7 @@ import (
 // Ensure provider defined types fully satisfy framework interfaces
 var _ resource.Resource = &SnapmirrorResource{}
 var _ resource.ResourceWithImportState = &SnapmirrorResource{}
+var _ resource.ResourceWithModifyPlan = &SnapmirrorResource{}
 
 // NewSnapmirrorResource is a helper function to simplify the provider implementation.
 func NewSnapmirrorResource() resource.Resource {
@@ -57,6 +62,9 @@ type SnapmirrorResourceModel struct {
 	CreateDestination   *CreateDestination `tfsdk:"create_destination"`
 	Policy              *Policy            `tfsdk:"policy"`
 	Initialize          types.Bool         `tfsdk:"initialize"`
+	Force               types.Bool         `tfsdk:"force"`
+	QuickResync         types.Bool         `tfsdk:"quick_resync"`
+	TransferringTimeOut types.Int64        `tfsdk:"transferring_time_out"`
 	Healthy             types.Bool         `tfsdk:"healthy"`
 	State               types.String       `tfsdk:"state"`
 	ID                  types.String       `tfsdk:"id"`
@@ -88,6 +96,11 @@ type Policy struct {
 type TransferSchedule struct {
 	Name types.String `tfsdk:"name"`
 }
+
+const (
+	snapmirrorTransitionTimeout = 2 * time.Minute
+	snapmirrorTransitionPoll    = 5 * time.Second
+)
 
 // Metadata returns the resource type name
 func (r *SnapmirrorResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -161,13 +174,37 @@ func (r *SnapmirrorResource) Schema(ctx context.Context, req resource.SchemaRequ
 				Default:             booldefault.StaticBool(true),
 				PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 			},
+			"force": schema.BoolAttribute{
+				MarkdownDescription: "If set to true while specifying state as broken_off, performs a forced failover overriding validation errors.",
+				Optional: true,
+			},
+			"quick_resync": schema.BoolAttribute{
+				MarkdownDescription: "Optional modify-only flag. Set true to speed resync by not preserving storage efficiency; applicable for FlexVol and SVMDR when PATCH state changes to snapmirrored.",
+				Optional:            true,
+			},
+			"transferring_time_out": schema.Int64Attribute{
+				MarkdownDescription: "Maximum time in seconds to wait for SnapMirror state transitions before failing the operation.",
+				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(300),
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+				},
+			},
 			"healthy": schema.BoolAttribute{
 				Optional: true,
 				Computed: true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"state": schema.StringAttribute{
+				MarkdownDescription: "Set state to snapmirrored for async policies or in_sync for sync policies when initializing or resyncing a SnapMirror relationship.",
 				Optional: true,
 				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.OneOf("broken_off", "paused", "snapmirrored", "uninitialized", "in_sync", "out_of_sync", "synchronizing", "expanding", "shrinking"),
+				},
 			},
 			"policy": schema.SingleNestedAttribute{
 				MarkdownDescription: "policy details",
@@ -196,6 +233,39 @@ func (r *SnapmirrorResource) Schema(ctx context.Context, req resource.SchemaRequ
 				},
 			},
 		},
+	}
+}
+
+// ModifyPlan suppresses one-shot flag diffs unless they are relevant for the current state transition.
+func (r *SnapmirrorResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	if req.Plan.Raw.IsNull() || req.State.Raw.IsNull() {
+		return
+	}
+
+	var plan, state *SnapmirrorResourceModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	changed := false
+	stateChanging := !plan.State.Equal(state.State)
+
+	forceRelevant := stateChanging && plan.State.ValueString() == "broken_off"
+	if !forceRelevant && !plan.Force.Equal(state.Force) {
+		plan.Force = state.Force
+		changed = true
+	}
+
+	quickResyncRelevant := stateChanging && state.State.ValueString() == "broken_off"
+	if !quickResyncRelevant && !plan.QuickResync.Equal(state.QuickResync) {
+		plan.QuickResync = state.QuickResync
+		changed = true
+	}
+
+	if changed {
+		resp.Diagnostics.Append(resp.Plan.Set(ctx, plan)...)
 	}
 }
 
@@ -243,6 +313,15 @@ func (r *SnapmirrorResource) Read(ctx context.Context, req resource.ReadRequest,
 		data.ID = types.StringValue(restInfo.UUID)
 		data.Healthy = types.BoolValue(restInfo.Healthy)
 		data.State = types.StringValue(restInfo.State)
+		if data.SourceEndPoint != nil && restInfo.Source.Path != "" {
+			data.SourceEndPoint.Path = types.StringValue(restInfo.Source.Path)
+		}
+		if data.DestinationEndPoint != nil && restInfo.Destination.Path != "" {
+			data.DestinationEndPoint.Path = types.StringValue(restInfo.Destination.Path)
+		}
+		if data.TransferringTimeOut.IsNull() || data.TransferringTimeOut.IsUnknown() {
+			data.TransferringTimeOut = types.Int64Value(300)
+		}
 		// only refresh policy fields if policy and policy.transfer_schedule were configured
 		// and already exist in prior state
 		if data.Policy != nil {
@@ -267,6 +346,9 @@ func (r *SnapmirrorResource) Read(ctx context.Context, req resource.ReadRequest,
 		data.Healthy = types.BoolValue(restInfoImport.Healthy)
 		data.State = types.StringValue(restInfoImport.State)
 		data.DestinationEndPoint.Path = types.StringValue(restInfoImport.Destination.Path)
+		if data.TransferringTimeOut.IsNull() || data.TransferringTimeOut.IsUnknown() {
+			data.TransferringTimeOut = types.Int64Value(300)
+		}
 		// source_endpoint is a required attribute and is not part of the import ID,
 		// so it has to be filled from the REST response for the imported state to be
 		// usable. The source cluster is left unset on purpose: it is optional in the
@@ -320,6 +402,9 @@ func (r *SnapmirrorResource) Create(ctx context.Context, req resource.CreateRequ
 
 	if resp.Diagnostics.HasError() {
 		return
+	}
+	if data.TransferringTimeOut.IsNull() || data.TransferringTimeOut.IsUnknown() {
+		data.TransferringTimeOut = types.Int64Value(300)
 	}
 
 	body.SourceEndPoint.Path = data.SourceEndPoint.Path.ValueString()
@@ -380,19 +465,38 @@ func (r *SnapmirrorResource) Create(ctx context.Context, req resource.CreateRequ
 			// error reporting done inside InitializeSnapmirror
 			return
 		}
-		tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read snapmirror info: %#v", restInfo))
+		// Poll until ONTAP reaches snapmirrored or the transferring_time_out elapses.
+		transitionTimeout := snapmirrorTransitionTimeout
+		if !data.TransferringTimeOut.IsNull() && !data.TransferringTimeOut.IsUnknown() {
+			transitionTimeout = time.Duration(data.TransferringTimeOut.ValueInt64()) * time.Second
+		}
+		deadline := time.Now().Add(transitionTimeout)
+		for {
+			restInfo, err = interfaces.GetSnapmirrorByID(errorHandler, *client, data.ID.ValueString())
+			if err != nil {
+				return
+			}
+			tflog.Debug(errorHandler.Ctx, fmt.Sprintf("waiting for snapmirror snapmirrored state, current: %s", restInfo.State))
+			if restInfo.State == "snapmirrored" {
+				break
+			}
+			if time.Now().After(deadline) {
+				errorHandler.MakeAndReportError("timeout waiting for snapmirror initialization",
+					fmt.Sprintf("expected state snapmirrored, got %s after %s", restInfo.State, transitionTimeout))
+				return
+			}
+			time.Sleep(snapmirrorTransitionPoll)
+		}
+		data.Healthy = types.BoolValue(restInfo.Healthy)
+		data.State = types.StringValue(restInfo.State)
+	} else {
+		restInfo, err = interfaces.GetSnapmirrorByID(errorHandler, *client, data.ID.ValueString())
+		if err != nil {
+			return
+		}
 		data.Healthy = types.BoolValue(restInfo.Healthy)
 		data.State = types.StringValue(restInfo.State)
 	}
-	restInfo, err = interfaces.GetSnapmirrorByID(errorHandler, *client, data.ID.ValueString())
-	if err != nil {
-		// error reporting done inside GetSnapmirror
-		return
-	}
-	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read snapmirror info: %#v", restInfo))
-	// Update the computed parameters
-	data.Healthy = types.BoolValue(restInfo.Healthy)
-	data.State = types.StringValue(restInfo.State)
 	data.ID = types.StringValue(resource.UUID)
 
 	tflog.Trace(ctx, fmt.Sprintf("created a snapmirror resource, UUID=%s", data.ID))
@@ -403,12 +507,14 @@ func (r *SnapmirrorResource) Create(ctx context.Context, req resource.CreateRequ
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *SnapmirrorResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan, state *SnapmirrorResourceModel
+	var plan, state, config *SnapmirrorResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	// Read Terraform state data in to the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	// Read Terraform configuration (used for write-only inputs like quick_resync)
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
@@ -424,20 +530,20 @@ func (r *SnapmirrorResource) Update(ctx context.Context, req resource.UpdateRequ
 	// Update the resource
 	var body interfaces.UpdateSnapmirrorResourceBodyDataModelONTAP
 
-	body.SourceEndPoint.Path = plan.SourceEndPoint.Path.ValueString()
-	body.DestinationEndPoint.Path = plan.DestinationEndPoint.Path.ValueString()
-	body.State = plan.State.ValueString()
-	if plan.SourceEndPoint.Cluster != nil {
-		if !plan.SourceEndPoint.Cluster.Name.IsNull() {
+	if !plan.SourceEndPoint.Path.Equal(state.SourceEndPoint.Path) {
+		body.SourceEndPoint = &interfaces.EndPoint{Path: plan.SourceEndPoint.Path.ValueString()}
+		if plan.SourceEndPoint.Cluster != nil && !plan.SourceEndPoint.Cluster.Name.IsNull() {
 			body.SourceEndPoint.Cluster.Name = plan.SourceEndPoint.Cluster.Name.ValueString()
 		}
 	}
-	if plan.DestinationEndPoint.Cluster != nil {
-		if !plan.DestinationEndPoint.Cluster.Name.IsNull() {
+	if !plan.DestinationEndPoint.Path.Equal(state.DestinationEndPoint.Path) {
+		body.DestinationEndPoint = &interfaces.EndPoint{Path: plan.DestinationEndPoint.Path.ValueString()}
+		if plan.DestinationEndPoint.Cluster != nil && !plan.DestinationEndPoint.Cluster.Name.IsNull() {
 			body.DestinationEndPoint.Cluster.Name = plan.DestinationEndPoint.Cluster.Name.ValueString()
 		}
 	}
 	if plan.Policy != nil {
+		body.Policy = &interfaces.PolicySnapmirror{}
 		if !plan.Policy.Name.IsNull() {
 			body.Policy.Name = plan.Policy.Name.ValueString()
 		}
@@ -448,9 +554,45 @@ func (r *SnapmirrorResource) Update(ctx context.Context, req resource.UpdateRequ
 		}
 	}
 
-	err = interfaces.UpdateSnapmirror(errorHandler, *client, body, plan.ID.ValueString())
+	stateChanging := !plan.State.Equal(state.State)
+	if stateChanging {
+		body.State = plan.State.ValueString()
+	}
+
+	// force is passed as a query param only when breaking the relationship and user explicitly set force=true.
+	useForce := stateChanging && plan.State.ValueString() == "broken_off" && plan.Force.ValueBool()
+	// quick_resync is only relevant when moving a relationship from broken_off back to snapmirrored.
+	quickResync := stateChanging &&
+		state.State.ValueString() == "broken_off" &&
+		!config.QuickResync.IsNull() &&
+		!config.QuickResync.IsUnknown() &&
+		config.QuickResync.ValueBool()
+	err = interfaces.UpdateSnapmirror(errorHandler, *client, body, plan.ID.ValueString(), useForce, quickResync)
 	if err != nil {
 		return
+	}
+
+	if stateChanging {
+		desiredState := plan.State.ValueString()
+		transitionTimeout := snapmirrorTransitionTimeout
+		if !plan.TransferringTimeOut.IsNull() && !plan.TransferringTimeOut.IsUnknown() {
+			transitionTimeout = time.Duration(plan.TransferringTimeOut.ValueInt64()) * time.Second
+		}
+		deadline := time.Now().Add(transitionTimeout)
+		for {
+			restInfo, err := interfaces.GetSnapmirrorByID(errorHandler, *client, plan.ID.ValueString())
+			if err != nil {
+				return
+			}
+			if restInfo.State == desiredState {
+				break
+			}
+			if time.Now().After(deadline) {
+				errorHandler.MakeAndReportError("timeout waiting for snapmirror state transition", fmt.Sprintf("expected state %s, got %s", desiredState, restInfo.State))
+				return
+			}
+			time.Sleep(snapmirrorTransitionPoll)
+		}
 	}
 
 	restInfo, err := interfaces.GetSnapmirrorByID(errorHandler, *client, plan.ID.ValueString())
@@ -461,6 +603,12 @@ func (r *SnapmirrorResource) Update(ctx context.Context, req resource.UpdateRequ
 	// Update the computed parameters
 	plan.Healthy = types.BoolValue(restInfo.Healthy)
 	plan.State = types.StringValue(restInfo.State)
+	if plan.SourceEndPoint != nil && restInfo.Source.Path != "" {
+		plan.SourceEndPoint.Path = types.StringValue(restInfo.Source.Path)
+	}
+	if plan.DestinationEndPoint != nil && restInfo.Destination.Path != "" {
+		plan.DestinationEndPoint.Path = types.StringValue(restInfo.Destination.Path)
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("updated a snapmirror resource: UUID=%s", plan.ID))
 
