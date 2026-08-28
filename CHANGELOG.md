@@ -1,3 +1,10 @@
+# 2.8.0 (2026-xx-xx)
+
+FEATURES:
+
+- **New Data Source:** `netapp-ontap_s3_service` and `netapp-ontap_s3_services` ([#724](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/724))
+- **New Resource:** `netapp-ontap_s3_service` ([#724](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/724))
+
 # 2.7.1 (2026-07-30)
 
 BUG FIXES:
