@@ -1,3 +1,9 @@
+# 2.8.0
+
+ENHANCEMENTS:
+
+- **netapp-ontap_snapmirror**: Added support for snapmirror break and resync. ([#728](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/728))
+
 # 2.7.1 (2026-07-30)
 
 BUG FIXES:

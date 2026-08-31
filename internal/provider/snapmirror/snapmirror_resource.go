@@ -176,11 +176,17 @@ func (r *SnapmirrorResource) Schema(ctx context.Context, req resource.SchemaRequ
 			},
 			"force": schema.BoolAttribute{
 				MarkdownDescription: "If set to true while specifying state as broken_off, performs a forced failover overriding validation errors.",
-				Optional: true,
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
+				PlanModifiers:       []planmodifier.Bool{boolplanmodifier.UseStateForUnknown()},
 			},
 			"quick_resync": schema.BoolAttribute{
 				MarkdownDescription: "Optional modify-only flag. Set true to speed resync by not preserving storage efficiency; applicable for FlexVol and SVMDR when PATCH state changes to snapmirrored.",
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
+				PlanModifiers:       []planmodifier.Bool{boolplanmodifier.UseStateForUnknown()},
 			},
 			"transferring_time_out": schema.Int64Attribute{
 				MarkdownDescription: "Maximum time in seconds to wait for SnapMirror state transitions before failing the operation.",
@@ -322,6 +328,12 @@ func (r *SnapmirrorResource) Read(ctx context.Context, req resource.ReadRequest,
 		if data.TransferringTimeOut.IsNull() || data.TransferringTimeOut.IsUnknown() {
 			data.TransferringTimeOut = types.Int64Value(300)
 		}
+		if data.Force.IsNull() || data.Force.IsUnknown() {
+			data.Force = types.BoolValue(false)
+		}
+		if data.QuickResync.IsNull() || data.QuickResync.IsUnknown() {
+			data.QuickResync = types.BoolValue(false)
+		}
 		// only refresh policy fields if policy and policy.transfer_schedule were configured
 		// and already exist in prior state
 		if data.Policy != nil {
@@ -348,6 +360,12 @@ func (r *SnapmirrorResource) Read(ctx context.Context, req resource.ReadRequest,
 		data.DestinationEndPoint.Path = types.StringValue(restInfoImport.Destination.Path)
 		if data.TransferringTimeOut.IsNull() || data.TransferringTimeOut.IsUnknown() {
 			data.TransferringTimeOut = types.Int64Value(300)
+		}
+		if data.Force.IsNull() || data.Force.IsUnknown() {
+			data.Force = types.BoolValue(false)
+		}
+		if data.QuickResync.IsNull() || data.QuickResync.IsUnknown() {
+			data.QuickResync = types.BoolValue(false)
 		}
 		// source_endpoint is a required attribute and is not part of the import ID,
 		// so it has to be filled from the REST response for the imported state to be
