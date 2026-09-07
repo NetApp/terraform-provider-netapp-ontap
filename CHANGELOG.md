@@ -1,3 +1,9 @@
+# 2.8.0 (2026-xx-xx)
+
+ENHANCEMENTS:
+
+- **netapp-ontap_quota_rule**: New options under `space` added. ([#446](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/446))
+
 # 2.7.1 (2026-07-30)
 
 BUG FIXES:
