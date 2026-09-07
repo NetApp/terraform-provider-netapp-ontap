@@ -16,14 +16,14 @@ func TestAccStorageVolumeResourceAlias(t *testing.T) {
 		PreCheck:                 func() { ntest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ntest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Test non existant SVM
+			// Test non existent SVM
 			{
-				Config:      testAccStorageVolumeResourceConfigAlias("non-existant", "terraformTest4"),
+				Config:      testAccStorageVolumeResourceConfigAlias("non-existent", "terraformTest4"),
 				ExpectError: regexp.MustCompile("2621462"),
 			},
 			// test bad volume name
 			{
-				Config:      testAccStorageVolumeResourceConfigAlias("non-existant", "name-cant-have-dashes"),
+				Config:      testAccStorageVolumeResourceConfigAlias("non-existent", "name-cant-have-dashes"),
 				ExpectError: regexp.MustCompile("917888"),
 			},
 			// restore_to is update-only, throws error when used during create.
