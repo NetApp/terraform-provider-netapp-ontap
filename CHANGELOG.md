@@ -1,3 +1,9 @@
+# 2.8.0 (2026-xx-xx)
+
+BUG FIXES:
+
+- **netapp-ontap_volume resource**: Rectified validator for `analytics.state`. ([#734](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/734))
+
 # 2.7.1 (2026-07-30)
 
 BUG FIXES:
