@@ -1,3 +1,10 @@
+# 2.8.0
+
+FEATURES:
+
+- **New Data Source:** `netapp-ontap_name_services_name_mapping` and `netapp-ontap_name_services_name_mappings` ([#725](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/725))
+- **New Resource:** `netapp-ontap_name_services_name_mapping` ([#725](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/725))
+
 # 2.7.1 (2026-07-30)
 
 BUG FIXES:
