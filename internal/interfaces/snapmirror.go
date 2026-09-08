@@ -14,6 +14,8 @@ type SnapmirrorGetDataModelONTAP struct {
 	Healthy bool             `mapstructure:"healthy"`
 	State   string           `mapstructure:"state"`
 	UUID    string           `mapstructure:"uuid"`
+	Source  EndPoint         `mapstructure:"source"`
+	Destination EndPoint     `mapstructure:"destination"`
 	Policy  PolicySnapmirror `mapstructure:"policy"`
 }
 
@@ -28,14 +30,15 @@ type SnapmirrorResourceBodyDataModelONTAP struct {
 	DestinationEndPoint EndPoint          `mapstructure:"destination"`
 	CreateDestination   CreateDestination `mapstructure:"create_destination,omitempty"`
 	Policy              PolicySnapmirror  `mapstructure:"policy,omitempty"`
+	State               string            `mapstructure:"state,omitempty"`
 }
 
 // UpdateSnapmirrorResourceBodyDataModelONTAP defines the resource data model
 type UpdateSnapmirrorResourceBodyDataModelONTAP struct {
-	SourceEndPoint      EndPoint         `mapstructure:"source"`
-	DestinationEndPoint EndPoint         `mapstructure:"destination"`
-	Policy              PolicySnapmirror `mapstructure:"policy,omitempty"`
-	State               string           `mapstructure:"state,omitempty"`
+	SourceEndPoint      *EndPoint         `mapstructure:"source,omitempty"`
+	DestinationEndPoint *EndPoint         `mapstructure:"destination,omitempty"`
+	Policy              *PolicySnapmirror `mapstructure:"policy,omitempty"`
+	State               string            `mapstructure:"state,omitempty"`
 }
 
 // PolicySnapmirror describes the resource data model.
@@ -111,7 +114,9 @@ type SnapmirrorPolicy struct {
 // GetSnapmirrorByID ...
 func GetSnapmirrorByID(errorHandler *utils.ErrorHandler, r restclient.RestClient, id string) (*SnapmirrorGetDataModelONTAP, error) {
 	api := "snapmirror/relationships/" + id
-	statusCode, response, err := r.GetNilOrOneRecord(api, nil, nil)
+	query := r.NewQuery()
+	query.Fields([]string{"destination", "healthy", "policy.name", "source", "state", "uuid"})
+	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
 		err = fmt.Errorf("no response for GET %s", api)
 	}
@@ -241,13 +246,19 @@ func InitializeSnapmirror(errorHandler *utils.ErrorHandler, r restclient.RestCli
 }
 
 // UpdateSnapmirror updates Snapmirror
-func UpdateSnapmirror(errorHandler *utils.ErrorHandler, r restclient.RestClient, data any, uuid string) error {
+func UpdateSnapmirror(errorHandler *utils.ErrorHandler, r restclient.RestClient, data any, uuid string, force bool, quickResync bool) error {
 	var body map[string]interface{}
 	if err := mapstructure.Decode(data, &body); err != nil {
 		return errorHandler.MakeAndReportError("error encoding snapmirror body", fmt.Sprintf("error on encoding snapmirror/relationships body: %s, body: %#v", err, data))
 	}
+	if quickResync {
+		body["quick_resync"] = true
+	}
 	query := r.NewQuery()
 	query.Add("return_records", "true")
+	if force {
+		query.Add("force", "true")
+	}
 	// API has no option to return records
 	statusCode, _, err := r.CallUpdateMethod(fmt.Sprintf("snapmirror/relationships/%s", uuid), query, body)
 	if err != nil {

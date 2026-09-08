@@ -42,6 +42,11 @@ resource "netapp-ontap_snapmirror" "snapmirror" {
       name = "hourly"
     }
   }
+  initialize = true
+  state = "snapmirrored"
+  force = false   # only set to true when breaking the relationship (state = "broken_off")
+  quick_resync = false # only set to true for resync (state = "snapmirrored")
+  transferring_time_out = 300
 }
 ```
 
@@ -57,8 +62,16 @@ resource "netapp-ontap_snapmirror" "snapmirror" {
 ### Optional
 
 - `create_destination` (String) Snapmirror provision destination.
+- `force` (Boolean) When changing `state` to `broken_off`, set to true to force break/failover checks.
 - `initialize` (Boolean) Initializes the Snapmirror relationship. By default, it is set to 'true'.
 - `policy` (Attributes) (see [below for nested schema](#nestedatt--policy))
+- `quick_resync` (Boolean) Modify-only flag. Set true to reduce resync time by not preserving storage efficiency. Used when resyncing from `broken_off`.
+- `state` (String) Desired relationship state. Common values include `snapmirrored` and `broken_off`.
+- `transferring_time_out` (Number) Maximum wait time in seconds for state transitions. Default is 300.
+
+### Computed
+
+- `healthy` (Boolean) Health reported by ONTAP for the relationship.
 
 ### Read-Only
 
@@ -178,3 +191,9 @@ resource "netapp-ontap_snapmirror" "snapmirror_import" {
   state = "snapmirrored"
 }
 ```
+
+## State Update Behavior
+
+- `state` is updated by polling ONTAP until the requested transition completes or `transferring_time_out` expires.
+- `force` is only applied when transitioning to `broken_off`.
+- `quick_resync` is only applied for state-changing updates from `broken_off` when user sets it to true.
