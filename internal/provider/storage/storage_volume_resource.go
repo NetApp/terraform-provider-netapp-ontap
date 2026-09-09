@@ -521,7 +521,7 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 						},
 						MarkdownDescription: "Set file system analytics state of the volume",
 						Validators: []validator.String{
-							stringvalidator.OneOf("om", "off", "initializing", "initialization_paused", "unknown"),
+							stringvalidator.OneOf("on", "off", "initializing", "initialization_paused", "unknown"),
 						},
 					},
 				},
