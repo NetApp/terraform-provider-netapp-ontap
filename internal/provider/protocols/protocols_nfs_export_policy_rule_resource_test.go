@@ -27,6 +27,7 @@ func TestAccNFSExportPolicyRuleResource(t *testing.T) {
 					// check default values
 					resource.TestCheckResourceAttr("netapp-ontap_nfs_export_policy_rule.example1", "allow_suid", "true"),
 					resource.TestCheckTypeSetElemAttr("netapp-ontap_nfs_export_policy_rule.example1", "protocols.*", "any"),
+					resource.TestCheckResourceAttr("netapp-ontap_nfs_export_policy_rule.example1", "index", "10"),
 					// check id
 					resource.TestMatchResourceAttr("netapp-ontap_nfs_export_policy_rule.example1", "id", regexp.MustCompile(`cluster4_tf_acc_svm_default_`)),
 				),
@@ -48,11 +49,12 @@ func TestAccNFSExportPolicyRuleResource(t *testing.T) {
 			{
 				ResourceName:  "netapp-ontap_nfs_export_policy_rule.example1",
 				ImportState:   true,
-				ImportStateId: fmt.Sprintf("%s,%s,%s,%s", "1", "default", "tf_acc_svm", "cluster4"),
+				ImportStateId: fmt.Sprintf("%d,%s,%s,%s", 10, "default", "tf_acc_svm", "cluster4"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_nfs_export_policy_rule.example1", "svm_name", "tf_acc_svm"),
 					resource.TestCheckResourceAttr("netapp-ontap_nfs_export_policy_rule.example1", "export_policy_name", "default"),
 					resource.TestCheckResourceAttr("netapp-ontap_nfs_export_policy_rule.example1", "allow_suid", "true"),
+					resource.TestCheckResourceAttr("netapp-ontap_nfs_export_policy_rule.example1", "index", "10"),
 					resource.TestCheckTypeSetElemAttr("netapp-ontap_nfs_export_policy_rule.example1", "protocols.*", "nfs3"),
 					resource.TestCheckTypeSetElemAttr("netapp-ontap_nfs_export_policy_rule.example1", "ro_rule.*", "krb5i"),
 					resource.TestCheckTypeSetElemAttr("netapp-ontap_nfs_export_policy_rule.example1", "rw_rule.*", "any"),
@@ -120,8 +122,9 @@ resource "netapp-ontap_nfs_export_policy_rule" "example1" {
   clients_match = ["0.0.0.0/0"]
   ro_rule = ["any"]
   rw_rule = ["any"]
+	index = %d
 }
-`, host, admin, password, svmName, exportPolicyName)
+`, host, admin, password, svmName, exportPolicyName, 10)
 }
 
 // update protocols and ro_rule
@@ -154,6 +157,7 @@ resource "netapp-ontap_nfs_export_policy_rule" "example1" {
   clients_match = ["0.0.0.0/0"]
   ro_rule = ["krb5","krb5i"]
   rw_rule = ["any"]
+	index = %d
 }
-`, host, admin, password, svmName, exportPolicyName)
+`, host, admin, password, svmName, exportPolicyName, 10)
 }

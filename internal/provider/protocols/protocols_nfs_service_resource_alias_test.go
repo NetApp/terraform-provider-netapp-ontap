@@ -18,8 +18,8 @@ func TestAccNfsServiceResourceAlias(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Test error
 			{
-				Config:      testAccNfsServiceResourceConfigAlias("non-existant", "false"),
-				ExpectError: regexp.MustCompile("svm non-existant not found"),
+				Config:      testAccNfsServiceResourceConfigAlias("non-existent", "false"),
+				ExpectError: regexp.MustCompile("svm non-existent not found"),
 			},
 			// Create and read
 			{

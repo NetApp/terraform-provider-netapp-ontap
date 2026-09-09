@@ -50,6 +50,8 @@ Optional:
 
 - `name` (String) StorageVolume name
 - `svm_name` (String) StorageVolume svm name
+- `tags` (String) StorageVolume tag value
+- `tiering_object_tags` (String) StorageVolume tiering object tag value
 
 <a id="nestedatt--storage_volumes"></a>
 
@@ -63,7 +65,7 @@ Required:
 
 Read-Only:
 
-- `aggregates` (Attributes List) Aggregates the volume is on (see [below for nested schema](#nestedatt--aggregates))
+- `aggregates` (Attributes List) List of aggregates that the volume is on (see [below for nested schema](#nestedatt--storage_volumes--aggregates))
 - `analytics` (Attributes) (see [below for nested schema](#nestedatt--storage_volumes--analytics))
 - `autosize` (Attributes) (see [below for nested schema](#nestedatt--storage_volumes--autosize))
 - `comment` (String) Sets a comment associated with the volume
@@ -79,6 +81,7 @@ Read-Only:
 - `space` (Attributes) (see [below for nested schema](#nestedatt--storage_volumes--space))
 - `space_guarantee` (String) Space guarantee style for the volume
 - `state` (String) Whether the specified volume is online, or not
+- `tags` (Set of String) Set of tags associated with the volume
 - `tiering` (Attributes) (see [below for nested schema](#nestedatt--storage_volumes--tiering))
 - `type` (String) The volume type, either read-write (RW) or data-protection (DP)
 
@@ -122,6 +125,8 @@ Read-Only:
 
 - `compression` (String) Whether to enable compression for the volume (HDD and Flash Pool aggregates)
 - `policy_name` (String) Allows a storage efficiency policy to be set on volume creation
+- `dedupe` (String) The system can be enabled/disabled dedupe
+- `compaction` (String) The system can be enabled/disabled compaction
 
 <a id="nestedatt--storage_volumes--nas"></a>
 
@@ -163,8 +168,6 @@ Read-Only:
 
 - `enforcement` (Boolean) Whether to perform logical space accounting on the volume
 - `reporting` (Boolean) Whether to report space logically
-- `dedupe` (String) The system can be enabled/disabled dedupe
-- `compaction` (String) The system can be enabled/disabled compression
 
 <a id="nestedatt--storage_volumes--tiering"></a>
 
@@ -173,4 +176,5 @@ Read-Only:
 Read-Only:
 
 - `minimum_cooling_days` (Number) Determines how many days must pass before inactive data in a volume using the Auto or Snapshot-Only policy is considered cold and eligible for tiering
+- `object_tags` (Set of String) Object tags are applied to objects in tiered storage
 - `policy_name` (String) The tiering policy that is to be associated with the volume

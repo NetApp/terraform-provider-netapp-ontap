@@ -103,7 +103,7 @@ func GetProtocolsNfsService(errorHandler *utils.ErrorHandler, r restclient.RestC
 		"protocol.v41_features.pnfs_enabled", "vstorage_enabled", "protocol.v4_id_domain", "transport.tcp_enabled",
 		"transport.udp_enabled", "protocol.v40_features.acl_enabled", "protocol.v40_features.read_delegation_enabled",
 		"protocol.v40_features.write_delegation_enabled", "protocol.v41_features.acl_enabled", "protocol.v41_features.read_delegation_enabled",
-		"protocol.v41_features.write_delegation_enabled", "enabled"}
+		"protocol.v41_features.write_delegation_enabled", "enabled", "showmount_enabled"}
 	if version.Generation == 9 && version.Major > 10 {
 		fields = append(fields, "root.ignore_nt_acl", "root.skip_write_permission_check",
 			"security.chown_mode", "security.nt_acl_display_permission", "security.ntfs_unix_security", "security.rpcsec_context_idle",
@@ -137,7 +137,7 @@ func GetProtocolsNfsServices(errorHandler *utils.ErrorHandler, r restclient.Rest
 		"protocol.v41_features.pnfs_enabled", "vstorage_enabled", "protocol.v4_id_domain", "transport.tcp_enabled",
 		"transport.udp_enabled", "protocol.v40_features.acl_enabled", "protocol.v40_features.read_delegation_enabled",
 		"protocol.v40_features.write_delegation_enabled", "protocol.v41_features.acl_enabled", "protocol.v41_features.read_delegation_enabled",
-		"protocol.v41_features.write_delegation_enabled", "enabled"}
+		"protocol.v41_features.write_delegation_enabled", "enabled", "showmount_enabled"}
 	if version.Generation == 9 && version.Major > 10 {
 		fields = append(fields, "root.ignore_nt_acl", "root.skip_write_permission_check",
 			"security.chown_mode", "security.nt_acl_display_permission", "security.ntfs_unix_security", "security.rpcsec_context_idle",
@@ -207,11 +207,13 @@ func UpdateProtocolsNfsService(errorHandler *utils.ErrorHandler, r restclient.Re
 	if err := mapstructure.Decode(request, &body); err != nil {
 		return errorHandler.MakeAndReportError("error encoding NFS Services body", fmt.Sprintf("error on encoding NFS Services body: %s, body: %#v", err, request))
 	}
+	// remove svm.name from PATCH body
+	delete(body, "svm")
 	query := r.NewQuery()
 	query.Add("return_records", "true")
 	statusCode, _, err := r.CallUpdateMethod("protocols/nfs/services/"+uuid, query, body)
 	if err != nil {
-		return errorHandler.MakeAndReportError("error modifying NFS Service", fmt.Sprintf("error on PATCH protocols/nfs/services/s: %s, statusCode %d", err, statusCode))
+		return errorHandler.MakeAndReportError("error modifying NFS Service", fmt.Sprintf("error on PATCH protocols/nfs/services: %s, statusCode %d", err, statusCode))
 	}
 	return nil
 }

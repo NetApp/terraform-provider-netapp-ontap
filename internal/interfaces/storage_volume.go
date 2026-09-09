@@ -33,7 +33,8 @@ type StorageVolumeGetDataModelONTAP struct {
 	Aggregates             []Aggregate
 	Autosize               Autosize `mapstructure:"autosize,omitempty"`
 	UUID                   string
-	SnapshotLockingEnabled *bool `mapstructure:"snapshot_locking_enabled,omitempty"`
+	SnapshotLockingEnabled *bool    `mapstructure:"snapshot_locking_enabled,omitempty"`
+	Tags                   []string `mapstructure:"_tags,omitempty"`
 }
 
 // StorageVolumeResourceModel describes the resource data model.
@@ -57,6 +58,7 @@ type StorageVolumeResourceModel struct {
 	Aggregates             []map[string]interface{} `mapstructure:"aggregates,omitempty"`
 	Autosize               Autosize                 `mapstructure:"autosize,omitempty"`
 	SnapshotLockingEnabled *bool                    `mapstructure:"snapshot_locking_enabled,omitempty"`
+	Tags                   []string                 `mapstructure:"_tags,omitempty"`
 }
 
 // Aggregate describes the resource data model.
@@ -102,13 +104,24 @@ type Policy struct {
 
 // TieringPolicy describes the resource data model.
 type TieringPolicy struct {
-	Policy         string `mapstructure:"policy,omitempty"`
-	MinCoolingDays int    `mapstructure:"min_cooling_days,omitempty"`
+	Policy         string   `mapstructure:"policy,omitempty"`
+	MinCoolingDays int      `mapstructure:"min_cooling_days,omitempty"`
+	ObjectTags     []string `mapstructure:"object_tags,omitempty"`
 }
 
 // Snapshot describes the resource data model.
 type Snapshot struct {
 	ReservePercent *int64 `mapstructure:"reserve_percent,omitempty"`
+}
+
+// RestoreTarget describes snapshot restore target for volume PATCH operations.
+type RestoreTarget struct {
+	Snapshot SnapshotRef `mapstructure:"snapshot,omitempty"`
+}
+
+// SnapshotRef describes the snapshot reference in restore_to.
+type SnapshotRef struct {
+	Name string `mapstructure:"name,omitempty"`
 }
 
 // Guarantee describes the resource data model.
@@ -190,8 +203,10 @@ var POW2BYTEMAP = map[string]int{
 
 // StorageVolumeDataSourceFilterModel describes the data source data model for queries.
 type StorageVolumeDataSourceFilterModel struct {
-	Name    string `mapstructure:"name"`
-	SVMName string `mapstructure:"svm.name"`
+	Name              string `mapstructure:"name"`
+	SVMName           string `mapstructure:"svm.name"`
+	Tags              string `mapstructure:"_tags"`
+	TieringObjectTags string `mapstructure:"tiering.object_tags"`
 }
 
 // GetUUIDVolumeByName get a volumes UUID by volume name
@@ -226,7 +241,7 @@ func GetStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClient,
 	query := r.NewQuery()
 	query.Fields([]string{"name", "svm.name", "aggregates", "space.size", "state", "type", "nas.export_policy.name", "nas.path", "guarantee.type", "space.snapshot.reserve_percent", "efficiency.dedupe", "efficiency.compaction",
 		"nas.security_style", "encryption.enabled", "efficiency.policy.name", "nas.unix_permissions", "nas.gid", "nas.uid", "snapshot_policy.name", "language", "qos.policy.name", "snapshot_locking_enabled",
-		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state", "autosize"})
+		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "tiering.object_tags", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state", "autosize", "_tags"})
 	statusCode, response, err := r.GetNilOrOneRecord("storage/volumes/"+uuid, query, nil)
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError("error reading volume info", fmt.Sprintf("error on GET storage/volumes: %s", err))
@@ -251,7 +266,7 @@ func GetStorageVolumeByName(errorHandler *utils.ErrorHandler, r restclient.RestC
 	query.Add("return_records", "true")
 	query.Fields([]string{"name", "uuid", "svm.name", "aggregates", "space.size", "state", "type", "nas.export_policy.name", "nas.path", "guarantee.type", "space.snapshot.reserve_percent", "efficiency.dedupe", "efficiency.compaction",
 		"nas.security_style", "encryption.enabled", "efficiency.policy.name", "nas.unix_permissions", "nas.gid", "nas.uid", "snapshot_policy.name", "language", "qos.policy.name", "snapshot_locking_enabled",
-		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state", "autosize"})
+		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "tiering.object_tags", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state", "autosize", "_tags"})
 	statusCode, response, err := r.GetNilOrOneRecord("storage/volumes", query, nil)
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError("error reading volume info by name", fmt.Sprintf("error on GET storage/volumes: %s", err))
@@ -278,7 +293,7 @@ func GetStorageVolumes(errorHandler *utils.ErrorHandler, r restclient.RestClient
 	query := r.NewQuery()
 	query.Fields([]string{"name", "svm.name", "aggregates", "space.size", "state", "type", "nas.export_policy.name", "nas.path", "guarantee.type", "space.snapshot.reserve_percent", "efficiency.dedupe", "efficiency.compaction",
 		"nas.security_style", "encryption.enabled", "efficiency.policy.name", "nas.unix_permissions", "nas.gid", "nas.uid", "snapshot_policy.name", "language", "qos.policy.name", "snapshot_locking_enabled",
-		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state", "autosize"})
+		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "tiering.object_tags", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state", "autosize", "_tags"})
 
 	if filter != nil {
 		var filterMap map[string]interface{}
@@ -337,6 +352,17 @@ func CreateStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClie
 	return &dataONTAP, nil
 }
 
+// RestoreVolumeToSnapshot restores a volume to a snapshot by sending restore_to.snapshot.name as a PATCH query parameter.
+func RestoreVolumeToSnapshot(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string, snapshotName string) error {
+	query := r.NewQuery()
+	query.Add("restore_to.snapshot.name", snapshotName)
+	statusCode, _, err := r.CallUpdateMethod("storage/volumes/"+uuid, query, nil)
+	if err != nil {
+		return errorHandler.MakeAndReportError("error restoring volume", fmt.Sprintf("error on PATCH storage/volumes restore: %s, statusCode %d", err, statusCode))
+	}
+	return nil
+}
+
 // DeleteStorageVolume to delete volume
 func DeleteStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) error {
 	statusCode, _, err := r.CallDeleteMethod("storage/volumes/"+uuid, nil, nil)
@@ -358,6 +384,10 @@ func UpddateStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestCli
 		} else if option == "logical_space" {
 			if nestedMap, ok := body["space"].(map[string]interface{}); ok {
 				delete(nestedMap, "logical_space")
+			}
+		} else if option == "nas.path" {
+			if nestedMap, ok := body["nas"].(map[string]interface{}); ok {
+				delete(nestedMap, "path")
 			}
 		} else if option == "nas.group_id" {
 			if nestedMap, ok := body["nas"].(map[string]interface{}); ok {

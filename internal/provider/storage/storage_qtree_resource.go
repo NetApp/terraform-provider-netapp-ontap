@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
@@ -20,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
+	"github.com/netapp/terraform-provider-netapp-ontap/internal/restclient"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/utils"
 )
 
@@ -67,6 +69,33 @@ type StorageQtreeResourceNameModel struct {
 type StorageQtreeResourceExportPolicyModel struct {
 	Name types.String `tfsdk:"name"`
 	ID   types.Int64  `tfsdk:"id"`
+}
+
+func RequiresRetry(err error) bool {
+	if err == nil {
+		return false
+	}
+	return strings.Contains(err.Error(), "no response for GET storage/qtrees")
+}
+
+func GetStorageQtreeByNameWithRetry(ctx context.Context, errorHandler *utils.ErrorHandler, client restclient.RestClient, name string, svmName string, volumeName string) (*interfaces.StorageQtreeGetDataModelONTAP, error) {
+	delay := 10 * time.Second
+	retries := 3
+	for attempt := 1; attempt <= retries; attempt++ {
+		restInfo, err := interfaces.GetStorageQtreeByName(errorHandler, client, name, svmName, volumeName)
+		if err == nil {
+			return restInfo, nil
+		}
+
+		if !RequiresRetry(err) || attempt == retries {
+			return nil, err
+		}
+
+		tflog.Warn(ctx, fmt.Sprintf("retrying post-create qtree GET after empty response (attempt %d/%d), waiting %s", attempt, retries, delay))
+		time.Sleep(delay)
+	}
+
+	return nil, fmt.Errorf("failed to read qtree info after creation")
 }
 
 // Metadata returns the resource type name.
@@ -370,9 +399,9 @@ func (r *StorageQtreeResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	restInfo, err := interfaces.GetStorageQtreeByName(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString(), data.Volume.ValueString())
+	restInfo, err := GetStorageQtreeByNameWithRetry(ctx, errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString(), data.Volume.ValueString())
 	if err != nil {
-		// error reporting done inside GetStorageQtree
+		// error reporting done inside GetStorageQtreeByName
 		return
 	}
 

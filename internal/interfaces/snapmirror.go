@@ -131,7 +131,9 @@ func GetSnapmirrorByDestinationPath(errorHandler *utils.ErrorHandler, r restclie
 	api := "snapmirror/relationships"
 	query := r.NewQuery()
 	query.Add("destination.path", destinationPath)
-	fields := []string{"destination", "healthy", "source", "restore", "policy", "state"}
+	// policy.name and policy.uuid have to be requested explicitly, a bare "policy"
+	// only returns the policy uuid on this endpoint.
+	fields := []string{"destination", "healthy", "source", "restore", "policy.name", "policy.uuid", "state"}
 	if version != nil && version.Generation == 9 && version.Major > 10 {
 		fields = append(fields, "throttle", "group_type")
 	}
