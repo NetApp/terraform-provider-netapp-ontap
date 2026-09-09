@@ -1,14 +1,14 @@
 # 2.8.0 (2026-xx-xx)
 
-BUG FIXES:
-
-- **netapp-ontap_cluster_peer**: fixed issue where cluster peering between GCNV and ONTAP failed because both sides were using the same `ipspace`. Added `peer_ipspace` attribute to allow specifying separate IPspaces for local and peer clusters. ([#682](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/682))([#363](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/363))
-- **netapp-ontap_volume resource**: Rectified validator for `analytics.state`. ([#734](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/734))
-
 FEATURES:
 
 - **New Data Source:** `netapp-ontap_volume_clone` and `netapp-ontap_volume_clones` ([#665](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/665))
 - **New Resource:** `netapp-ontap_volume_clone` ([#665](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/665))
+
+BUG FIXES:
+
+- **netapp-ontap_cluster_peer**: fixed issue where cluster peering between GCNV and ONTAP failed because both sides were using the same `ipspace`. Added `peer_ipspace` attribute to allow specifying separate IPspaces for local and peer clusters. ([#682](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/682))([#363](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/363))
+- **netapp-ontap_volume resource**: Rectified validator for `analytics.state`. ([#734](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/734))
 
 # 2.7.1 (2026-07-30)
 
