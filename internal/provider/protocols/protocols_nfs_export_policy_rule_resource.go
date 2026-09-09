@@ -183,6 +183,7 @@ func (r *ExportPolicyRuleResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"index": schema.Int64Attribute{
 				MarkdownDescription: "rule index",
+				Optional:            true,
 				Computed:            true,
 				PlanModifiers: []planmodifier.Int64{
 					IntUseStateForUnknown(),
@@ -309,7 +310,9 @@ func (r *ExportPolicyRuleResource) Create(ctx context.Context, req resource.Crea
 	if !data.NtfsUnixSecurity.IsNull() {
 		request.NtfsUnixSecurity = data.NtfsUnixSecurity.ValueString()
 	}
-
+	if !data.Index.IsNull() && !data.Index.IsUnknown() {
+		request.Index = data.Index.ValueInt64()
+	}
 	filter := map[string]string{
 		"name":     data.ExportPolicyName.ValueString(),
 		"svm.name": data.SVMName.ValueString(),

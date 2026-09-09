@@ -385,6 +385,10 @@ func UpddateStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestCli
 			if nestedMap, ok := body["space"].(map[string]interface{}); ok {
 				delete(nestedMap, "logical_space")
 			}
+		} else if option == "nas.path" {
+			if nestedMap, ok := body["nas"].(map[string]interface{}); ok {
+				delete(nestedMap, "path")
+			}
 		} else if option == "nas.group_id" {
 			if nestedMap, ok := body["nas"].(map[string]interface{}); ok {
 				delete(nestedMap, "gid")

@@ -264,6 +264,9 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 				MarkdownDescription: "Whether or not snapshot copy locking is enabled on the volume.",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"snapshot_policy": schema.StringAttribute{
 				MarkdownDescription: "The name of the snapshot policy",
@@ -1470,6 +1473,7 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 		}
 	}
 
+	ignoreNASpath := true
 	ignoreNASgid := true
 	ignoreNASuid := true
 	if !plan.Nas.Equal(state.Nas) {
@@ -1485,7 +1489,10 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 			return
 		}
 		request.NAS.ExportPolicy.Name = planNas.ExportPolicy.ValueString()
-		request.NAS.JunctionPath = planNas.JunctionPath.ValueString()
+		if !planNas.JunctionPath.Equal(stateNas.JunctionPath) {
+			ignoreNASpath = false
+			request.NAS.JunctionPath = planNas.JunctionPath.ValueString()
+		}
 		request.NAS.SecurityStyle = planNas.SecurityStyle.ValueString()
 		request.NAS.UnixPermissions = int(planNas.UnixPermissions.ValueInt64())
 		if !planNas.GroupID.Equal(stateNas.GroupID) {
@@ -1645,6 +1652,9 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 	}
 	if ignoreLogicalSpace {
 		ignoreOptions = append(ignoreOptions, "logical_space")
+	}
+	if ignoreNASpath {
+		ignoreOptions = append(ignoreOptions, "nas.path")
 	}
 	if ignoreNASgid {
 		ignoreOptions = append(ignoreOptions, "nas.group_id")

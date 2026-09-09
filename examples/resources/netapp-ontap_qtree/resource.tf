@@ -1,9 +1,9 @@
-resource "netapp-ontap_qtrees" "storage_qtrees" {
+resource "netapp-ontap_qtree" "storage_qtree" {
   # required to know which system to interface with
   cx_profile_name = "cluster3"
-  name = "testme5"
-  svm_name = "temp"
-  volume_name = "temp_root"
+  name = "qtree1"
+  svm_name = "svm1"
+  volume_name = "vol1"
   security_style = "unix" 
   user = {
     name = "nobody"
@@ -12,5 +12,3 @@ resource "netapp-ontap_qtrees" "storage_qtrees" {
     name = "nobody"
   }
 }
-
-
