@@ -63,6 +63,7 @@ type ClusterPeersResourceModel struct {
 	State              types.String   `tfsdk:"state"`
 	PeerID             types.String   `tfsdk:"peer_id"`
 	Ipspace            types.Object   `tfsdk:"ipspace"`
+	PeerIpspace        types.Object   `tfsdk:"peer_ipspace"`
 	ID                 types.String   `tfsdk:"id"`
 }
 
@@ -142,7 +143,7 @@ func (r *ClusterPeersResource) Schema(ctx context.Context, req resource.SchemaRe
 				Required:            true,
 			},
 			"ipspace": schema.SingleNestedAttribute{
-				MarkdownDescription: "IPspace for the cluster peer LIFs (e.g. 'Gcnv' for Google Cloud NetApp Volumes)",
+				MarkdownDescription: "IPspace for the local cluster peer LIFs (e.g. 'Gcnv' for Google Cloud NetApp Volumes)",
 				Optional:            true,
 				Computed:            true,
 				PlanModifiers: []planmodifier.Object{
@@ -151,6 +152,20 @@ func (r *ClusterPeersResource) Schema(ctx context.Context, req resource.SchemaRe
 				Attributes: map[string]schema.Attribute{
 					"name": schema.StringAttribute{
 						MarkdownDescription: "Name of the IPspace",
+						Required:            true,
+					},
+				},
+			},
+			"peer_ipspace": schema.SingleNestedAttribute{
+				MarkdownDescription: "IPspace for the peer cluster LIFs. Use when the peer cluster uses a different IPspace than the local cluster (e.g. 'default' for ONTAP when local is GCNV)",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
+				Attributes: map[string]schema.Attribute{
+					"name": schema.StringAttribute{
+						MarkdownDescription: "Name of the IPspace on the peer cluster",
 						Required:            true,
 					},
 				},
@@ -321,8 +336,8 @@ func (r *ClusterPeersResource) Create(ctx context.Context, req resource.CreateRe
 		ipAddressesPeer = append(ipAddressesPeer, e.ValueString())
 	}
 	bodyPeer.Remote.IPAddress = ipAddressesPeer
-	if !data.Ipspace.IsNull() && !data.Ipspace.IsUnknown() {
-		if nameAttr, ok := data.Ipspace.Attributes()["name"].(types.String); ok && nameAttr.ValueString() != "" {
+	if !data.PeerIpspace.IsNull() && !data.PeerIpspace.IsUnknown() {
+		if nameAttr, ok := data.PeerIpspace.Attributes()["name"].(types.String); ok && nameAttr.ValueString() != "" {
 			bodyPeer.Ipspace = &interfaces.ClusterPeerIpspace{Name: nameAttr.ValueString()}
 		}
 	}
