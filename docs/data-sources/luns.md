@@ -102,6 +102,15 @@ Read-Only:
 
 Read-Only:
 
+- `guarantee` (Attributes) Properties that request and report the space guarantee for the LUN (see [below for nested schema](#nestedatt--storage_luns--space--guarantee))
 - `scsi_thin_provisioning_support_enabled` (Boolean) Specifies the value for the space allocation attribute, which determines if the LUN supports the SCSI Thin Provisioning features
 - `size` (Number) Size of lun in bytes
 - `used` (Number) Used space of lun in bytes
+
+<a id="nestedatt--storage_luns--space--guarantee"></a>
+### Nested Schema for `storage_luns.space.guarantee`
+
+Read-Only:
+
+- `requested` (Boolean) The requested space reservation policy for the LUN
+- `reserved` (Boolean) Reports whether the LUN is actually space guaranteed by ONTAP

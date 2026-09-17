@@ -7,5 +7,9 @@ resource "netapp-ontap_lun" "storage_lun" {
   volume_name = "lunTest"
   os_type = "linux"
   size = 1048576
-
+  space = {
+    guarantee = {
+      requested = "true"
+    }
+  }
 }
