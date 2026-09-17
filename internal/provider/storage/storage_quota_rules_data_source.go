@@ -164,6 +164,19 @@ func (d *StorageQuotaRulesDataSource) Schema(ctx context.Context, req datasource
 								},
 							},
 						},
+						"space": schema.SingleNestedAttribute{
+							Computed: true,
+							Attributes: map[string]schema.Attribute{
+								"hard_limit": schema.Int64Attribute{
+									MarkdownDescription: "Specifies the space hard limit, in bytes.",
+									Computed:            true,
+								},
+								"soft_limit": schema.Int64Attribute{
+									MarkdownDescription: "Specifies the space soft limit, in bytes.",
+									Computed:            true,
+								},
+							},
+						},
 						"user_mapping": schema.BoolAttribute{
 							MarkdownDescription: "user mapping for user quota policy rules",
 							Computed:            true,
@@ -275,6 +288,20 @@ func (d *StorageQuotaRulesDataSource) Read(ctx context.Context, req datasource.R
 			resp.Diagnostics.Append(diags...)
 		}
 		data.StorageQuotaRules[index].Files = objectValue
+		// Space
+		elementTypes = map[string]attr.Type{
+			"hard_limit": types.Int64Type,
+			"soft_limit": types.Int64Type,
+		}
+		elements = map[string]attr.Value{
+			"hard_limit": types.Int64Value(record.Space.HardLimit),
+			"soft_limit": types.Int64Value(record.Space.SoftLimit),
+		}
+		objectValue, diags = types.ObjectValue(elementTypes, elements)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+		}
+		data.StorageQuotaRules[index].Space = objectValue
 		data.StorageQuotaRules[index].UserMapping = types.BoolValue(record.UserMapping)
 		data.StorageQuotaRules[index].ID = types.StringValue(record.UUID)
 
