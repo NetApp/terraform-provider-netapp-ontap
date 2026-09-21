@@ -46,7 +46,10 @@ CATEGORIES = {
         "protocols_nfs_export_policy_rule_resource.md",
         "protocols_nfs_service_data_source.md",
         "protocols_nfs_services_data_source.md",
-        "protocols_nfs_service_resource.md"],
+        "protocols_nfs_service_resource.md",
+        "protocols_svm_audit_data_source.md",
+        "protocols_svm_audits_data_source.md",
+        "protocols_svm_audit_resource.md"],
     'name-services': [
         "name_services_dns_data_source.md",
         "name_services_dnss_data_source.md",

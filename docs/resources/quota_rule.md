@@ -62,6 +62,7 @@ resource "netapp-ontap_quota_rule" "storage_quota_rule" {
 
 - `files` (Attributes) (see [below for nested schema](#nestedatt--files))
 - `group` (Attributes) If the quota type is group, this property takes the group name. For default group quota rules, the group name must be specified as "" (see [below for nested schema](#nestedatt--group))
+- `space` (Attributes) (see [below for nested schema](#nestedatt--space))
 - `users` (Attributes Set) If the quota type is user, this property takes the user name. For default user quota rules, the user name must be specified as "" (see [below for nested schema](#nestedatt--users))
 
 ### Read-Only
@@ -108,6 +109,15 @@ Optional:
 Required:
 
 - `name` (String) name of the group
+
+<a id="nestedatt--space"></a>
+
+### Nested Schema for `space`
+
+Optional:
+
+- `hard_limit` (Number) Specifies the space hard limit, in bytes.
+- `soft_limit` (Number) Specifies the space soft limit, in bytes.
 
 <a id="nestedatt--users"></a>
 

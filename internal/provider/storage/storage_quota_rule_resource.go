@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -50,6 +51,7 @@ type StorageQuotaRulesResourceModel struct {
 	Qtree         *Qtree       `tfsdk:"qtree"`
 	Type          types.String `tfsdk:"type"`
 	Files         types.Object `tfsdk:"files"`
+	Space         types.Object `tfsdk:"space"`
 	ID            types.String `tfsdk:"id"`
 }
 
@@ -75,6 +77,12 @@ type Qtree struct {
 
 // Files describes Files data model.
 type Files struct {
+	HardLimit types.Int64 `tfsdk:"hard_limit"`
+	SoftLimit types.Int64 `tfsdk:"soft_limit"`
+}
+
+// Space describes Space data model.
+type Space struct {
 	HardLimit types.Int64 `tfsdk:"hard_limit"`
 	SoftLimit types.Int64 `tfsdk:"soft_limit"`
 }
@@ -153,6 +161,10 @@ func (r *StorageQuotaRulesResource) Schema(ctx context.Context, req resource.Sch
 			},
 			"files": schema.SingleNestedAttribute{
 				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
 				Attributes: map[string]schema.Attribute{
 					"hard_limit": schema.Int64Attribute{
 						MarkdownDescription: "Specifies the hard limit for files",
@@ -164,6 +176,31 @@ func (r *StorageQuotaRulesResource) Schema(ctx context.Context, req resource.Sch
 					},
 					"soft_limit": schema.Int64Attribute{
 						MarkdownDescription: "Specifies the soft limit for files",
+						Optional:            true,
+						Computed:            true,
+						PlanModifiers: []planmodifier.Int64{
+							int64planmodifier.UseStateForUnknown(),
+						},
+					},
+				},
+			},
+			"space": schema.SingleNestedAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
+				Attributes: map[string]schema.Attribute{
+					"hard_limit": schema.Int64Attribute{
+						MarkdownDescription: "Specifies the space hard limit, in bytes.",
+						Optional:            true,
+						Computed:            true,
+						PlanModifiers: []planmodifier.Int64{
+							int64planmodifier.UseStateForUnknown(),
+						},
+					},
+					"soft_limit": schema.Int64Attribute{
+						MarkdownDescription: "Specifies the space soft limit, in bytes.",
 						Optional:            true,
 						Computed:            true,
 						PlanModifiers: []planmodifier.Int64{
@@ -250,6 +287,22 @@ func (r *StorageQuotaRulesResource) Read(ctx context.Context, req resource.ReadR
 		resp.Diagnostics.Append(diags...)
 	}
 	data.Files = objectValue
+
+	// Space
+	elementTypes = map[string]attr.Type{
+		"hard_limit": types.Int64Type,
+		"soft_limit": types.Int64Type,
+	}
+	elements = map[string]attr.Value{
+		"hard_limit": types.Int64Value(restInfo.Space.HardLimit),
+		"soft_limit": types.Int64Value(restInfo.Space.SoftLimit),
+	}
+	objectValue, diags = types.ObjectValue(elementTypes, elements)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+	}
+	data.Space = objectValue
+
 	// user and group are not modified and hence not added.
 	data.ID = types.StringValue(restInfo.UUID)
 
@@ -295,7 +348,7 @@ func (r *StorageQuotaRulesResource) Create(ctx context.Context, req resource.Cre
 			body.Group.Name = group.Name.ValueString()
 		}
 	}
-	if !data.Files.IsNull() {
+	if !data.Files.IsNull() && !data.Files.IsUnknown() {
 		var files Files
 		diags := data.Files.As(ctx, &files, basetypes.ObjectAsOptions{})
 		if diags.HasError() {
@@ -307,6 +360,20 @@ func (r *StorageQuotaRulesResource) Create(ctx context.Context, req resource.Cre
 		}
 		if !files.SoftLimit.IsUnknown() {
 			body.Files.SoftLimit = files.SoftLimit.ValueInt64()
+		}
+	}
+	if !data.Space.IsNull() && !data.Space.IsUnknown() {
+		var space Space
+		diags := data.Space.As(ctx, &space, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		if !space.HardLimit.IsUnknown() {
+			body.Space.HardLimit = space.HardLimit.ValueInt64()
+		}
+		if !space.SoftLimit.IsUnknown() {
+			body.Space.SoftLimit = space.SoftLimit.ValueInt64()
 		}
 	}
 
@@ -322,6 +389,46 @@ func (r *StorageQuotaRulesResource) Create(ctx context.Context, req resource.Cre
 	}
 
 	data.ID = types.StringValue(resource.UUID)
+
+	restInfo, err := interfaces.GetStorageQuotaRulesByUUID(errorHandler, *client, data.ID.ValueString())
+	if err != nil {
+		// error reporting done inside GetStorageQuotaRulesByUUID
+		return
+	}
+	data.Type = types.StringValue(restInfo.Type)
+	data.SVM.Name = types.StringValue(restInfo.SVM.Name)
+	data.Volume.Name = types.StringValue(restInfo.Volume.Name)
+	data.Qtree.Name = types.StringValue(restInfo.Qtree.Name)
+
+	// Files
+	elementTypes := map[string]attr.Type{
+		"hard_limit": types.Int64Type,
+		"soft_limit": types.Int64Type,
+	}
+	elements := map[string]attr.Value{
+		"hard_limit": types.Int64Value(restInfo.Files.HardLimit),
+		"soft_limit": types.Int64Value(restInfo.Files.SoftLimit),
+	}
+	objectValue, diags := types.ObjectValue(elementTypes, elements)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+	}
+	data.Files = objectValue
+
+	// Space
+	elementTypes = map[string]attr.Type{
+		"hard_limit": types.Int64Type,
+		"soft_limit": types.Int64Type,
+	}
+	elements = map[string]attr.Value{
+		"hard_limit": types.Int64Value(restInfo.Space.HardLimit),
+		"soft_limit": types.Int64Value(restInfo.Space.SoftLimit),
+	}
+	objectValue, diags = types.ObjectValue(elementTypes, elements)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+	}
+	data.Space = objectValue
 
 	tflog.Trace(ctx, "created a resource")
 
@@ -362,6 +469,21 @@ func (r *StorageQuotaRulesResource) Update(ctx context.Context, req resource.Upd
 			if !files.SoftLimit.IsUnknown() {
 				request.Files.SoftLimit = files.SoftLimit.ValueInt64()
 			}
+		}
+	}
+
+	if !plan.Space.IsNull() && !plan.Space.IsUnknown() {
+		var space Space
+		diags := plan.Space.As(ctx, &space, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		if !space.HardLimit.IsUnknown() {
+			request.Space.HardLimit = space.HardLimit.ValueInt64()
+		}
+		if !space.SoftLimit.IsUnknown() {
+			request.Space.SoftLimit = space.SoftLimit.ValueInt64()
 		}
 	}
 
