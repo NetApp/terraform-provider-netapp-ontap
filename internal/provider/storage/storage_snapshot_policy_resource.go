@@ -216,7 +216,11 @@ func (r *SnapshotPolicyResource) Read(ctx context.Context, req resource.ReadRequ
 	}
 	var restInfo *interfaces.SnapshotPolicyGetDataModelONTAP
 	if data.ID.ValueString() == "" {
-		restInfo, err = interfaces.GetSnapshotPolicyByName(errorHandler, *client, data.Name.ValueString())
+		if !data.SVMName.IsNull() && !data.SVMName.IsUnknown() && data.SVMName.ValueString() != "" {
+			restInfo, err = interfaces.GetSnapshotPolicyByNameAndSVM(errorHandler, *client, data.Name.ValueString(), data.SVMName.ValueString())
+		} else {
+			restInfo, err = interfaces.GetSnapshotPolicyByName(errorHandler, *client, data.Name.ValueString())
+		}
 		if err != nil {
 			return
 		}
