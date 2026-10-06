@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -109,11 +108,7 @@ func (r *NameServicesDNSResource) Schema(ctx context.Context, req resource.Schem
 			"skip_config_validation": schema.BoolAttribute{
 				MarkdownDescription: "Indicates whether or not the validation for the specified DNS configuration is disabled. (9.9)",
 				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
-				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.UseStateForUnknown(),
-				},
+				WriteOnly:           true,
 			},
 			"dynamic_dns": schema.SingleNestedAttribute{
 				MarkdownDescription: "Dynamic DNS update configuration for the SVM.",
@@ -281,9 +276,11 @@ func (r *NameServicesDNSResource) Read(ctx context.Context, req resource.ReadReq
 // Create a resource and retrieve UUID
 func (r *NameServicesDNSResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data *NameServicesDNSResourceModel
+	var config NameServicesDNSResourceModel
 
-	// Read Terraform plan data into the model
+	// Read Terraform plan and config data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 
@@ -301,8 +298,9 @@ func (r *NameServicesDNSResource) Create(ctx context.Context, req resource.Creat
 	for _, value := range data.Domains {
 		body.Domains = append(body.Domains, value.ValueString())
 	}
-	if !data.SkipConfigValidation.IsNull() && !data.SkipConfigValidation.IsUnknown() {
-		body.SkipConfigValidation = data.SkipConfigValidation.ValueBool()
+	// data is read from req.Plan; Terraform deliberately nullifies write-only values there.
+	if !config.SkipConfigValidation.IsNull() && !config.SkipConfigValidation.IsUnknown() {
+		body.SkipConfigValidation = config.SkipConfigValidation.ValueBool()
 	}
 	if !data.DynamicDNS.IsNull() && !data.DynamicDNS.IsUnknown() {
 		var dynamicDNSModel NameServicesDNSDynamicDNSModel
@@ -430,9 +428,13 @@ func (r *NameServicesDNSResource) Create(ctx context.Context, req resource.Creat
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *NameServicesDNSResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data *NameServicesDNSResourceModel
+	var config NameServicesDNSResourceModel
+	var state NameServicesDNSResourceModel
 
-	// Read Terraform plan data into the model
+	// Read Terraform plan, config, and state data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -456,8 +458,12 @@ func (r *NameServicesDNSResource) Update(ctx context.Context, req resource.Updat
 		request.Domains = append(request.Domains, value.ValueString())
 	}
 
-	if !data.SkipConfigValidation.IsNull() && !data.SkipConfigValidation.IsUnknown() {
-		request.SkipConfigValidation = data.SkipConfigValidation.ValueBool()
+	// data is read from req.Plan; Terraform deliberately nullifies write-only values there.
+	if dnsConfigurationChanged(data, &state) &&
+		!config.SkipConfigValidation.IsNull() &&
+		!config.SkipConfigValidation.IsUnknown() &&
+		config.SkipConfigValidation.ValueBool() {
+		request.SkipConfigValidation = true
 	}
 
 	if !data.DynamicDNS.IsNull() && !data.DynamicDNS.IsUnknown() {
@@ -509,6 +515,30 @@ func (r *NameServicesDNSResource) Update(ctx context.Context, req resource.Updat
 	tflog.Trace(ctx, "updated a name_services_dns resource")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+// dnsConfigurationChanged reports whether a PATCH changes DNS domains or servers.
+func dnsConfigurationChanged(plan, state *NameServicesDNSResourceModel) bool {
+	return !stringSetsEqual(plan.Domains, state.Domains) ||
+		!stringSetsEqual(plan.NameServers, state.NameServers)
+}
+
+func stringSetsEqual(first, second []types.String) bool {
+	if len(first) != len(second) {
+		return false
+	}
+
+	values := make(map[string]struct{}, len(first))
+	for _, value := range first {
+		values[value.ValueString()] = struct{}{}
+	}
+	for _, value := range second {
+		if _, ok := values[value.ValueString()]; !ok {
+			return false
+		}
+	}
+
+	return true
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
