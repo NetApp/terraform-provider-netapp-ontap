@@ -189,6 +189,7 @@ func (c HTTPClient) create() http.Client {
 
 	return http.Client{
 		Transport: &http.Transport{
+			Proxy:           http.ProxyFromEnvironment,
 			TLSClientConfig: tlsConfig,
 		},
 		Timeout: 120 * time.Second,
