@@ -124,7 +124,7 @@ func (r *ClusterPeersResource) Schema(ctx context.Context, req resource.SchemaRe
 			},
 			"source_details": schema.SingleNestedAttribute{
 				MarkdownDescription: "Source cluster details for cluster peer from remote cluster",
-				Required:            true,
+				Optional:            true,
 				Attributes: map[string]schema.Attribute{
 					"ip_addresses": schema.SetAttribute{
 						ElementType:         types.StringType,
@@ -140,7 +140,7 @@ func (r *ClusterPeersResource) Schema(ctx context.Context, req resource.SchemaRe
 			},
 			"peer_cx_profile_name": schema.StringAttribute{
 				MarkdownDescription: "Peer connection profile name, to be accepted from peer side to make the status OK",
-				Required:            true,
+				Optional:            true,
 			},
 			"ipspace": schema.SingleNestedAttribute{
 				MarkdownDescription: "IPspace for the local cluster peer LIFs (e.g. 'Gcnv' for Google Cloud NetApp Volumes)",
@@ -284,6 +284,20 @@ func (r *ClusterPeersResource) Create(ctx context.Context, req resource.CreateRe
 	errorHandler := utils.NewErrorHandler(ctx, &resp.Diagnostics)
 
 	if resp.Diagnostics.HasError() {
+		return
+	}
+	if data.SourceDetails == nil || len(data.SourceDetails.IPAddresses) == 0 {
+		resp.Diagnostics.AddError(
+			"Missing source_details",
+			"source_details.ip_addresses must be provided when creating a cluster peer.",
+		)
+		return
+	}
+	if data.PeerCxProfileName.IsNull() || data.PeerCxProfileName.IsUnknown() || data.PeerCxProfileName.ValueString() == "" {
+		resp.Diagnostics.AddError(
+			"Missing peer_cx_profile_name",
+			"peer_cx_profile_name must be provided when creating a cluster peer.",
+		)
 		return
 	}
 
