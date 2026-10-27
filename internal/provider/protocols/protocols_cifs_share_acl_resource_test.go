@@ -14,7 +14,7 @@ import (
 func TestAccCifsShareACLResource(t *testing.T) {
 	const (
 		resourceName = "netapp-ontap_cifs_share_acl.example"
-		svmName      = "one"
+		svmName      = "d_svm"
 		shareName    = "acc_test_cifs_share_acl"
 		userOrGroup  = "BUILTIN\\Administrators"
 		aclType      = "windows"
