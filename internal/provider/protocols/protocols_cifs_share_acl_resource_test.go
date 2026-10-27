@@ -105,20 +105,13 @@ provider "netapp-ontap" {
   ]
 }
 
-resource "netapp-ontap_cifs_share" "acl_test" {
-  cx_profile_name = "clustercifs"
-  name            = "%s"
-  svm_name        = "%s"
-  path            = "/"
-}
-
 resource "netapp-ontap_cifs_share_acl" "example" {
   cx_profile_name = "clustercifs"
   svm_name        = "%s"
-  share_name      = netapp-ontap_cifs_share.acl_test.name
+  share_name      = "%s"
   user_or_group   = %q
   type            = "%s"
   permission      = "%s"
 }
-`, host, admin, password, shareName, svmName, svmName, userOrGroup, aclType, permission)
+`, host, admin, password, svmName, shareName, userOrGroup, aclType, permission)
 }
