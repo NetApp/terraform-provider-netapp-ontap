@@ -14,6 +14,7 @@ ENHANCEMENTS:
 - **netapp-ontap_lun resource**, **netapp-ontap_lun_data_source**,**netapp-ontap_name_luns_data_source**: Added `space` parameter ([#722](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/722))
 - **netapp-ontap_quota_rule**: New options under `space` added. ([#446](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/446))
 - **netapp-ontap_snapmirror**: Added support for snapmirror break and resync. ([#728](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/728))
+- **netapp-ontap_svm**: New parameter `web.certificate`. Requires ONTAP 9.10 or later. ([#723](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/723))
 
 BUG FIXES:
 
