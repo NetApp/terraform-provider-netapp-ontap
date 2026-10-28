@@ -42,17 +42,24 @@ type SvmDataSource struct {
 
 // SvmDataSourceModel describes the data source data model.
 type SvmDataSourceModel struct {
-	CxProfileName  types.String   `tfsdk:"cx_profile_name"`
-	Name           types.String   `tfsdk:"name"`
-	Ipspace        types.String   `tfsdk:"ipspace"`
-	SnapshotPolicy types.String   `tfsdk:"snapshot_policy"`
-	SubType        types.String   `tfsdk:"subtype"`
-	Comment        types.String   `tfsdk:"comment"`
-	Language       types.String   `tfsdk:"language"`
-	Aggregates     []types.String `tfsdk:"aggregates"`
-	MaxVolumes     types.String   `tfsdk:"max_volumes"`
-	StorageLimit   types.Int64    `tfsdk:"storage_limit"`
-	ID             types.String   `tfsdk:"id"`
+	CxProfileName  types.String           `tfsdk:"cx_profile_name"`
+	Name           types.String           `tfsdk:"name"`
+	Ipspace        types.String           `tfsdk:"ipspace"`
+	SnapshotPolicy types.String           `tfsdk:"snapshot_policy"`
+	SubType        types.String           `tfsdk:"subtype"`
+	Comment        types.String           `tfsdk:"comment"`
+	Language       types.String           `tfsdk:"language"`
+	Aggregates     []types.String         `tfsdk:"aggregates"`
+	MaxVolumes     types.String           `tfsdk:"max_volumes"`
+	StorageLimit   types.Int64            `tfsdk:"storage_limit"`
+	Web            *SvmWebDataSourceModel `tfsdk:"web"`
+	ID             types.String           `tfsdk:"id"`
+}
+
+// SvmWebDataSourceModel describes the web block.
+// Certificate is the certificate UUID returned by svm/svms/{svm.uuid}/web.
+type SvmWebDataSourceModel struct {
+	Certificate types.String `tfsdk:"certificate"`
 }
 
 // SvmDataSourceFilterModel describes the data source data model for queries.
@@ -112,6 +119,16 @@ func (d *SvmDataSource) Schema(ctx context.Context, req datasource.SchemaRequest
 			"storage_limit": schema.Int64Attribute{
 				MarkdownDescription: "Maximum storage permitted on svm, in bytes",
 				Computed:            true,
+			},
+			"web": schema.SingleNestedAttribute{
+				MarkdownDescription: "Web services security configuration for the SVM",
+				Computed:            true,
+				Attributes: map[string]schema.Attribute{
+					"certificate": schema.StringAttribute{
+						MarkdownDescription: "UUID of certificate used by cluster and node management interfaces for TLS connection requests.",
+						Computed:            true,
+					},
+				},
 			},
 			"id": schema.StringAttribute{
 				Computed: true,
@@ -186,6 +203,17 @@ func (d *SvmDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	data.Aggregates = aggregates
 	data.MaxVolumes = types.StringValue(restInfo.MaxVolumes)
 	data.StorageLimit = types.Int64Value(int64(restInfo.Storage.Limit))
+	if (cluster.Version.Generation == 9 && cluster.Version.Major >= 10) || cluster.Version.Generation > 9 {
+		web, err := interfaces.GetSvmWeb(errorHandler, *client, restInfo.UUID)
+		if err != nil {
+			return
+		}
+		if web != nil && web.Certificate != nil && web.Certificate.UUID != "" {
+			data.Web = &SvmWebDataSourceModel{
+				Certificate: types.StringValue(web.Certificate.UUID),
+			}
+		}
+	}
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
