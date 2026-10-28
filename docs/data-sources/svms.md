@@ -13,7 +13,6 @@ Retrieves the configuration of SVMs.
 ## Supported Platforms
 
 * On-prem ONTAP system 9.6 or higher
-  * `storage_limit` attribute supported with ONTAP system 9.13 or higher
 * Amazon FSx for NetApp ONTAP
 
 ## Example Usage
@@ -71,3 +70,15 @@ Read-Only:
 - `snapshot_policy` (String) The name of the snapshot policy to manage
 - `subtype` (String) The subtype for svm to be created
 - `storage_limit` (Number) Maximum storage permitted on svm, in bytes
+- `web` (Attributes) Web services security configuration for the SVM. Requires ONTAP 9.10 or later. (see [below for nested schema](#nestedatt--svms--web))
+
+~> **NOTE:** `storage_limit` requires ONTAP 9.13 or later.<br>
+`web.certificate` requires ONTAP 9.10 or later.
+
+<a id="nestedatt--svms--web"></a>
+
+### Nested Schema for `svms.web`
+
+Read-Only:
+
+- `certificate` (String) UUID of certificate used by cluster and node management interfaces for TLS connection requests.
