@@ -19,6 +19,7 @@ BUG FIXES:
 
 - **netapp-ontap_cluster_peer**: fixed issue where cluster peering between GCNV and ONTAP failed because both sides were using the same `ipspace`. Added `peer_ipspace` attribute to allow specifying separate IPspaces for local and peer clusters. ([#682](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/682))([#363](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/363))
 - **netapp-ontap_volume resource**: Rectified validator for `analytics.state`. ([#734](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/734))
+- **provider**: Fixed ONTAP API calls ignoring `HTTP_PROXY`, `HTTPS_PROXY`, and `NO_PROXY`. The custom HTTP transport used for certificate validation did not set `Proxy` to `http.ProxyFromEnvironment`, so requests connected directly instead of through the configured proxy. ([#750](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/750))
 
 # 2.7.1 (2026-07-30)
 
