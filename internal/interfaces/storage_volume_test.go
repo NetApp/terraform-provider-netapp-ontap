@@ -69,7 +69,7 @@ var basicStorageVolumeRecord = StorageVolumeGetDataModelONTAP{
 		MinCoolingDays: 0,
 	},
 	Comment: "string",
-	Snaplock: Snaplock{
+	Snaplock: &Snaplock{
 		Type: "string",
 	},
 	Analytics: Analytics{
