@@ -14,6 +14,10 @@ type ProtocolsCIFSShareACLGetDataModelONTAP struct {
 	Name        string `mapstructure:"name"`
 	UUID        string `mapstructure:"uuid"`
 	UserOrGroup string `mapstructure:"user_or_group"`
+	Permission  string `mapstructure:"permission"`
+	Type        string `mapstructure:"type"`
+	Share       string `mapstructure:"share"`
+	SVM         svm    `mapstructure:"svm"`
 }
 
 // ProtocolsCIFSShareACLResourceBodyDataModelONTAP describes the body data model using go types for mapping.
@@ -27,9 +31,7 @@ type ProtocolsCIFSShareACLResourceBodyDataModelONTAP struct {
 
 // ProtocolsCIFSShareACLDataSourceFilterModel describes the data source data model for queries.
 type ProtocolsCIFSShareACLDataSourceFilterModel struct {
-	Name        string `mapstructure:"name"`
-	SVMName     string `mapstructure:"svm.name"`
-	UserOrGroup string `mapstructure:"user_or_group"`
+	Share string `mapstructure:"share"`
 }
 
 // GetProtocolsCIFSShareACLByName to get protocols_cifs_share_acl info
@@ -61,11 +63,11 @@ func GetProtocolsCIFSShareACLByName(errorHandler *utils.ErrorHandler, r restclie
 	return &dataONTAP, nil
 }
 
-// GetProtocolsCIFSShareAcls to get protocols_cifs_share_acl info for all resources matching a filter
-func GetProtocolsCIFSShareAcls(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *ProtocolsCIFSShareACLDataSourceFilterModel, svmName string, shareName string) ([]ProtocolsCIFSShareACLGetDataModelONTAP, error) {
-	api := fmt.Sprintf("/protocols/cifs/shares/%s/%s/acls", svmName, shareName)
+// GetProtocolsCIFSShareAcls to get protocols_cifs_share_acl info for all resources matching a filter.
+func GetProtocolsCIFSShareAcls(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *ProtocolsCIFSShareACLDataSourceFilterModel, svmID string) ([]ProtocolsCIFSShareACLGetDataModelONTAP, error) {
+	api := fmt.Sprintf("/protocols/cifs/shares/%s/*/acls", svmID)
 	query := r.NewQuery()
-	query.Fields([]string{"name", "svm.name", "scope"})
+	query.Fields([]string{"user_or_group", "permission", "type", "share", "svm.name"})
 	if filter != nil {
 		var filterMap map[string]interface{}
 		if err := mapstructure.Decode(filter, &filterMap); err != nil {
@@ -92,6 +94,28 @@ func GetProtocolsCIFSShareAcls(errorHandler *utils.ErrorHandler, r restclient.Re
 	}
 	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read protocols_cifs_share_acls data source: %#v", dataONTAP))
 	return dataONTAP, nil
+}
+
+// GetProtocolsCIFSShareACL to get a single protocols_cifs_share_acl
+func GetProtocolsCIFSShareACL(errorHandler *utils.ErrorHandler, r restclient.RestClient, svmID string, shareName string, userOrGroup string, aclType string) (*ProtocolsCIFSShareACLGetDataModelONTAP, error) {
+	api := fmt.Sprintf("/protocols/cifs/shares/%s/%s/acls/%s/%s", svmID, shareName, userOrGroup, aclType)
+	query := r.NewQuery()
+	query.Fields([]string{"user_or_group", "permission", "type", "share", "svm.name"})
+	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading protocols_cifs_share_acl info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
+	}
+
+	var dataONTAP ProtocolsCIFSShareACLGetDataModelONTAP
+	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
+		return nil, errorHandler.MakeAndReportError(fmt.Sprintf("failed to decode response from GET %s", api),
+			fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read protocols_cifs_share_acl: %#v", dataONTAP))
+	return &dataONTAP, nil
 }
 
 // CreateProtocolsCIFSShareACL to create protocols_cifs_share_acl

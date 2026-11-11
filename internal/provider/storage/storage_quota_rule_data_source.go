@@ -43,6 +43,7 @@ type StorageQuotaRuleDataSourceModel struct {
 	Qtree         *Qtree       `tfsdk:"qtree"`
 	Type          types.String `tfsdk:"type"`
 	Files         types.Object `tfsdk:"files"`
+	Space         types.Object `tfsdk:"space"`
 	UserMapping   types.Bool   `tfsdk:"user_mapping"`
 	ID            types.String `tfsdk:"id"`
 }
@@ -128,6 +129,19 @@ func (d *StorageQuotaRuleDataSource) Schema(ctx context.Context, req datasource.
 					},
 					"soft_limit": schema.Int64Attribute{
 						MarkdownDescription: "Specifies the soft limit for files",
+						Computed:            true,
+					},
+				},
+			},
+			"space": schema.SingleNestedAttribute{
+				Computed: true,
+				Attributes: map[string]schema.Attribute{
+					"hard_limit": schema.Int64Attribute{
+						MarkdownDescription: "Specifies the space hard limit, in bytes.",
+						Computed:            true,
+					},
+					"soft_limit": schema.Int64Attribute{
+						MarkdownDescription: "Specifies the space soft limit, in bytes.",
 						Computed:            true,
 					},
 				},
@@ -219,6 +233,20 @@ func (d *StorageQuotaRuleDataSource) Read(ctx context.Context, req datasource.Re
 		resp.Diagnostics.Append(diags...)
 	}
 	data.Files = objectValue
+	// Space
+	elementTypes = map[string]attr.Type{
+		"hard_limit": types.Int64Type,
+		"soft_limit": types.Int64Type,
+	}
+	elements = map[string]attr.Value{
+		"hard_limit": types.Int64Value(restInfo.Space.HardLimit),
+		"soft_limit": types.Int64Value(restInfo.Space.SoftLimit),
+	}
+	objectValue, diags = types.ObjectValue(elementTypes, elements)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+	}
+	data.Space = objectValue
 	data.UserMapping = types.BoolValue(restInfo.UserMapping)
 	data.ID = types.StringValue(restInfo.UUID)
 

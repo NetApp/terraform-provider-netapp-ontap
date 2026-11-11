@@ -54,10 +54,12 @@ resource "netapp-ontap_dns" "dns" {
 
 ### Optional
 
+> **NOTE**: [Write-only arguments](https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments) are supported in Terraform 1.11 and later.
+
 - `dns_domains` (Set of String) List of DNS domains such as 'sales.bar.com'. The first domain is the one that the svm belongs to
 - `dynamic_dns` (Block Set) Dynamic DNS update configuration for the SVM. (see [below for nested schema](#nestedatt--dynamic_dns))
 - `name_servers` (Set of String) List of IPv4 addresses of name servers such as '123.123.123.123'.
-- `skip_config_validation` (Bool) Indicates whether or not the validation for the specified DNS configuration is disabled. (9.9)
+- `skip_config_validation` (Boolean, [Write-only]) Indicates whether or not the validation for the specified DNS configuration is disabled. (9.9)
 
 ### Read-Only
 

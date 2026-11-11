@@ -74,6 +74,7 @@ Read-Only:
 - `files` (Attributes) (see [below for nested schema](#nestedatt--storage_quota_rules--files))
 - `group` (Attributes) group to which the group quota policy rule applies (see [below for nested schema](#nestedatt--storage_quota_rules--group))
 - `id` (String)
+- `space` (Attributes) (see [below for nested schema](#nestedatt--storage_quota_rules--space))
 - `user_mapping` (Boolean) user mapping for user quota policy rules
 - `users` (Attributes Set) user to which the user quota policy rule applies (see [below for nested schema](#nestedatt--storage_quota_rules--users))
 
@@ -117,6 +118,15 @@ Read-Only:
 Read-Only:
 
 - `name` (String) name of the group
+
+<a id="nestedatt--storage_quota_rules--space"></a>
+
+### Nested Schema for `storage_quota_rules.space`
+
+Read-Only:
+
+- `hard_limit` (Number) Specifies the space hard limit, in bytes.
+- `soft_limit` (Number) Specifies the space soft limit, in bytes.
 
 <a id="nestedatt--storage_quota_rules--users"></a>
 

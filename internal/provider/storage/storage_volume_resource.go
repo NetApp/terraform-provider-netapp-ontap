@@ -128,7 +128,18 @@ type StorageVolumeResourceAnalytics struct {
 
 // StorageVolumeResourceSnapLock describes the snaplock model.
 type StorageVolumeResourceSnapLock struct {
-	SnaplockType types.String `tfsdk:"type"`
+	Type              types.String                            `tfsdk:"type"`
+	AutocommitPeriod  types.String                            `tfsdk:"autocommit_period"`
+	AppendModeEnabled types.Bool                              `tfsdk:"append_mode_enabled"`
+	PrivilegedDelete  types.String                            `tfsdk:"privileged_delete"`
+	Retention         *StorageVolumeResourceSnapLockRetention `tfsdk:"retention"`
+}
+
+// StorageVolumeResourceSnapLockRetention describes the retention model within snaplock model.
+type StorageVolumeResourceSnapLockRetention struct {
+	Default types.String `tfsdk:"default"`
+	Maximum types.String `tfsdk:"maximum"`
+	Minimum types.String `tfsdk:"minimum"`
 }
 
 // StorageVolumeResourceEfficiency describes the efficiency model.
@@ -502,6 +513,72 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 						Computed:            true,
 						PlanModifiers: []planmodifier.String{
 							stringplanmodifier.UseStateForUnknown(),
+							stringplanmodifier.RequiresReplace(),
+						},
+					},
+					"autocommit_period": schema.StringAttribute{
+						MarkdownDescription: `
+						Specifies the autocommit period for SnapLock volume.
+						Duration is in the ISO-8601 duration format (eg PY, PM, PD, PTH, PTM).
+						Examples are P30M, P10Y, PT1H, none. A duration that combines different periods is not supported.
+						`,
+						Optional: true,
+						Computed: true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
+					},
+					"append_mode_enabled": schema.BoolAttribute{
+						MarkdownDescription: "Specifies if the volume append mode is enabled or disabled.",
+						Optional:            true,
+						Computed:            true,
+						PlanModifiers: []planmodifier.Bool{
+							boolplanmodifier.UseStateForUnknown(),
+						},
+					},
+					"privileged_delete": schema.StringAttribute{
+						MarkdownDescription: `
+						On a SnapLock Enterprise (SLE) volume, a designated privileged user can selectively delete files irrespective of the retention time of the file.
+						SLE volumes can have privileged delete as disabled, enabled or permanently_disabled and for SnapLock Compliance (SLC) volumes it is always permanently_disabled.
+						`,
+						Optional: true,
+						Computed: true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
+					},
+					"retention": schema.SingleNestedAttribute{
+						MarkdownDescription: "Default, maximum, and minumum retention periods for files committed to the WORM state on the volume.",
+						Optional:            true,
+						Computed:            true,
+						PlanModifiers: []planmodifier.Object{
+							objectplanmodifier.UseStateForUnknown(),
+						},
+						Attributes: map[string]schema.Attribute{
+							"default": schema.StringAttribute{
+								MarkdownDescription: "Default retention period that is applied to files while committing them to the WORM state without an associated retention period.",
+								Optional:            true,
+								Computed:            true,
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.UseStateForUnknown(),
+								},
+							},
+							"maximum": schema.StringAttribute{
+								MarkdownDescription: "Maximum allowed retention period for files committed to the WORM state on the volume.",
+								Optional:            true,
+								Computed:            true,
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.UseStateForUnknown(),
+								},
+							},
+							"minimum": schema.StringAttribute{
+								MarkdownDescription: "Minimum allowed retention period for files committed to the WORM state on the volume.",
+								Optional:            true,
+								Computed:            true,
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.UseStateForUnknown(),
+								},
+							},
 						},
 					},
 				},
@@ -521,7 +598,7 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 						},
 						MarkdownDescription: "Set file system analytics state of the volume",
 						Validators: []validator.String{
-							stringvalidator.OneOf("om", "off", "initializing", "initialization_paused", "unknown"),
+							stringvalidator.OneOf("on", "off", "initializing", "initialization_paused", "unknown"),
 						},
 					},
 				},
@@ -780,17 +857,50 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 	data.Space = objectValue
 
 	//Snaplock
-	elementTypes = map[string]attr.Type{
-		"type": types.StringType,
+	snaplockRetentionAttrTypes := map[string]attr.Type{
+		"default": types.StringType,
+		"maximum": types.StringType,
+		"minimum": types.StringType,
 	}
-	elements = map[string]attr.Value{
-		"type": types.StringValue(response.Snaplock.Type),
+	snaplockAttrTypes := map[string]attr.Type{
+		"type":                types.StringType,
+		"autocommit_period":   types.StringType,
+		"append_mode_enabled": types.BoolType,
+		"privileged_delete":   types.StringType,
+		"retention":           types.ObjectType{AttrTypes: snaplockRetentionAttrTypes},
 	}
-	objectValue, diags = types.ObjectValue(elementTypes, elements)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
+	snaplockValues := map[string]attr.Value{
+		"type":                types.StringNull(),
+		"autocommit_period":   types.StringNull(),
+		"append_mode_enabled": types.BoolNull(),
+		"privileged_delete":   types.StringNull(),
+		"retention":           types.ObjectNull(snaplockRetentionAttrTypes),
 	}
-	data.SnapLock = objectValue
+
+	if response.Snaplock != nil {
+		snaplockValues["type"] = types.StringValue(response.Snaplock.Type)
+		snaplockValues["autocommit_period"] = types.StringValue(response.Snaplock.AutocommitPeriod)
+		snaplockValues["append_mode_enabled"] = types.BoolPointerValue(response.Snaplock.AppendModeEnabled)
+		snaplockValues["privileged_delete"] = types.StringValue(response.Snaplock.PrivilegedDelete)
+		if response.Snaplock.Retention != nil {
+			retentionValue, d := types.ObjectValue(snaplockRetentionAttrTypes, map[string]attr.Value{
+				"default": types.StringValue(response.Snaplock.Retention.Default),
+				"maximum": types.StringValue(response.Snaplock.Retention.Maximum),
+				"minimum": types.StringValue(response.Snaplock.Retention.Minimum),
+			})
+			resp.Diagnostics.Append(d...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			snaplockValues["retention"] = retentionValue
+		}
+	}
+	snaplockObjectValue, d := types.ObjectValue(snaplockAttrTypes, snaplockValues)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	data.SnapLock = snaplockObjectValue
 
 	//Efficiency
 	elementTypes = map[string]attr.Type{
@@ -1135,14 +1245,34 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 		request.TieringPolicy.ObjectTags = objectTags
 	}
 
-	if !data.SnapLock.IsUnknown() {
+	// snaplock
+	if !data.SnapLock.IsNull() && !data.SnapLock.IsUnknown() {
 		var snapLock StorageVolumeResourceSnapLock
-		diags := data.SnapLock.As(ctx, &snapLock, basetypes.ObjectAsOptions{})
+		diags := data.SnapLock.As(ctx, &snapLock, basetypes.ObjectAsOptions{
+			UnhandledNullAsEmpty:    true,
+			UnhandledUnknownAsEmpty: true,
+		})
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		request.Snaplock.Type = snapLock.SnaplockType.ValueString()
+
+		var retentionBody *interfaces.Retention
+		if snapLock.Retention != nil {
+			retentionBody = &interfaces.Retention{
+				Default: snapLock.Retention.Default.ValueString(),
+				Maximum: snapLock.Retention.Maximum.ValueString(),
+				Minimum: snapLock.Retention.Minimum.ValueString(),
+			}
+		}
+
+		request.Snaplock = &interfaces.Snaplock{
+			Type:              snapLock.Type.ValueString(),
+			AutocommitPeriod:  snapLock.AutocommitPeriod.ValueString(),
+			AppendModeEnabled: snapLock.AppendModeEnabled.ValueBoolPointer(),
+			PrivilegedDelete:  snapLock.PrivilegedDelete.ValueString(),
+			Retention:         retentionBody,
+		}
 	}
 
 	if !data.Analytics.IsUnknown() {
@@ -1252,17 +1382,50 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	data.Space = objectValue
 
 	//Snaplock
-	elementTypes = map[string]attr.Type{
-		"type": types.StringType,
+	snaplockRetentionAttrTypes := map[string]attr.Type{
+		"default": types.StringType,
+		"maximum": types.StringType,
+		"minimum": types.StringType,
 	}
-	elements = map[string]attr.Value{
-		"type": types.StringValue(response.Snaplock.Type),
+	snaplockAttrTypes := map[string]attr.Type{
+		"type":                types.StringType,
+		"autocommit_period":   types.StringType,
+		"append_mode_enabled": types.BoolType,
+		"privileged_delete":   types.StringType,
+		"retention":           types.ObjectType{AttrTypes: snaplockRetentionAttrTypes},
 	}
-	objectValue, diags = types.ObjectValue(elementTypes, elements)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
+	snaplockValues := map[string]attr.Value{
+		"type":                types.StringNull(),
+		"autocommit_period":   types.StringNull(),
+		"append_mode_enabled": types.BoolNull(),
+		"privileged_delete":   types.StringNull(),
+		"retention":           types.ObjectNull(snaplockRetentionAttrTypes),
 	}
-	data.SnapLock = objectValue
+
+	if response.Snaplock != nil {
+		snaplockValues["type"] = types.StringValue(response.Snaplock.Type)
+		snaplockValues["autocommit_period"] = types.StringValue(response.Snaplock.AutocommitPeriod)
+		snaplockValues["append_mode_enabled"] = types.BoolPointerValue(response.Snaplock.AppendModeEnabled)
+		snaplockValues["privileged_delete"] = types.StringValue(response.Snaplock.PrivilegedDelete)
+		if response.Snaplock.Retention != nil {
+			retentionValue, d := types.ObjectValue(snaplockRetentionAttrTypes, map[string]attr.Value{
+				"default": types.StringValue(response.Snaplock.Retention.Default),
+				"maximum": types.StringValue(response.Snaplock.Retention.Maximum),
+				"minimum": types.StringValue(response.Snaplock.Retention.Minimum),
+			})
+			resp.Diagnostics.Append(d...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			snaplockValues["retention"] = retentionValue
+		}
+	}
+	snaplockObjectValue, d := types.ObjectValue(snaplockAttrTypes, snaplockValues)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	data.SnapLock = snaplockObjectValue
 
 	//Efficiency
 	elementTypes = map[string]attr.Type{
@@ -1572,13 +1735,62 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 	}
 
 	if !plan.SnapLock.Equal(state.SnapLock) {
-		var snapLock StorageVolumeResourceSnapLock
-		diags := plan.SnapLock.As(ctx, &snapLock, basetypes.ObjectAsOptions{})
+		var planSnapLock, stateSnapLock StorageVolumeResourceSnapLock
+		asOptions := basetypes.ObjectAsOptions{
+			UnhandledNullAsEmpty:    true,
+			UnhandledUnknownAsEmpty: true,
+		}
+		diags := plan.SnapLock.As(ctx, &planSnapLock, asOptions)
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		request.Snaplock.Type = snapLock.SnaplockType.ValueString()
+		diags = state.SnapLock.As(ctx, &stateSnapLock, asOptions)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+
+		snapLockPatch := interfaces.Snaplock{}
+		snapLockChanged := false
+
+		if !planSnapLock.AutocommitPeriod.Equal(stateSnapLock.AutocommitPeriod) {
+			snapLockPatch.AutocommitPeriod = planSnapLock.AutocommitPeriod.ValueString()
+			snapLockChanged = true
+		}
+		if !planSnapLock.AppendModeEnabled.Equal(stateSnapLock.AppendModeEnabled) {
+			snapLockPatch.AppendModeEnabled = planSnapLock.AppendModeEnabled.ValueBoolPointer()
+			snapLockChanged = true
+		}
+		if !planSnapLock.PrivilegedDelete.Equal(stateSnapLock.PrivilegedDelete) {
+			snapLockPatch.PrivilegedDelete = planSnapLock.PrivilegedDelete.ValueString()
+			snapLockChanged = true
+		}
+
+		retentionPatch := interfaces.Retention{}
+		retentionChanged := false
+		if planSnapLock.Retention != nil {
+			if stateSnapLock.Retention == nil || !planSnapLock.Retention.Default.Equal(stateSnapLock.Retention.Default) {
+				retentionPatch.Default = planSnapLock.Retention.Default.ValueString()
+				retentionChanged = true
+			}
+			if stateSnapLock.Retention == nil || !planSnapLock.Retention.Maximum.Equal(stateSnapLock.Retention.Maximum) {
+				retentionPatch.Maximum = planSnapLock.Retention.Maximum.ValueString()
+				retentionChanged = true
+			}
+			if stateSnapLock.Retention == nil || !planSnapLock.Retention.Minimum.Equal(stateSnapLock.Retention.Minimum) {
+				retentionPatch.Minimum = planSnapLock.Retention.Minimum.ValueString()
+				retentionChanged = true
+			}
+		}
+		if retentionChanged {
+			snapLockPatch.Retention = &retentionPatch
+			snapLockChanged = true
+		}
+
+		if snapLockChanged {
+			request.Snaplock = &snapLockPatch
+		}
 	}
 
 	if !plan.Analytics.Equal(state.Analytics) {
@@ -1824,17 +2036,51 @@ func readVolume(ctx context.Context, client *restclient.RestClient, data *Storag
 	data.Space = objectValue
 
 	//Snaplock
-	elementTypes = map[string]attr.Type{
-		"type": types.StringType,
+	snaplockRetentionAttrTypes := map[string]attr.Type{
+		"default": types.StringType,
+		"maximum": types.StringType,
+		"minimum": types.StringType,
 	}
-	elements = map[string]attr.Value{
-		"type": types.StringValue(response.Snaplock.Type),
+	snaplockAttrTypes := map[string]attr.Type{
+		"type":                types.StringType,
+		"autocommit_period":   types.StringType,
+		"append_mode_enabled": types.BoolType,
+		"privileged_delete":   types.StringType,
+		"retention":           types.ObjectType{AttrTypes: snaplockRetentionAttrTypes},
 	}
-	objectValue, diags = types.ObjectValue(elementTypes, elements)
-	if diags.HasError() {
-		allDiags.Append(diags...)
+	snaplockValues := map[string]attr.Value{
+		"type":                types.StringNull(),
+		"autocommit_period":   types.StringNull(),
+		"append_mode_enabled": types.BoolNull(),
+		"privileged_delete":   types.StringNull(),
+		"retention":           types.ObjectNull(snaplockRetentionAttrTypes),
 	}
-	data.SnapLock = objectValue
+
+	if response.Snaplock != nil {
+		snaplockValues["type"] = types.StringValue(response.Snaplock.Type)
+		snaplockValues["autocommit_period"] = types.StringValue(response.Snaplock.AutocommitPeriod)
+		snaplockValues["append_mode_enabled"] = types.BoolPointerValue(response.Snaplock.AppendModeEnabled)
+		snaplockValues["privileged_delete"] = types.StringValue(response.Snaplock.PrivilegedDelete)
+		if response.Snaplock.Retention != nil {
+			retentionValue, retentionDiags := types.ObjectValue(snaplockRetentionAttrTypes, map[string]attr.Value{
+				"default": types.StringValue(response.Snaplock.Retention.Default),
+				"maximum": types.StringValue(response.Snaplock.Retention.Maximum),
+				"minimum": types.StringValue(response.Snaplock.Retention.Minimum),
+			})
+			if retentionDiags.HasError() {
+				allDiags.Append(retentionDiags...)
+				return allDiags
+			}
+			snaplockValues["retention"] = retentionValue
+		}
+	}
+	snaplockObjectValue, snaplockDiags := types.ObjectValue(snaplockAttrTypes, snaplockValues)
+	if snaplockDiags.HasError() {
+		allDiags.Append(snaplockDiags...)
+		return allDiags
+	}
+	data.SnapLock = snaplockObjectValue
+
 	if response.SnapshotLockingEnabled != nil {
 		data.SnapshotLockingEnabled = types.BoolValue(*response.SnapshotLockingEnabled)
 	} else {

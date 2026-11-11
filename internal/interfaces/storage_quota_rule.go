@@ -11,31 +11,34 @@ import (
 
 // StorageQuotaRulesGetDataModelONTAP describes the GET record data model using go types for mapping.
 type StorageQuotaRulesGetDataModelONTAP struct {
-	SVM         svm    `mapstructure:"svm"`
-	Volume      volume `mapstructure:"volume"`
-	Users       []User `mapstructure:"users,omitempty"`
-	Group       Group  `mapstructure:"group,omitempty"`
-	Qtree       Qtree  `mapstructure:"qtree,omitempty"`
-	Type        string `mapstructure:"type"`
-	Files       Files  `mapstructure:"files,omitempty"`
-	UserMapping bool   `mapstructure:"user_mapping,omitempty"`
-	UUID        string `mapstructure:"uuid"`
+	SVM         svm                     `mapstructure:"svm"`
+	Volume      volume                  `mapstructure:"volume"`
+	Users       []User                  `mapstructure:"users,omitempty"`
+	Group       Group                   `mapstructure:"group,omitempty"`
+	Qtree       Qtree                   `mapstructure:"qtree,omitempty"`
+	Type        string                  `mapstructure:"type"`
+	Files       Files                   `mapstructure:"files,omitempty"`
+	Space       QuotaRuleSpaceDataModel `mapstructure:"space,omitempty"`
+	UserMapping bool                    `mapstructure:"user_mapping,omitempty"`
+	UUID        string                  `mapstructure:"uuid"`
 }
 
 // StorageQuotaRulesResourceBodyDataModelONTAP describes the body data model using go types for mapping.
 type StorageQuotaRulesResourceBodyDataModelONTAP struct {
-	SVM    svm      `mapstructure:"svm,omitempty"`
-	Volume volume   `mapstructure:"volume,omitempty"`
-	Users  []string `mapstructure:"users,omitempty"`
-	Group  Group    `mapstructure:"group,omitempty"`
-	Qtree  Qtree    `mapstructure:"qtree"`
-	Type   string   `mapstructure:"type,omitempty"`
-	Files  Files    `mapstructure:"files,omitempty"`
+	SVM    svm                     `mapstructure:"svm,omitempty"`
+	Volume volume                  `mapstructure:"volume,omitempty"`
+	Users  []string                `mapstructure:"users,omitempty"`
+	Group  Group                   `mapstructure:"group,omitempty"`
+	Qtree  Qtree                   `mapstructure:"qtree"`
+	Type   string                  `mapstructure:"type,omitempty"`
+	Files  Files                   `mapstructure:"files,omitempty"`
+	Space  QuotaRuleSpaceDataModel `mapstructure:"space,omitempty"`
 }
 
 // StorageQuotaRulesResourceBodyUpdateModelONTAP describes the body data model using go types for mapping.
 type StorageQuotaRulesResourceBodyUpdateModelONTAP struct {
-	Files Files `mapstructure:"files,omitempty"`
+	Files Files                   `mapstructure:"files,omitempty"`
+	Space QuotaRuleSpaceDataModel `mapstructure:"space,omitempty"`
 }
 
 // StorageQuotaRulesCreateResponse describes the Create record data model using go types for mapping.
@@ -56,8 +59,14 @@ type User struct {
 }
 
 type Files struct {
-	SoftLimit int64 `mapstructure:"soft_limit"`
-	HardLimit int64 `mapstructure:"hard_limit"`
+	SoftLimit int64 `mapstructure:"soft_limit,omitempty"`
+	HardLimit int64 `mapstructure:"hard_limit,omitempty"`
+}
+
+// Space already declared in storage_volume.go
+type QuotaRuleSpaceDataModel struct {
+	SoftLimit int64 `mapstructure:"soft_limit,omitempty"`
+	HardLimit int64 `mapstructure:"hard_limit,omitempty"`
 }
 
 // StorageQuotaRulesDataSourceFilterModel describes the data source data model for queries.
@@ -76,7 +85,7 @@ func GetStorageQuotaRules(errorHandler *utils.ErrorHandler, r restclient.RestCli
 	query.Set("type", quotaType)
 	query.Set("qtree.name", qtree)
 	query.Set("svm.name", svmName)
-	query.Fields([]string{"volume", "svm", "type", "qtree", "users", "group", "files", "user_mapping", "uuid"})
+	query.Fields([]string{"volume", "svm", "type", "qtree", "users", "group", "files", "space", "user_mapping", "uuid"})
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
 		err = fmt.Errorf("no response for GET %s", api)
@@ -98,7 +107,7 @@ func GetStorageQuotaRules(errorHandler *utils.ErrorHandler, r restclient.RestCli
 func GetStorageQuotaRulesByUUID(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) (*StorageQuotaRulesGetDataModelONTAP, error) {
 	api := "storage/quota/rules/" + uuid
 	query := r.NewQuery()
-	query.Fields([]string{"svm.name", "volume.name", "users", "group", "qtree", "type", "files", "uuid"})
+	query.Fields([]string{"svm.name", "volume.name", "users", "group", "qtree", "type", "files", "space", "uuid"})
 	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
 	if err == nil && response == nil {
 		err = fmt.Errorf("no response for GET %s", api)
@@ -120,7 +129,7 @@ func GetStorageQuotaRulesByUUID(errorHandler *utils.ErrorHandler, r restclient.R
 func GetOneORMoreStorageQuotaRules(errorHandler *utils.ErrorHandler, r restclient.RestClient, filter *StorageQuotaRulesDataSourceFilterModel) ([]StorageQuotaRulesGetDataModelONTAP, error) {
 	api := "storage/quota/rules"
 	query := r.NewQuery()
-	query.Fields([]string{"volume", "svm", "type", "qtree", "users", "group", "files", "user_mapping", "uuid"})
+	query.Fields([]string{"volume", "svm", "type", "qtree", "users", "group", "files", "space", "user_mapping", "uuid"})
 	if filter != nil {
 		var filterMap map[string]interface{}
 		if err := mapstructure.Decode(filter, &filterMap); err != nil {

@@ -20,21 +20,21 @@ type StorageVolumeGetDataModelONTAP struct {
 	State                  string
 	Type                   string
 	Comment                string
-	SpaceGuarantee         Guarantee `mapstructure:"guarantee"`
+	SpaceGuarantee         Guarantee      `mapstructure:"guarantee"`
 	NAS                    NAS
 	QOS                    QOS
 	Encryption             Encryption
 	Efficiency             Efficiency
 	SnapshotPolicy         SnapshotPolicy `mapstructure:"snapshot_policy,omitempty"`
 	TieringPolicy          TieringPolicy  `mapstructure:"tiering,omitempty"`
-	Snaplock               Snaplock
+	Snaplock               *Snaplock      `mapstructure:"snaplock,omitempty"`
 	Analytics              Analytics
 	Language               string
 	Aggregates             []Aggregate
-	Autosize               Autosize `mapstructure:"autosize,omitempty"`
+	Autosize               Autosize       `mapstructure:"autosize,omitempty"`
 	UUID                   string
-	SnapshotLockingEnabled *bool    `mapstructure:"snapshot_locking_enabled,omitempty"`
-	Tags                   []string `mapstructure:"_tags,omitempty"`
+	SnapshotLockingEnabled *bool          `mapstructure:"snapshot_locking_enabled,omitempty"`
+	Tags                   []string       `mapstructure:"_tags,omitempty"`
 }
 
 // StorageVolumeResourceModel describes the resource data model.
@@ -52,7 +52,7 @@ type StorageVolumeResourceModel struct {
 	Efficiency             Efficiency               `mapstructure:"efficiency,omitempty"`
 	SnapshotPolicy         SnapshotPolicy           `mapstructure:"snapshot_policy,omitempty"`
 	TieringPolicy          TieringPolicy            `mapstructure:"tiering,omitempty"`
-	Snaplock               Snaplock                 `mapstructure:"snaplock,omitempty"`
+	Snaplock               *Snaplock                `mapstructure:"snaplock,omitempty"`
 	Analytics              Analytics                `mapstructure:"analytics,omitempty"`
 	Language               string                   `mapstructure:"language,omitempty"`
 	Aggregates             []map[string]interface{} `mapstructure:"aggregates,omitempty"`
@@ -94,7 +94,18 @@ type Efficiency struct {
 
 // Snaplock describes the resource data model.
 type Snaplock struct {
-	Type string `mapstructure:"type,omitempty"`
+	Type              string     `mapstructure:"type,omitempty"`
+	AutocommitPeriod  string     `mapstructure:"autocommit_period,omitempty"`
+	AppendModeEnabled *bool      `mapstructure:"append_mode_enabled,omitempty"`
+	PrivilegedDelete  string     `mapstructure:"privileged_delete,omitempty"`
+	Retention         *Retention `mapstructure:"retention,omitempty"`
+}
+
+// Retention describes the retention data model using go types for mapping
+type Retention struct {
+	Default string `mapstructure:"default,omitempty" json:"default,omitempty"`
+	Maximum string `mapstructure:"maximum,omitempty" json:"maximum,omitempty"`
+	Minimum string `mapstructure:"minimum,omitempty" json:"minimum,omitempty"`
 }
 
 // Policy describes the resource data model.
@@ -241,7 +252,7 @@ func GetStorageVolume(errorHandler *utils.ErrorHandler, r restclient.RestClient,
 	query := r.NewQuery()
 	query.Fields([]string{"name", "svm.name", "aggregates", "space.size", "state", "type", "nas.export_policy.name", "nas.path", "guarantee.type", "space.snapshot.reserve_percent", "efficiency.dedupe", "efficiency.compaction",
 		"nas.security_style", "encryption.enabled", "efficiency.policy.name", "nas.unix_permissions", "nas.gid", "nas.uid", "snapshot_policy.name", "language", "qos.policy.name", "snapshot_locking_enabled",
-		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "tiering.object_tags", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state", "autosize", "_tags"})
+		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "tiering.object_tags", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock", "analytics.state", "autosize", "_tags"})
 	statusCode, response, err := r.GetNilOrOneRecord("storage/volumes/"+uuid, query, nil)
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError("error reading volume info", fmt.Sprintf("error on GET storage/volumes: %s", err))
@@ -266,7 +277,7 @@ func GetStorageVolumeByName(errorHandler *utils.ErrorHandler, r restclient.RestC
 	query.Add("return_records", "true")
 	query.Fields([]string{"name", "uuid", "svm.name", "aggregates", "space.size", "state", "type", "nas.export_policy.name", "nas.path", "guarantee.type", "space.snapshot.reserve_percent", "efficiency.dedupe", "efficiency.compaction",
 		"nas.security_style", "encryption.enabled", "efficiency.policy.name", "nas.unix_permissions", "nas.gid", "nas.uid", "snapshot_policy.name", "language", "qos.policy.name", "snapshot_locking_enabled",
-		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "tiering.object_tags", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state", "autosize", "_tags"})
+		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "tiering.object_tags", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock", "analytics.state", "autosize", "_tags"})
 	statusCode, response, err := r.GetNilOrOneRecord("storage/volumes", query, nil)
 	if err != nil {
 		return nil, errorHandler.MakeAndReportError("error reading volume info by name", fmt.Sprintf("error on GET storage/volumes: %s", err))
@@ -293,7 +304,7 @@ func GetStorageVolumes(errorHandler *utils.ErrorHandler, r restclient.RestClient
 	query := r.NewQuery()
 	query.Fields([]string{"name", "svm.name", "aggregates", "space.size", "state", "type", "nas.export_policy.name", "nas.path", "guarantee.type", "space.snapshot.reserve_percent", "efficiency.dedupe", "efficiency.compaction",
 		"nas.security_style", "encryption.enabled", "efficiency.policy.name", "nas.unix_permissions", "nas.gid", "nas.uid", "snapshot_policy.name", "language", "qos.policy.name", "snapshot_locking_enabled",
-		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "tiering.object_tags", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock.type", "analytics.state", "autosize", "_tags"})
+		"tiering.policy", "comment", "efficiency.compression", "tiering.min_cooling_days", "tiering.object_tags", "space.logical_space.enforcement", "space.logical_space.reporting", "snaplock", "analytics.state", "autosize", "_tags"})
 
 	if filter != nil {
 		var filterMap map[string]interface{}

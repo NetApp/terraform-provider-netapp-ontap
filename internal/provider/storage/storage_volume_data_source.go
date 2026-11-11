@@ -77,7 +77,18 @@ type StorageVolumeDataSourceAnalytics struct {
 
 // StorageVolumeDataSourceSnapLock describes the snaplock model.
 type StorageVolumeDataSourceSnapLock struct {
-	SnaplockType types.String `tfsdk:"type"`
+	Type              types.String                             `tfsdk:"type"`
+	AutocommitPeriod  types.String                             `tfsdk:"autocommit_period"`
+	PrivilegedDelete  types.String                             `tfsdk:"privileged_delete"`
+	AppendModeEnabled types.Bool                               `tfsdk:"append_mode_enabled"`
+	Retention         StorageVolumeDataSourceSnapLockRetention `tfsdk:"retention"`
+}
+
+// StorageVolumeDataSourceSnapLockRetention describes the retention model within snaplock model.
+type StorageVolumeDataSourceSnapLockRetention struct {
+	Default types.String `tfsdk:"default"`
+	Maximum types.String `tfsdk:"maximum"`
+	Minimum types.String `tfsdk:"minimum"`
 }
 
 // StorageVolumeDataSourceEfficiency describes the efficiency model.
@@ -304,6 +315,43 @@ func (d *StorageVolumeDataSource) Schema(ctx context.Context, req datasource.Sch
 						MarkdownDescription: "The SnapLock type of the volume",
 						Computed:            true,
 					},
+					"autocommit_period": schema.StringAttribute{
+						MarkdownDescription: `
+						Specifies the autocommit period for SnapLock volume.
+						Duration is in the ISO-8601 duration format (eg PY, PM, PD, PTH, PTM).
+						Examples are P30M, P10Y, PT1H, none. A duration that combines different periods is not supported.
+						`,
+						Computed: true,
+					},
+					"append_mode_enabled": schema.BoolAttribute{
+						MarkdownDescription: "Specifies if the volume append mode is enabled or disabled.",
+						Computed:            true,
+					},
+					"privileged_delete": schema.StringAttribute{
+						MarkdownDescription: `
+						On a SnapLock Enterprise (SLE) volume, a designated privileged user can selectively delete files irrespective of the retention time of the file.
+						SLE volumes can have privileged delete as disabled, enabled or permanently_disabled and for SnapLock Compliance (SLC) volumes it is always permanently_disabled.
+						`,
+						Computed: true,
+					},
+					"retention": schema.SingleNestedAttribute{
+						MarkdownDescription: "Default, maximum, and minumum retention periods for files committed to the WORM state on the volume.",
+						Computed:            true,
+						Attributes: map[string]schema.Attribute{
+							"default": schema.StringAttribute{
+								MarkdownDescription: "Default retention period that is applied to files while committing them to the WORM state without an associated retention period.",
+								Computed:            true,
+							},
+							"maximum": schema.StringAttribute{
+								MarkdownDescription: "Maximum allowed retention period for files committed to the WORM state on the volume.",
+								Computed:            true,
+							},
+							"minimum": schema.StringAttribute{
+								MarkdownDescription: "Minimum allowed retention period for files committed to the WORM state on the volume.",
+								Computed:            true,
+							},
+						},
+					},
 				},
 			},
 			"analytics": schema.SingleNestedAttribute{
@@ -445,9 +493,26 @@ func (d *StorageVolumeDataSource) Read(ctx context.Context, req datasource.ReadR
 		Dedupe:      types.StringValue(volume.Efficiency.Dedupe),
 		Compaction:  types.StringValue(volume.Efficiency.Compaction),
 	}
-	data.SnapLock = &StorageVolumeDataSourceSnapLock{
-		SnaplockType: types.StringValue(volume.Snaplock.Type),
+	// snaplock
+	if volume.Snaplock != nil {
+		snapLock := &StorageVolumeDataSourceSnapLock{
+			Type:              types.StringValue(volume.Snaplock.Type),
+			AutocommitPeriod:  types.StringValue(volume.Snaplock.AutocommitPeriod),
+			PrivilegedDelete:  types.StringValue(volume.Snaplock.PrivilegedDelete),
+			AppendModeEnabled: types.BoolPointerValue(volume.Snaplock.AppendModeEnabled),
+		}
+		if volume.Snaplock.Retention != nil {
+			snapLock.Retention = StorageVolumeDataSourceSnapLockRetention{
+				Default: types.StringValue(volume.Snaplock.Retention.Default),
+				Maximum: types.StringValue(volume.Snaplock.Retention.Maximum),
+				Minimum: types.StringValue(volume.Snaplock.Retention.Minimum),
+			}
+		}
+		data.SnapLock = snapLock
+	} else {
+		data.SnapLock = nil
 	}
+
 	data.SnapshotLockingEnabled = types.BoolValue(*volume.SnapshotLockingEnabled)
 
 	data.Analytics = &StorageVolumeDataSourceAnalytics{

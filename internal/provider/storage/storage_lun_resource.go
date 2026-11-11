@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
@@ -23,6 +25,7 @@ import (
 // Ensure provider defined types fully satisfy framework interfaces
 var _ resource.Resource = &StorageLunResource{}
 var _ resource.ResourceWithImportState = &StorageLunResource{}
+var _ resource.ResourceWithModifyPlan = &StorageLunResource{}
 
 // NewStorageLunResource is a helper function to simplify the provider implementation.
 func NewStorageLunResource() resource.Resource {
@@ -60,7 +63,17 @@ type StorageLunResourceModel struct {
 	SerialNumber  types.String `tfsdk:"serial_number"`
 	LogicalUnit   types.String `tfsdk:"logical_unit"`
 	Allocation    types.Bool   `tfsdk:"scsi_thin_provisioning_support_enabled"`
+	Space         types.Object `tfsdk:"space"`
 	ID            types.String `tfsdk:"id"`
+}
+
+type StorageLunResourceSpace struct {
+	Guarantee *StorageLunResourceSpaceGuarantee `tfsdk:"guarantee"`
+}
+
+type StorageLunResourceSpaceGuarantee struct {
+	Requested types.Bool `tfsdk:"requested"`
+	Reserved  types.Bool `tfsdk:"reserved"`
 }
 
 // Metadata returns the resource type name.
@@ -134,6 +147,37 @@ func (r *StorageLunResource) Schema(ctx context.Context, req resource.SchemaRequ
 					boolplanmodifier.UseStateForUnknown(),
 				},
 			},
+			"space": schema.SingleNestedAttribute{
+				MarkdownDescription: "Space-related properties for the LUN.",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Object{objectplanmodifier.UseStateForUnknown()},
+				Attributes: map[string]schema.Attribute{
+					"guarantee": schema.SingleNestedAttribute{
+						MarkdownDescription: "Properties that request and report the space guarantee for the LUN.",
+						Optional:            true,
+						Computed:            true,
+						PlanModifiers: []planmodifier.Object{objectplanmodifier.UseStateForUnknown()},
+						Attributes: map[string]schema.Attribute{
+							"requested": schema.BoolAttribute{
+								MarkdownDescription: "The requested space reservation policy for the LUN. If true, space reservation is requested; if false, the LUN is thin provisioned.",
+								Optional:            true,
+								Computed:            true,
+								PlanModifiers: []planmodifier.Bool{
+									boolplanmodifier.UseStateForUnknown(),
+								},
+							},
+							"reserved": schema.BoolAttribute{
+								MarkdownDescription: "Reports whether the LUN is actually space guaranteed by ONTAP.",
+								Computed:            true,
+								PlanModifiers: []planmodifier.Bool{
+									boolplanmodifier.UseStateForUnknown(),
+								},
+							},
+						},
+					},
+				},
+			},
 			"id": schema.StringAttribute{
 				MarkdownDescription: "StorageLun UUID",
 				Computed:            true,
@@ -159,6 +203,67 @@ func (r *StorageLunResource) Configure(ctx context.Context, req resource.Configu
 		)
 	}
 	r.config.ProviderConfig = config
+}
+
+// ModifyPlan marks space.guarantee.reserved as unknown when space changes.
+// reserved is computed by ONTAP after the update, to refresh the space reserved with new value.
+func (r *StorageLunResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// Only relevant during updates (both plan and state are non-null)
+	if req.Plan.Raw.IsNull() || req.State.Raw.IsNull() {
+		return
+	}
+
+	var plan, state StorageLunResourceModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// name is computed from ONTAP when config only supplies logical_unit/volume_name.
+	// Keep it unknown during updates that change those inputs so Terraform accepts
+	// the refreshed path returned after apply.
+	if plan.Name.Equal(state.Name) && (!plan.LogicalUnit.Equal(state.LogicalUnit) || !plan.VolumeName.Equal(state.VolumeName)) {
+		resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, path.Root("name"), types.StringUnknown())...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
+	// Only proceed if space.guarantee changed
+	if plan.Space.Equal(state.Space) || plan.Space.IsNull() || plan.Space.IsUnknown() {
+		return
+	}
+
+	// Extract guarantee object from plan
+	guaranteeAttr, ok := plan.Space.Attributes()["guarantee"].(types.Object)
+	if !ok || guaranteeAttr.IsNull() || guaranteeAttr.IsUnknown() {
+		return
+	}
+
+	// Mark reserved as unknown so Terraform accepts the ONTAP re-read value
+	unknownGuarantee, diags := types.ObjectValue(
+		map[string]attr.Type{"requested": types.BoolType, "reserved": types.BoolType},
+		map[string]attr.Value{
+			"requested": guaranteeAttr.Attributes()["requested"],
+			"reserved":  types.BoolUnknown(),
+		},
+	)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	unknownSpace, diags := types.ObjectValue(
+		map[string]attr.Type{"guarantee": unknownGuarantee.Type(ctx)},
+		map[string]attr.Value{"guarantee": unknownGuarantee},
+	)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, path.Root("space"), unknownSpace)...)
 }
 
 // ConfigValidators validates entire resource configurations
@@ -218,6 +323,25 @@ func (r *StorageLunResource) Read(ctx context.Context, req resource.ReadRequest,
 	data.OSType = types.StringValue(restInfo.OSType)
 	data.SerialNumber = types.StringValue(restInfo.SerialNumber)
 	data.Allocation = types.BoolPointerValue(restInfo.Space.Allocation)
+	if restInfo.Space.Guarantee != nil {
+		guaranteeObj, diags := types.ObjectValue(
+			map[string]attr.Type{"requested": types.BoolType, "reserved": types.BoolType},
+			map[string]attr.Value{
+				"requested": types.BoolPointerValue(restInfo.Space.Guarantee.Requested),
+				"reserved":  types.BoolPointerValue(restInfo.Space.Guarantee.Reserved),
+			},
+		)
+		resp.Diagnostics.Append(diags...)
+		data.Space, diags = types.ObjectValue(
+			map[string]attr.Type{"guarantee": guaranteeObj.Type(ctx)},
+			map[string]attr.Value{"guarantee": guaranteeObj},
+		)
+		resp.Diagnostics.Append(diags...)
+	} else {
+		data.Space = types.ObjectNull(map[string]attr.Type{
+			"guarantee": types.ObjectType{AttrTypes: map[string]attr.Type{"requested": types.BoolType, "reserved": types.BoolType}},
+		})
+	}
 	if !data.SizeUnit.IsNull() {
 		var sizeUnit string
 		var size int64
@@ -278,6 +402,13 @@ func (r *StorageLunResource) Create(ctx context.Context, req resource.CreateRequ
 	if !data.Allocation.IsNull() {
 		body.Space.Allocation = data.Allocation.ValueBoolPointer()
 	}
+	if !data.Space.IsNull() && !data.Space.IsUnknown() {
+		if guaranteeAttr, ok := data.Space.Attributes()["guarantee"].(types.Object); ok && !guaranteeAttr.IsNull() && !guaranteeAttr.IsUnknown() {
+			if requestedAttr, ok := guaranteeAttr.Attributes()["requested"].(types.Bool); ok && !requestedAttr.IsNull() && !requestedAttr.IsUnknown() {
+				body.Space.Guarantee = &interfaces.LunSpaceGuarantee{Requested: requestedAttr.ValueBoolPointer()}
+			}
+		}
+	}
 
 	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
@@ -295,6 +426,25 @@ func (r *StorageLunResource) Create(ctx context.Context, req resource.CreateRequ
 	data.LogicalUnit = types.StringValue(resource.Location.LogicalUnit)
 	data.Name = types.StringValue(resource.Name)
 	data.Allocation = types.BoolPointerValue(resource.Space.Allocation)
+	if resource.Space.Guarantee != nil {
+		guaranteeObj, diags := types.ObjectValue(
+			map[string]attr.Type{"requested": types.BoolType, "reserved": types.BoolType},
+			map[string]attr.Value{
+				"requested": types.BoolPointerValue(resource.Space.Guarantee.Requested),
+				"reserved":  types.BoolPointerValue(resource.Space.Guarantee.Reserved),
+			},
+		)
+		resp.Diagnostics.Append(diags...)
+		data.Space, diags = types.ObjectValue(
+			map[string]attr.Type{"guarantee": guaranteeObj.Type(ctx)},
+			map[string]attr.Value{"guarantee": guaranteeObj},
+		)
+		resp.Diagnostics.Append(diags...)
+	} else {
+		data.Space = types.ObjectNull(map[string]attr.Type{
+			"guarantee": types.ObjectType{AttrTypes: map[string]attr.Type{"requested": types.BoolType, "reserved": types.BoolType}},
+		})
+	}
 
 	tflog.Trace(ctx, "created a resource")
 
@@ -352,9 +502,62 @@ func (r *StorageLunResource) Update(ctx context.Context, req resource.UpdateRequ
 	if !plan.Allocation.Equal(state.Allocation) {
 		request.Space.Allocation = plan.Allocation.ValueBoolPointer()
 	}
+	if !plan.Space.Equal(state.Space) && !plan.Space.IsNull() && !plan.Space.IsUnknown() {
+		if guaranteeAttr, ok := plan.Space.Attributes()["guarantee"].(types.Object); ok && !guaranteeAttr.IsNull() && !guaranteeAttr.IsUnknown() {
+			if requestedAttr, ok := guaranteeAttr.Attributes()["requested"].(types.Bool); ok && !requestedAttr.IsNull() && !requestedAttr.IsUnknown() {
+				stateRequestedChanged := true
+				if !state.Space.IsNull() && !state.Space.IsUnknown() {
+					if stateGuarantee, ok := state.Space.Attributes()["guarantee"].(types.Object); ok && !stateGuarantee.IsNull() && !stateGuarantee.IsUnknown() {
+						if stateRequested, ok := stateGuarantee.Attributes()["requested"].(types.Bool); ok && !stateRequested.IsNull() && !stateRequested.IsUnknown() {
+							stateRequestedChanged = !requestedAttr.Equal(stateRequested)
+						}
+					}
+				}
+				if stateRequestedChanged {
+					request.Space.Guarantee = &interfaces.LunSpaceGuarantee{Requested: requestedAttr.ValueBoolPointer()}
+				}
+			}
+		}
+	}
 	err = interfaces.UpdateStorageLun(errorHandler, *client, state.ID.ValueString(), request)
 	if err != nil {
 		return
+	}
+
+	// Re-read from ONTAP to get updated state including computed reserved field
+	restInfo, err := interfaces.GetStorageLunByUUID(errorHandler, *client, state.ID.ValueString())
+	if err != nil {
+		return
+	}
+
+	// Rebuild all fields from ONTAP response
+	plan.Name = types.StringValue(restInfo.Name)
+	plan.LogicalUnit = types.StringValue(restInfo.Location.LogicalUnit)
+	plan.SVMName = types.StringValue(restInfo.SVM.Name)
+	plan.VolumeName = types.StringValue(restInfo.Location.Volume.Name)
+	plan.OSType = types.StringValue(restInfo.OSType)
+	plan.SerialNumber = types.StringValue(restInfo.SerialNumber)
+	plan.Allocation = types.BoolPointerValue(restInfo.Space.Allocation)
+
+	// Rebuild space.guarantee from ONTAP response
+	if restInfo.Space.Guarantee != nil {
+		guaranteeObj, diags := types.ObjectValue(
+			map[string]attr.Type{"requested": types.BoolType, "reserved": types.BoolType},
+			map[string]attr.Value{
+				"requested": types.BoolPointerValue(restInfo.Space.Guarantee.Requested),
+				"reserved":  types.BoolPointerValue(restInfo.Space.Guarantee.Reserved),
+			},
+		)
+		resp.Diagnostics.Append(diags...)
+		plan.Space, diags = types.ObjectValue(
+			map[string]attr.Type{"guarantee": guaranteeObj.Type(ctx)},
+			map[string]attr.Value{"guarantee": guaranteeObj},
+		)
+		resp.Diagnostics.Append(diags...)
+	} else {
+		plan.Space = types.ObjectNull(map[string]attr.Type{
+			"guarantee": types.ObjectType{AttrTypes: map[string]attr.Type{"requested": types.BoolType, "reserved": types.BoolType}},
+		})
 	}
 
 	// Save updated data into Terraform state
