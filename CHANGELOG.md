@@ -17,6 +17,7 @@ ENHANCEMENTS:
 - **netapp-ontap_quota_rule**: New options under `space` added. ([#446](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/446))
 - **netapp-ontap_snapmirror**: Added support for snapmirror break and resync. ([#728](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/728))
 - **netapp-ontap_volume**: New options under `snaplock` added. ([#385](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/385))
+- **netapp-ontap_svm**: New parameter `web.certificate`. Requires ONTAP 9.10 or later. ([#723](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/723))
 
 BUG FIXES:
 

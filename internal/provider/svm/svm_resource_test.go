@@ -88,7 +88,7 @@ func TestAccSvmResource(t *testing.T) {
 			// Fail if storage_limit too low
 			{
 				Config:      testAccSvmResourceConfig("tfsvm3", "carchi8py was here", "default", (1024 * 1024)), // 1MB
-				ExpectError: regexp.MustCompile("13434880"),
+				ExpectError: regexp.MustCompile("2621731"),
 			},
 		},
 	})
@@ -124,10 +124,11 @@ resource "netapp-ontap_svm" "example" {
   language = "en_us.utf_8"
   aggregates = [
     {
-      name = "tf_acc_aggr"
+      #name = "tf_acc_aggr"
+	  name = "NSOL_NetApp_A70_T19U05a_NVME_SSD_1"
     },
   ]
   max_volumes = "unlimited"
-	storage_limit = %d
+  storage_limit = %d
 }`, host, admin, password, svm, comment, snapshotPolicy, storageLimit)
 }

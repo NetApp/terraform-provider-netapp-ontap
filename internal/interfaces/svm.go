@@ -73,6 +73,16 @@ type Storage struct {
 	Limit int `mapstructure:"limit,omitempty"`
 }
 
+// SvmWeb describes the svm/svms/{svm.uuid}/web object.
+type SvmWeb struct {
+	Certificate *SvmWebCertificate `mapstructure:"certificate,omitempty"`
+}
+
+// SvmWebCertificate is the certificate reference on the SVM web service.
+type SvmWebCertificate struct {
+	UUID string `mapstructure:"uuid,omitempty"`
+}
+
 // SvmDataSourceFilterModel describes the data source data model for queries.
 type SvmDataSourceFilterModel struct {
 	Name string `mapstructure:"name"`
@@ -285,6 +295,44 @@ func UpdateSvm(errorHandler *utils.ErrorHandler, r restclient.RestClient, data S
 	statusCode, _, err := r.CallUpdateMethod("svm/svms/"+uuid, query, body)
 	if err != nil {
 		return errorHandler.MakeAndReportError("error updating svm", fmt.Sprintf("error on PATCH svm/svms: %s, statusCode %d", err, statusCode))
+	}
+	return nil
+}
+
+// GetSvmWeb retrieves the web services security configuration for an SVM.
+func GetSvmWeb(errorHandler *utils.ErrorHandler, r restclient.RestClient, uuid string) (*SvmWeb, error) {
+	api := "svm/svms/" + uuid + "/web"
+	query := r.NewQuery()
+	query.Fields([]string{"certificate.uuid"})
+	statusCode, response, err := r.GetNilOrOneRecord(api, query, nil)
+	if err == nil && response == nil {
+		err = fmt.Errorf("no response for GET %s", api)
+	}
+	if err != nil {
+		return nil, errorHandler.MakeAndReportError("error reading svm web info", fmt.Sprintf("error on GET %s: %s, statusCode %d", api, err, statusCode))
+	}
+
+	var dataONTAP SvmWeb
+	if err := mapstructure.Decode(response, &dataONTAP); err != nil {
+		return nil, errorHandler.MakeAndReportError("failed to decode response from GET svm web", fmt.Sprintf("error: %s, statusCode %d, response %#v", err, statusCode, response))
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Read svm web info: %#v", dataONTAP))
+	return &dataONTAP, nil
+}
+
+// UpdateSvmWeb sets the SVM web services certificate.
+func UpdateSvmWeb(errorHandler *utils.ErrorHandler, r restclient.RestClient, data SvmWeb, uuid string) error {
+	var body map[string]interface{}
+	if err := mapstructure.Decode(data, &body); err != nil {
+		return errorHandler.MakeAndReportError("error encoding svm web body", fmt.Sprintf("error on encoding svm/svms/%s/web body: %s, body: %#v", uuid, err, data))
+	}
+	tflog.Debug(errorHandler.Ctx, fmt.Sprintf("Update svm web info: %#v", body))
+	query := r.NewQuery()
+	query.Add("return_records", "true")
+	api := "svm/svms/" + uuid + "/web"
+	statusCode, _, err := r.CallUpdateMethod(api, query, body)
+	if err != nil {
+		return errorHandler.MakeAndReportError("error updating svm web", fmt.Sprintf("error on PATCH %s: %s, statusCode %d", api, err, statusCode))
 	}
 	return nil
 }
