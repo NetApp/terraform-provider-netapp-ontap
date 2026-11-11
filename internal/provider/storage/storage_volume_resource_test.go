@@ -21,7 +21,7 @@ func TestAccStorageVolumeResource(t *testing.T) {
 				Config:      testAccStorageVolumeResourceConfig("non-existent", "terraformTest4"),
 				ExpectError: regexp.MustCompile("2621462"),
 			},
-			// test bad volume name
+			// Test bad volume name
 			{
 				Config:      testAccStorageVolumeResourceConfig("non-existent", "name-cant-have-dashes"),
 				ExpectError: regexp.MustCompile("917888"),
@@ -31,7 +31,7 @@ func TestAccStorageVolumeResource(t *testing.T) {
 				Config:      testAccStorageVolumeResourceConfigWithRestore("tf_acc_svm", "tf_acc_volume_restore_snapshot"),
 				ExpectError: regexp.MustCompile("Invalid restore_to usage during create"),
 			},
-			// Read testing
+			// Create and read volume
 			{
 				Config: testAccStorageVolumeResourceConfig("tf_acc_svm", "tf_acc_volume_1"),
 				Check: resource.ComposeTestCheckFunc(
@@ -42,6 +42,7 @@ func TestAccStorageVolumeResource(t *testing.T) {
 					resource.TestCheckTypeSetElemAttr("netapp-ontap_volume.example", "tags.*", "tier:gold"),
 				),
 			},
+      // Update volume
 			{
 				Config: testAccStorageVolumeResourceConfigUpdate("tf_acc_svm", "tf_acc_volume_1"),
 				Check: resource.ComposeTestCheckFunc(
@@ -62,6 +63,36 @@ func TestAccStorageVolumeResource(t *testing.T) {
 					resource.TestCheckResourceAttr("netapp-ontap_volume.example", "name", "tf_acc_volume_1"),
 				),
 			},
+      // Create a snaplock volume
+      {
+        Config: testAccStorageVolumeResourceConfigSnaplock("tf_acc_svm", "tf_acc_volume_snaplock"),
+        Check: resource.ComposeTestCheckFunc(
+          resource.TestCheckResourceAttr("netapp-ontap_volume.example", "name", "tf_acc_volume_snaplock"),
+          resource.TestCheckResourceAttr("netapp-ontap_volume.example", "snaplock.type", "compliance"),
+        ),
+      },
+      // Update the snaplock volume
+      {
+        Config: testAccStorageVolumeResourceConfigSnaplockUpdate("tf_acc_svm", "tf_acc_volume_snaplock"),
+        Check: resource.ComposeTestCheckFunc(
+          resource.TestCheckResourceAttr("netapp-ontap_volume.example", "name", "tf_acc_volume_snaplock"),
+          resource.TestCheckResourceAttr("netapp-ontap_volume.example", "snaplock.type", "compliance"),
+          resource.TestCheckResourceAttr("netapp-ontap_volume.example", "snaplock.append_mode_enabled", "true"),
+          resource.TestCheckResourceAttr("netapp-ontap_volume.example", "snaplock.autocommit_period", "P30M"),
+          resource.TestCheckResourceAttr("netapp-ontap_volume.example", "snaplock.retention.default", "P1Y"),
+          resource.TestCheckResourceAttr("netapp-ontap_volume.example", "snaplock.retention.maximum", "P20Y"),
+          resource.TestCheckResourceAttr("netapp-ontap_volume.example", "snaplock.retention.minimum", "P1Y"),
+        ),
+      },
+      // Import the snaplock volume
+      {
+        ResourceName:  "netapp-ontap_volume.example",
+        ImportState:   true,
+        ImportStateId: fmt.Sprintf("%s,%s,%s", "tf_acc_volume_snaplock", "tf_acc_svm", "cluster5"),
+        Check: resource.ComposeTestCheckFunc(
+          resource.TestCheckResourceAttr("netapp-ontap_volume.example", "name", "tf_acc_volume_snaplock"),
+        ),
+      },
 		},
 	})
 }
@@ -116,7 +147,7 @@ resource "netapp-ontap_volume" "example" {
     user_id = 2
     unix_permissions = "100"
     security_style = "mixed"
-	junction_path = "/testacc"
+	  junction_path = "/testacc"
   }
   autosize = {
     minimum = 20
@@ -264,5 +295,99 @@ resource "netapp-ontap_volume" "example" {
   }
   snapshot_locking_enabled = false
   tags = ["env:prod", "owner:qa"]
+}`, host, admin, password, volName, svm)
+}
+
+// testAccStorageVolumeResourceConfigSnaplock creates a snaplock volume
+func testAccStorageVolumeResourceConfigSnaplock(svm, volName string) string {
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
+	admin := os.Getenv("TF_ACC_NETAPP_USER")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
+
+	if host == "" || admin == "" || password == "" {
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		os.Exit(1)
+	}
+	return fmt.Sprintf(`
+provider "netapp-ontap" {
+ connection_profiles = [
+    {
+      name = "cluster5"
+      hostname = "%s"
+      username = "%s"
+      password = "%s"
+      validate_certs = false
+    },
+  ]
+}
+
+resource "netapp-ontap_volume" "example" {
+  cx_profile_name = "cluster5"
+  name = "%s"
+  svm_name = "%s"
+  aggregates = [
+	  {
+      name = "NSOL_NetApp_A70_T19U05a_NVME_SSD_1"
+    }
+  ]
+  encryption = true
+  space = {
+	  size = 30
+	  size_unit = "mb"
+	  junction_path = "/testacc"
+  }
+  snaplock = {
+    type = "compliance"
+  }
+}`, host, admin, password, volName, svm)
+}
+
+// testAccStorageVolumeResourceConfigSnaplockUpdate updates the snaplock volume
+func testAccStorageVolumeResourceConfigSnaplockUpdate(svm, volName string) string {
+	host := os.Getenv("TF_ACC_NETAPP_HOST")
+	admin := os.Getenv("TF_ACC_NETAPP_USER")
+	password := os.Getenv("TF_ACC_NETAPP_PASS")
+
+	if host == "" || admin == "" || password == "" {
+		fmt.Println("TF_ACC_NETAPP_HOST, TF_ACC_NETAPP_USER, and TF_ACC_NETAPP_PASS must be set for acceptance tests")
+		os.Exit(1)
+	}
+	return fmt.Sprintf(`
+  provider "netapp-ontap" {
+    connection_profiles = [
+      {
+        name = "cluster5"
+        hostname = "%s"
+        username = "%s"
+        password = "%s"
+        validate_certs = false
+      },
+    ]
+  }
+  resource "netapp-ontap_volume" "example" {
+    cx_profile_name = "cluster5"
+    name = "%s"
+    svm_name = "%s"
+    aggregates = [
+      {
+        name = "NSOL_NetApp_A70_T19U05a_NVME_SSD_1"
+      }
+    ]
+    encryption = true
+    space = {
+      size = 30
+      size_unit = "mb"
+      junction_path = "/testacc"
+    }
+    snaplock = {
+      type = "compliance"
+      append_mode_enabled = true
+      autocommit_period = "P30M"
+      retention = {
+        default = "P1Y"
+        maximum = "P20Y"
+        minimum = "P1Y"
+      }
+    }
 }`, host, admin, password, volName, svm)
 }
