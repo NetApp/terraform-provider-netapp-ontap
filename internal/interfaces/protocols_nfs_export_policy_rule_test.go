@@ -35,14 +35,16 @@ var basicExportPolicyRuleRecord = ExportPolicyRuleGetDataModelONTAP{
 // bad record with wrong type
 var badExportPolicyRuleRecord = struct{ Index string }{"123"}
 
+var exportPolicyRuleTrue = true
+
 // create export policy rule with basic request body
 var basicExportPolicyRuleBody = ExportpolicyRuleResourceBodyDataModelONTAP{
 	RoRule:              []string{"krb5i", "krb5"},
 	RwRule:              []string{"any"},
 	Protocols:           []string{"any"},
 	Superuser:           []string{"any"},
-	AllowDeviceCreation: true,
-	AllowSuid:           true,
+	AllowDeviceCreation: &exportPolicyRuleTrue,
+	AllowSuid:           &exportPolicyRuleTrue,
 	AnonymousUser:       "65534",
 	ChownMode:           "restricted",
 	ClientsMatch: []map[string]string{
@@ -64,8 +66,8 @@ var updateProtocolsExportPolicyRuleBody = ExportpolicyRuleResourceBodyDataModelO
 	RwRule:              []string{"any"},
 	Protocols:           []string{"nfs3", "nfs"},
 	Superuser:           []string{"any"},
-	AllowDeviceCreation: true,
-	AllowSuid:           true,
+	AllowDeviceCreation: &exportPolicyRuleTrue,
+	AllowSuid:           &exportPolicyRuleTrue,
 	AnonymousUser:       "65534",
 	ChownMode:           "restricted",
 	ClientsMatch: []map[string]string{
@@ -82,8 +84,8 @@ var updateExportPolicyRuleErrorBody = ExportpolicyRuleResourceBodyDataModelONTAP
 	RwRule:              []string{"any"},
 	Protocols:           []string{"nfs3", "nfs"},
 	Superuser:           []string{"any"},
-	AllowDeviceCreation: true,
-	AllowSuid:           true,
+	AllowDeviceCreation: &exportPolicyRuleTrue,
+	AllowSuid:           &exportPolicyRuleTrue,
 	AnonymousUser:       "65534",
 	ChownMode:           "restricted",
 	ClientsMatch: []map[string]string{
