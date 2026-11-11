@@ -8,6 +8,8 @@ FEATURES:
 - **New Resource:** `netapp-ontap_svm_audit` ([#712](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/712))
 - **New Data Source:** `netapp-ontap_s3_service` and `netapp-ontap_s3_services` ([#724](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/724))
 - **New Resource:** `netapp-ontap_s3_service` ([#724](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/724))
+- **New Data Source:** `netapp-ontap_name_services_name_mapping` and `netapp-ontap_name_services_name_mappings` ([#725](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/725))
+- **New Resource:** `netapp-ontap_name_services_name_mapping` ([#725](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/725))
 
 ENHANCEMENTS:
 
