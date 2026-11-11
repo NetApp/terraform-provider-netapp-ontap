@@ -21,6 +21,7 @@ Create/Modify/Delete a cluster peer.
 
 * On-prem ONTAP system 9.6 or higher
 * Amazon FSx for NetApp ONTAP
+* Google Cloud NetApp Volumes (GCNV) ONTAP-mode
 
 ## Example Usage
 
@@ -41,22 +42,47 @@ resource "netapp-ontap_cluster_peer" "cluster_peer" {
 }
 ```
 
+### GCNV to ONTAP cluster peering
+
+When peering a Google Cloud NetApp Volumes (GCNV) ONTAP-mode cluster with a standard ONTAP cluster,
+GCNV places intercluster LIFs in the `Gcnv` IPspace while ONTAP uses `Default`. Use `ipspace` for
+the local (GCNV) cluster and `peer_ipspace` for the remote (ONTAP) cluster:
+
+```terraform
+resource "netapp-ontap_cluster_peer" "gcnv_to_ontap" {
+  cx_profile_name      = "gcnv_profile"
+  peer_cx_profile_name = "ontap_profile"
+  name = "gcnv-ontap-peer"
+  remote = {
+    ip_addresses = ["10.5.0.5"]
+  }
+  source_details = {
+    ip_addresses = ["10.5.1.211", "10.5.1.210"]
+  }
+  passphrase        = "my-passphrase"
+  peer_applications = ["snapmirror"]
+  ipspace      = { name = "Gcnv" }
+  peer_ipspace = { name = "Default" }
+}
+```
+
 ## Argument Reference
 
 ### Required
 
 - `cx_profile_name` (String) Connection profile name
 - `remote` (Attributes) (see [below for nested schema](#nestedatt--remote))
-- `source_details` (Attributes) (see [below for nested schema](#nestedatt--source_details))
 
 ### Optional
 
 - `passphrase` (String) User generated passphrase for use in authentication
 - `generate_passphrase` (String) When true, ONTAP automatically generates a passphrase to authenticate cluster peer
 - `name` (String) Name of the peering relationship or name of the remote peer
+- `source_details` (Attributes) Source cluster details for the peer-side create call. Optional in schema so imported resources can be read, but required when creating a new cluster peer. (see [below for nested schema](#nestedatt--source_details))
 - `peer_applications` (String) SVM peering applications
-- `peer_cx_profile_name` (String) Peer connection profile name, to be accepted from peer side to make the status OK
-- `ipspace` (Attributes) (see [below for nested schema](#nestedatt--ipspace)) In GCNV, it is required and cannot be updated.
+- `peer_cx_profile_name` (String) Peer connection profile name, used to accept the peer from the remote cluster. Optional in schema so imported resources can be read, but required when creating a new cluster peer.
+- `ipspace` (Attributes) IPspace for the **local** cluster peer LIFs. Required for GCNV ONTAP-mode clusters (use `"Gcnv"`). Cannot be updated after creation. (see [below for nested schema](#nestedatt--ipspace))
+- `peer_ipspace` (Attributes) IPspace for the **peer** cluster peer LIFs. Use when the peer cluster uses a different IPspace than the local cluster (e.g. `"Default"` for a standard ONTAP cluster when local is GCNV). Cannot be updated after creation. (see [below for nested schema](#nestedatt--peer_ipspace))
 
 ### Read-Only
 
@@ -78,15 +104,23 @@ Required:
 
 Required:
 
-- `ip_addresses` (Set of String) list of the remote ip addresses
+- `ip_addresses` (Set of String) list of the source cluster ip addresses used for the peer-side create call
 
 ### Nested Schema form `ipspace`
 
-<a id="nestedatt--source_details"></a>
+<a id="nestedatt--ipspace"></a>
 
 Required:
 
-- `name` (String) IPspace for the cluster peer LIFs.
+- `name` (String) Name of the IPspace for the local cluster peer LIFs (e.g. `"Gcnv"` for GCNV ONTAP-mode, `"Default"` for standard ONTAP).
+
+<a id="nestedatt--peer_ipspace"></a>
+
+### Nested Schema for `peer_ipspace`
+
+Required:
+
+- `name` (String) Name of the IPspace for the peer cluster peer LIFs (e.g. `"Default"` for standard ONTAP when local is GCNV).
 
 
 ## Import
@@ -127,6 +161,8 @@ terraform plan -generate-config-out=generated.tf
 
 This will generate a file called generated.tf, which will contain the configuration for the imported resource
 
+Note: imported cluster peers cannot regenerate create-only inputs such as `source_details` and `peer_cx_profile_name`, because ONTAP does not return those values after the peer is established.
+
 ```terraform
 # __generated__ by Terraform
 # Please review these resources and move them into your main configuration files.
@@ -137,15 +173,9 @@ resource "netapp-ontap_cluster_peer.example" "cluster_peer_import" {
   generate_passphrase = false
   passphrase = "12345678"
   peer_applications = ["snapmirror"]
-  peer_cx_profile_name = "cluster2"
   remote = {
     ip_addresses = [
     "10.10.10.10"
-    ]
-  }
-  source_details = {
-    ip_addresses = [
-    "10.10.10.11"
     ]
   }
   state = "pending"

@@ -48,8 +48,10 @@ type StorageVolumesDataSourceModel struct {
 
 // StorageVolumeDataSourceFilterModel describes the data source data model for queries.
 type StorageVolumeDataSourceFilterModel struct {
-	Name    types.String `tfsdk:"name"`
-	SVMName types.String `tfsdk:"svm_name"`
+	Name              types.String `tfsdk:"name"`
+	SVMName           types.String `tfsdk:"svm_name"`
+	TieringObjectTags types.String `tfsdk:"tiering_object_tags"`
+	Tags              types.String `tfsdk:"tags"`
 }
 
 // Metadata returns the data source type name.
@@ -76,6 +78,14 @@ func (d *StorageVolumesDataSource) Schema(ctx context.Context, req datasource.Sc
 					},
 					"svm_name": schema.StringAttribute{
 						MarkdownDescription: "StorageVolume svm name",
+						Optional:            true,
+					},
+					"tags": schema.StringAttribute{
+						MarkdownDescription: "StorageVolume tag value",
+						Optional:            true,
+					},
+					"tiering_object_tags": schema.StringAttribute{
+						MarkdownDescription: "StorageVolume tiering object tag value",
 						Optional:            true,
 					},
 				},
@@ -215,6 +225,11 @@ func (d *StorageVolumesDataSource) Schema(ctx context.Context, req datasource.Sc
 									MarkdownDescription: "Determines how many days must pass before inactive data in a volume using the Auto or Snapshot-Only policy is considered cold and eligible for tiering",
 									Computed:            true,
 								},
+								"object_tags": schema.SetAttribute{
+									ElementType:         types.StringType,
+									MarkdownDescription: "Object tags are applied to objects in tiered storage",
+									Computed:            true,
+								},
 							},
 						},
 						"efficiency": schema.SingleNestedAttribute{
@@ -238,13 +253,49 @@ func (d *StorageVolumesDataSource) Schema(ctx context.Context, req datasource.Sc
 								},
 							},
 						},
-
 						"snaplock": schema.SingleNestedAttribute{
 							Computed: true,
 							Attributes: map[string]schema.Attribute{
 								"type": schema.StringAttribute{
 									MarkdownDescription: "The SnapLock type of the volume",
 									Computed:            true,
+								},
+								"autocommit_period": schema.StringAttribute{
+									MarkdownDescription: `
+									Specifies the autocommit period for SnapLock volume.
+									Duration is in the ISO-8601 duration format (eg PY, PM, PD, PTH, PTM).
+									Examples are P30M, P10Y, PT1H, none. A duration that combines different periods is not supported.
+									`,
+									Computed: true,
+								},
+								"append_mode_enabled": schema.BoolAttribute{
+									MarkdownDescription: "Specifies if the volume append mode is enabled or disabled.",
+									Computed:            true,
+								},
+								"privileged_delete": schema.StringAttribute{
+									MarkdownDescription: `
+									On a SnapLock Enterprise (SLE) volume, a designated privileged user can selectively delete files irrespective of the retention time of the file.
+									SLE volumes can have privileged delete as disabled, enabled or permanently_disabled and for SnapLock Compliance (SLC) volumes it is always permanently_disabled.
+									`,
+									Computed: true,
+								},
+								"retention": schema.SingleNestedAttribute{
+									MarkdownDescription: "Default, maximum, and minumum retention periods for files committed to the WORM state on the volume.",
+									Computed:            true,
+									Attributes: map[string]schema.Attribute{
+										"default": schema.StringAttribute{
+											MarkdownDescription: "Default retention period that is applied to files while committing them to the WORM state without an associated retention period.",
+											Computed:            true,
+										},
+										"maximum": schema.StringAttribute{
+											MarkdownDescription: "Maximum allowed retention period for files committed to the WORM state on the volume.",
+											Computed:            true,
+										},
+										"minimum": schema.StringAttribute{
+											MarkdownDescription: "Minimum allowed retention period for files committed to the WORM state on the volume.",
+											Computed:            true,
+										},
+									},
 								},
 							},
 						},
@@ -299,6 +350,11 @@ func (d *StorageVolumesDataSource) Schema(ctx context.Context, req datasource.Sc
 							Computed:            true,
 							MarkdownDescription: "Volume identifier",
 						},
+						"tags": schema.SetAttribute{
+							ElementType:         types.StringType,
+							MarkdownDescription: "Set of tags associated with the volume",
+							Computed:            true,
+						},
 					},
 				},
 				Computed:            true,
@@ -346,8 +402,10 @@ func (d *StorageVolumesDataSource) Read(ctx context.Context, req datasource.Read
 	var filter *interfaces.StorageVolumeDataSourceFilterModel = nil
 	if data.Filter != nil {
 		filter = &interfaces.StorageVolumeDataSourceFilterModel{
-			Name:    data.Filter.Name.ValueString(),
-			SVMName: data.Filter.SVMName.ValueString(),
+			Name:              data.Filter.Name.ValueString(),
+			SVMName:           data.Filter.SVMName.ValueString(),
+			Tags:              data.Filter.Tags.ValueString(),
+			TieringObjectTags: data.Filter.TieringObjectTags.ValueString(),
 		}
 	}
 	restInfo, err := interfaces.GetStorageVolumes(errorHandler, *client, filter)
@@ -368,6 +426,40 @@ func (d *StorageVolumesDataSource) Read(ctx context.Context, req datasource.Read
 		var aggregates = make([]StorageVolumeDataSourceAggregates, len(record.Aggregates))
 		for i, v := range record.Aggregates {
 			aggregates[i].Name = types.StringValue(v.Name)
+		}
+		objectTagsSet, diags := stringSliceToSet(ctx, record.TieringPolicy.ObjectTags)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		tagsSet, diags := stringSliceToSet(ctx, record.Tags)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+
+		// Non-SnapLock volumes return snaplock.type only; retention and
+		// other fields are omitted.
+		var snapLock *StorageVolumeDataSourceSnapLock
+		if record.Snaplock != nil {
+			snapLock = &StorageVolumeDataSourceSnapLock{
+				Type:              types.StringValue(record.Snaplock.Type),
+				AutocommitPeriod:  types.StringValue(record.Snaplock.AutocommitPeriod),
+				AppendModeEnabled: types.BoolPointerValue(record.Snaplock.AppendModeEnabled),
+				PrivilegedDelete:  types.StringValue(record.Snaplock.PrivilegedDelete),
+			}
+			if record.Snaplock.Retention != nil {
+				snapLock.Retention = StorageVolumeDataSourceSnapLockRetention{
+					Default: types.StringValue(record.Snaplock.Retention.Default),
+					Maximum: types.StringValue(record.Snaplock.Retention.Maximum),
+					Minimum: types.StringValue(record.Snaplock.Retention.Minimum),
+				}
+			}
+		}
+
+		snapshotLockingEnabled := types.BoolNull()
+		if record.SnapshotLockingEnabled != nil {
+			snapshotLockingEnabled = types.BoolValue(*record.SnapshotLockingEnabled)
 		}
 
 		data.StorageVolumes[index] = StorageVolumeDataSourceModel{
@@ -404,6 +496,7 @@ func (d *StorageVolumesDataSource) Read(ctx context.Context, req datasource.Read
 			Tiering: &StorageVolumeDataSourceTiering{
 				Policy:             types.StringValue(record.TieringPolicy.Policy),
 				MinimumCoolingDays: types.Int64Value(int64(record.TieringPolicy.MinCoolingDays)),
+				ObjectTags:         objectTagsSet,
 			},
 			Efficiency: &StorageVolumeDataSourceEfficiency{
 				Policy:      types.StringValue(record.Efficiency.Policy.Name),
@@ -411,9 +504,7 @@ func (d *StorageVolumesDataSource) Read(ctx context.Context, req datasource.Read
 				Dedupe:      types.StringValue(record.Efficiency.Dedupe),
 				Compaction:  types.StringValue(record.Efficiency.Compaction),
 			},
-			SnapLock: &StorageVolumeDataSourceSnapLock{
-				SnaplockType: types.StringValue(record.Snaplock.Type),
-			},
+			SnapLock: snapLock,
 			Analytics: &StorageVolumeDataSourceAnalytics{
 				State: types.StringValue(record.Analytics.State),
 			},
@@ -425,6 +516,9 @@ func (d *StorageVolumesDataSource) Read(ctx context.Context, req datasource.Read
 				GrowThreshold:   types.Int64Value(int64(record.Autosize.GrowThreshold)),
 				Mode:            types.StringValue(record.Autosize.Mode),
 			},
+			SnapshotLockingEnabled: snapshotLockingEnabled,
+			ID:                     types.StringValue(record.UUID),
+			Tags:                   tagsSet,
 			SnapshotLockingEnabled: snapshotLockingEnabled,
 			ID: types.StringValue(record.UUID),
 		}

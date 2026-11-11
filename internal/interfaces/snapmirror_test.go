@@ -72,7 +72,7 @@ var record911Snapmirror = SnapmirrorDataSourceModel{
 }
 
 var updateSnapmirrorBody = UpdateSnapmirrorResourceBodyDataModelONTAP{
-	Policy: PolicySnapmirror{
+	Policy: &PolicySnapmirror{
 		Name: "string",
 		TransferSchedule: &TransferSchedule{
 			Name: "string",
@@ -267,7 +267,7 @@ func TestUpdateSnapmirror(t *testing.T) {
 			if err != nil {
 				panic(err)
 			}
-			err = UpdateSnapmirror(errorHandler, *r, tt.requestbody, "string")
+			err = UpdateSnapmirror(errorHandler, *r, tt.requestbody, "string", false, false)
 			if err != nil {
 				fmt.Printf("err: %s\n", err)
 			}

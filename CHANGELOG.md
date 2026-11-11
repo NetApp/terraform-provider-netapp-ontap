@@ -1,8 +1,69 @@
-# 2.7.0
+# 2.8.0 (2026-xx-xx)
+
+FEATURES:
+
+- **New Data Source:** `netapp-ontap_volume_clone` and `netapp-ontap_volume_clones` ([#665](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/665))
+- **New Resource:** `netapp-ontap_volume_clone` ([#665](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/665))
+- **New Data Source:** `netapp-ontap_svm_audit` and `netapp-ontap_svm_audits` ([#712](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/712))
+- **New Resource:** `netapp-ontap_svm_audit` ([#712](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/712))
+- **New Data Source:** `netapp-ontap_s3_service` and `netapp-ontap_s3_services` ([#724](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/724))
+- **New Resource:** `netapp-ontap_s3_service` ([#724](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/724))
+- **New Data Source:** `netapp-ontap_name_services_name_mapping` and `netapp-ontap_name_services_name_mappings` ([#725](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/725))
+- **New Resource:** `netapp-ontap_name_services_name_mapping` ([#725](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/725))
 
 ENHANCEMENTS:
 
+- **netapp-ontap_lun resource**, **netapp-ontap_lun_data_source**,**netapp-ontap_name_luns_data_source**: Added `space` parameter ([#722](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/722))
+- **netapp-ontap_quota_rule**: New options under `space` added. ([#446](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/446))
+- **netapp-ontap_snapmirror**: Added support for snapmirror break and resync. ([#728](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/728))
+- **netapp-ontap_volume**: New options under `snaplock` added. ([#385](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/385))
 - **netapp-ontap_volume**: added `constituents_per_aggregate` and `style` options in resource. ([#382](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/382))
+
+BUG FIXES:
+
+- **netapp-ontap_cluster_peer**: fixed issue where cluster peering between GCNV and ONTAP failed because both sides were using the same `ipspace`. Added `peer_ipspace` attribute to allow specifying separate IPspaces for local and peer clusters. ([#682](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/682))([#363](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/363))
+- **netapp-ontap_volume resource**: Rectified validator for `analytics.state`. ([#734](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/734))
+- **netapp-ontap_dns resource**: Fixed `skip_config_validation` causing persistent Terraform plan drift. ([#747](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/747))
+- **netapp-ontap_cluster_peer resource**: Fixed issue with import of source details by setting the option as optional. ([#744](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/744))
+- **netapp-ontap_snapshot_policy resource**: Fixed issued with importing snapshot policy name. ([#745](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/745))
+
+# 2.7.1 (2026-07-30)
+
+BUG FIXES:
+
+- **netapp-ontap_qtree resource**: Fixed intermittent resource failure after qtree creation. ([#710](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/710))
+- **netapp-ontap_nfs_export_policy_rule resource**: Added support for setting index during export policy rule creation to avoid non-deterministic rule ordering during parallel creation. ([#713](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/713))
+- **netapp-ontap_volume resource**: Fixed resizing error by ignoring nas path during update. ([#631](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/631))
+- **netapp-ontap_cluster_peer resource**: Fixed issue with manual passphrase generation and unknown value error after apply for ipspace. ([#720](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/720))
+
+# 2.7.0 (2026-07-09)
+
+FEATURES:
+
+- **New Data Source:** `netapp-ontap_unix_user` and `netapp-ontap_unix_users` ([#679](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/679))
+- **New Resource:** `netapp-ontap_unix_user` ([#679](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/679))
+- **New Data Source:** `netapp-ontap_unix_group` and `netapp-ontap_unix_groups` ([#680](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/680))
+- **New Resource:** `netapp-ontap_unix_group` ([#680](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/680))
+- **New Data Source:** `netapp-ontap_nvme_namespace` and `netapp-ontap_nvme_namespaces` ([#483](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/483))
+- **New Resource:** `netapp-ontap_nvme_namespace` ([#482](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/482))
+- **New Data Source:** `netapp-ontap_network_ipspace` and `netapp-ontap_network_ipspaces` ([#612](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/612))
+- **New Resource:** `netapp-ontap_network_ipspace` ([#612](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/612))
+
+ENHANCEMENTS:
+
+- **netapp-ontap_s3_bucket**: New option `cors_rules` added, requires ONTAP 9.16 or later. ([#658](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/658))
+- **netapp-ontap_volume resource**: added snapshot restore_to volume ([#677](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/677))
+- **netapp-ontap_nfs_service resource**: Added support for in-place parameter updates. ([#688](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/688))
+
+BUG FIXES:
+
+- **ontap_volume_resource**, **ontap_volume_data_source**, **ontap_volumes_data_source**: Add support for tags and tiering_object_tags. ([#589](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/589))
+- **netapp-ontap_flexcache_resource**, **netapp-ontap_flexcache_data_source**, **netapp-ontap_flexcaches_data_source**: Fix use of `use_tiered_aggregate` in netapp-ontap_flexcache. ([#581](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/581))
+- **netapp-ontap_volume_resource**: fixed issue with volume size modify not working in GCNV ([#691](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/691))
+- **netapp-ontap_nfs_service resource**: fixed issue with idempotency. ([#310](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/310))
+- **netapp-ontap_volume_resource**: fixed issue with `autosize.maximum`. ([#692](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/692))
+- **netapp-ontap_snapmirror**: fixed import so that source_endpoint, policy and initialize are populated, preventing the relationship from being recreated on the next plan. ([#694](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/694))
+- **netapp-ontap_snapshot_policy_resource**: fixed issue with cluster scoped snapshot policy import ([#686](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/686))
 
 # 2.6.1 (2026-04-21)
 

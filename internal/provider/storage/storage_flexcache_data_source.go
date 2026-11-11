@@ -53,7 +53,6 @@ type StorageFlexcacheDataSourceModel struct {
 	DrCache                  types.Bool   `tfsdk:"dr_cache"`
 	Guarantee                types.Object `tfsdk:"guarantee"`
 	GlobalFileLockingEnabled types.Bool   `tfsdk:"global_file_locking_enabled"`
-	UseTieredAggregate       types.Bool   `tfsdk:"use_tiered_aggregate"`
 	Aggregates               types.Set    `tfsdk:"aggregates"`
 	ID                       types.String `tfsdk:"id"`
 }
@@ -168,10 +167,6 @@ func (r *StorageFlexcacheDataSource) Schema(ctx context.Context, req datasource.
 				MarkdownDescription: "The state of the global file locking",
 				Computed:            true,
 			},
-			"use_tiered_aggregate": schema.BoolAttribute{
-				MarkdownDescription: "The state of the use tiered aggregates",
-				Computed:            true,
-			},
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The UUID of the flexcache volume",
 				Computed:            true,
@@ -231,7 +226,6 @@ func (r *StorageFlexcacheDataSource) Read(ctx context.Context, req datasource.Re
 	data.ConstituentsPerAggregate = types.Int64Value(int64(flexcache.ConstituentsPerAggregate))
 	data.DrCache = types.BoolValue(flexcache.DrCache)
 	data.GlobalFileLockingEnabled = types.BoolValue(flexcache.GlobalFileLockingEnabled)
-	data.UseTieredAggregate = types.BoolValue(flexcache.UseTieredAggregate)
 
 	elementTypes := map[string]attr.Type{
 		"type": types.StringType,

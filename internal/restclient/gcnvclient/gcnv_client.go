@@ -29,19 +29,15 @@ type GCNVProfile struct {
 	CustomBaseUrl string `mapstructure:"custom_base_url"`
 }
 
-// NewClient creates a new GCNV client and validates API connectivity
+// NewClient creates a new GCNV client.
+// Token acquisition and endpoint reachability are validated lazily on the first
+// API call (Invoke), so no network round-trip is made here.
 func NewClient(ctx context.Context, profile GCNVProfile) (*GCNVClient, error) {
 	client := &GCNVClient{
 		httpClient: &http.Client{},
 		ctx:        ctx,
 		profile:    profile,
 	}
-
-	// Validate API endpoint accessibility
-	if err := client.ValidateAPIEndpoint(); err != nil {
-		return nil, fmt.Errorf("GCNV API validation failed: %w", err)
-	}
-
 	return client, nil
 }
 
@@ -249,46 +245,85 @@ func (c *GCNVClient) transformRequestBody(body map[string]interface{}, method, b
 
 	// Extract size from space.size and convert to string format
 	if space, ok := body["space"].(map[string]interface{}); ok {
+		// Copy the space map so we can mutate it (drop space.size, set logical_space
+		// fields) without modifying the caller's body.
+		spaceCopy := make(map[string]interface{}, len(space))
+		for k, v := range space {
+			spaceCopy[k] = v
+		}
+		transformedBody["space"] = spaceCopy
+
 		tflog.Debug(c.ctx, "Found space object", map[string]any{
-			"space": space,
+			"space": spaceCopy,
 		})
-		if sizeBytes, ok := space["size"].(float64); ok {
-			// Convert bytes to appropriate unit (MB, GB, TB)
-			sizeStr := formatSize(int64(sizeBytes))
-			transformedBody["size"] = sizeStr
+
+		var sizeStr string
+		sizeConverted := false
+		switch sizeBytes := space["size"].(type) {
+		case float64:
+			sizeStr = formatSize(int64(sizeBytes))
+			sizeConverted = true
 			tflog.Debug(c.ctx, "Transformed size for GCNV", map[string]any{
 				"originalBytes": sizeBytes,
 				"gcnvSize":      sizeStr,
 			})
-		} else if sizeBytes, ok := space["size"].(int64); ok {
-			sizeStr := formatSize(sizeBytes)
-			transformedBody["size"] = sizeStr
+		case int64:
+			sizeStr = formatSize(sizeBytes)
+			sizeConverted = true
 			tflog.Debug(c.ctx, "Transformed size for GCNV (int64)", map[string]any{
 				"originalBytes": sizeBytes,
 				"gcnvSize":      sizeStr,
 			})
-		} else if sizeBytes, ok := space["size"].(int); ok {
-			sizeStr := formatSize(int64(sizeBytes))
-			transformedBody["size"] = sizeStr
+		case int:
+			sizeStr = formatSize(int64(sizeBytes))
+			sizeConverted = true
 			tflog.Debug(c.ctx, "Transformed size for GCNV (int)", map[string]any{
 				"originalBytes": sizeBytes,
 				"gcnvSize":      sizeStr,
 			})
-		} else {
-			tflog.Debug(c.ctx, "Size field type not recognized", map[string]any{
-				"sizeValue": space["size"],
-				"sizeType":  fmt.Sprintf("%T", space["size"]),
-			})
+		default:
+			if _, present := space["size"]; present {
+				tflog.Debug(c.ctx, "Size field type not recognized", map[string]any{
+					"sizeValue": space["size"],
+					"sizeType":  fmt.Sprintf("%T", space["size"]),
+				})
+			}
+		}
+
+		if sizeConverted {
+			transformedBody["size"] = sizeStr
+			// GCNV rejects requests that contain both top-level `size` and
+			// `space.size` ("cannot specify both 'size' and 'space.size'").
+			delete(spaceCopy, "size")
 		}
 
 		// GCNV requires logical_space.enforcement and reporting to be true
-		if logicalSpace, ok := space["logical_space"].(map[string]interface{}); ok {
-			logicalSpace["enforcement"] = true
-			logicalSpace["reporting"] = true
+		if logicalSpace, ok := spaceCopy["logical_space"].(map[string]interface{}); ok {
+			logicalSpaceCopy := make(map[string]interface{}, len(logicalSpace))
+			for k, v := range logicalSpace {
+				logicalSpaceCopy[k] = v
+			}
+			logicalSpaceCopy["enforcement"] = true
+			logicalSpaceCopy["reporting"] = true
+			spaceCopy["logical_space"] = logicalSpaceCopy
 			tflog.Debug(c.ctx, "Set logical_space.enforcement and reporting to true for GCNV")
 		}
 	} else {
 		tflog.Debug(c.ctx, "No space object found in body")
+	}
+
+	// GCNV only supports autosize.mode = "off". Remove the autosize block
+	// entirely when a non-"off" mode is present to avoid a 400 INVALID_ARGUMENT
+	// error ("field 'autosize.mode' must be one of [off]").
+	if autosize, ok := transformedBody["autosize"].(map[string]interface{}); ok {
+		if mode, modePresent := autosize["mode"]; modePresent {
+			if modeStr, _ := mode.(string); modeStr != "off" && modeStr != "" {
+				delete(transformedBody, "autosize")
+				tflog.Debug(c.ctx, "Removed autosize block for GCNV (mode not supported)", map[string]any{
+					"mode": modeStr,
+				})
+			}
+		}
 	}
 
 	return transformedBody

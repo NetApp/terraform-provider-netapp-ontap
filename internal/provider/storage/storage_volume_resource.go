@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -55,6 +56,35 @@ func NewStorageVolumeResourceAlias() resource.Resource {
 	}
 }
 
+// stringSliceToSet converts a slice of strings to a types.Set.
+func stringSliceToSet(ctx context.Context, strings []string) (types.Set, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	if len(strings) > 0 {
+		stringValues := make([]attr.Value, len(strings))
+		for i, s := range strings {
+			stringValues[i] = types.StringValue(s)
+		}
+		stringsSet, setDiags := types.SetValue(types.StringType, stringValues)
+		diags.Append(setDiags...)
+		return stringsSet, diags
+	}
+
+	return types.SetNull(types.StringType), diags
+}
+
+// setToStringSlice converts a types.Set to a slice of strings.
+func setToStringSlice(ctx context.Context, set types.Set) ([]string, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var stringSlice []string
+
+	if !set.IsUnknown() && !set.IsNull() {
+		setDiags := set.ElementsAs(ctx, &stringSlice, false)
+		diags.Append(setDiags...)
+	}
+
+	return stringSlice, diags
+}
+
 // StorageVolumeResource defines the resource implementation.
 type StorageVolumeResource struct {
 	config connection.ResourceOrDataSourceConfig
@@ -82,9 +112,11 @@ type StorageVolumeResourceModel struct {
 	SnapLock               types.Object                      `tfsdk:"snaplock"`
 	Analytics              types.Object                      `tfsdk:"analytics"`
 	Autosize               types.Object                      `tfsdk:"autosize"`
+	RestoreSnapshot        types.Object                      `tfsdk:"restore_to"`
 	SnapshotLockingEnabled types.Bool                        `tfsdk:"snapshot_locking_enabled"`
 	Style                  types.String                      `tfsdk:"style"`
 	ConstituentsPerAggregate types.Int64                     `tfsdk:"constituents_per_aggregate"`
+	Tags                   types.Set                         `tfsdk:"tags"`
 }
 
 // StorageVolumeResourceAggregates describes the analytics model.
@@ -99,7 +131,18 @@ type StorageVolumeResourceAnalytics struct {
 
 // StorageVolumeResourceSnapLock describes the snaplock model.
 type StorageVolumeResourceSnapLock struct {
-	SnaplockType types.String `tfsdk:"type"`
+	Type              types.String                            `tfsdk:"type"`
+	AutocommitPeriod  types.String                            `tfsdk:"autocommit_period"`
+	AppendModeEnabled types.Bool                              `tfsdk:"append_mode_enabled"`
+	PrivilegedDelete  types.String                            `tfsdk:"privileged_delete"`
+	Retention         *StorageVolumeResourceSnapLockRetention `tfsdk:"retention"`
+}
+
+// StorageVolumeResourceSnapLockRetention describes the retention model within snaplock model.
+type StorageVolumeResourceSnapLockRetention struct {
+	Default types.String `tfsdk:"default"`
+	Maximum types.String `tfsdk:"maximum"`
+	Minimum types.String `tfsdk:"minimum"`
 }
 
 // StorageVolumeResourceEfficiency describes the efficiency model.
@@ -114,6 +157,7 @@ type StorageVolumeResourceEfficiency struct {
 type StorageVolumeResourceTiering struct {
 	Policy             types.String `tfsdk:"policy_name"`
 	MinimumCoolingDays types.Int64  `tfsdk:"minimum_cooling_days"`
+	ObjectTags         types.Set    `tfsdk:"object_tags"`
 }
 
 // StorageVolumeResourceNas describes the Nas model.
@@ -148,6 +192,16 @@ type StorageVolumeResourceAutosize struct {
 	GrowThreshold   types.Int64  `tfsdk:"grow_threshold"`
 	Mode            types.String `tfsdk:"mode"`
 	SizeUnit        types.String `tfsdk:"size_unit"`
+}
+
+// StorageVolumeResourceRestoreSnapshot describes the restore target model.
+type StorageVolumeResourceRestoreSnapshot struct {
+	Snapshot types.Object `tfsdk:"snapshot"`
+}
+
+// StorageVolumeResourceRestoreSnapshotName describes the restore snapshot model.
+type StorageVolumeResourceRestoreSnapshotName struct {
+	Name types.String `tfsdk:"name"`
 }
 
 // Metadata returns the resource type name.
@@ -227,6 +281,9 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 				MarkdownDescription: "Whether or not snapshot copy locking is enabled on the volume.",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"snapshot_policy": schema.StringAttribute{
 				MarkdownDescription: "The name of the snapshot policy",
@@ -387,6 +444,15 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 							int64planmodifier.UseStateForUnknown(),
 						},
 					},
+					"object_tags": schema.SetAttribute{
+						ElementType:         types.StringType,
+						MarkdownDescription: "Object tags are applied to objects in tiered storage",
+						Optional:            true,
+						Computed:            true,
+						PlanModifiers: []planmodifier.Set{
+							setplanmodifier.UseStateForUnknown(),
+						},
+					},
 				},
 			},
 			"efficiency": schema.SingleNestedAttribute{
@@ -453,6 +519,72 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 						Computed:            true,
 						PlanModifiers: []planmodifier.String{
 							stringplanmodifier.UseStateForUnknown(),
+							stringplanmodifier.RequiresReplace(),
+						},
+					},
+					"autocommit_period": schema.StringAttribute{
+						MarkdownDescription: `
+						Specifies the autocommit period for SnapLock volume.
+						Duration is in the ISO-8601 duration format (eg PY, PM, PD, PTH, PTM).
+						Examples are P30M, P10Y, PT1H, none. A duration that combines different periods is not supported.
+						`,
+						Optional: true,
+						Computed: true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
+					},
+					"append_mode_enabled": schema.BoolAttribute{
+						MarkdownDescription: "Specifies if the volume append mode is enabled or disabled.",
+						Optional:            true,
+						Computed:            true,
+						PlanModifiers: []planmodifier.Bool{
+							boolplanmodifier.UseStateForUnknown(),
+						},
+					},
+					"privileged_delete": schema.StringAttribute{
+						MarkdownDescription: `
+						On a SnapLock Enterprise (SLE) volume, a designated privileged user can selectively delete files irrespective of the retention time of the file.
+						SLE volumes can have privileged delete as disabled, enabled or permanently_disabled and for SnapLock Compliance (SLC) volumes it is always permanently_disabled.
+						`,
+						Optional: true,
+						Computed: true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
+					},
+					"retention": schema.SingleNestedAttribute{
+						MarkdownDescription: "Default, maximum, and minumum retention periods for files committed to the WORM state on the volume.",
+						Optional:            true,
+						Computed:            true,
+						PlanModifiers: []planmodifier.Object{
+							objectplanmodifier.UseStateForUnknown(),
+						},
+						Attributes: map[string]schema.Attribute{
+							"default": schema.StringAttribute{
+								MarkdownDescription: "Default retention period that is applied to files while committing them to the WORM state without an associated retention period.",
+								Optional:            true,
+								Computed:            true,
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.UseStateForUnknown(),
+								},
+							},
+							"maximum": schema.StringAttribute{
+								MarkdownDescription: "Maximum allowed retention period for files committed to the WORM state on the volume.",
+								Optional:            true,
+								Computed:            true,
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.UseStateForUnknown(),
+								},
+							},
+							"minimum": schema.StringAttribute{
+								MarkdownDescription: "Minimum allowed retention period for files committed to the WORM state on the volume.",
+								Optional:            true,
+								Computed:            true,
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.UseStateForUnknown(),
+								},
+							},
 						},
 					},
 				},
@@ -472,7 +604,7 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 						},
 						MarkdownDescription: "Set file system analytics state of the volume",
 						Validators: []validator.String{
-							stringvalidator.OneOf("om", "off", "initializing", "initialization_paused", "unknown"),
+							stringvalidator.OneOf("on", "off", "initializing", "initialization_paused", "unknown"),
 						},
 					},
 				},
@@ -542,6 +674,37 @@ func (r *StorageVolumeResource) Schema(ctx context.Context, req resource.SchemaR
 							stringplanmodifier.UseStateForUnknown(),
 						},
 					},
+				},
+			},
+			"restore_to": schema.SingleNestedAttribute{
+				Optional:      true,
+				Computed:      true,
+				PlanModifiers: []planmodifier.Object{objectplanmodifier.UseStateForUnknown()},
+				Attributes: map[string]schema.Attribute{
+					"snapshot": schema.SingleNestedAttribute{
+						Optional:      true,
+						Computed:      true,
+						PlanModifiers: []planmodifier.Object{objectplanmodifier.UseStateForUnknown()},
+						Attributes: map[string]schema.Attribute{
+							"name": schema.StringAttribute{
+								MarkdownDescription: "Name of the snapshot to restore the volume to.",
+								Optional:            true,
+								Computed:            true,
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.UseStateForUnknown(),
+								},
+							},
+						},
+					},
+				},
+			},
+			"tags": schema.SetAttribute{
+				ElementType:         types.StringType,
+				MarkdownDescription: "Set of tags associated with the volume",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"style": schema.StringAttribute{
@@ -681,11 +844,11 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 		"reporting":   types.BoolType,
 		"enforcement": types.BoolType,
 	}
-	nestedEslements := map[string]attr.Value{
+	nestedElements := map[string]attr.Value{
 		"reporting":   types.BoolValue(response.Space.LogicalSpace.Reporting),
 		"enforcement": types.BoolValue(response.Space.LogicalSpace.Enforcement),
 	}
-	logicalObjectValue, _ := types.ObjectValue(nestedElementTypes, nestedEslements)
+	logicalObjectValue, _ := types.ObjectValue(nestedElementTypes, nestedElements)
 	elementTypes := map[string]attr.Type{
 		"size":                   types.Int64Type,
 		"size_unit":              types.StringType,
@@ -723,17 +886,50 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 	data.Space = objectValue
 
 	//Snaplock
-	elementTypes = map[string]attr.Type{
-		"type": types.StringType,
+	snaplockRetentionAttrTypes := map[string]attr.Type{
+		"default": types.StringType,
+		"maximum": types.StringType,
+		"minimum": types.StringType,
 	}
-	elements = map[string]attr.Value{
-		"type": types.StringValue(response.Snaplock.Type),
+	snaplockAttrTypes := map[string]attr.Type{
+		"type":                types.StringType,
+		"autocommit_period":   types.StringType,
+		"append_mode_enabled": types.BoolType,
+		"privileged_delete":   types.StringType,
+		"retention":           types.ObjectType{AttrTypes: snaplockRetentionAttrTypes},
 	}
-	objectValue, diags = types.ObjectValue(elementTypes, elements)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
+	snaplockValues := map[string]attr.Value{
+		"type":                types.StringNull(),
+		"autocommit_period":   types.StringNull(),
+		"append_mode_enabled": types.BoolNull(),
+		"privileged_delete":   types.StringNull(),
+		"retention":           types.ObjectNull(snaplockRetentionAttrTypes),
 	}
-	data.SnapLock = objectValue
+
+	if response.Snaplock != nil {
+		snaplockValues["type"] = types.StringValue(response.Snaplock.Type)
+		snaplockValues["autocommit_period"] = types.StringValue(response.Snaplock.AutocommitPeriod)
+		snaplockValues["append_mode_enabled"] = types.BoolPointerValue(response.Snaplock.AppendModeEnabled)
+		snaplockValues["privileged_delete"] = types.StringValue(response.Snaplock.PrivilegedDelete)
+		if response.Snaplock.Retention != nil {
+			retentionValue, d := types.ObjectValue(snaplockRetentionAttrTypes, map[string]attr.Value{
+				"default": types.StringValue(response.Snaplock.Retention.Default),
+				"maximum": types.StringValue(response.Snaplock.Retention.Maximum),
+				"minimum": types.StringValue(response.Snaplock.Retention.Minimum),
+			})
+			resp.Diagnostics.Append(d...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			snaplockValues["retention"] = retentionValue
+		}
+	}
+	snaplockObjectValue, d := types.ObjectValue(snaplockAttrTypes, snaplockValues)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	data.SnapLock = snaplockObjectValue
 
 	//Efficiency
 	elementTypes = map[string]attr.Type{
@@ -762,10 +958,16 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 	elementTypes = map[string]attr.Type{
 		"minimum_cooling_days": types.Int64Type,
 		"policy_name":          types.StringType,
+		"object_tags":          types.SetType{ElemType: types.StringType},
+	}
+	objectTagsSet, diags := stringSliceToSet(ctx, response.TieringPolicy.ObjectTags)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
 	}
 	elements = map[string]attr.Value{
 		"minimum_cooling_days": types.Int64Value(int64(response.TieringPolicy.MinCoolingDays)),
 		"policy_name":          types.StringValue(response.TieringPolicy.Policy),
+		"object_tags":          objectTagsSet,
 	}
 	objectValue, diags = types.ObjectValue(elementTypes, elements)
 	if diags.HasError() {
@@ -832,34 +1034,67 @@ func (r *StorageVolumeResource) Read(ctx context.Context, req resource.ReadReque
 	var maximum int64
 	var autoSizeUnit string
 	// If state does not have size unit, which is the case for importing volume, we pick the proper size unit.
-	if !data.Autosize.IsNull() {
-		var autosize StorageVolumeResourceAutosize
-		diags := data.Autosize.As(ctx, &autosize, basetypes.ObjectAsOptions{})
+	// For GCNV connections, autosize modes other than "off" are not supported and are silently dropped
+	// from the request. Keep the planned/state values as-is to avoid "inconsistent result after apply".
+	gcnvKeepAutosize := false
+	if client.IsGCNV() && !data.Autosize.IsNull() {
+		var autosizeCheck StorageVolumeResourceAutosize
+		if diagsCheck := data.Autosize.As(ctx, &autosizeCheck, basetypes.ObjectAsOptions{}); !diagsCheck.HasError() {
+			if m := autosizeCheck.Mode.ValueString(); m != "" && m != "off" {
+				gcnvKeepAutosize = true
+			}
+		}
+	}
+	if !gcnvKeepAutosize {
+		if !data.Autosize.IsNull() {
+			var autosize StorageVolumeResourceAutosize
+			diags := data.Autosize.As(ctx, &autosize, basetypes.ObjectAsOptions{})
+			if diags.HasError() {
+				resp.Diagnostics.Append(diags...)
+				return
+			}
+			autoSizeUnit = autosize.SizeUnit.ValueString()
+			minimum = interfaces.ConvertBytesToUnitInt(int64(response.Autosize.Minimum), autoSizeUnit)
+			maximum = interfaces.ConvertBytesToUnitInt(int64(response.Autosize.Maximum), autoSizeUnit)
+		} else {
+			minimum, autoSizeUnit = interfaces.ByteFormat(int64(response.Autosize.Minimum))
+			maximum = interfaces.ConvertBytesToUnitInt(int64(response.Autosize.Maximum), autoSizeUnit)
+		}
+
+		elements = map[string]attr.Value{
+			"minimum":          types.Int64Value(minimum),
+			"maximum":          types.Int64Value(maximum),
+			"shrink_threshold": types.Int64Value(int64(response.Autosize.ShrinkThreshold)),
+			"grow_threshold":   types.Int64Value(int64(response.Autosize.GrowThreshold)),
+			"mode":             types.StringValue(response.Autosize.Mode),
+			"size_unit":        types.StringValue(autoSizeUnit),
+		}
+		objectValue, diags = types.ObjectValue(elementTypes, elements)
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
-			return
 		}
-		autoSizeUnit = autosize.SizeUnit.ValueString()
-		minimum = interfaces.ConvertBytesToUnitInt(int64(response.Autosize.Minimum), autoSizeUnit)
-		maximum = interfaces.ConvertBytesToUnitInt(int64(response.Autosize.Maximum), autoSizeUnit)
-	} else {
-		minimum, autoSizeUnit = interfaces.ByteFormat(int64(response.Autosize.Minimum))
-		maximum, _ = interfaces.ByteFormat(int64(response.Autosize.Maximum))
+		data.Autosize = objectValue
 	}
+	// else: GCNV dropped the autosize block – data.Autosize already holds the configured
+	// values so Terraform will see a consistent result.
 
-	elements = map[string]attr.Value{
-		"minimum":          types.Int64Value(minimum),
-		"maximum":          types.Int64Value(maximum),
-		"shrink_threshold": types.Int64Value(int64(response.Autosize.ShrinkThreshold)),
-		"grow_threshold":   types.Int64Value(int64(response.Autosize.GrowThreshold)),
-		"mode":             types.StringValue(response.Autosize.Mode),
-		"size_unit":        types.StringValue(autoSizeUnit),
+	// restore_to is a PATCH-only query parameter; ONTAP never returns it.
+	if data.RestoreSnapshot.IsUnknown() {
+		snapshotAttrTypes := map[string]attr.Type{
+			"name": types.StringType,
+		}
+		restoreAttrTypes := map[string]attr.Type{
+			"snapshot": types.ObjectType{AttrTypes: snapshotAttrTypes},
+		}
+		data.RestoreSnapshot = types.ObjectNull(restoreAttrTypes)
 	}
-	objectValue, diags = types.ObjectValue(elementTypes, elements)
+	// Tags
+	tagsSet, diags := stringSliceToSet(ctx, response.Tags)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
+		return
 	}
-	data.Autosize = objectValue
+	data.Tags = tagsSet
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -872,6 +1107,16 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// restore_to is supported only as an update-time action.
+	// Reject it during create to avoid partial success in ONTAP followed by Terraform state inconsistency.
+	if !data.RestoreSnapshot.IsUnknown() && !data.RestoreSnapshot.IsNull() {
+		resp.Diagnostics.AddError(
+			"Invalid restore_to usage during create",
+			"The restore_to block can only be used to restore an existing volume. Remove restore_to for the initial create, apply, then add restore_to and apply again.",
+		)
 		return
 	}
 	var request interfaces.StorageVolumeResourceModel
@@ -1027,16 +1272,42 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 		if !tiering.MinimumCoolingDays.IsUnknown() {
 			request.TieringPolicy.MinCoolingDays = int(tiering.MinimumCoolingDays.ValueInt64())
 		}
-	}
-
-	if !data.SnapLock.IsUnknown() {
-		var snapLock StorageVolumeResourceSnapLock
-		diags := data.SnapLock.As(ctx, &snapLock, basetypes.ObjectAsOptions{})
+		objectTags, diags := setToStringSlice(ctx, tiering.ObjectTags)
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		request.Snaplock.Type = snapLock.SnaplockType.ValueString()
+		request.TieringPolicy.ObjectTags = objectTags
+	}
+
+	// snaplock
+	if !data.SnapLock.IsNull() && !data.SnapLock.IsUnknown() {
+		var snapLock StorageVolumeResourceSnapLock
+		diags := data.SnapLock.As(ctx, &snapLock, basetypes.ObjectAsOptions{
+			UnhandledNullAsEmpty:    true,
+			UnhandledUnknownAsEmpty: true,
+		})
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+
+		var retentionBody *interfaces.Retention
+		if snapLock.Retention != nil {
+			retentionBody = &interfaces.Retention{
+				Default: snapLock.Retention.Default.ValueString(),
+				Maximum: snapLock.Retention.Maximum.ValueString(),
+				Minimum: snapLock.Retention.Minimum.ValueString(),
+			}
+		}
+
+		request.Snaplock = &interfaces.Snaplock{
+			Type:              snapLock.Type.ValueString(),
+			AutocommitPeriod:  snapLock.AutocommitPeriod.ValueString(),
+			AppendModeEnabled: snapLock.AppendModeEnabled.ValueBoolPointer(),
+			PrivilegedDelete:  snapLock.PrivilegedDelete.ValueString(),
+			Retention:         retentionBody,
+		}
 	}
 
 	if !data.Analytics.IsUnknown() {
@@ -1073,6 +1344,15 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 		if !autosize.Mode.IsUnknown() {
 			request.Autosize.Mode = autosize.Mode.ValueString()
 		}
+	}
+
+	if !data.Tags.IsUnknown() && !data.Tags.IsNull() {
+		tags, diags := setToStringSlice(ctx, data.Tags)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		request.Tags = tags
 	}
 
 	if resp.Diagnostics.HasError() {
@@ -1144,17 +1424,50 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	data.Space = objectValue
 
 	//Snaplock
-	elementTypes = map[string]attr.Type{
-		"type": types.StringType,
+	snaplockRetentionAttrTypes := map[string]attr.Type{
+		"default": types.StringType,
+		"maximum": types.StringType,
+		"minimum": types.StringType,
 	}
-	elements = map[string]attr.Value{
-		"type": types.StringValue(response.Snaplock.Type),
+	snaplockAttrTypes := map[string]attr.Type{
+		"type":                types.StringType,
+		"autocommit_period":   types.StringType,
+		"append_mode_enabled": types.BoolType,
+		"privileged_delete":   types.StringType,
+		"retention":           types.ObjectType{AttrTypes: snaplockRetentionAttrTypes},
 	}
-	objectValue, diags = types.ObjectValue(elementTypes, elements)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
+	snaplockValues := map[string]attr.Value{
+		"type":                types.StringNull(),
+		"autocommit_period":   types.StringNull(),
+		"append_mode_enabled": types.BoolNull(),
+		"privileged_delete":   types.StringNull(),
+		"retention":           types.ObjectNull(snaplockRetentionAttrTypes),
 	}
-	data.SnapLock = objectValue
+
+	if response.Snaplock != nil {
+		snaplockValues["type"] = types.StringValue(response.Snaplock.Type)
+		snaplockValues["autocommit_period"] = types.StringValue(response.Snaplock.AutocommitPeriod)
+		snaplockValues["append_mode_enabled"] = types.BoolPointerValue(response.Snaplock.AppendModeEnabled)
+		snaplockValues["privileged_delete"] = types.StringValue(response.Snaplock.PrivilegedDelete)
+		if response.Snaplock.Retention != nil {
+			retentionValue, d := types.ObjectValue(snaplockRetentionAttrTypes, map[string]attr.Value{
+				"default": types.StringValue(response.Snaplock.Retention.Default),
+				"maximum": types.StringValue(response.Snaplock.Retention.Maximum),
+				"minimum": types.StringValue(response.Snaplock.Retention.Minimum),
+			})
+			resp.Diagnostics.Append(d...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			snaplockValues["retention"] = retentionValue
+		}
+	}
+	snaplockObjectValue, d := types.ObjectValue(snaplockAttrTypes, snaplockValues)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	data.SnapLock = snaplockObjectValue
 
 	//Efficiency
 	elementTypes = map[string]attr.Type{
@@ -1183,10 +1496,16 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 	elementTypes = map[string]attr.Type{
 		"minimum_cooling_days": types.Int64Type,
 		"policy_name":          types.StringType,
+		"object_tags":          types.SetType{ElemType: types.StringType},
+	}
+	objectTagsSet, diags := stringSliceToSet(ctx, response.TieringPolicy.ObjectTags)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
 	}
 	elements = map[string]attr.Value{
 		"minimum_cooling_days": types.Int64Value(int64(response.TieringPolicy.MinCoolingDays)),
 		"policy_name":          types.StringValue(response.TieringPolicy.Policy),
+		"object_tags":          objectTagsSet,
 	}
 	objectValue, diags = types.ObjectValue(elementTypes, elements)
 	if diags.HasError() {
@@ -1239,19 +1558,49 @@ func (r *StorageVolumeResource) Create(ctx context.Context, req resource.CreateR
 		"mode":             types.StringType,
 		"size_unit":        types.StringType,
 	}
-	elements = map[string]attr.Value{
-		"minimum":          types.Int64Value(int64(response.Autosize.Minimum / interfaces.POW2BYTEMAP[autoSizeUnit])),
-		"maximum":          types.Int64Value(int64(response.Autosize.Maximum / interfaces.POW2BYTEMAP[autoSizeUnit])),
-		"shrink_threshold": types.Int64Value(int64(response.Autosize.ShrinkThreshold)),
-		"grow_threshold":   types.Int64Value(int64(response.Autosize.GrowThreshold)),
-		"mode":             types.StringValue(response.Autosize.Mode),
-		"size_unit":        types.StringValue(autoSizeUnit),
+	// For GCNV, autosize modes other than "off" are silently dropped. Keep
+	// the planned values so Terraform sees a consistent result after apply.
+	gcnvKeepAutosizeCreate := false
+	if client.IsGCNV() && !data.Autosize.IsUnknown() && !data.Autosize.IsNull() {
+		var autosizeCheck StorageVolumeResourceAutosize
+		if diagsCheck := data.Autosize.As(ctx, &autosizeCheck, basetypes.ObjectAsOptions{}); !diagsCheck.HasError() {
+			if m := autosizeCheck.Mode.ValueString(); m != "" && m != "off" {
+				gcnvKeepAutosizeCreate = true
+			}
+		}
 	}
-	objectValue, diags = types.ObjectValue(elementTypes, elements)
+	if !gcnvKeepAutosizeCreate {
+		elements = map[string]attr.Value{
+			"minimum":          types.Int64Value(int64(response.Autosize.Minimum / interfaces.POW2BYTEMAP[autoSizeUnit])),
+			"maximum":          types.Int64Value(int64(response.Autosize.Maximum / interfaces.POW2BYTEMAP[autoSizeUnit])),
+			"shrink_threshold": types.Int64Value(int64(response.Autosize.ShrinkThreshold)),
+			"grow_threshold":   types.Int64Value(int64(response.Autosize.GrowThreshold)),
+			"mode":             types.StringValue(response.Autosize.Mode),
+			"size_unit":        types.StringValue(autoSizeUnit),
+		}
+		objectValue, diags = types.ObjectValue(elementTypes, elements)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+		}
+		data.Autosize = objectValue
+	}
+	// else: GCNV dropped the autosize block – data.Autosize already holds
+	// the planned values so Terraform will see a consistent result.
+
+	// restore_to is a PATCH-only query parameter; ONTAP never returns it. Set to null after create.
+	snapshotAttrTypes := map[string]attr.Type{
+		"name": types.StringType,
+	}
+	restoreAttrTypes := map[string]attr.Type{
+		"snapshot": types.ObjectType{AttrTypes: snapshotAttrTypes},
+	}
+	data.RestoreSnapshot = types.ObjectNull(restoreAttrTypes)
+	tagsSet, diags := stringSliceToSet(ctx, response.Tags)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
+		return
 	}
-	data.Autosize = objectValue
+	data.Tags = tagsSet
 
 	tflog.Trace(ctx, "created a resource")
 
@@ -1329,6 +1678,7 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 		}
 	}
 
+	ignoreNASpath := true
 	ignoreNASgid := true
 	ignoreNASuid := true
 	if !plan.Nas.Equal(state.Nas) {
@@ -1344,7 +1694,10 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 			return
 		}
 		request.NAS.ExportPolicy.Name = planNas.ExportPolicy.ValueString()
-		request.NAS.JunctionPath = planNas.JunctionPath.ValueString()
+		if !planNas.JunctionPath.Equal(stateNas.JunctionPath) {
+			ignoreNASpath = false
+			request.NAS.JunctionPath = planNas.JunctionPath.ValueString()
+		}
 		request.NAS.SecurityStyle = planNas.SecurityStyle.ValueString()
 		request.NAS.UnixPermissions = int(planNas.UnixPermissions.ValueInt64())
 		if !planNas.GroupID.Equal(stateNas.GroupID) {
@@ -1415,16 +1768,71 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 		}
 		request.TieringPolicy.Policy = tiering.Policy.ValueString()
 		request.TieringPolicy.MinCoolingDays = int(tiering.MinimumCoolingDays.ValueInt64())
-	}
-
-	if !plan.SnapLock.Equal(state.SnapLock) {
-		var snapLock StorageVolumeResourceSnapLock
-		diags := plan.SnapLock.As(ctx, &snapLock, basetypes.ObjectAsOptions{})
+		objectTags, diags := setToStringSlice(ctx, tiering.ObjectTags)
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		request.Snaplock.Type = snapLock.SnaplockType.ValueString()
+		request.TieringPolicy.ObjectTags = objectTags
+	}
+
+	if !plan.SnapLock.Equal(state.SnapLock) {
+		var planSnapLock, stateSnapLock StorageVolumeResourceSnapLock
+		asOptions := basetypes.ObjectAsOptions{
+			UnhandledNullAsEmpty:    true,
+			UnhandledUnknownAsEmpty: true,
+		}
+		diags := plan.SnapLock.As(ctx, &planSnapLock, asOptions)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		diags = state.SnapLock.As(ctx, &stateSnapLock, asOptions)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+
+		snapLockPatch := interfaces.Snaplock{}
+		snapLockChanged := false
+
+		if !planSnapLock.AutocommitPeriod.Equal(stateSnapLock.AutocommitPeriod) {
+			snapLockPatch.AutocommitPeriod = planSnapLock.AutocommitPeriod.ValueString()
+			snapLockChanged = true
+		}
+		if !planSnapLock.AppendModeEnabled.Equal(stateSnapLock.AppendModeEnabled) {
+			snapLockPatch.AppendModeEnabled = planSnapLock.AppendModeEnabled.ValueBoolPointer()
+			snapLockChanged = true
+		}
+		if !planSnapLock.PrivilegedDelete.Equal(stateSnapLock.PrivilegedDelete) {
+			snapLockPatch.PrivilegedDelete = planSnapLock.PrivilegedDelete.ValueString()
+			snapLockChanged = true
+		}
+
+		retentionPatch := interfaces.Retention{}
+		retentionChanged := false
+		if planSnapLock.Retention != nil {
+			if stateSnapLock.Retention == nil || !planSnapLock.Retention.Default.Equal(stateSnapLock.Retention.Default) {
+				retentionPatch.Default = planSnapLock.Retention.Default.ValueString()
+				retentionChanged = true
+			}
+			if stateSnapLock.Retention == nil || !planSnapLock.Retention.Maximum.Equal(stateSnapLock.Retention.Maximum) {
+				retentionPatch.Maximum = planSnapLock.Retention.Maximum.ValueString()
+				retentionChanged = true
+			}
+			if stateSnapLock.Retention == nil || !planSnapLock.Retention.Minimum.Equal(stateSnapLock.Retention.Minimum) {
+				retentionPatch.Minimum = planSnapLock.Retention.Minimum.ValueString()
+				retentionChanged = true
+			}
+		}
+		if retentionChanged {
+			snapLockPatch.Retention = &retentionPatch
+			snapLockChanged = true
+		}
+
+		if snapLockChanged {
+			request.Snaplock = &snapLockPatch
+		}
 	}
 
 	if !plan.Analytics.Equal(state.Analytics) {
@@ -1452,12 +1860,55 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 		request.Autosize.Mode = autosize.Mode.ValueString()
 	}
 
+	// restore_to.snapshot.name is a PATCH query parameter.
+	// Handling it separately after the normal update body is sent.
+	var restoreSnapshotName string
+	if !plan.RestoreSnapshot.IsUnknown() && !plan.RestoreSnapshot.IsNull() && !plan.RestoreSnapshot.Equal(state.RestoreSnapshot) {
+		var restoreSnapshotReq StorageVolumeResourceRestoreSnapshot
+		diags := plan.RestoreSnapshot.As(ctx, &restoreSnapshotReq, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+
+		if restoreSnapshotReq.Snapshot.IsUnknown() || restoreSnapshotReq.Snapshot.IsNull() {
+			resp.Diagnostics.AddError("Invalid restore_to input", "restore_to.snapshot.name must be set to trigger a snapshot restore.")
+			return
+		}
+
+		var restoreSnapshot StorageVolumeResourceRestoreSnapshotName
+		diags = restoreSnapshotReq.Snapshot.As(ctx, &restoreSnapshot, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+
+		if restoreSnapshot.Name.IsUnknown() || restoreSnapshot.Name.IsNull() || restoreSnapshot.Name.ValueString() == "" {
+			resp.Diagnostics.AddError("Invalid restore_to input", "restore_to.snapshot.name must be set to trigger a snapshot restore.")
+			return
+		}
+
+		restoreSnapshotName = restoreSnapshot.Name.ValueString()
+	}
+
+	if !plan.Tags.Equal(state.Tags) {
+		tags, diags := setToStringSlice(ctx, plan.Tags)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		request.Tags = tags
+	}
+
 	ignoreOptions := []string{}
 	if ignoreEncrption {
 		ignoreOptions = append(ignoreOptions, "encryption")
 	}
 	if ignoreLogicalSpace {
 		ignoreOptions = append(ignoreOptions, "logical_space")
+	}
+	if ignoreNASpath {
+		ignoreOptions = append(ignoreOptions, "nas.path")
 	}
 	if ignoreNASgid {
 		ignoreOptions = append(ignoreOptions, "nas.group_id")
@@ -1469,6 +1920,25 @@ func (r *StorageVolumeResource) Update(ctx context.Context, req resource.UpdateR
 	err = interfaces.UpddateStorageVolume(errorHandler, *client, request, plan.ID.ValueString(), ignoreOptions)
 	if err != nil {
 		return
+	}
+
+	// If restore_to.snapshot.name was set, trigger snapshot restore via PATCH query parameter.
+	if restoreSnapshotName != "" {
+		err = interfaces.RestoreVolumeToSnapshot(errorHandler, *client, plan.ID.ValueString(), restoreSnapshotName)
+		if err != nil {
+			return
+		}
+		// Snapshot restore can turn off analytics. Re-apply analytics state if it was configured.
+		if !plan.Analytics.IsUnknown() && !plan.Analytics.IsNull() {
+			var analytics StorageVolumeResourceAnalytics
+			if diagsAnalytics := plan.Analytics.As(ctx, &analytics, basetypes.ObjectAsOptions{}); !diagsAnalytics.HasError() {
+				if analytics.State.ValueString() != "" {
+					var reapplyReq interfaces.StorageVolumeResourceModel
+					reapplyReq.Analytics.State = analytics.State.ValueString()
+					_ = interfaces.UpddateStorageVolume(errorHandler, *client, reapplyReq, plan.ID.ValueString(), []string{})
+				}
+			}
+		}
 	}
 	// Save updated data into Terraform state
 	planEncryption := plan.Encrypt.ValueBool()
@@ -1609,17 +2079,51 @@ func readVolume(ctx context.Context, client *restclient.RestClient, data *Storag
 	data.Space = objectValue
 
 	//Snaplock
-	elementTypes = map[string]attr.Type{
-		"type": types.StringType,
+	snaplockRetentionAttrTypes := map[string]attr.Type{
+		"default": types.StringType,
+		"maximum": types.StringType,
+		"minimum": types.StringType,
 	}
-	elements = map[string]attr.Value{
-		"type": types.StringValue(response.Snaplock.Type),
+	snaplockAttrTypes := map[string]attr.Type{
+		"type":                types.StringType,
+		"autocommit_period":   types.StringType,
+		"append_mode_enabled": types.BoolType,
+		"privileged_delete":   types.StringType,
+		"retention":           types.ObjectType{AttrTypes: snaplockRetentionAttrTypes},
 	}
-	objectValue, diags = types.ObjectValue(elementTypes, elements)
-	if diags.HasError() {
-		allDiags.Append(diags...)
+	snaplockValues := map[string]attr.Value{
+		"type":                types.StringNull(),
+		"autocommit_period":   types.StringNull(),
+		"append_mode_enabled": types.BoolNull(),
+		"privileged_delete":   types.StringNull(),
+		"retention":           types.ObjectNull(snaplockRetentionAttrTypes),
 	}
-	data.SnapLock = objectValue
+
+	if response.Snaplock != nil {
+		snaplockValues["type"] = types.StringValue(response.Snaplock.Type)
+		snaplockValues["autocommit_period"] = types.StringValue(response.Snaplock.AutocommitPeriod)
+		snaplockValues["append_mode_enabled"] = types.BoolPointerValue(response.Snaplock.AppendModeEnabled)
+		snaplockValues["privileged_delete"] = types.StringValue(response.Snaplock.PrivilegedDelete)
+		if response.Snaplock.Retention != nil {
+			retentionValue, retentionDiags := types.ObjectValue(snaplockRetentionAttrTypes, map[string]attr.Value{
+				"default": types.StringValue(response.Snaplock.Retention.Default),
+				"maximum": types.StringValue(response.Snaplock.Retention.Maximum),
+				"minimum": types.StringValue(response.Snaplock.Retention.Minimum),
+			})
+			if retentionDiags.HasError() {
+				allDiags.Append(retentionDiags...)
+				return allDiags
+			}
+			snaplockValues["retention"] = retentionValue
+		}
+	}
+	snaplockObjectValue, snaplockDiags := types.ObjectValue(snaplockAttrTypes, snaplockValues)
+	if snaplockDiags.HasError() {
+		allDiags.Append(snaplockDiags...)
+		return allDiags
+	}
+	data.SnapLock = snaplockObjectValue
+
 	if response.SnapshotLockingEnabled != nil {
 		data.SnapshotLockingEnabled = types.BoolValue(*response.SnapshotLockingEnabled)
 	} else {
@@ -1653,10 +2157,16 @@ func readVolume(ctx context.Context, client *restclient.RestClient, data *Storag
 	elementTypes = map[string]attr.Type{
 		"minimum_cooling_days": types.Int64Type,
 		"policy_name":          types.StringType,
+		"object_tags":          types.SetType{ElemType: types.StringType},
+	}
+	objectTagsSet, diags := stringSliceToSet(ctx, response.TieringPolicy.ObjectTags)
+	if diags.HasError() {
+		allDiags.Append(diags...)
 	}
 	elements = map[string]attr.Value{
 		"minimum_cooling_days": types.Int64Value(int64(response.TieringPolicy.MinCoolingDays)),
 		"policy_name":          types.StringValue(response.TieringPolicy.Policy),
+		"object_tags":          objectTagsSet,
 	}
 	objectValue, diags = types.ObjectValue(elementTypes, elements)
 	if diags.HasError() {
@@ -1701,6 +2211,71 @@ func readVolume(ctx context.Context, client *restclient.RestClient, data *Storag
 	data.Analytics = objectValue
 
 	//Autosize
+	elementTypes = map[string]attr.Type{
+		"minimum":          types.Int64Type,
+		"maximum":          types.Int64Type,
+		"shrink_threshold": types.Int64Type,
+		"grow_threshold":   types.Int64Type,
+		"mode":             types.StringType,
+		"size_unit":        types.StringType,
+	}
+	// For GCNV connections, autosize modes other than "off" are not supported and are silently
+	// dropped from the request. Keep the planned/state values as-is to avoid
+	// "inconsistent result after apply" errors.
+	gcnvKeepAutosize := false
+	if client.IsGCNV() && !data.Autosize.IsUnknown() && !data.Autosize.IsNull() {
+		var autosizeCheck StorageVolumeResourceAutosize
+		if diagsCheck := data.Autosize.As(ctx, &autosizeCheck, basetypes.ObjectAsOptions{}); !diagsCheck.HasError() {
+			if m := autosizeCheck.Mode.ValueString(); m != "" && m != "off" {
+				gcnvKeepAutosize = true
+			}
+		}
+	}
+	if !gcnvKeepAutosize {
+		// var sizeUnit is already defined as part of Space model
+		if !data.Autosize.IsUnknown() {
+			var autosize StorageVolumeResourceAutosize
+			diags = data.Autosize.As(ctx, &autosize, basetypes.ObjectAsOptions{})
+			if diags.HasError() {
+				allDiags.Append(diags...)
+				return allDiags
+			}
+			sizeUnit = autosize.SizeUnit.ValueString()
+		}
+
+		elements = map[string]attr.Value{
+			"minimum":          types.Int64Value(int64(response.Autosize.Minimum / interfaces.POW2BYTEMAP[sizeUnit])),
+			"maximum":          types.Int64Value(int64(response.Autosize.Maximum / interfaces.POW2BYTEMAP[sizeUnit])),
+			"shrink_threshold": types.Int64Value(int64(response.Autosize.ShrinkThreshold)),
+			"grow_threshold":   types.Int64Value(int64(response.Autosize.GrowThreshold)),
+			"mode":             types.StringValue(response.Autosize.Mode),
+			"size_unit":        types.StringValue(sizeUnit),
+		}
+		objectValue, diags = types.ObjectValue(elementTypes, elements)
+		if diags.HasError() {
+			allDiags.Append(diags...)
+		}
+		data.Autosize = objectValue
+	}
+	// else: GCNV dropped the autosize block – data.Autosize already holds the configured
+	// values so Terraform will see a consistent result.
+
+	// restore_to is a PATCH-only query parameter; ONTAP never returns it. Preserving existing state value.
+	if data.RestoreSnapshot.IsUnknown() {
+		snapshotAttrTypes := map[string]attr.Type{
+			"name": types.StringType,
+		}
+		restoreAttrTypes := map[string]attr.Type{
+			"snapshot": types.ObjectType{AttrTypes: snapshotAttrTypes},
+		}
+		data.RestoreSnapshot = types.ObjectNull(restoreAttrTypes)
+	}
+	tagsSet, diags := stringSliceToSet(ctx, response.Tags)
+	if diags.HasError() {
+		allDiags.Append(diags...)
+		return allDiags
+	}
+	data.Tags = tagsSet
 	if !data.Autosize.IsNull() {
 		elementTypes = map[string]attr.Type{
 			"minimum":          types.Int64Type,

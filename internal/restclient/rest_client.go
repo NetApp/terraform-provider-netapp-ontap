@@ -290,6 +290,11 @@ func NewClient(ctx context.Context, cxProfile ConnectionProfile, tag string, job
 	return &client, nil
 }
 
+// IsGCNV returns true if this client is configured for a GCNV endpoint.
+func (r *RestClient) IsGCNV() bool {
+	return r.connectionProfile.UseGCNV
+}
+
 func (r *RestClient) waitForAvailableSlot() {
 	r.requestSlots <- 1
 }

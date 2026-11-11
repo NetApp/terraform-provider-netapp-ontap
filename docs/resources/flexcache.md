@@ -76,7 +76,7 @@ resource "netapp-ontap_flexcache" "storage_flexcache" {
 - `junction_path` (String) Name of the junction path. Path to mount the FlexCache volume.
 - `size` (Number) The size of the flexcache volume
 - `size_unit` (String) The unit used to interpret the size parameter
-- `use_tiered_aggregate` (Boolean) The state of the use tiered aggregates
+- `use_tiered_aggregate` (Boolean) Whether to use a tiered aggregate. Only configurable at creation.
 
 ### Read-Only
 

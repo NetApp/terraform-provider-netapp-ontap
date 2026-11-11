@@ -53,7 +53,6 @@ data "netapp-ontap_flexcache" "storage_flexcache" {
 - `origins` (Attributes Set) Set of the origin volumes (see [below for nested schema](#nestedatt--origins))
 - `size` (Number) The size of the flexcache volume
 - `size_unit` (String) The unit used to interpret the `size` parameter
-- `use_tiered_aggregate` (Boolean) The state of the use tiered aggregates
 
 <a id="nestedatt--aggregates"></a>
 

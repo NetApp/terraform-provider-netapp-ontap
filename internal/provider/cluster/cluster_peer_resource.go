@@ -63,6 +63,7 @@ type ClusterPeersResourceModel struct {
 	State              types.String   `tfsdk:"state"`
 	PeerID             types.String   `tfsdk:"peer_id"`
 	Ipspace            types.Object   `tfsdk:"ipspace"`
+	PeerIpspace        types.Object   `tfsdk:"peer_ipspace"`
 	ID                 types.String   `tfsdk:"id"`
 }
 
@@ -123,7 +124,7 @@ func (r *ClusterPeersResource) Schema(ctx context.Context, req resource.SchemaRe
 			},
 			"source_details": schema.SingleNestedAttribute{
 				MarkdownDescription: "Source cluster details for cluster peer from remote cluster",
-				Required:            true,
+				Optional:            true,
 				Attributes: map[string]schema.Attribute{
 					"ip_addresses": schema.SetAttribute{
 						ElementType:         types.StringType,
@@ -139,10 +140,10 @@ func (r *ClusterPeersResource) Schema(ctx context.Context, req resource.SchemaRe
 			},
 			"peer_cx_profile_name": schema.StringAttribute{
 				MarkdownDescription: "Peer connection profile name, to be accepted from peer side to make the status OK",
-				Required:            true,
+				Optional:            true,
 			},
 			"ipspace": schema.SingleNestedAttribute{
-				MarkdownDescription: "IPspace for the cluster peer LIFs (e.g. 'Gcnv' for Google Cloud NetApp Volumes)",
+				MarkdownDescription: "IPspace for the local cluster peer LIFs (e.g. 'Gcnv' for Google Cloud NetApp Volumes)",
 				Optional:            true,
 				Computed:            true,
 				PlanModifiers: []planmodifier.Object{
@@ -151,6 +152,20 @@ func (r *ClusterPeersResource) Schema(ctx context.Context, req resource.SchemaRe
 				Attributes: map[string]schema.Attribute{
 					"name": schema.StringAttribute{
 						MarkdownDescription: "Name of the IPspace",
+						Required:            true,
+					},
+				},
+			},
+			"peer_ipspace": schema.SingleNestedAttribute{
+				MarkdownDescription: "IPspace for the peer cluster LIFs. Use when the peer cluster uses a different IPspace than the local cluster (e.g. 'default' for ONTAP when local is GCNV)",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
+				Attributes: map[string]schema.Attribute{
+					"name": schema.StringAttribute{
+						MarkdownDescription: "Name of the IPspace on the peer cluster",
 						Required:            true,
 					},
 				},
@@ -271,6 +286,20 @@ func (r *ClusterPeersResource) Create(ctx context.Context, req resource.CreateRe
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	if data.SourceDetails == nil || len(data.SourceDetails.IPAddresses) == 0 {
+		resp.Diagnostics.AddError(
+			"Missing source_details",
+			"source_details.ip_addresses must be provided when creating a cluster peer.",
+		)
+		return
+	}
+	if data.PeerCxProfileName.IsNull() || data.PeerCxProfileName.IsUnknown() || data.PeerCxProfileName.ValueString() == "" {
+		resp.Diagnostics.AddError(
+			"Missing peer_cx_profile_name",
+			"peer_cx_profile_name must be provided when creating a cluster peer.",
+		)
+		return
+	}
 
 	if !data.Name.IsUnknown() {
 		body.Name = data.Name.ValueString()
@@ -290,7 +319,7 @@ func (r *ClusterPeersResource) Create(ctx context.Context, req resource.CreateRe
 	if !data.GeneratePassphrase.IsUnknown() {
 		body.Authentication.GeneratePassphrase = data.GeneratePassphrase.ValueBool()
 	}
-	if !data.Passphrase.IsUnknown() {
+	if !data.Passphrase.IsNull() && !data.Passphrase.IsUnknown() {
 		body.Authentication.Passphrase = data.Passphrase.ValueString()
 	}
 	if !data.Ipspace.IsNull() && !data.Ipspace.IsUnknown() {
@@ -321,8 +350,8 @@ func (r *ClusterPeersResource) Create(ctx context.Context, req resource.CreateRe
 		ipAddressesPeer = append(ipAddressesPeer, e.ValueString())
 	}
 	bodyPeer.Remote.IPAddress = ipAddressesPeer
-	if !data.Ipspace.IsNull() && !data.Ipspace.IsUnknown() {
-		if nameAttr, ok := data.Ipspace.Attributes()["name"].(types.String); ok && nameAttr.ValueString() != "" {
+	if !data.PeerIpspace.IsNull() && !data.PeerIpspace.IsUnknown() {
+		if nameAttr, ok := data.PeerIpspace.Attributes()["name"].(types.String); ok && nameAttr.ValueString() != "" {
 			bodyPeer.Ipspace = &interfaces.ClusterPeerIpspace{Name: nameAttr.ValueString()}
 		}
 	}
@@ -333,7 +362,12 @@ func (r *ClusterPeersResource) Create(ctx context.Context, req resource.CreateRe
 		}
 		bodyPeer.PeerApplications = applications
 	}
-	bodyPeer.Authentication.Passphrase = resource.Authentication.Passphrase
+	// Use the passphrase from the response if available (generated), otherwise use the user-provided one
+	if resource.Authentication.Passphrase != "" {
+		bodyPeer.Authentication.Passphrase = resource.Authentication.Passphrase
+	} else if !data.Passphrase.IsNull() && !data.Passphrase.IsUnknown() {
+		bodyPeer.Authentication.Passphrase = data.Passphrase.ValueString()
+	}
 	resourcePeer, err := interfaces.CreateClusterPeers(errorHandler, *peerClient, bodyPeer)
 	if err != nil {
 		return
@@ -351,7 +385,7 @@ func (r *ClusterPeersResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 	data.State = types.StringValue(restInfo.Authentication.State)
-	if !data.Ipspace.IsNull() && !data.Ipspace.IsUnknown() && restInfo.Ipspace.Name != "" {
+	if restInfo.Ipspace.Name != "" {
 		ipspaceObj, diags := types.ObjectValue(
 			map[string]attr.Type{"name": types.StringType},
 			map[string]attr.Value{"name": types.StringValue(restInfo.Ipspace.Name)},
@@ -360,6 +394,8 @@ func (r *ClusterPeersResource) Create(ctx context.Context, req resource.CreateRe
 		if !diags.HasError() {
 			data.Ipspace = ipspaceObj
 		}
+	} else {
+		data.Ipspace = types.ObjectNull(map[string]attr.Type{"name": types.StringType})
 	}
 
 	tflog.Trace(ctx, "created a resource")

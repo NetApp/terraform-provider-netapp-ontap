@@ -50,6 +50,7 @@ data "netapp-ontap_quota_rule" "storage_quota_rule" {
 - `files` (Attributes) (see [below for nested schema](#nestedatt--files))
 - `group` (Attributes) group to which the group quota policy rule applies (see [below for nested schema](#nestedatt--group))
 - `id` (String) The ID of this resource.
+- `space` (Attributes) (see [below for nested schema](#nestedatt--space))
 - `user_mapping` (Boolean) user mapping for user quota policy rules
 - `users` (Attributes Set) user to which the user quota policy rule applies (see [below for nested schema](#nestedatt--users))
 
@@ -93,6 +94,15 @@ Read-Only:
 Read-Only:
 
 - `name` (String) name of the group
+
+<a id="nestedatt--space"></a>
+
+### Nested Schema for `space`
+
+Read-Only:
+
+- `hard_limit` (Number) Specifies the space hard limit, in bytes.
+- `soft_limit` (Number) Specifies the space soft limit, in bytes.
 
 <a id="nestedatt--users"></a>
 

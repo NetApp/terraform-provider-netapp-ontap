@@ -22,6 +22,7 @@ type ProtocolsS3BucketGetDataModelONTAP struct {
 	QoSPolicy           *QoSPolicyDataModel           `mapstructure:"qos_policy,omitempty"`
 	SnapshotPolicy       SnapshotPolicy               `mapstructure:"snapshot_policy"`
 	AuditEventSelector  *AuditEventSelectorDataModel  `mapstructure:"audit_event_selector,omitempty"`
+	CORS                *CORSDataModel                `mapstructure:"cors,omitempty"`
 	UUID                 string                       `mapstructure:"uuid"`
 }
 
@@ -67,6 +68,21 @@ type AuditEventSelectorDataModel struct {
 	Permission  string  `mapstructure:"permission,omitempty"`
 }
 
+// CORSDataModel describes the cors object that contains a list of rules.
+type CORSDataModel struct {
+	Rules []CORSRulesDataModel `mapstructure:"rules" json:"rules,omitempty"`
+}
+
+// CORSRulesDataModel describes the cors.rules data model using go types for mapping
+type CORSRulesDataModel struct {
+	AllowedOrigins  []string  `mapstructure:"allowed_origins,omitempty"  json:"allowed_origins,omitempty"`
+	AllowedMethods  []string  `mapstructure:"allowed_methods,omitempty"  json:"allowed_methods,omitempty"`
+	AllowedHeaders  []string  `mapstructure:"allowed_headers,omitempty"  json:"allowed_headers,omitempty"`
+	ExposeHeaders   []string  `mapstructure:"expose_headers,omitempty"   json:"expose_headers,omitempty"`
+	RuleID		      string  `mapstructure:"id,omitempty"               json:"id,omitempty"`
+	MaxAgeSeconds     int     `mapstructure:"max_age_seconds,omitempty"  json:"max_age_seconds,omitempty"`
+}
+
 // ProtocolsS3BucketResourceBodyDataModel describes the resource body data model using go types for mapping
 type ProtocolsS3BucketResourceBodyDataModel struct {
 	Name                        string                       `mapstructure:"name"`
@@ -78,6 +94,7 @@ type ProtocolsS3BucketResourceBodyDataModel struct {
 	VersioningState             string                       `mapstructure:"versioning_state,omitempty"`
 	Policy                     *PolicyDataModel              `mapstructure:"policy,omitempty"`
 	QoSPolicy                  *QoSPolicyDataModel           `mapstructure:"qos_policy,omitempty"`
+	CORS                       *CORSDataModel                `mapstructure:"cors,omitempty"`
 	SnapshotPolicy              SnapshotPolicy               `mapstructure:"snapshot_policy,omitempty"`
 	AuditEventSelector         *AuditEventSelectorDataModel  `mapstructure:"audit_event_selector,omitempty"`
 	Aggregates                []string                       `mapstructure:"aggregates,omitempty"`
@@ -119,7 +136,7 @@ func GetProtocolsS3Bucket(errorHandler *utils.ErrorHandler, r restclient.RestCli
 		fields = append(fields, "type", "nas_path")
 	}
 	if version.Generation == 9 && version.Major >= 16 {
-		fields = append(fields, "snapshot_policy")
+		fields = append(fields, "snapshot_policy", "cors.rules")
 	}
 	query.Fields(fields)
 
@@ -167,7 +184,7 @@ func GetProtocolsS3Buckets(errorHandler *utils.ErrorHandler, r restclient.RestCl
 		fields = append(fields, "type", "nas_path")
 	}
 	if version.Generation == 9 && version.Major >= 16 {
-		fields = append(fields, "snapshot_policy")
+		fields = append(fields, "snapshot_policy", "cors.rules")
 	}
 	query.Fields(fields)
 

@@ -35,6 +35,11 @@ resource "netapp-ontap_lun" "storage_lun" {
   volume_name = "vol1"
   os_type = "linux"
   size = 1048576
+  space = {
+    guarantee = {
+      requested = "true"
+    }
+  }
 }
 ```
 
@@ -55,12 +60,31 @@ resource "netapp-ontap_lun" "storage_lun" {
 - `name` (String) Path for the LUN you want to create or modify. Example of correct LUN path: /vol/vol1/lun1. At least one of `name` or `logical_unit` must be provided.
 - `qos_policy_name` (String) QoS policy name
 - `scsi_thin_provisioning_support_enabled` (Boolean) Specifies the value for the space allocation attribute, which determines if the LUN supports the SCSI Thin Provisioning features
+- `space` (Attributes) Space-related properties for the LUN (see [below for nested schema](#nestedatt--space))
 - `size_unit` (String) The unit used to interpret the size parameter
 
 ### Read-Only
 
 - `id` (String) StorageLun UUID
 - `serial_number` (String) Serial number for lun
+
+<a id="nestedatt--space"></a>
+### Nested Schema for `space`
+
+Optional:
+
+- `guarantee` (Attributes) Properties that request and report the space guarantee for the LUN (see [below for nested schema](#nestedatt--space--guarantee))
+
+<a id="nestedatt--space--guarantee"></a>
+### Nested Schema for `space.guarantee`
+
+Optional:
+
+- `requested` (Boolean) The requested space reservation policy for the LUN. If true, space reservation is requested; if false, the LUN is thin provisioned.
+
+Read-Only:
+
+- `reserved` (Boolean) Reports whether the LUN is actually space guaranteed by ONTAP
 
 ## Import
 

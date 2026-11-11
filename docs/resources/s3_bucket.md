@@ -21,6 +21,8 @@ Create, delete, or modify S3 bucket
 * vserver object-store-server bucket delete
 * vserver object-store-server bucket policy statement delete
 * vserver object-store-server bucket policy-statement-condition delete
+* vserver object-store-server bucket cors-rule create
+* vserver object-store-server bucket cors-rule delete
 ```
 
 ## Supported Platforms
@@ -84,22 +86,23 @@ resource "netapp-ontap_s3_bucket" "s3_bucket" {
 - `aggregates` (List of String) List of aggregates to use for the S3 bucket. This option is not supported when type is set to NAS.
 - `audit_event_selector` (Attributes) Audit event selector allows you to specify access and permission types to audit.
 				This option is not supported when type is set to NAS.
-				Requires ONTAP 9.10.1 or later. (see [below for nested schema](#nestedatt--audit_event_selector))
+				Requires ONTAP 9.10 or later. (see [below for nested schema](#nestedatt--audit_event_selector))
 - `comment` (String) Additional information about the bucket.
 - `constituents_per_aggregate` (Number) Number of constituents per aggregate. This option is not supported when type is set to NAS.
+- `cors_rules` (Attributes Set) The list of object store bucket CORS rules. Requires ONTAP 9.16 or later. (see [below for nested schema](#nestedatt--cors_rules))
 - `nas_path` (String) The NAS path to which the NAS bucket corresponds.
-				Requires ONTAP 9.12.1 or later.
+				Requires ONTAP 9.12 or later.
 - `policy` (Attributes) Access policy uses the AWS policy language syntax to allow S3 tenants to create access policies to their data. (see [below for nested schema](#nestedatt--policy))
 - `qos_policy` (Attributes) A policy group defines measurable service level objectives (SLOs) that apply to the storage objects with which the policy group is associated.
 				If you do not assign a policy group to a bucket, the system will not monitor and control the traffic to it.
 				This option is not supported when type is set to NAS. (see [below for nested schema](#nestedatt--qos_policy))
 - `size` (Number) The size of the S3 bucket in bytes. This option is not supported when type is set to NAS.
 - `snapshot_policy` (String) The snapshot policy for the bucket.
-				Requires ONTAP 9.16.1 or later.
+				Requires ONTAP 9.16 or later.
 - `type` (String) Specifies the bucket type.
-				Requires ONTAP 9.12.1 or later.
+				Requires ONTAP 9.12 or later.
 - `versioning_state` (String) The versioning state of the bucket. The versioning state cannot be modified to 'disabled' from any other state.
-				Requires ONTAP 9.11.1 or later.
+				Requires ONTAP 9.11 or later.
 
 ### Read-Only
 
@@ -113,6 +116,19 @@ Optional:
 
 - `access` (String) The type of event access to be audited.
 - `permission` (String) The type of event permission to be audited.
+
+<a id="nestedatt--cors_rules"></a>
+
+### Nested Schema for `cors_rules`
+
+Optional:
+
+- `allowed_headers` (Set of String) List of HTTP headers allowed in the cross-origin requests.
+- `allowed_methods` (Set of String) List of HTTP methods allowed in the cross-origin requests.
+- `allowed_origins` (Set of String) List of origins from where a cross-origin request is allowed to originate from for the S3 bucket.
+- `expose_headers` (Set of String) List of extra headers sent in the response that customers can access from their applications.
+- `max_age_seconds` (Number) The time in seconds for your browser to cache the preflight response for the specified resource.
+- `rule_id` (String) Bucket CORS rule identifier.
 
 <a id="nestedatt--policy"></a>
 

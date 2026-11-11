@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -148,7 +147,6 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(true),
-				PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 			},
 			"protocol": schema.SingleNestedAttribute{
 				Required:            true,
@@ -159,21 +157,18 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 						Optional:            true,
 						Computed:            true,
 						Default:             booldefault.StaticBool(true),
-						PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 					},
 					"v4_id_domain": schema.StringAttribute{
 						MarkdownDescription: "User ID domain for NFSv4",
 						Optional:            true,
 						Computed:            true,
-						Default:             stringdefault.StaticString("defaultv4iddomain.com"),
-						PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
+						PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 					},
 					"v40_enabled": schema.BoolAttribute{
 						MarkdownDescription: "NFSv4.0 enabled",
 						Optional:            true,
 						Computed:            true,
 						Default:             booldefault.StaticBool(true),
-						PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 					},
 					"v40_features": schema.SingleNestedAttribute{
 						Optional: true,
@@ -189,7 +184,6 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 								"read_delegation_enabled":  types.BoolValue(false),
 								"write_delegation_enabled": types.BoolValue(false),
 							})),
-						PlanModifiers:       []planmodifier.Object{objectplanmodifier.RequiresReplace()},
 						MarkdownDescription: "NFSv4.0 features",
 						Attributes: map[string]schema.Attribute{
 							"acl_enabled": schema.BoolAttribute{
@@ -197,21 +191,18 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 								Optional:            true,
 								Computed:            true,
 								Default:             booldefault.StaticBool(false),
-								PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 							},
 							"read_delegation_enabled": schema.BoolAttribute{
 								MarkdownDescription: "Enable Read File Delegation for NFSv4.0",
 								Optional:            true,
 								Computed:            true,
 								Default:             booldefault.StaticBool(false),
-								PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 							},
 							"write_delegation_enabled": schema.BoolAttribute{
 								MarkdownDescription: "Enable Write File Delegation for NFSv4.0",
 								Optional:            true,
 								Computed:            true,
 								Default:             booldefault.StaticBool(false),
-								PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 							},
 						},
 					},
@@ -237,7 +228,6 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 								"read_delegation_enabled":  types.BoolValue(false),
 								"write_delegation_enabled": types.BoolValue(false),
 							})),
-						PlanModifiers:       []planmodifier.Object{objectplanmodifier.RequiresReplace()},
 						MarkdownDescription: "NFSv4.1 features",
 						Attributes: map[string]schema.Attribute{
 							"acl_enabled": schema.BoolAttribute{
@@ -245,28 +235,24 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 								Optional:            true,
 								Computed:            true,
 								Default:             booldefault.StaticBool(false),
-								PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 							},
 							"pnfs_enabled": schema.BoolAttribute{
 								MarkdownDescription: "Enabled pNFS (parallel NFS) for NFSv4.1",
 								Optional:            true,
 								Computed:            true,
 								Default:             booldefault.StaticBool(false),
-								PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 							},
 							"read_delegation_enabled": schema.BoolAttribute{
 								MarkdownDescription: "Enable Read File Delegation for NFSv4.1",
 								Optional:            true,
 								Computed:            true,
 								Default:             booldefault.StaticBool(false),
-								PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 							},
 							"write_delegation_enabled": schema.BoolAttribute{
 								MarkdownDescription: "Enable Write File Delegation for NFSv4.1",
 								Optional:            true,
 								Computed:            true,
 								Default:             booldefault.StaticBool(false),
-								PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 							},
 						},
 					},
@@ -284,7 +270,6 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 						"ignore_nt_acl":               types.BoolValue(false),
 						"skip_write_permission_check": types.BoolValue(false),
 					})),
-				PlanModifiers:       []planmodifier.Object{objectplanmodifier.RequiresReplace()},
 				MarkdownDescription: "Specific Root user options",
 				Attributes: map[string]schema.Attribute{
 					"ignore_nt_acl": schema.BoolAttribute{
@@ -292,14 +277,12 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 						Optional:            true,
 						Computed:            true,
 						Default:             booldefault.StaticBool(false),
-						PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 					},
 					"skip_write_permission_check": schema.BoolAttribute{
 						MarkdownDescription: "Skip write permissions check for root user",
 						Optional:            true,
 						Computed:            true,
 						Default:             booldefault.StaticBool(false),
-						PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 					},
 				},
 			},
@@ -319,7 +302,6 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 						"ntfs_unix_security":        types.StringValue("use_export_policy"),
 						"rpcsec_context_idle":       types.Int64Value(0),
 					})),
-				PlanModifiers:       []planmodifier.Object{objectplanmodifier.RequiresReplace()},
 				MarkdownDescription: "NFS Security options",
 				Attributes: map[string]schema.Attribute{
 					"chown_mode": schema.StringAttribute{
@@ -353,7 +335,6 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
-				PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 			},
 			"transport": schema.SingleNestedAttribute{
 				Optional: true,
@@ -369,28 +350,24 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 						"tcp_max_transfer_size": types.Int64Value(65536),
 						"udp_enabled":           types.BoolValue(true),
 					})),
-				PlanModifiers: []planmodifier.Object{objectplanmodifier.RequiresReplace()},
 				Attributes: map[string]schema.Attribute{
 					"tcp_enabled": schema.BoolAttribute{
 						MarkdownDescription: "tcp enabled",
 						Optional:            true,
 						Computed:            true,
 						Default:             booldefault.StaticBool(true),
-						PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 					},
 					"tcp_max_transfer_size": schema.Int64Attribute{
 						MarkdownDescription: "Max tcp transfer size",
 						Optional:            true,
 						Computed:            true,
 						Default:             int64default.StaticInt64(65536),
-						PlanModifiers:       []planmodifier.Int64{int64planmodifier.RequiresReplace()},
 					},
 					"udp_enabled": schema.BoolAttribute{
 						MarkdownDescription: "udp enabled",
 						Optional:            true,
 						Computed:            true,
 						Default:             booldefault.StaticBool(true),
-						PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 					},
 				},
 			},
@@ -398,8 +375,7 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 				MarkdownDescription: "Whether Vstorage is enabled",
 				Optional:            true,
 				Computed:            true,
-				Default:             booldefault.StaticBool(true),
-				PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
+				PlanModifiers:       []planmodifier.Bool{boolplanmodifier.UseStateForUnknown()},
 			},
 			"windows": schema.SingleNestedAttribute{
 				Optional: true,
@@ -422,26 +398,26 @@ func (r *ProtocolsNfsServiceResource) Schema(ctx context.Context, req resource.S
 						Optional:            true,
 						Computed:            true,
 						Default:             stringdefault.StaticString(""),
-						PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
 					},
 					"map_unknown_uid_to_default_user": schema.BoolAttribute{
 						MarkdownDescription: "whether or not the mapping of an unknown UID to the default Windows user is enabled",
 						Optional:            true,
 						Computed:            true,
-						Default:             booldefault.StaticBool(false),
-						PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
+						PlanModifiers:       []planmodifier.Bool{boolplanmodifier.UseStateForUnknown()},
 					},
 					"v3_ms_dos_client_enabled": schema.BoolAttribute{
 						MarkdownDescription: "if permission checks are to be skipped for NFS WRITE calls from root/owner.",
 						Optional:            true,
 						Computed:            true,
 						Default:             booldefault.StaticBool(false),
-						PlanModifiers:       []planmodifier.Bool{boolplanmodifier.RequiresReplace()},
 					},
 				},
 			},
 			"id": schema.StringAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 		},
 	}
@@ -589,9 +565,12 @@ func (r *ProtocolsNfsServiceResource) Create(ctx context.Context, req resource.C
 		if !data.Protocol.V3Enabled.IsNull() {
 			body.Protocol.V3Enabled = data.Protocol.V3Enabled.ValueBool()
 		}
-		if !data.Protocol.V4IdDomain.IsNull() {
-			body.Protocol.V4IdDomain = data.Protocol.V4IdDomain.ValueString()
+		// avoid sending an empty string if config omits v4_id_domain
+		// set the planned state value so Terraform state captures the same default
+		if data.Protocol.V4IdDomain.IsNull() || data.Protocol.V4IdDomain.IsUnknown() || data.Protocol.V4IdDomain.ValueString() == "" {
+			data.Protocol.V4IdDomain = types.StringValue("defaultv4iddomain.com")
 		}
+		body.Protocol.V4IdDomain = data.Protocol.V4IdDomain.ValueString()
 		if !data.Protocol.V40Enabled.IsNull() {
 			body.Protocol.V40Enabled = data.Protocol.V40Enabled.ValueBool()
 		}
@@ -674,16 +653,22 @@ func (r *ProtocolsNfsServiceResource) Create(ctx context.Context, req resource.C
 			body.Transport.UDP = data.Transport.UDPEnabled.ValueBool()
 		}
 	}
-	if !data.VstorageEnabled.IsNull() {
-		body.VstorageEnabled = data.VstorageEnabled.ValueBool()
+	// if omitted/unknown in config, default to true
+	if data.VstorageEnabled.IsNull() || data.VstorageEnabled.IsUnknown() {
+		data.VstorageEnabled = types.BoolValue(true)
 	}
+	body.VstorageEnabled = data.VstorageEnabled.ValueBool()
 	if data.Windows != nil {
 		if !data.Windows.DefaultUser.IsNull() && cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
 			body.Windows.DefaultUser = data.Windows.DefaultUser.ValueString()
 		} else {
 			errors = append(errors, "windows.default_user")
 		}
-		if !data.Windows.MapUnknownUIDToDefaultUser.IsNull() && cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
+		// if omitted/unknown in config, default to false
+		if data.Windows.MapUnknownUIDToDefaultUser.IsNull() || data.Windows.MapUnknownUIDToDefaultUser.IsUnknown() {
+			data.Windows.MapUnknownUIDToDefaultUser = types.BoolValue(false)
+		}
+		if cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
 			body.Windows.MapUnknownUIDToDefaultUser = data.Windows.MapUnknownUIDToDefaultUser.ValueBool()
 		} else {
 			errors = append(errors, "windows.map_unknown_uid_to_default_user")
@@ -720,7 +705,7 @@ func (r *ProtocolsNfsServiceResource) Create(ctx context.Context, req resource.C
 	tflog.Trace(ctx, "created a resource")
 
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
@@ -767,7 +752,8 @@ func (r *ProtocolsNfsServiceResource) Update(ctx context.Context, req resource.U
 		if !data.Protocol.V3Enabled.IsNull() {
 			request.Protocol.V3Enabled = data.Protocol.V3Enabled.ValueBool()
 		}
-		if !data.Protocol.V4IdDomain.IsNull() {
+		// only send v4_id_domain when it's known in the plan
+		if !data.Protocol.V4IdDomain.IsNull() && !data.Protocol.V4IdDomain.IsUnknown() {
 			request.Protocol.V4IdDomain = data.Protocol.V4IdDomain.ValueString()
 		}
 		if !data.Protocol.V40Enabled.IsNull() {
@@ -856,7 +842,7 @@ func (r *ProtocolsNfsServiceResource) Update(ctx context.Context, req resource.U
 			request.Transport.UDP = data.Transport.UDPEnabled.ValueBool()
 		}
 	}
-	if !data.VstorageEnabled.IsNull() {
+	if !data.VstorageEnabled.IsNull() && !data.VstorageEnabled.IsUnknown() {
 		request.VstorageEnabled = data.VstorageEnabled.ValueBool()
 	}
 	if data.Windows != nil {
@@ -865,10 +851,12 @@ func (r *ProtocolsNfsServiceResource) Update(ctx context.Context, req resource.U
 		} else {
 			errors = append(errors, "windows.default_user")
 		}
-		if !data.Windows.MapUnknownUIDToDefaultUser.IsNull() && cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
-			request.Windows.MapUnknownUIDToDefaultUser = data.Windows.MapUnknownUIDToDefaultUser.ValueBool()
-		} else {
-			errors = append(errors, "windows.map_unknown_uid_to_default_user")
+		if !data.Windows.MapUnknownUIDToDefaultUser.IsNull() && !data.Windows.MapUnknownUIDToDefaultUser.IsUnknown() {
+			if cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
+				request.Windows.MapUnknownUIDToDefaultUser = data.Windows.MapUnknownUIDToDefaultUser.ValueBool()
+			} else {
+				errors = append(errors, "windows.map_unknown_uid_to_default_user")
+			}
 		}
 		if !data.Windows.V3MsDosClientEnabled.IsNull() && cluster.Version.Generation == 9 && cluster.Version.Major > 10 {
 			request.Windows.V3MsDosClientEnabled = data.Windows.V3MsDosClientEnabled.ValueBool()
@@ -890,7 +878,7 @@ func (r *ProtocolsNfsServiceResource) Update(ctx context.Context, req resource.U
 	}
 
 	// Save updated data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.

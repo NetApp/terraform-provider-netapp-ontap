@@ -42,9 +42,16 @@ type LunQoSPolicy struct {
 
 // LunSpace describes the data model for space.
 type LunSpace struct {
-	Size       int64 `mapstructure:"size,omitempty"`
-	Used       int64 `mapstructure:"used,omitempty"`
-	Allocation *bool  `mapstructure:"scsi_thin_provisioning_support_enabled,omitempty"`
+	Size       int64              `mapstructure:"size,omitempty"`
+	Used       int64              `mapstructure:"used,omitempty"`
+	Allocation *bool              `mapstructure:"scsi_thin_provisioning_support_enabled,omitempty"`
+	Guarantee  *LunSpaceGuarantee `mapstructure:"guarantee,omitempty"`
+}
+
+// LunSpaceGuarantee describes space guarantee state for LUNs.
+type LunSpaceGuarantee struct {
+	Requested *bool `mapstructure:"requested,omitempty"`
+	Reserved  *bool `mapstructure:"reserved,omitempty"`
 }
 
 // StorageLunResourceBodyDataModelONTAP describes the body data model using go types for mapping.
@@ -67,8 +74,9 @@ type volume struct {
 }
 
 type space struct {
-	Size       int64 `mapstructure:"size,omitempty"`
-	Allocation *bool  `mapstructure:"scsi_thin_provisioning_support_enabled,omitempty"`
+	Size       int64              `mapstructure:"size,omitempty"`
+	Allocation *bool              `mapstructure:"scsi_thin_provisioning_support_enabled,omitempty"`
+	Guarantee  *LunSpaceGuarantee `mapstructure:"guarantee,omitempty"`
 }
 
 // StorageLunDataSourceFilterModel describes the data source data model for queries.

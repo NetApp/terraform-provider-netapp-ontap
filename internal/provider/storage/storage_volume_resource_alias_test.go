@@ -16,19 +16,24 @@ func TestAccStorageVolumeResourceAlias(t *testing.T) {
 		PreCheck:                 func() { ntest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: ntest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Test non existant SVM
+			// Test non existent SVM
 			{
-				Config:      testAccStorageVolumeResourceConfigAlias("non-existant", "terraformTest4"),
+				Config:      testAccStorageVolumeResourceConfigAlias("non-existent", "terraformTest4"),
 				ExpectError: regexp.MustCompile("2621462"),
 			},
 			// test bad volume name
 			{
-				Config:      testAccStorageVolumeResourceConfigAlias("non-existant", "name-cant-have-dashes"),
+				Config:      testAccStorageVolumeResourceConfigAlias("non-existent", "name-cant-have-dashes"),
 				ExpectError: regexp.MustCompile("917888"),
+			},
+			// restore_to is update-only, throws error when used during create.
+			{
+				Config:      testAccStorageVolumeResourceConfigAliasWithRestore("tf_acc_svm", "tf_acc_volume_restore_snapshot"),
+				ExpectError: regexp.MustCompile("Invalid restore_to usage during create"),
 			},
 			// Read testing
 			{
-				Config: testAccStorageVolumeResourceConfigAlias("tf_acc_svm", "tf_acc_volume2"),
+				Config: testAccStorageVolumeResourceConfigAlias("tf_acc_svm", "tf_acc_volume3"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "name", "tf_acc_volume2"),
 					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "style", "flexvol"),
@@ -50,7 +55,7 @@ func TestAccStorageVolumeResourceAlias(t *testing.T) {
 				ImportState:   true,
 				ImportStateId: fmt.Sprintf("%s,%s,%s", "tf_acc_volume", "tf_acc_svm", "cluster5"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "name", "tf_acc_svm"),
+					resource.TestCheckResourceAttr("netapp-ontap_storage_volume_resource.example", "name", "tf_acc_volume"),
 				),
 			},
 		},

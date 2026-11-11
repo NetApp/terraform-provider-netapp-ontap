@@ -12,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -249,9 +251,13 @@ func (r *StorageFlexcacheResource) Schema(ctx context.Context, req resource.Sche
 				Optional:            true,
 			},
 			"use_tiered_aggregate": schema.BoolAttribute{
-				MarkdownDescription: "The state of the use tiered aggregates",
+				MarkdownDescription: "Whether to use a tiered aggregate. Only configurable at creation.",
 				Computed:            true,
 				Optional:            true,
+				Default:             booldefault.StaticBool(false),
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.RequiresReplace(),
+				},
 			},
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The ID of the volume",
@@ -299,7 +305,6 @@ func (r *StorageFlexcacheResource) Read(ctx context.Context, req resource.ReadRe
 	data.ConstituentsPerAggregate = types.Int64Value(int64(flexcache.ConstituentsPerAggregate))
 	data.DrCache = types.BoolValue(flexcache.DrCache)
 	data.GlobalFileLockingEnabled = types.BoolValue(flexcache.GlobalFileLockingEnabled)
-	data.UseTieredAggregate = types.BoolValue(flexcache.UseTieredAggregate)
 	data.ID = types.StringValue(flexcache.UUID)
 	elementTypes := map[string]attr.Type{
 		"type": types.StringType,
@@ -574,7 +579,6 @@ func (r *StorageFlexcacheResource) Create(ctx context.Context, req resource.Crea
 	data.ConstituentsPerAggregate = types.Int64Value(int64(flexcache.ConstituentsPerAggregate))
 	data.DrCache = types.BoolValue(flexcache.DrCache)
 	data.GlobalFileLockingEnabled = types.BoolValue(flexcache.GlobalFileLockingEnabled)
-	data.UseTieredAggregate = types.BoolValue(flexcache.UseTieredAggregate)
 	data.ID = types.StringValue(flexcache.UUID)
 
 	elementTypes := map[string]attr.Type{
