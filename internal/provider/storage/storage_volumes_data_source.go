@@ -249,13 +249,49 @@ func (d *StorageVolumesDataSource) Schema(ctx context.Context, req datasource.Sc
 								},
 							},
 						},
-
 						"snaplock": schema.SingleNestedAttribute{
 							Computed: true,
 							Attributes: map[string]schema.Attribute{
 								"type": schema.StringAttribute{
 									MarkdownDescription: "The SnapLock type of the volume",
 									Computed:            true,
+								},
+								"autocommit_period": schema.StringAttribute{
+									MarkdownDescription: `
+									Specifies the autocommit period for SnapLock volume.
+									Duration is in the ISO-8601 duration format (eg PY, PM, PD, PTH, PTM).
+									Examples are P30M, P10Y, PT1H, none. A duration that combines different periods is not supported.
+									`,
+									Computed: true,
+								},
+								"append_mode_enabled": schema.BoolAttribute{
+									MarkdownDescription: "Specifies if the volume append mode is enabled or disabled.",
+									Computed:            true,
+								},
+								"privileged_delete": schema.StringAttribute{
+									MarkdownDescription: `
+									On a SnapLock Enterprise (SLE) volume, a designated privileged user can selectively delete files irrespective of the retention time of the file.
+									SLE volumes can have privileged delete as disabled, enabled or permanently_disabled and for SnapLock Compliance (SLC) volumes it is always permanently_disabled.
+									`,
+									Computed: true,
+								},
+								"retention": schema.SingleNestedAttribute{
+									MarkdownDescription: "Default, maximum, and minumum retention periods for files committed to the WORM state on the volume.",
+									Computed:            true,
+									Attributes: map[string]schema.Attribute{
+										"default": schema.StringAttribute{
+											MarkdownDescription: "Default retention period that is applied to files while committing them to the WORM state without an associated retention period.",
+											Computed:            true,
+										},
+										"maximum": schema.StringAttribute{
+											MarkdownDescription: "Maximum allowed retention period for files committed to the WORM state on the volume.",
+											Computed:            true,
+										},
+										"minimum": schema.StringAttribute{
+											MarkdownDescription: "Minimum allowed retention period for files committed to the WORM state on the volume.",
+											Computed:            true,
+										},
+									},
 								},
 							},
 						},
@@ -394,6 +430,30 @@ func (d *StorageVolumesDataSource) Read(ctx context.Context, req datasource.Read
 			return
 		}
 
+		// Non-SnapLock volumes return snaplock.type only; retention and
+		// other fields are omitted.
+		var snapLock *StorageVolumeDataSourceSnapLock
+		if record.Snaplock != nil {
+			snapLock = &StorageVolumeDataSourceSnapLock{
+				Type:              types.StringValue(record.Snaplock.Type),
+				AutocommitPeriod:  types.StringValue(record.Snaplock.AutocommitPeriod),
+				AppendModeEnabled: types.BoolPointerValue(record.Snaplock.AppendModeEnabled),
+				PrivilegedDelete:  types.StringValue(record.Snaplock.PrivilegedDelete),
+			}
+			if record.Snaplock.Retention != nil {
+				snapLock.Retention = StorageVolumeDataSourceSnapLockRetention{
+					Default: types.StringValue(record.Snaplock.Retention.Default),
+					Maximum: types.StringValue(record.Snaplock.Retention.Maximum),
+					Minimum: types.StringValue(record.Snaplock.Retention.Minimum),
+				}
+			}
+		}
+
+		snapshotLockingEnabled := types.BoolNull()
+		if record.SnapshotLockingEnabled != nil {
+			snapshotLockingEnabled = types.BoolValue(*record.SnapshotLockingEnabled)
+		}
+
 		data.StorageVolumes[index] = StorageVolumeDataSourceModel{
 			CxProfileName:  types.String(data.CxProfileName),
 			Name:           types.StringValue(record.Name),
@@ -435,9 +495,7 @@ func (d *StorageVolumesDataSource) Read(ctx context.Context, req datasource.Read
 				Dedupe:      types.StringValue(record.Efficiency.Dedupe),
 				Compaction:  types.StringValue(record.Efficiency.Compaction),
 			},
-			SnapLock: &StorageVolumeDataSourceSnapLock{
-				SnaplockType: types.StringValue(record.Snaplock.Type),
-			},
+			SnapLock: snapLock,
 			Analytics: &StorageVolumeDataSourceAnalytics{
 				State: types.StringValue(record.Analytics.State),
 			},
@@ -449,7 +507,7 @@ func (d *StorageVolumesDataSource) Read(ctx context.Context, req datasource.Read
 				GrowThreshold:   types.Int64Value(int64(record.Autosize.GrowThreshold)),
 				Mode:            types.StringValue(record.Autosize.Mode),
 			},
-			SnapshotLockingEnabled: types.BoolValue(*record.SnapshotLockingEnabled),
+			SnapshotLockingEnabled: snapshotLockingEnabled,
 			ID:                     types.StringValue(record.UUID),
 			Tags:                   tagsSet,
 		}

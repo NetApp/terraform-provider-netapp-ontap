@@ -14,11 +14,13 @@ ENHANCEMENTS:
 - **netapp-ontap_lun resource**, **netapp-ontap_lun_data_source**,**netapp-ontap_name_luns_data_source**: Added `space` parameter ([#722](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/722))
 - **netapp-ontap_quota_rule**: New options under `space` added. ([#446](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/446))
 - **netapp-ontap_snapmirror**: Added support for snapmirror break and resync. ([#728](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/728))
+- **netapp-ontap_volume**: New options under `snaplock` added. ([#385](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/385))
 
 BUG FIXES:
 
 - **netapp-ontap_cluster_peer**: fixed issue where cluster peering between GCNV and ONTAP failed because both sides were using the same `ipspace`. Added `peer_ipspace` attribute to allow specifying separate IPspaces for local and peer clusters. ([#682](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/682))([#363](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/363))
 - **netapp-ontap_volume resource**: Rectified validator for `analytics.state`. ([#734](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/734))
+- **netapp-ontap_dns resource**: Fixed `skip_config_validation` causing persistent Terraform plan drift. ([#747](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/747))
 - **netapp-ontap_cluster_peer resource**: Fixed issue with import of source details by setting the option as optional. ([#744](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/744))
 
 # 2.7.1 (2026-07-30)

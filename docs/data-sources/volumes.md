@@ -147,7 +147,24 @@ Read-Only:
 
 Read-Only:
 
+- `append_mode_enabled` (Boolean) Specifies if the volume append mode is enabled or disabled.
+- `autocommit_period` (String) Specifies the autocommit period for SnapLock volume.
+						Duration is in the ISO-8601 duration format (eg PY, PM, PD, PTH, PTM).
+						Examples are P30M, P10Y, PT1H, none. A duration that combines different periods is not supported.
+- `privileged_delete` (String) On a SnapLock Enterprise (SLE) volume, a designated privileged user can selectively delete files irrespective of the retention time of the file.
+						SLE volumes can have privileged delete as disabled, enabled or permanently_disabled and for SnapLock Compliance (SLC) volumes it is always permanently_disabled.
+- `retention` (Attributes) Default, maximum, and minumum retention periods for files committed to the WORM state on the volume. (see [below for nested schema](#nestedatt--storage_volumes--snaplock--retention))
 - `type` (String) The SnapLock type of the volume
+
+<a id="nestedatt--storage_volumes--snaplock--retention"></a>
+
+### Nested Schema for `storage_volumes.snaplock.retention`
+
+Read-Only:
+
+- `default` (String) Default retention period that is applied to files while committing them to the WORM state without an associated retention period.
+- `maximum` (String) Maximum allowed retention period for files committed to the WORM state on the volume.
+- `minimum` (String) Minimum allowed retention period for files committed to the WORM state on the volume.
 
 <a id="nestedatt--storage_volumes--space"></a>
 

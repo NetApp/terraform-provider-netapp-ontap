@@ -15,7 +15,7 @@ type NameServicesDNSGetDataModelONTAP struct {
 	Domains              []string          `mapstructure:"domains"`
 	Servers              []string          `mapstructure:"servers"`
 	SVM                  SvmDataModelONTAP `mapstructure:"svm"`
-	SkipConfigValidation bool              `mapstructure:"skip_config_validation"`
+	SkipConfigValidation bool              `mapstructure:"skip_config_validation,omitempty"`
 	DynamicDNS           *DynamicDNS       `mapstructure:"dynamic_dns,omitempty"`
 }
 
