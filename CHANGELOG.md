@@ -22,6 +22,7 @@ BUG FIXES:
 - **netapp-ontap_volume resource**: Rectified validator for `analytics.state`. ([#734](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/734))
 - **netapp-ontap_dns resource**: Fixed `skip_config_validation` causing persistent Terraform plan drift. ([#747](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/747))
 - **netapp-ontap_cluster_peer resource**: Fixed issue with import of source details by setting the option as optional. ([#744](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/744))
+- **netapp-ontap_snapshot_policy resource**: Fixed issued with importing snapshot policy name. ([#745](https://github.com/NetApp/terraform-provider-netapp-ontap/issues/745))
 
 # 2.7.1 (2026-07-30)
 
