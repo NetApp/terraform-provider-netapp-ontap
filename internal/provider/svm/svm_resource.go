@@ -7,12 +7,15 @@ import (
 
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/provider/connection"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mitchellh/mapstructure"
 	"github.com/netapp/terraform-provider-netapp-ontap/internal/interfaces"
@@ -57,12 +60,23 @@ type SvmResourceModel struct {
 	Aggregates     []Aggregate  `tfsdk:"aggregates"`
 	MaxVolumes     types.String `tfsdk:"max_volumes"`
 	StorageLimit   types.Int64  `tfsdk:"storage_limit"`
+	Web            types.Object `tfsdk:"web"`
 	ID             types.String `tfsdk:"id"`
 }
 
 // Aggregate describes the resource data model.
 type Aggregate struct {
 	Name string `tfsdk:"name"`
+}
+
+// SvmWebResourceModel describes the web block.
+// Certificate is the certificate UUID supplied by the user.
+type SvmWebResourceModel struct {
+	Certificate types.String `tfsdk:"certificate"`
+}
+
+var svmWebAttrTypes = map[string]attr.Type{
+	"certificate": types.StringType,
 }
 
 // Metadata returns the resource type name.
@@ -124,6 +138,27 @@ func (r *SvmResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 			"storage_limit": schema.Int64Attribute{
 				MarkdownDescription: "Maximum storage permitted on svm, in bytes",
 				Optional:            true,
+			},
+			"web": schema.SingleNestedAttribute{
+				MarkdownDescription: "Web services security configuration for the SVM. Requires ONTAP 9.10 or later.",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
+				Attributes: map[string]schema.Attribute{
+					"certificate": schema.StringAttribute{
+						MarkdownDescription: `
+						UUID of certificate used by cluster and node management interfaces for TLS connection requests.
+						The certificate must be of type 'server'.
+						`,
+						Optional: true,
+						Computed: true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
+					},
+				},
 			},
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -223,6 +258,7 @@ func (r *SvmResource) Create(ctx context.Context, req resource.CreateRequest, re
 		// error reporting done inside NewClient
 		return
 	}
+
 	svm, err := interfaces.CreateSvm(
 		errorHandler,
 		*client,
@@ -235,6 +271,9 @@ func (r *SvmResource) Create(ctx context.Context, req resource.CreateRequest, re
 	}
 	// data.UUID = types.StringValue(svm.UUID)
 	data.ID = types.StringValue(svm.UUID)
+	if data.Web.IsUnknown() {
+		data.Web = types.ObjectNull(svmWebAttrTypes)
+	}
 	tflog.Trace(ctx, "created a resource")
 
 	// Save data into Terraform state
@@ -321,6 +360,27 @@ func (r *SvmResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		data.MaxVolumes = types.StringValue(svm.MaxVolumes)
 	}
 
+	if (cluster.Version.Generation == 9 && cluster.Version.Major >= 10) || cluster.Version.Generation > 9 {
+		web, err := interfaces.GetSvmWeb(errorHandler, *client, svm.UUID)
+		if err != nil {
+			return
+		}
+		if web != nil && web.Certificate != nil && web.Certificate.UUID != "" {
+			objectValue, diags := types.ObjectValue(svmWebAttrTypes, map[string]attr.Value{
+				"certificate": types.StringValue(web.Certificate.UUID),
+			})
+			resp.Diagnostics.Append(diags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+			data.Web = objectValue
+		} else {
+			data.Web = types.ObjectNull(svmWebAttrTypes)
+		}
+	} else {
+		data.Web = types.ObjectNull(svmWebAttrTypes)
+	}
+
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -346,6 +406,52 @@ func (r *SvmResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	client, err := connection.GetRestClient(errorHandler, r.config, data.CxProfileName)
 	if err != nil {
 		return
+	}
+
+	planCertificate := ""
+	planSet := false
+	if !data.Web.IsNull() && !data.Web.IsUnknown() {
+		var web SvmWebResourceModel
+		resp.Diagnostics.Append(data.Web.As(ctx, &web, basetypes.ObjectAsOptions{})...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if !web.Certificate.IsNull() && !web.Certificate.IsUnknown() {
+			planCertificate = web.Certificate.ValueString()
+			planSet = true
+		}
+	}
+	stateCertificate := ""
+	stateSet := false
+	if !state.Web.IsNull() && !state.Web.IsUnknown() {
+		var web SvmWebResourceModel
+		resp.Diagnostics.Append(state.Web.As(ctx, &web, basetypes.ObjectAsOptions{})...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if !web.Certificate.IsNull() && !web.Certificate.IsUnknown() {
+			stateCertificate = web.Certificate.ValueString()
+			stateSet = true
+		}
+	}
+	if planSet && planCertificate == "" {
+		errorHandler.MakeAndReportError("update web.certificate", "web.certificate cannot be updated with empty string")
+		return
+	}
+	updateCertificate := planSet && (!stateSet || planCertificate != stateCertificate)
+	if updateCertificate {
+		cluster, err := interfaces.GetCluster(errorHandler, *client)
+		if err != nil {
+			return
+		}
+		if cluster == nil {
+			errorHandler.MakeAndReportError("No cluster found", "cluster not found")
+			return
+		}
+		if !((cluster.Version.Generation == 9 && cluster.Version.Major >= 10) || cluster.Version.Generation > 9) {
+			errorHandler.MakeAndReportError("web.certificate requires ONTAP 9.10 or later", "svm/svms/{svm.uuid}/web is not supported on this ONTAP version")
+			return
+		}
 	}
 
 	var request interfaces.SvmResourceModel
@@ -428,6 +534,18 @@ func (r *SvmResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	err = interfaces.UpdateSvm(errorHandler, *client, request, state.ID.ValueString(), setAggrEmpty, setCommentEmpty)
 	if err != nil {
 		return
+	}
+	if updateCertificate {
+		webRequest := interfaces.SvmWeb{
+			Certificate: &interfaces.SvmWebCertificate{UUID: planCertificate},
+		}
+		err = interfaces.UpdateSvmWeb(errorHandler, *client, webRequest, state.ID.ValueString())
+		if err != nil {
+			return
+		}
+	}
+	if data.Web.IsUnknown() {
+		data.Web = types.ObjectNull(svmWebAttrTypes)
 	}
 
 	// Save updated data into Terraform state
