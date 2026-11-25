@@ -109,7 +109,8 @@ resource "netapp-ontap_svm_resource" "example" {
   language = "en_us.utf_8"
   aggregates = [
     {
-      name = "tf_acc_aggr"
+      #name = "tf_acc_aggr"
+	  name = "NSOL_NetApp_A70_T19U05a_NVME_SSD_1"
     },
   ]
   max_volumes = "unlimited"

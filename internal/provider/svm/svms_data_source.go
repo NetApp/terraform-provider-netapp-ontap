@@ -116,6 +116,16 @@ func (d *SvmsDataSource) Schema(ctx context.Context, req datasource.SchemaReques
 							MarkdownDescription: "Storage limit for the SVM in bytes. May not be available for GCNV.",
 							Computed:            true,
 						},
+						"web": schema.SingleNestedAttribute{
+							MarkdownDescription: "Web services security configuration for the SVM",
+							Computed:            true,
+							Attributes: map[string]schema.Attribute{
+								"certificate": schema.StringAttribute{
+									MarkdownDescription: "UUID of certificate used by cluster and node management interfaces for TLS connection requests.",
+									Computed:            true,
+								},
+							},
+						},
 						"id": schema.StringAttribute{
 							Computed: true,
 						},
@@ -213,6 +223,17 @@ func (d *SvmsDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			Aggregates:     aggregates,
 			MaxVolumes:     types.StringValue(record.MaxVolumes),
 			StorageLimit:   storageLimit,
+		}
+		if (cluster.Version.Generation == 9 && cluster.Version.Major >= 10) || cluster.Version.Generation > 9 {
+			web, err := interfaces.GetSvmWeb(errorHandler, *client, record.UUID)
+			if err != nil {
+				return
+			}
+			if web != nil && web.Certificate != nil && web.Certificate.UUID != "" {
+				data.Svms[index].Web = &SvmWebDataSourceModel{
+					Certificate: types.StringValue(web.Certificate.UUID),
+				}
+			}
 		}
 	}
 
