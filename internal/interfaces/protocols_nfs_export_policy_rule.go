@@ -19,10 +19,10 @@ type ExportpolicyRuleResourceBodyDataModelONTAP struct {
 	Protocols           []string            `mapstructure:"protocols,omitempty"`
 	AnonymousUser       string              `mapstructure:"anonymous_user,omitempty"`
 	Superuser           []string            `mapstructure:"superuser,omitempty"`
-	AllowDeviceCreation bool                `mapstructure:"allow_device_creation,omitempty"`
+	AllowDeviceCreation *bool               `mapstructure:"allow_device_creation,omitempty"`
 	NtfsUnixSecurity    string              `mapstructure:"ntfs_unix_security,omitempty"`
 	ChownMode           string              `mapstructure:"chown_mode,omitempty"`
-	AllowSuid           bool                `mapstructure:"allow_suid,omitempty"`
+	AllowSuid           *bool               `mapstructure:"allow_suid,omitempty"`
 	Index               int64               `mapstructure:"index,omitempty"`
 }
 

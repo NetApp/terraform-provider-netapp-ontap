@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
@@ -149,7 +148,6 @@ func (r *ExportPolicyRuleResource) Schema(ctx context.Context, req resource.Sche
 				MarkdownDescription: "Allow Creation of Devices",
 				Optional:            true,
 				Computed:            true,
-				Default:             booldefault.StaticBool(true),
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.UseStateForUnknown(),
 				},
@@ -176,7 +174,6 @@ func (r *ExportPolicyRuleResource) Schema(ctx context.Context, req resource.Sche
 				MarkdownDescription: "Honor SetUID Bits in SETATTR",
 				Optional:            true,
 				Computed:            true,
-				Default:             booldefault.StaticBool(true),
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.UseStateForUnknown(),
 				},
@@ -191,6 +188,9 @@ func (r *ExportPolicyRuleResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"id": schema.StringAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 		},
 	}
@@ -298,11 +298,13 @@ func (r *ExportPolicyRuleResource) Create(ctx context.Context, req resource.Crea
 	if !data.AnonymousUser.IsNull() {
 		request.AnonymousUser = data.AnonymousUser.ValueString()
 	}
-	if !data.AllowDeviceCreation.IsNull() {
-		request.AllowDeviceCreation = data.AllowDeviceCreation.ValueBool()
+	if !data.AllowDeviceCreation.IsNull() && !data.AllowDeviceCreation.IsUnknown() {
+		allowDeviceCreationValue := data.AllowDeviceCreation.ValueBool()
+		request.AllowDeviceCreation = &allowDeviceCreationValue
 	}
-	if !data.AllowSuid.IsNull() {
-		request.AllowSuid = data.AllowSuid.ValueBool()
+	if !data.AllowSuid.IsNull() && !data.AllowSuid.IsUnknown() {
+		allowSuidValue := data.AllowSuid.ValueBool()
+		request.AllowSuid = &allowSuidValue
 	}
 	if !data.ChownMode.IsNull() {
 		request.ChownMode = data.ChownMode.ValueString()
@@ -326,14 +328,22 @@ func (r *ExportPolicyRuleResource) Create(ctx context.Context, req resource.Crea
 		errorHandler.MakeAndReportError("No export policy found", fmt.Sprintf("export policy %s not found.", data.ExportPolicyName.ValueString()))
 		return
 	}
-
+	tflog.Debug(ctx, fmt.Sprintf("My create request: %#v", request))
 	exportPolicyRule, err := interfaces.CreateExportPolicyRule(errorHandler, *client, request, strconv.Itoa(exportPolicy.ID))
 	if err != nil {
 		return
 	}
 
+	restInfo, err := interfaces.GetExportPolicyRule(errorHandler, *client, strconv.Itoa(exportPolicy.ID), exportPolicyRule.Index)
+	if err != nil {
+		// error reporting done inside GetExportPolicyRule
+		return
+	}
+
 	data.Index = types.Int64Value(exportPolicyRule.Index)
 	data.ExportPolicyID = types.StringValue(strconv.Itoa(exportPolicy.ID))
+	data.AllowDeviceCreation = types.BoolValue(restInfo.AllowDeviceCreation)
+	data.AllowSuid = types.BoolValue(restInfo.AllowSuid)
 	data.ID = types.StringValue(fmt.Sprintf("%s_%s_%s_%d", data.CxProfileName.ValueString(), data.SVMName.ValueString(), data.ExportPolicyName.ValueString(), exportPolicyRule.Index))
 	tflog.Trace(ctx, "created a resource")
 
@@ -476,11 +486,13 @@ func (r *ExportPolicyRuleResource) Update(ctx context.Context, req resource.Upda
 	if !data.AnonymousUser.IsNull() {
 		request.AnonymousUser = data.AnonymousUser.ValueString()
 	}
-	if !data.AllowDeviceCreation.IsNull() {
-		request.AllowDeviceCreation = data.AllowDeviceCreation.ValueBool()
+	if !data.AllowDeviceCreation.IsNull() && !data.AllowDeviceCreation.IsUnknown() {
+		allowDeviceCreationValue := data.AllowDeviceCreation.ValueBool()
+		request.AllowDeviceCreation = &allowDeviceCreationValue
 	}
-	if !data.AllowSuid.IsNull() {
-		request.AllowSuid = data.AllowSuid.ValueBool()
+	if !data.AllowSuid.IsNull() && !data.AllowSuid.IsUnknown() {
+		allowSuidValue := data.AllowSuid.ValueBool()
+		request.AllowSuid = &allowSuidValue
 	}
 	if !data.ChownMode.IsNull() {
 		request.ChownMode = data.ChownMode.ValueString()
@@ -493,7 +505,6 @@ func (r *ExportPolicyRuleResource) Update(ctx context.Context, req resource.Upda
 	if err != nil {
 		return
 	}
-	data.ID = types.StringValue(fmt.Sprintf("%s_%s_%s_%d", data.CxProfileName.ValueString(), data.SVMName.ValueString(), data.ExportPolicyName.ValueString(), data.Index.ValueInt64()))
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
