@@ -104,6 +104,9 @@ jobs:
           TF_ACC_NETAPP_CIFS_ADDOMAIN_PASS: ${{ secrets.TF_ACC_NETAPP_CIFS_ADDOMAIN_PASS }}
         run: |
           export GOFLAGS=-buildvcs=false
+          # The provider has no cgo code. Disabling cgo avoids building runtime/cgo,
+          # which fails on the self-hosted runner (old binutils `as` rejects --gdwarf-5).
+          export CGO_ENABLED=0
           export TF_ACC=1
           export TMPDIR=~/tmp/
           # Use the Terraform binary installed by setup-terraform to avoid the
